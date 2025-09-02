@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, FileText, MessageSquare } from 'lucide-react';
+import { MoreHorizontal, FileText } from 'lucide-react';
 import type { Order } from '@/lib/orders-service';
 
 interface VendorOrderActionsProps {
@@ -33,10 +33,6 @@ export function VendorOrderActions({ order, onViewDetails }: VendorOrderActionsP
         <DropdownMenuItem onClick={onViewDetails}>
             <FileText className="mr-2 h-4 w-4" />
             View Details
-        </DropdownMenuItem>
-         <DropdownMenuItem>
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Contact Customer
         </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
