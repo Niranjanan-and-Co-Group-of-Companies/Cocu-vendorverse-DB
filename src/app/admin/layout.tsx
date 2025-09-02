@@ -46,6 +46,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import React from 'react';
 import { getPendingProductCount } from '@/lib/products-service';
 import { getOpenTicketCount } from '@/lib/admin/support-service';
+import { AdminNotificationDropdown } from '@/components/admin/layout/admin-notification-dropdown';
 
 function CustomSidebarTrigger() {
     const { open, toggleSidebar } = useSidebar();
@@ -318,9 +319,14 @@ export default function AdminLayout({
     <SidebarProvider>
         <AdminSidebar />
         <SidebarInset>
-            <header className="flex items-center gap-4 border-b p-2">
-                <SidebarTrigger className="md:hidden"/>
-                <h1 className="font-headline text-lg font-semibold">{pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard'}</h1>
+            <header className="flex items-center justify-between gap-4 border-b p-2">
+                <div className="flex items-center gap-4">
+                    <SidebarTrigger className="md:hidden"/>
+                    <h1 className="font-headline text-lg font-semibold">{pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard'}</h1>
+                </div>
+                 <div className="flex items-center gap-2">
+                    <AdminNotificationDropdown />
+                 </div>
             </header>
             <main className="flex-1 p-4 md:p-6">{children}</main>
         </SidebarInset>
