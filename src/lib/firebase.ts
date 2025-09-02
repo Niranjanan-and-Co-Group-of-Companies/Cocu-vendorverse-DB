@@ -1,3 +1,4 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
@@ -10,6 +11,7 @@ const firebaseConfig = {
   storageBucket: 'vendorverse-rhu2g.appspot.com',
   apiKey: 'AIzaSyBuVM0FSd3fZGrDzGOqdfAlpQeNZSSUzV0',
   authDomain: 'vendorverse-rhu2g.firebaseapp.com',
+  databaseURL: "https://vendorverse-rhu2g.firebaseio.com",
   measurementId: '',
   messagingSenderId: '449199253707',
 };
