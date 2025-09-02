@@ -58,19 +58,21 @@ export default function Home() {
                   <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3">
                     <Card className="overflow-hidden group h-full flex flex-col">
                       <CardHeader className="p-0 relative">
-                        {product.featured && <Badge className="absolute top-2 left-2 z-10">Featured</Badge>}
-                         <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
-                            <Heart className="h-4 w-4" />
-                            <span className="sr-only">Add to Wishlist</span>
-                          </Button>
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          width={600}
-                          height={400}
-                          className="object-cover aspect-video group-hover:scale-105 transition-transform duration-300"
-                          data-ai-hint="gift product"
-                        />
+                        <div className="overflow-hidden">
+                          {product.featured && <Badge className="absolute top-2 left-2 z-10">Featured</Badge>}
+                          <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
+                              <Heart className="h-4 w-4" />
+                              <span className="sr-only">Add to Wishlist</span>
+                            </Button>
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            width={600}
+                            height={450}
+                            className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
+                            data-ai-hint="gift product"
+                          />
+                        </div>
                       </CardHeader>
                       <CardContent className="p-4 flex flex-col flex-grow">
                          <h3 className="text-lg font-bold font-headline">{product.name}</h3>
