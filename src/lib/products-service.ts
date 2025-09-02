@@ -279,6 +279,11 @@ export async function updateProductStatus(productId: number, status: ProductStat
     await updateDoc(productRef, { status });
 }
 
+export async function updateProductInventory(productId: number, stock: number, inventoryBuffer: number) {
+    const productRef = doc(db, 'products', String(productId));
+    await updateDoc(productRef, { stock, inventoryBuffer });
+}
+
 
 // ---- New Functions for Admin Product Approval ----
 
