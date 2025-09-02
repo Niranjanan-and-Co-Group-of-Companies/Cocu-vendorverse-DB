@@ -131,7 +131,7 @@ export default function Home() {
                         <div className="flex items-end justify-between mt-4">
                           <p className="text-xl font-bold">{product.price}</p>
                            <div className="flex gap-2">
-                             <Button size="sm" variant="outline">Buy Now</Button>
+                             <Button size="sm" variant="outline">Customise</Button>
                             <Button size="sm">
                               <ShoppingCart className="mr-2 h-4 w-4" />
                               Add
