@@ -127,79 +127,62 @@ export default function VendorDashboard() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader className="flex flex-row items-center">
-              <div className="grid gap-2">
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>
-                  A log of recent sales, messages, and other store events.
-                </CardDescription>
-              </div>
-              <Button asChild size="sm" className="ml-auto gap-1">
-                <Link href="/vendor/personalized/orders">
-                  View All
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Event</TableHead>
-                    <TableHead className="text-right">Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentActivities.map((activity, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div className="flex items-start gap-4">
-                          <Avatar className="hidden h-10 w-10 sm:flex">
-                            {activity.avatar && <AvatarImage src={activity.avatar} alt="Avatar" data-ai-hint="avatar" />}
-                            <AvatarFallback>
-                                {activity.type === 'Stock Alert' ? <Package /> : activity.customer.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="grid gap-1">
-                            <div className="font-medium">{activity.details}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {activity.customer !== 'System' && `From ${activity.customer} •`} {activity.type}
-                            </div>
-                            {activity.actionable && (
-                                <div className="flex gap-2 mt-1">
-                                    <Button size="sm" variant="outline"><Check className="mr-2"/> Approve</Button>
-                                    <Button size="sm" variant="destructive-outline"><X className="mr-2"/> Reject</Button>
-                                </div>
-                            )}
+      <div className="grid grid-cols-1 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center">
+            <div className="grid gap-2">
+              <CardTitle>Recent Activity</CardTitle>
+              <CardDescription>
+                A log of recent sales, messages, and other store events.
+              </CardDescription>
+            </div>
+            <Button asChild size="sm" className="ml-auto gap-1">
+              <Link href="/vendor/personalized/orders">
+                View All
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Event</TableHead>
+                  <TableHead className="text-right">Time</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentActivities.map((activity, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div className="flex items-start gap-4">
+                        <Avatar className="hidden h-10 w-10 sm:flex">
+                          {activity.avatar && <AvatarImage src={activity.avatar} alt="Avatar" data-ai-hint="avatar" />}
+                          <AvatarFallback>
+                              {activity.type === 'Stock Alert' ? <Package /> : activity.customer.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="grid gap-1">
+                          <div className="font-medium">{activity.details}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {activity.customer !== 'System' && `From ${activity.customer} •`} {activity.type}
                           </div>
+                          {activity.actionable && (
+                              <div className="flex gap-2 mt-1">
+                                  <Button size="sm" variant="outline"><Check className="mr-2"/> Approve</Button>
+                                  <Button size="sm" variant="destructive-outline"><X className="mr-2"/> Reject</Button>
+                              </div>
+                          )}
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground">{activity.time}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
-        <div>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Product Page Templates</CardTitle>
-                    <CardDescription>
-                        Enhance your sales by creating compelling product pages with our advanced templates.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button className="w-full">
-                       <Book className="mr-2"/> Explore Templates
-                    </Button>
-                </CardContent>
-            </Card>
-        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-muted-foreground">{activity.time}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
