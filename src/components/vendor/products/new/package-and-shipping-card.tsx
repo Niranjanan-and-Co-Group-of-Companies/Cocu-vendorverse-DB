@@ -28,7 +28,7 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
     onFieldChange('preparationTime', { ...preparationTime, [type]: parseInt(value, 10) || 0 });
   };
 
-  const isPrepTimeInvalid = preparationTime.min > 0 && preparationTime.max > 0 && (preparationTime.max !== preparationTime.min + 1);
+  const isPrepTimeInvalid = preparationTime.max !== preparationTime.min + 1;
 
   return (
     <Card>
