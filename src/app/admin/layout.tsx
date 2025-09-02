@@ -175,6 +175,14 @@ function AdminSidebar() {
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/chat-logs')} tooltip={{ children: 'Chat Logs' }}>
+                        <Link href="/admin/chat-logs">
+                        <MessageSquare />
+                        <span>Chat Logs</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/bids')} tooltip={{ children: 'Bids' }}>
                         <Link href="/admin/bids">
                         <Gavel />
@@ -211,14 +219,6 @@ function AdminSidebar() {
                         <Link href="/admin/marketing">
                         <Megaphone />
                         <span>Marketing</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/chat-logs')} tooltip={{ children: 'Chat Logs' }}>
-                        <Link href="/admin/chat-logs">
-                        <MessageSquare />
-                        <span>Chat Logs</span>
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
