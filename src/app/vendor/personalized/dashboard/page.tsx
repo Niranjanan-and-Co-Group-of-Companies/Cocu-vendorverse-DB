@@ -32,57 +32,46 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
+import { onDashboardStatsUpdate, onRecentActivityUpdate, type DashboardStats, type VendorNotification } from '@/lib/vendor/dashboard-service';
+import { formatDistanceToNow } from 'date-fns';
 
-// Mock data for the dashboard
-const stats = {
-  totalRevenue: 45231.89,
-  revenueChange: 20.1,
-  activeOrders: 12,
-  ordersChange: 3,
-  newMessages: 5,
-  activeListings: 78,
+const iconMap: { [key: string]: React.ElementType } = {
+  NEW_ORDER: Package,
+  NEW_MESSAGE: MessageSquare,
+  STOCK_ALERT: Activity,
+  ACTION_REQUIRED: Users,
 };
 
-const recentActivities = [
-  {
-    customer: 'Olivia Martin',
-    avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026704d',
-    type: 'New Order',
-    details: 'Order #3124 for Artisanal Chocolate Box',
-    time: '5m ago',
-  },
-  {
-    customer: 'Jackson Lee',
-    avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026705d',
-    type: 'New Message',
-    details: 'Question about Custom Engraved Pen',
-    time: '15m ago',
-  },
-  {
-    customer: 'Liam Brown',
-    avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026709d',
-    type: 'Action Required',
-    details: 'Customer wants to buy "Handcrafted Leather Wallet". Please approve.',
-    time: '30m ago',
-    actionable: true,
-  },
-  {
-    customer: 'Isabella Nguyen',
-    avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026706d',
-    type: 'New Order',
-    details: 'Order #3123 for Luxury Spa Set',
-    time: '1h ago',
-  },
-  {
-    customer: 'System',
-    avatar: '',
-    type: 'Stock Alert',
-    details: 'Handcrafted Leather Wallet is low on stock (3 left)',
-    time: '2h ago',
-  },
-];
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+const formatPercentage = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
 
 export default function VendorDashboard() {
+  const [stats, setStats] = React.useState<DashboardStats | null>(null);
+  const [recentActivities, setRecentActivities] = React.useState<VendorNotification[]>([]);
+  const [loadingStats, setLoadingStats] = React.useState(true);
+  const [loadingActivities, setLoadingActivities] = React.useState(true);
+  
+  // Hardcoded vendor ID for now. In a real app, this would come from auth context.
+  const VENDOR_ID = "vendor-gourmet-delights"; 
+
+  React.useEffect(() => {
+    const unsubStats = onDashboardStatsUpdate(VENDOR_ID, (newStats) => {
+      setStats(newStats);
+      setLoadingStats(false);
+    });
+
+    const unsubActivities = onRecentActivityUpdate(VENDOR_ID, (activities) => {
+        setRecentActivities(activities);
+        setLoadingActivities(false);
+    });
+
+    return () => {
+      unsubStats();
+      unsubActivities();
+    };
+  }, [VENDOR_ID]);
+
   return (
     <div className="flex flex-col gap-6">
       {/* Section 1: Analytics Cards */}
@@ -93,8 +82,17 @@ export default function VendorDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+{stats.revenueChange}% from last month</p>
+            {loadingStats ? (
+                <>
+                    <Skeleton className="h-8 w-2/3 mb-2" />
+                    <Skeleton className="h-4 w-1/2" />
+                </>
+            ) : (
+                <>
+                    <div className="text-2xl font-bold">{formatCurrency(stats?.totalRevenue ?? 0)}</div>
+                    <p className="text-xs text-muted-foreground">{formatPercentage(stats?.revenueChange ?? 0)} from last month</p>
+                </>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -103,8 +101,17 @@ export default function VendorDashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeOrders}</div>
-            <p className="text-xs text-muted-foreground">+{stats.ordersChange} from yesterday</p>
+             {loadingStats ? (
+                <>
+                    <Skeleton className="h-8 w-1/2 mb-2" />
+                    <Skeleton className="h-4 w-2/3" />
+                </>
+            ) : (
+                <>
+                    <div className="text-2xl font-bold">{stats?.activeOrders ?? 0}</div>
+                    <p className="text-xs text-muted-foreground">+{stats?.newOrdersToday ?? 0} from yesterday</p>
+                </>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -113,8 +120,17 @@ export default function VendorDashboard() {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{stats.newMessages}</div>
-            <p className="text-xs text-muted-foreground">2 need a reply</p>
+             {loadingStats ? (
+                <>
+                    <Skeleton className="h-8 w-1/2 mb-2" />
+                    <Skeleton className="h-4 w-2/3" />
+                </>
+            ) : (
+                <>
+                    <div className="text-2xl font-bold">+{stats?.unreadMessages ?? 0}</div>
+                    <p className="text-xs text-muted-foreground">{stats?.actionableMessages ?? 0} need a reply</p>
+                </>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -123,8 +139,17 @@ export default function VendorDashboard() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeListings}</div>
-            <p className="text-xs text-muted-foreground">+2 since last hour</p>
+             {loadingStats ? (
+                <>
+                    <Skeleton className="h-8 w-1/2 mb-2" />
+                    <Skeleton className="h-4 w-2/3" />
+                </>
+            ) : (
+                <>
+                    <div className="text-2xl font-bold">{stats?.activeListings ?? 0}</div>
+                    <p className="text-xs text-muted-foreground">{stats?.draftListings ?? 0} in draft</p>
+                </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -147,46 +172,71 @@ export default function VendorDashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Event</TableHead>
-                  <TableHead className="text-right">Time</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentActivities.map((activity, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <div className="flex items-start gap-4">
-                        <Avatar className="hidden h-10 w-10 sm:flex">
-                          {activity.avatar && <AvatarImage src={activity.avatar} alt="Avatar" data-ai-hint="avatar" />}
-                          <AvatarFallback>
-                              {activity.type === 'Stock Alert' ? <Package /> : activity.customer.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="grid gap-1">
-                          <div className="font-medium">{activity.details}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {activity.customer !== 'System' && `From ${activity.customer} •`} {activity.type}
-                          </div>
-                          {activity.actionable && (
-                              <div className="flex gap-2 mt-1">
-                                  <Button size="sm" variant="outline"><Check className="mr-2"/> Approve</Button>
-                                  <Button size="sm" variant="destructive-outline"><X className="mr-2"/> Reject</Button>
-                              </div>
-                          )}
+             {loadingActivities ? (
+                 <div className="space-y-4">
+                    {Array.from({length: 5}).map((_, i) => (
+                        <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="h-10 w-10 rounded-full" />
+                            <div className="space-y-1 flex-grow">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-3 w-1/2" />
+                            </div>
+                            <Skeleton className="h-4 w-16" />
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground">{activity.time}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    ))}
+                 </div>
+            ) : recentActivities.length === 0 ? (
+                <div className="text-center text-muted-foreground py-12">
+                    <p>No recent activity.</p>
+                </div>
+            ) : (
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Event</TableHead>
+                    <TableHead className="text-right">Time</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {recentActivities.map((activity) => {
+                        const Icon = iconMap[activity.type] || Activity;
+                        return (
+                        <TableRow key={activity.id}>
+                            <TableCell>
+                            <div className="flex items-start gap-4">
+                                <Avatar className="hidden h-10 w-10 sm:flex">
+                                {activity.actor?.avatar && <AvatarImage src={activity.actor.avatar} alt="Avatar" data-ai-hint="avatar" />}
+                                <AvatarFallback>
+                                    <Icon className="h-5 w-5" />
+                                </AvatarFallback>
+                                </Avatar>
+                                <div className="grid gap-1">
+                                <div className="font-medium">{activity.text}</div>
+                                <div className="text-xs text-muted-foreground">
+                                    {activity.actor && `${activity.actor.name} • `} {activity.type.replace(/_/g, ' ')}
+                                </div>
+                                {activity.actionable && (
+                                    <div className="flex gap-2 mt-1">
+                                        <Button size="sm" variant="outline"><Check className="mr-2"/> Approve</Button>
+                                        <Button size="sm" variant="destructive-outline"><X className="mr-2"/> Reject</Button>
+                                    </div>
+                                )}
+                                </div>
+                            </div>
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-muted-foreground">
+                                {activity.timestamp && formatDistanceToNow(activity.timestamp.toDate(), { addSuffix: true })}
+                            </TableCell>
+                        </TableRow>
+                        )}
+                    )}
+                </TableBody>
+                </Table>
+            )}
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
+
