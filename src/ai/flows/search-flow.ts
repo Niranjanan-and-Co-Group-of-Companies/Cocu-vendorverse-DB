@@ -13,11 +13,16 @@ import { z } from 'genkit';
 
 const SearchSuggestionsInputSchema = z.object({
   query: z.string().describe('The partial search query from the user.'),
+  products: z.array(z.object({
+      name: z.string(),
+      category: z.string().optional(),
+      vendor: z.string(),
+  })).describe("A list of available products to search against.").optional(),
 });
 export type SearchSuggestionsInput = z.infer<typeof SearchSuggestionsInputSchema>;
 
 const SearchSuggestionsOutputSchema = z.object({
-  suggestions: z.array(z.string()).describe('A list of 5-7 relevant search suggestions based on the user query for an e-commerce gift marketplace. The suggestions should include potential product names, categories, and vendors.'),
+  suggestions: z.array(z.string()).describe('A list of 5-7 relevant search suggestions based on the user query and the provided product list for an e-commerce gift marketplace. The suggestions should include potential product names, categories, and vendors.'),
 });
 export type SearchSuggestionsOutput = z.infer<typeof SearchSuggestionsOutputSchema>;
 
@@ -33,7 +38,17 @@ const prompt = ai.definePrompt({
 
 Analyze the user's query: {{{query}}}
 
-Based on this, generate a list of 5 to 7 diverse and relevant search suggestions. The suggestions can be product names, categories, or vendors that are likely to match the user's intent. Do not suggest anything that would not be found on a gift website.`,
+{{#if products}}
+You have been provided with a list of available products. Use this list as the primary source of truth. Generate a list of 5 to 7 diverse and relevant search suggestions based on the user's query that match product names, categories, or vendors from the list.
+
+Available products:
+{{#each products}}
+- {{this.name}} (Category: {{this.category}}, Vendor: {{this.vendor}})
+{{/each}}
+{{else}}
+Based on the user's query, generate a list of 5 to 7 diverse and relevant search suggestions. The suggestions can be product names, categories, or vendors that are likely to match the user's intent. Do not suggest anything that would not be found on a gift website.
+{{/if}}
+`,
 });
 
 const getSearchSuggestionsFlow = ai.defineFlow(

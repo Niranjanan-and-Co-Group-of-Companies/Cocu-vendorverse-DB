@@ -6,15 +6,27 @@ import { Input } from '@/components/ui/input';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSearchSuggestions } from '@/ai/flows/search-flow';
+import { getSearchIndex, type SearchIndex } from '@/lib/products-service';
+
 
 export function Search() {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [searchIndex, setSearchIndex] = useState<SearchIndex[]>([]);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+
+  useEffect(() => {
+    // Fetch the search index when the component mounts
+    const fetchSearchIndex = async () => {
+        const index = await getSearchIndex();
+        setSearchIndex(index);
+    };
+    fetchSearchIndex();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,22 +43,22 @@ export function Search() {
   useEffect(() => {
     if (query.length > 1) {
       const fetchSuggestions = async () => {
-        setLoading(true);
+        setLoadingSuggestions(true);
         try {
-          const result = await getSearchSuggestions({ query });
+          const result = await getSearchSuggestions({ query, products: searchIndex });
           setSuggestions(result.suggestions);
         } catch (error) {
           console.error('Error fetching suggestions:', error);
           setSuggestions([]);
         }
-        setLoading(false);
+        setLoadingSuggestions(false);
       };
       const debounce = setTimeout(fetchSuggestions, 300);
       return () => clearTimeout(debounce);
     } else {
       setSuggestions([]);
     }
-  }, [query]);
+  }, [query, searchIndex]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,15 +85,15 @@ export function Search() {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setShowSuggestions(true)}
         />
-        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />}
+        {loadingSuggestions && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />}
       </form>
-      {showSuggestions && (suggestions.length > 0 || (loading && query.length > 1)) && (
+      {showSuggestions && (suggestions.length > 0 || (loadingSuggestions && query.length > 1)) && (
         <div className="absolute top-full mt-2 w-full rounded-md border bg-popover text-popover-foreground shadow-md z-50">
           <ul className="py-1">
-            {loading && query.length > 1 ? (
+            {loadingSuggestions && query.length > 1 ? (
                 <li className="px-3 py-2 text-sm text-muted-foreground flex items-center">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span>Loading...</span>
+                    <span>Finding suggestions...</span>
                 </li>
             ) : (
                 <>
@@ -94,9 +106,6 @@ export function Search() {
                         {suggestion}
                     </li>
                     ))}
-                    {suggestions.length === 0 && !loading && query.length > 1 && (
-                        <li className="px-3 py-2 text-sm text-muted-foreground">No suggestions found.</li>
-                    )}
                 </>
             )}
           </ul>

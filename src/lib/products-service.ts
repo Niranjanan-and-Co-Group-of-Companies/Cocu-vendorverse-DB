@@ -122,3 +122,22 @@ export async function getAllProducts(): Promise<Product[]> {
   const snapshot = await getDocs(productsCollection);
   return snapshot.docs.map((doc) => doc.data() as Product);
 }
+
+export interface SearchIndex {
+    name: string;
+    category?: string;
+    vendor: string;
+}
+
+export async function getSearchIndex(): Promise<SearchIndex[]> {
+    await seedProducts();
+    const snapshot = await getDocs(productsCollection);
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            name: data.name,
+            category: data.category,
+            vendor: data.vendor,
+        }
+    });
+}
