@@ -30,7 +30,8 @@ export function ChatConversationList({
     let filtered = [...conversations];
 
     if (activeTab !== 'All') {
-      filtered = filtered.filter(c => c.type === activeTab);
+      const filterType = activeTab === 'Personalised' ? 'Customer' : activeTab;
+      filtered = filtered.filter(c => c.type === filterType);
     }
 
     if (searchQuery) {
@@ -53,7 +54,7 @@ export function ChatConversationList({
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full">
             <TabsTrigger value="All" className="flex-1">All</TabsTrigger>
-            <TabsTrigger value="Customer" className="flex-1">Customer</TabsTrigger>
+            <TabsTrigger value="Personalised" className="flex-1">Personalised</TabsTrigger>
             <TabsTrigger value="Corporate" className="flex-1">Corporate</TabsTrigger>
           </TabsList>
         </Tabs>
