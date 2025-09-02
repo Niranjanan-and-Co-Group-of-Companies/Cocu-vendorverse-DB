@@ -166,6 +166,14 @@ function AdminSidebar() {
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/commissions')} tooltip={{ children: 'Commissions' }}>
+                        <Link href="/admin/commissions">
+                        <DollarSign />
+                        <span>Commissions</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/bids')} tooltip={{ children: 'Bids' }}>
                         <Link href="/admin/bids">
                         <Gavel />
@@ -194,14 +202,6 @@ function AdminSidebar() {
                         <Link href="/admin/financials">
                         <DollarSign />
                         <span>Financials</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/commissions')} tooltip={{ children: 'Commissions' }}>
-                        <Link href="/admin/commissions">
-                        <DollarSign />
-                        <span>Commissions</span>
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
