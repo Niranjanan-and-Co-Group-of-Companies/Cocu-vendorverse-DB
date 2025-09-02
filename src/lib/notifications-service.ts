@@ -50,3 +50,26 @@ export function onAdminNotificationsUpdate(callback: (notifications: Notificatio
 
   return unsubscribe;
 }
+
+export function onUserNotificationsUpdate(userId: string, callback: (notifications: Notification[]) => void): Unsubscribe {
+  const notificationsRef = collection(db, 'notifications');
+  const q = query(
+    notificationsRef,
+    where('userId', '==', userId),
+    orderBy('timestamp', 'desc'),
+    limit(10)
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const notifications = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Notification));
+    callback(notifications);
+  }, (error) => {
+    console.error(`Error fetching notifications for user ${userId}:`, error);
+    callback([]);
+  });
+
+  return unsubscribe;
+}

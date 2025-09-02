@@ -14,6 +14,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { CorporateNotificationDropdown } from './corporate-notification-dropdown';
 
 
 export default function CorporateHeader() {
@@ -36,13 +37,8 @@ export default function CorporateHeader() {
         </div>
 
         <nav className="ml-auto flex items-center gap-2">
-           <Button variant="ghost" asChild>
-                <Link href="#">
-                    <Building className="mr-2" />
-                    Request a Bid
-                </Link>
-          </Button>
-          <DropdownMenu>
+           <CorporateNotificationDropdown />
+           <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar>
