@@ -1,9 +1,13 @@
 
-import { collection, getDocs, writeBatch, doc, onSnapshot, getDoc, query, where, limit } from 'firebase/firestore';
+import { collection, getDocs, writeBatch, doc, onSnapshot, getDoc, query, where, limit, updateDoc, Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Product } from './products';
+import type { Product, ProductStatus } from './products';
+import type { Vendor } from '@/app/admin/vendors/page';
 
-const MOCK_PRODUCTS: Product[] = [
+export type ProductWithStatus = Product & { status: ProductStatus };
+export type ProductWithVendor = Product & { vendor: Vendor };
+
+const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     {
     id: 1,
     name: 'Artisanal Chocolate Box',
@@ -118,13 +122,25 @@ const MOCK_PRODUCTS: Product[] = [
 
 const productsCollection = collection(db, 'products');
 
+const VENDOR_MAP: { [key: string]: string } = {
+  'Gourmet Delights': 'vendor001',
+  'Serene Moments': 'vendor002',
+  'Heritage Wares': 'vendor003',
+  'The Daily Grind': 'vendor004',
+  'The Tea Leaf': 'vendor005',
+  'Signature Gifts': 'vendor006',
+  'Techie Gifts': 'vendor007',
+  'Cosmic Prints': 'vendor008'
+};
+
 async function seedProducts() {
   const snapshot = await getDocs(productsCollection);
   if (snapshot.empty) {
     const batch = writeBatch(db);
     MOCK_PRODUCTS.forEach((product) => {
         const docRef = doc(db, 'products', String(product.id));
-        batch.set(docRef, product);
+        const vendorId = VENDOR_MAP[product.vendor] || 'unknown_vendor';
+        batch.set(docRef, { ...product, status: 'Live', vendorId });
     });
     await batch.commit();
   }
@@ -184,4 +200,75 @@ export async function getSearchIndex(): Promise<SearchIndex[]> {
             vendor: data.vendor,
         }
     });
+}
+
+// ---- New Functions for Vendor Product Management ----
+
+export function onVendorProductsUpdate(vendorId: string, callback: (products: ProductWithStatus[]) => void): Unsubscribe {
+    const q = query(productsCollection, where('vendorId', '==', vendorId));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const products = snapshot.docs.map(doc => doc.data() as ProductWithStatus);
+        callback(products);
+    });
+
+    return unsubscribe;
+}
+
+export async function updateProductStatus(productId: number, status: ProductStatus) {
+    const productRef = doc(db, 'products', String(productId));
+    await updateDoc(productRef, { status });
+}
+
+
+// ---- New Functions for Admin Product Approval ----
+
+export function onPendingProductsUpdate(callback: (products: ProductWithVendor[]) => void): Unsubscribe {
+    const q = query(productsCollection, where('status', '==', 'Pending Review'));
+    
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+        const vendorCache = new Map<string, Vendor>();
+
+        const getVendor = async (vendorId: string): Promise<Vendor> => {
+            if (vendorCache.has(vendorId)) return vendorCache.get(vendorId)!;
+
+            const vendorRef = doc(db, 'vendors', vendorId);
+            const vendorSnap = await getDoc(vendorRef);
+            if (vendorSnap.exists()) {
+                const vendorData = { id: vendorSnap.id, ...vendorSnap.data() } as Vendor;
+                vendorCache.set(vendorId, vendorData);
+                return vendorData;
+            }
+            // Fallback for unknown vendor
+            return { id: vendorId, name: 'Unknown Vendor', email: '', avatar: '', status: 'Active', joinedDate: null };
+        }
+
+        const productsPromises = snapshot.docs.map(async (doc) => {
+            const productData = doc.data() as Product;
+            const vendor = await getVendor(productData.vendorId);
+            return { ...productData, vendor };
+        });
+
+        const products = await Promise.all(productsPromises);
+        callback(products);
+    });
+
+    return unsubscribe;
+}
+
+export function getPendingProductCount(callback: (count: number) => void): Unsubscribe {
+  const q = query(productsCollection, where('status', '==', 'Pending Review'));
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    callback(snapshot.size);
+  });
+  return unsubscribe;
+}
+
+
+export async function approveProduct(productId: number) {
+    await updateProductStatus(productId, 'Live');
+}
+
+export async function declineProduct(productId: number) {
+    await updateProductStatus(productId, 'Declined');
 }

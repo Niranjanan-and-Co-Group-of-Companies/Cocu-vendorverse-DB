@@ -38,11 +38,13 @@ import {
   Gavel,
   MessageSquare,
   Star,
+  PackageCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
 import React from 'react';
+import { getPendingProductCount } from '@/lib/products-service';
 
 function CustomSidebarTrigger() {
     const { open, toggleSidebar } = useSidebar();
@@ -63,9 +65,15 @@ function AdminSidebar() {
     const pathname = usePathname();
     const [supportTickets, setSupportTickets] = React.useState(3);
     const [moderationQueue, setModerationQueue] = React.useState(8);
+    const [pendingProducts, setPendingProducts] = React.useState(0);
 
     React.useEffect(() => {
-        // Simulate real-time updates
+        const unsub = getPendingProductCount(setPendingProducts);
+        return () => unsub();
+    }, []);
+
+    React.useEffect(() => {
+        // Simulate real-time updates for other items
         const interval = setInterval(() => {
             setSupportTickets(Math.floor(Math.random() * 10));
             setModerationQueue(Math.floor(Math.random() * 20));
@@ -127,6 +135,39 @@ function AdminSidebar() {
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
+                     <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/admin/products/new-products')} tooltip={{ children: 'New Products' }}>
+                            <Link href="/admin/products/new-products">
+                            <PackageCheck />
+                            <span>New Products</span>
+                            </Link>
+                        </SidebarMenuButton>
+                        {pendingProducts > 0 && <SidebarMenuBadge>{pendingProducts}</SidebarMenuBadge>}
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/products')} tooltip={{ children: 'Catalog' }}>
+                        <Link href="/admin/products">
+                        <Box />
+                        <span>Catalog</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/categories')} tooltip={{ children: 'Categories' }}>
+                        <Link href="/admin/categories">
+                        <BarChart />
+                        <span>Categories</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/orders')} tooltip={{ children: 'Orders' }}>
+                        <Link href="/admin/orders">
+                        <ShoppingCart />
+                        <span>Orders</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/users')} tooltip={{ children: 'Users' }}>
                         <Link href="/admin/users">
@@ -140,30 +181,6 @@ function AdminSidebar() {
                         <Link href="/admin/vendors">
                         <Users />
                         <span>Vendors</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/products')} tooltip={{ children: 'Products' }}>
-                        <Link href="/admin/products">
-                        <Box />
-                        <span>Products</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/categories')} tooltip={{ children: 'Categories' }}>
-                        <Link href="/admin/categories">
-                        <BarChart />
-                        <span>Categories</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/orders')} tooltip={{ children: 'Orders' }}>
-                        <Link href="/admin/orders">
-                        <ShoppingCart />
-                        <span>Orders</span>
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>

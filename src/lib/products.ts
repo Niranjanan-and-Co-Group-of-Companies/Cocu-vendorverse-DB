@@ -1,8 +1,12 @@
 
+
+export type ProductStatus = 'Live' | 'Draft' | 'Archived' | 'Pending Review' | 'Declined';
+
 export type Product = {
   id: number;
   name: string;
-  vendor: string;
+  vendor: string; // Vendor Name
+  vendorId: string;
   price: string;
   image: string;
   galleryImages?: string[];
@@ -14,4 +18,5 @@ export type Product = {
   description?: string;
   creatorStory?: string;
   category?: string;
+  status: ProductStatus;
 };
