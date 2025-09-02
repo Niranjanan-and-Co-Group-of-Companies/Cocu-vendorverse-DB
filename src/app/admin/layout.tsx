@@ -37,6 +37,7 @@ import {
   ChevronsRight,
   Gavel,
   MessageSquare,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
@@ -110,7 +111,7 @@ function AdminSidebar() {
                     </Link>
                     </Button>
                     <Button asChild variant="outline" size="sm" className="justify-start">
-                    <Link href="/admin/marketing/new">
+                    <Link href="/admin/corporate/new-campaign">
                         <PlusCircle />
                         <span>New Corporate Campaign</span>
                     </Link>
@@ -149,6 +150,14 @@ function AdminSidebar() {
                         <span>Products</span>
                         </Link>
                     </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive('/admin/featured')} tooltip={{ children: 'Featured' }}>
+                        <Link href="/admin/featured">
+                          <Star />
+                          <span>Featured</span>
+                        </Link>
+                      </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/categories')} tooltip={{ children: 'Categories' }}>
