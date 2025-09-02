@@ -84,7 +84,7 @@ function AdminSidebar() {
 
     return (
         <Sidebar>
-            <div className="relative h-full">
+            <div className="relative h-full flex flex-col">
               <CustomSidebarTrigger />
               <SidebarHeader className="items-center gap-4">
               <Avatar className="size-8">
@@ -95,164 +95,164 @@ function AdminSidebar() {
               </SidebarHeader>
 
               <SidebarContent>
-              <div className="flex flex-col gap-2 px-2 group-data-[state=collapsed]:hidden">
-                  <Button asChild variant="outline" size="sm" className="justify-start">
-                  <Link href="/admin/orders/new">
-                      <PlusCircle />
-                      <span>New Order</span>
-                  </Link>
-                  </Button>
-                  <Button asChild variant="outline" size="sm" className="justify-start">
-                  <Link href="/admin/marketing/new">
-                      <PlusCircle />
-                      <span>New Campaign</span>
-                  </Link>
-                  </Button>
-                  <Button asChild variant="outline" size="sm" className="justify-start">
-                  <Link href="/admin/corporate/new-campaign">
-                      <PlusCircle />
-                      <span>New Corporate Campaign</span>
-                  </Link>
-                  </Button>
-              </div>
+                <div className="flex flex-col gap-2 px-2 group-data-[state=collapsed]:hidden">
+                    <Button asChild variant="outline" size="sm" className="justify-start">
+                    <Link href="/admin/orders/new">
+                        <PlusCircle />
+                        <span>New Order</span>
+                    </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm" className="justify-start">
+                    <Link href="/admin/marketing/new">
+                        <PlusCircle />
+                        <span>New Campaign</span>
+                    </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm" className="justify-start">
+                    <Link href="/admin/corporate/new-campaign">
+                        <PlusCircle />
+                        <span>New Corporate Campaign</span>
+                    </Link>
+                    </Button>
+                </div>
 
-              <SidebarMenu>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin')} tooltip={{ children: 'Dashboard' }}>
-                      <Link href="/admin">
-                      <LayoutDashboard />
-                      <span>Dashboard</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/users')} tooltip={{ children: 'Users' }}>
-                      <Link href="/admin/users">
-                      <UserCog />
-                      <span>Users</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/vendors')} tooltip={{ children: 'Vendors' }}>
-                      <Link href="/admin/vendors">
-                      <Users />
-                      <span>Vendors</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/products')} tooltip={{ children: 'Products' }}>
-                      <Link href="/admin/products">
-                      <Box />
-                      <span>Products</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/categories')} tooltip={{ children: 'Categories' }}>
-                      <Link href="/admin/categories">
-                      <BarChart />
-                      <span>Categories</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/orders')} tooltip={{ children: 'Orders' }}>
-                      <Link href="/admin/orders">
-                      <ShoppingCart />
-                      <span>Orders</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                   <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/bids')} tooltip={{ children: 'Bids' }}>
-                      <Link href="/admin/bids">
-                      <Gavel />
-                      <span>Bids</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/corporate')} tooltip={{ children: 'Corporate' }}>
-                      <Link href="/admin/corporate">
-                      <Building />
-                      <span>Corporate</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/content')} tooltip={{ children: 'Content' }}>
-                      <Link href="/admin/content">
-                      <FileText />
-                      <span>Content</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/financials')} tooltip={{ children: 'Financials' }}>
-                      <Link href="/admin/financials">
-                      <DollarSign />
-                      <span>Financials</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/marketing')} tooltip={{ children: 'Marketing' }}>
-                      <Link href="/admin/marketing">
-                      <Megaphone />
-                      <span>Marketing</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/support')} tooltip={{ children: 'Support' }}>
-                      <Link href="/admin/support">
-                      <HelpCircle />
-                      <span>Support</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  {supportTickets > 0 && <SidebarMenuBadge>{supportTickets}</SidebarMenuBadge>}
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/moderation')} tooltip={{ children: 'Moderation' }}>
-                      <Link href="/admin/moderation">
-                      <ShieldAlert />
-                      <span>Moderation</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  {moderationQueue > 0 && <SidebarMenuBadge>{moderationQueue}</SidebarMenuBadge>}
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/settings')} tooltip={{ children: 'Settings' }}>
-                      <Link href="/admin/settings">
-                      <Settings />
-                      <span>Settings</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-              </SidebarMenu>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin')} tooltip={{ children: 'Dashboard' }}>
+                        <Link href="/admin">
+                        <LayoutDashboard />
+                        <span>Dashboard</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/users')} tooltip={{ children: 'Users' }}>
+                        <Link href="/admin/users">
+                        <UserCog />
+                        <span>Users</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/vendors')} tooltip={{ children: 'Vendors' }}>
+                        <Link href="/admin/vendors">
+                        <Users />
+                        <span>Vendors</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/products')} tooltip={{ children: 'Products' }}>
+                        <Link href="/admin/products">
+                        <Box />
+                        <span>Products</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/categories')} tooltip={{ children: 'Categories' }}>
+                        <Link href="/admin/categories">
+                        <BarChart />
+                        <span>Categories</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/orders')} tooltip={{ children: 'Orders' }}>
+                        <Link href="/admin/orders">
+                        <ShoppingCart />
+                        <span>Orders</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/bids')} tooltip={{ children: 'Bids' }}>
+                        <Link href="/admin/bids">
+                        <Gavel />
+                        <span>Bids</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/corporate')} tooltip={{ children: 'Corporate' }}>
+                        <Link href="/admin/corporate">
+                        <Building />
+                        <span>Corporate</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/content')} tooltip={{ children: 'Content' }}>
+                        <Link href="/admin/content">
+                        <FileText />
+                        <span>Content</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/financials')} tooltip={{ children: 'Financials' }}>
+                        <Link href="/admin/financials">
+                        <DollarSign />
+                        <span>Financials</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/marketing')} tooltip={{ children: 'Marketing' }}>
+                        <Link href="/admin/marketing">
+                        <Megaphone />
+                        <span>Marketing</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
               </SidebarContent>
 
               <SidebarFooter>
-              <SidebarMenu>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip={{ children: 'Homepage' }}>
-                      <Link href="/">
-                      <Home />
-                      <span>Homepage</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip={{ children: 'Log Out' }}>
-                      <Link href="/login">
-                      <LogOut />
-                      <span>Log Out</span>
-                      </Link>
-                  </SidebarMenuButton>
-                  </SidebarMenuItem>
-              </SidebarMenu>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/support')} tooltip={{ children: 'Support' }}>
+                        <Link href="/admin/support">
+                        <HelpCircle />
+                        <span>Support</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    {supportTickets > 0 && <SidebarMenuBadge>{supportTickets}</SidebarMenuBadge>}
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/moderation')} tooltip={{ children: 'Moderation' }}>
+                        <Link href="/admin/moderation">
+                        <ShieldAlert />
+                        <span>Moderation</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    {moderationQueue > 0 && <SidebarMenuBadge>{moderationQueue}</SidebarMenuBadge>}
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/settings')} tooltip={{ children: 'Settings' }}>
+                        <Link href="/admin/settings">
+                        <Settings />
+                        <span>Settings</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip={{ children: 'Homepage' }}>
+                        <Link href="/">
+                        <Home />
+                        <span>Homepage</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip={{ children: 'Log Out' }}>
+                        <Link href="/login">
+                        <LogOut />
+                        <span>Log Out</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
               </SidebarFooter>
             </div>
         </Sidebar>
