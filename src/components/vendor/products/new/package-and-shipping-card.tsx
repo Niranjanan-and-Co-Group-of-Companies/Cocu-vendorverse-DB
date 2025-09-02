@@ -28,7 +28,7 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
     onFieldChange('preparationTime', { ...preparationTime, [type]: parseInt(value, 10) || 0 });
   };
 
-  const isPrepTimeInvalid = preparationTime.max < preparationTime.min;
+  const isPrepTimeInvalid = preparationTime.min > 0 && preparationTime.max > 0 && (preparationTime.max !== preparationTime.min + 1);
 
   return (
     <Card>
@@ -55,7 +55,7 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
              {isPrepTimeInvalid && (
                  <Alert variant="destructive" className="mt-2">
                     <AlertDescription className="text-xs">
-                        Max days cannot be less than min days.
+                        Max days must be exactly one greater than min days (e.g., 4-5 days).
                     </AlertDescription>
                 </Alert>
              )}
@@ -93,4 +93,3 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
 }
 
     
-

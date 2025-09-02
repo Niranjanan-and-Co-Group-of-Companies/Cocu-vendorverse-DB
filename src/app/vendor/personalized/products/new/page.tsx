@@ -120,8 +120,8 @@ function ProductEditorContent() {
                 return false;
             }
         }
-        if (product.preparationTime && product.preparationTime.min > product.preparationTime.max) {
-             setError('The maximum preparation time cannot be less than the minimum.');
+        if (product.preparationTime && product.preparationTime.max !== product.preparationTime.min + 1) {
+             setError('The preparation time range is invalid. Max days must be one greater than min days.');
              window.scrollTo(0, 0);
              return false;
         }
