@@ -152,14 +152,6 @@ function AdminSidebar() {
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={isActive('/admin/featured')} tooltip={{ children: 'Featured' }}>
-                        <Link href="/admin/featured">
-                          <Star />
-                          <span>Featured</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/categories')} tooltip={{ children: 'Categories' }}>
                         <Link href="/admin/categories">
                         <BarChart />
@@ -190,6 +182,14 @@ function AdminSidebar() {
                         <span>Marketing</span>
                         </Link>
                     </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive('/admin/featured')} tooltip={{ children: 'Featured' }}>
+                        <Link href="/admin/featured">
+                          <Star />
+                          <span>Featured</span>
+                        </Link>
+                      </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/chat-logs')} tooltip={{ children: 'Chat Logs' }}>
