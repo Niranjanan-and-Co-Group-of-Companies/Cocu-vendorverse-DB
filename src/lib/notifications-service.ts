@@ -2,7 +2,7 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 
-export type NotificationType = 'ORDER_STATUS_UPDATE' | 'NEW_MESSAGE' | 'NEW_BID_RESPONSE' | 'new_vendor' | 'user_report' | 'content_update';
+export type NotificationType = 'ORDER_STATUS_UPDATE' | 'NEW_MESSAGE' | 'NEW_BID_RESPONSE' | 'new_vendor' | 'user_report' | 'content_update' | 'new_ticket';
 
 export interface Notification {
     id?: string;

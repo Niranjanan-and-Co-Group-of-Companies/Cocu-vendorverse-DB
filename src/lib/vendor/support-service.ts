@@ -11,9 +11,12 @@ import {
     limit,
     Timestamp,
     Unsubscribe,
-    getDocs
+    getDocs,
+    getDoc,
+    doc
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { createNotification } from '../notifications-service';
 
 // --- Data Types ---
 
@@ -57,17 +60,17 @@ export interface KnowledgeBaseArticle {
     title: string;
     category: string;
     content: string;
-    lastUpdated: string; // Changed from Timestamp to string for serialization
+    lastUpdated: string;
 }
 
 
 // --- Mock Data & Seeding ---
 // In a real app, this would be managed in the admin panel.
 const MOCK_ARTICLES: Omit<KnowledgeBaseArticle, 'id' | 'lastUpdated'>[] = [
-    { title: "How do I get paid?", category: "Payouts & Finance", content: "..." },
-    { title: "How do I publish a new product?", category: "Products & Customization", content: "..." },
-    { title: "What to do if my KYC verification fails?", category: "KYC & Verification", content: "..." },
-    { title: "Understanding NDR and RTO", category: "Orders & Shipping", content: "..." },
+    { title: "How do I get paid?", category: "Payouts & Finance", content: "Payouts are processed automatically every 15 days. You can view your upcoming and past payouts in the Financials section of your dashboard." },
+    { title: "How do I publish a new product?", category: "Products & Customization", content: "To publish a new product, navigate to the 'Products' page, click 'Add Product', fill in all the required details, and submit for review. Our team will approve it within 48 hours." },
+    { title: "What to do if my KYC verification fails?", category: "KYC & Verification", content: "If your KYC verification fails, you will receive an email with the specific reason. Please correct the information and re-submit. Common reasons include blurry documents or mismatched names." },
+    { title: "Understanding NDR and RTO", category: "Orders & Shipping", content: "NDR (Non-Delivery Report) is generated when an order cannot be delivered. RTO (Return to Origin) is when the product is sent back to you. You will be notified for both and must take action within 24 hours." },
 ];
 
 
@@ -78,7 +81,7 @@ export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
   return MOCK_ARTICLES.map((article, index) => ({
       ...article,
       id: `article-${index + 1}`,
-      lastUpdated: new Date().toISOString(), // Convert Timestamp to ISO string for serialization
+      lastUpdated: new Date().toISOString(),
   }));
 }
 
@@ -87,12 +90,26 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
     const now = Timestamp.now();
     const tenDaysFromNow = new Timestamp(now.seconds + 10 * 24 * 60 * 60, now.nanoseconds);
     
-    const ticketRef = await addDoc(collection(db, 'supportTickets'), {
+    const ticketData = {
         ...data,
         createdAt: serverTimestamp(),
         lastUpdated: serverTimestamp(),
         isReadByVendor: true,
         expiresAt: tenDaysFromNow,
+    };
+    const ticketRef = await addDoc(collection(db, 'supportTickets'), ticketData);
+
+    // After creating the ticket, notify the admin
+    const vendorDoc = await getDoc(doc(db, 'vendors', data.vendorId));
+    const vendorName = vendorDoc.exists() ? vendorDoc.data().name : 'A vendor';
+
+    await createNotification({
+        userId: 'admin', // Generic admin user
+        forAdmin: true,
+        type: 'new_ticket',
+        text: `New support ticket from ${vendorName}: "${data.subject}"`,
+        link: `/admin/support?ticketId=${ticketRef.id}`
     });
+
     return ticketRef.id;
 }
