@@ -88,18 +88,29 @@ export default function AdminDashboardPage() {
             const ordersPreviousMonthQuery = query(collection(db, 'orders'), where('timestamp', '>=', startOfPreviousMonthTs), where('timestamp', '<', startOfCurrentMonthTs));
             const usersPreviousMonthQuery = query(collection(db, 'users'), where('createdAt', '>=', startOfPreviousMonthTs), where('createdAt', '<', startOfCurrentMonthTs));
             
+            // Fetch other data
+            const vendorsSnapshotPromise = getDocs(collection(db, 'vendors'));
+            const recentSalesQuery = query(collection(db, 'orders'), orderBy('timestamp', 'desc'), limit(5));
+            const recentSalesSnapshotPromise = getDocs(recentSalesQuery);
+            const notificationsQuery = query(collection(db, 'notifications'), where('forAdmin', '==', true), orderBy('timestamp', 'desc'), limit(3));
+            const notificationsSnapshotPromise = getDocs(notificationsQuery);
+
             const [
                 ordersCurrentMonthSnapshot, 
                 usersCurrentMonthSnapshot, 
                 ordersPreviousMonthSnapshot, 
                 usersPreviousMonthSnapshot,
-                vendorsSnapshot
+                vendorsSnapshot,
+                recentSalesSnapshot,
+                notificationsSnapshot,
             ] = await Promise.all([
                 getDocs(ordersCurrentMonthQuery),
                 getDocs(usersCurrentMonthQuery),
                 getDocs(ordersPreviousMonthQuery),
                 getDocs(usersPreviousMonthQuery),
-                getDocs(collection(db, 'vendors'))
+                vendorsSnapshotPromise,
+                recentSalesSnapshotPromise,
+                notificationsSnapshotPromise,
             ]);
 
             // Calculate current month's stats
@@ -139,8 +150,6 @@ export default function AdminDashboardPage() {
             setSignupsChange(calcChange(signupsCurrentMonth, signupsPreviousMonth));
             
             // Fetch recent sales
-            const recentSalesQuery = query(collection(db, 'orders'), orderBy('timestamp', 'desc'), limit(5));
-            const recentSalesSnapshot = await getDocs(recentSalesQuery);
             const salesData = recentSalesSnapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
@@ -156,18 +165,53 @@ export default function AdminDashboardPage() {
             }) as Order[];
             setRecentSales(salesData);
 
-            // Mocked data for Homepage Content and Notifications as these collections don't exist yet
+            // Fetch admin notifications
+            const iconMap: { [key: string]: React.ElementType } = {
+              'new_vendor': UserPlus,
+              'user_report': Shield,
+              'content_update': FileEdit,
+            };
+
+            const notificationData = notificationsSnapshot.docs.map(doc => {
+                const data = doc.data();
+                // Basic time formatting
+                const eventTime = data.timestamp.toDate();
+                const diffMs = now.getTime() - eventTime.getTime();
+                const diffMins = Math.round(diffMs / 60000);
+                const diffHours = Math.round(diffMins / 60);
+                let timeAgo = `${diffMins}m ago`;
+                if (diffMins > 60) {
+                    timeAgo = `${diffHours}h ago`;
+                }
+
+                return {
+                    id: doc.id,
+                    type: data.type,
+                    text: data.text,
+                    time: timeAgo,
+                    icon: iconMap[data.type] || FileEdit,
+                    link: data.link || '#',
+                }
+            }) as AdminNotification[];
+            
+            if (notificationData.length > 0) {
+                setAdminNotifications(notificationData);
+            } else {
+                 // Mocked data for Notifications as a fallback
+                setAdminNotifications([
+                    { id: '1', type: 'New Vendor', text: "New vendor 'Creative Crafts' is awaiting verification.", time: '15m ago', icon: UserPlus, link: '#' },
+                    { id: '2', type: 'User Report', text: "User 'jane_doe' reported a product.", time: '30m ago', icon: Shield, link: '#' },
+                    { id: '3', type: 'Content Update', text: "The 'About Us' page needs review.", time: '1h ago', icon: FileEdit, link: '#' },
+                ]);
+            }
+
+            // Mocked data for Homepage Content as this collection doesn't exist yet
             setHomepageContent([
                 { id: 'hero-personal', name: 'Main Hero Carousel (Personal)', status: 'Active' },
                 { id: 'hero-corporate', name: 'Corporate Hero Carousel (B2B)', status: 'Create' },
                 { id: 'announcement-banner', name: 'Top Announcement Banner', status: 'Active' },
             ]);
-            setAdminNotifications([
-                { id: '1', type: 'New Vendor', text: "New vendor 'Creative Crafts' is awaiting verification.", time: '15m ago', icon: UserPlus, link: '#' },
-                { id: '2', type: 'User Report', text: "User 'jane_doe' reported a product.", time: '30m ago', icon: Shield, link: '#' },
-                { id: '3', type: 'Content Update', text: "The 'About Us' page needs review.", time: '1h ago', icon: FileEdit, link: '#' },
-            ]);
-
+            
 
             setLoading(false);
         }
@@ -404,5 +448,7 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    
 
     
