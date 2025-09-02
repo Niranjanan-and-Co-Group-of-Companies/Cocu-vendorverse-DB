@@ -39,6 +39,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
+import React from 'react';
 
 function CustomSidebarTrigger() {
     const { open, toggleSidebar } = useSidebar();
@@ -57,6 +58,18 @@ function CustomSidebarTrigger() {
 
 function AdminSidebar() {
     const pathname = usePathname();
+    const [supportTickets, setSupportTickets] = React.useState(3);
+    const [moderationQueue, setModerationQueue] = React.useState(8);
+
+    React.useEffect(() => {
+        // Simulate real-time updates
+        const interval = setInterval(() => {
+            setSupportTickets(Math.floor(Math.random() * 10));
+            setModerationQueue(Math.floor(Math.random() * 20));
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const isActive = (path: string) => {
         if (path === '/admin' && pathname === path) {
@@ -182,7 +195,7 @@ function AdminSidebar() {
                       <span>Support</span>
                       </Link>
                   </SidebarMenuButton>
-                  <SidebarMenuBadge>3</SidebarMenuBadge>
+                  {supportTickets > 0 && <SidebarMenuBadge>{supportTickets}</SidebarMenuBadge>}
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/moderation')} tooltip={{ children: 'Moderation' }}>
@@ -191,7 +204,7 @@ function AdminSidebar() {
                       <span>Moderation</span>
                       </Link>
                   </SidebarMenuButton>
-                  <SidebarMenuBadge>8</SidebarMenuBadge>
+                  {moderationQueue > 0 && <SidebarMenuBadge>{moderationQueue}</SidebarMenuBadge>}
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/users')} tooltip={{ children: 'Users' }}>
