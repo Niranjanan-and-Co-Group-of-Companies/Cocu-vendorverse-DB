@@ -3,6 +3,7 @@ import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp,
 import { db } from './firebase';
 import type { Product } from './products';
 import type { VendorOrder } from '@/app/vendor/personalized/orders/page';
+import { createNotification } from './notifications-service';
 
 export interface OrderItem extends Product {
     quantity: number;
@@ -206,7 +207,20 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
     const orderRef = doc(db, 'orders', orderId);
     try {
         await updateDoc(orderRef, { status });
-        console.log(`Order ${orderId} status updated to ${status}`);
+        
+        // After updating, send a notification to the customer
+        const orderSnap = await getDocs(query(collection(db, 'orders'), where('id', '==', orderId), limit(1)));
+
+        if(!orderSnap.empty){
+            const orderData = orderSnap.docs[0].data() as Order;
+            await createNotification({
+                userId: orderData.customer.id,
+                type: 'ORDER_STATUS_UPDATE',
+                text: `Your order #${orderId.slice(0, 8)} has been updated to "${status}".`,
+                link: `/customer/orders/${orderId}`,
+            });
+        }
+
     } catch (error) {
         console.error("Error updating order status: ", error);
         // Handle error appropriately in UI

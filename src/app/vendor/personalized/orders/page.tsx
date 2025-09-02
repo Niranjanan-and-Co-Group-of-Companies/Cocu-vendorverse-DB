@@ -22,6 +22,7 @@ import { onVendorOrdersUpdate, updateOrderStatus } from '@/lib/orders-service';
 import { VendorOrderActions } from '@/components/vendor/orders/vendor-order-actions';
 import { VendorOrderDetailsDialog } from '@/components/vendor/orders/vendor-order-details-dialog';
 import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
 
 // In a real app, this would come from an auth context
 const VENDOR_NAME = "Gourmet Delights"; 
@@ -37,6 +38,7 @@ export default function VendorOrdersPage() {
     const [loading, setLoading] = React.useState(true);
     const [activeTab, setActiveTab] = React.useState('all');
     const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
+    const { toast } = useToast();
 
     React.useEffect(() => {
         const unsubscribe = onVendorOrdersUpdate(VENDOR_NAME, (orders) => {
@@ -56,7 +58,20 @@ export default function VendorOrdersPage() {
     }, [allOrders, activeTab]);
 
     const handleStatusChange = async (orderId: string, status: OrderStatus) => {
-        await updateOrderStatus(orderId, status);
+        try {
+            await updateOrderStatus(orderId, status);
+            toast({
+                title: "Order Status Updated",
+                description: `Order #${orderId.slice(0,8)} has been marked as ${status}.`
+            })
+        } catch(e) {
+            toast({
+                title: "Error",
+                description: "Failed to update order status.",
+                variant: "destructive"
+            })
+        }
+        setSelectedOrder(null); // Close the dialog on successful save
     };
     
     const handleViewDetails = (order: Order) => {

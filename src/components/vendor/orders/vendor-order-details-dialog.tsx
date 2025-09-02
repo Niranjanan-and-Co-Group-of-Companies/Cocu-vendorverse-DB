@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter
 } from '@/components/ui/dialog';
 import {
     Table,
@@ -22,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface VendorOrderDetailsDialogProps {
   open: boolean;
@@ -34,6 +36,15 @@ interface VendorOrderDetailsDialogProps {
 const VENDOR_UPDATABLE_STATUSES: OrderStatus[] = ['Pending', 'Preparing', 'Packaging', 'Dispatched'];
 
 export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName, onStatusChange }: VendorOrderDetailsDialogProps) {
+  const [selectedStatus, setSelectedStatus] = React.useState<OrderStatus | null>(null);
+
+  React.useEffect(() => {
+    if (order) {
+        setSelectedStatus(order.status);
+    } else {
+        setSelectedStatus(null);
+    }
+  }, [order]);
   
   if (!order) return null;
 
@@ -47,11 +58,11 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
     return 'N/A';
   }
   
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-
-  const handleStatusUpdate = (newStatus: OrderStatus) => {
-    onStatusChange(order.id, newStatus);
-  };
+  const handleSave = () => {
+    if (selectedStatus) {
+        onStatusChange(order.id, selectedStatus);
+    }
+  }
 
   const getStatusVariant = (status: OrderStatus) => {
     switch (status) {
@@ -65,6 +76,8 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
         default: return 'outline';
     }
   }
+
+  const isSavable = selectedStatus !== order.status && VENDOR_UPDATABLE_STATUSES.includes(order.status);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -110,7 +123,7 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
             <div className="space-y-6">
                  <div>
                     <h3 className="font-semibold mb-2">Update Order Status</h3>
-                    <Select onValueChange={handleStatusUpdate} defaultValue={order.status} disabled={!VENDOR_UPDATABLE_STATUSES.includes(order.status)}>
+                    <Select onValueChange={(value) => setSelectedStatus(value as OrderStatus)} defaultValue={selectedStatus || order.status} disabled={!VENDOR_UPDATABLE_STATUSES.includes(order.status)}>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a status" />
                         </SelectTrigger>
@@ -134,6 +147,10 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
                 </div>
             </div>
         </div>
+        <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button onClick={handleSave} disabled={!isSavable}>Save Changes</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
