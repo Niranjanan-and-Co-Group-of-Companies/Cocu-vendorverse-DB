@@ -76,7 +76,11 @@ export default async function Home() {
                       </CardHeader>
                       <CardContent className="p-4 flex flex-col flex-grow">
                          <h3 className="text-lg font-bold font-headline">{product.name}</h3>
-                        <p className="text-sm text-muted-foreground">by {product.vendor}</p>
+                         {product.category && (
+                            <Link href={`/category/${product.category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                                {product.category}
+                            </Link>
+                         )}
                         <div className="flex items-center gap-1 mt-2">
                            <Star className="w-4 h-4 fill-primary text-primary" />
                            <span className="text-sm font-medium">{product.rating}</span>
