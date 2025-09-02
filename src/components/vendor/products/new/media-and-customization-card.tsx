@@ -10,12 +10,15 @@ import { Input } from '@/components/ui/input';
 import type { Product, CustomizationSide, CustomizationArea } from '@/lib/products';
 import { ImageUpload } from '@/components/common/image-upload';
 import { CustomizationAreaEditor } from './customization-area-editor';
+import { MultiImageUpload } from '@/components/common/multi-image-upload';
 
 interface MediaAndCustomizationCardProps {
   product: Product;
   onFieldChange: (field: keyof Product, value: any) => void;
   onImageChange: (side: CustomizationSide, file: File | null) => void;
   onCustomizationAreaChange: (side: CustomizationSide, areas: CustomizationArea[]) => void;
+  onGalleryFilesChange: (files: File[]) => void;
+  galleryImageFiles: File[];
 }
 
 const SIDES: CustomizationSide[] = ['front', 'back', 'left', 'right', 'top', 'bottom'];
@@ -24,7 +27,9 @@ export function MediaAndCustomizationCard({
     product, 
     onFieldChange, 
     onImageChange,
-    onCustomizationAreaChange
+    onCustomizationAreaChange,
+    onGalleryFilesChange,
+    galleryImageFiles,
 }: MediaAndCustomizationCardProps) {
     const [editingSide, setEditingSide] = React.useState<CustomizationSide | null>(null);
 
@@ -85,10 +90,11 @@ export function MediaAndCustomizationCard({
                  <div>
                     <Label>Additional Gallery Images</Label>
                     <p className="text-sm text-muted-foreground">These images will be shown in the product page gallery.</p>
-                    {/* Placeholder for multi-image uploader */}
-                    <div className="mt-2 p-4 border-2 border-dashed rounded-md text-center text-muted-foreground">
-                        Gallery Uploader Coming Soon
-                    </div>
+                     <MultiImageUpload
+                        existingImageUrls={product.galleryImages}
+                        files={galleryImageFiles}
+                        onFilesChange={onGalleryFilesChange}
+                     />
                  </div>
                  <div className="space-y-2">
                     <Label htmlFor="videoUrl">YouTube Video URL (Optional)</Label>
@@ -115,5 +121,3 @@ export function MediaAndCustomizationCard({
     </>
   );
 }
-
-    

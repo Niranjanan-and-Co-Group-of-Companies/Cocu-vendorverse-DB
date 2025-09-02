@@ -54,6 +54,7 @@ function ProductEditorContent() {
     const [imageFiles, setImageFiles] = React.useState<Record<CustomizationSide, File | null>>({
         front: null, back: null, left: null, right: null, top: null, bottom: null
     });
+    const [galleryImageFiles, setGalleryImageFiles] = React.useState<File[]>([]);
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
@@ -129,7 +130,7 @@ function ProductEditorContent() {
         const productToSave = { ...product, status: finalStatus } as Product;
         
         try {
-            await saveProduct(productToSave, imageFiles);
+            await saveProduct(productToSave, imageFiles, galleryImageFiles);
             toast({ 
                 title: `Product ${publish ? 'Published' : 'Saved'}`, 
                 description: `Your product is now ${finalStatus}.` 
@@ -201,6 +202,8 @@ function ProductEditorContent() {
                         onFieldChange={handleFieldChange}
                         onImageChange={handleImageChange}
                         onCustomizationAreaChange={handleCustomizationAreaChange}
+                        galleryImageFiles={galleryImageFiles}
+                        onGalleryFilesChange={setGalleryImageFiles}
                     />
                 </div>
                 {/* Right Sidebar */}
@@ -241,5 +244,3 @@ export default function NewProductPage() {
         </React.Suspense>
     );
 }
-
-    
