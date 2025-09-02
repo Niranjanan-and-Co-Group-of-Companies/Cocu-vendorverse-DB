@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -21,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { DollarSign, Users, ShoppingCart, UserPlus, FileEdit, Shield, Package } from 'lucide-react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Product } from '@/lib/products';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -59,6 +60,11 @@ export default function AdminDashboardPage() {
     const [newSignups, setNewSignups] = useState(0);
     const [totalOrders, setTotalOrders] = useState(0);
     const [activeVendors, setActiveVendors] = useState(0);
+
+    const [revenueChange, setRevenueChange] = useState(0);
+    const [signupsChange, setSignupsChange] = useState(0);
+    const [ordersChange, setOrdersChange] = useState(0);
+    
     const [recentSales, setRecentSales] = useState<Order[]>([]);
     const [homepageContent, setHomepageContent] = useState<HomepageContent[]>([]);
     const [adminNotifications, setAdminNotifications] = useState<AdminNotification[]>([]);
@@ -67,22 +73,72 @@ export default function AdminDashboardPage() {
         const fetchData = async () => {
             setLoading(true);
 
-            // Fetch stats
-            const ordersSnapshot = await getDocs(collection(db, 'orders'));
-            const usersSnapshot = await getDocs(collection(db, 'users'));
-            const vendorsSnapshot = await getDocs(collection(db, 'vendors'));
+            const now = new Date();
+            const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const startOfTwoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
             
-            let revenue = 0;
-            ordersSnapshot.forEach(doc => {
-                // Assuming price is stored as a number in cents or a parsable string
+            const startOfCurrentMonthTs = Timestamp.fromDate(startOfCurrentMonth);
+            const startOfPreviousMonthTs = Timestamp.fromDate(startOfPreviousMonth);
+            const startOfTwoMonthsAgoTs = Timestamp.fromDate(startOfTwoMonthsAgo);
+
+            // Fetch stats for current month
+            const ordersCurrentMonthQuery = query(collection(db, 'orders'), where('timestamp', '>=', startOfCurrentMonthTs));
+            const usersCurrentMonthQuery = query(collection(db, 'users'), where('createdAt', '>=', startOfCurrentMonthTs));
+            
+            // Fetch stats for previous month
+            const ordersPreviousMonthQuery = query(collection(db, 'orders'), where('timestamp', '>=', startOfPreviousMonthTs), where('timestamp', '<', startOfCurrentMonthTs));
+            const usersPreviousMonthQuery = query(collection(db, 'users'), where('createdAt', '>=', startOfPreviousMonthTs), where('createdAt', '<', startOfCurrentMonthTs));
+            
+            const [
+                ordersCurrentMonthSnapshot, 
+                usersCurrentMonthSnapshot, 
+                ordersPreviousMonthSnapshot, 
+                usersPreviousMonthSnapshot,
+                vendorsSnapshot
+            ] = await Promise.all([
+                getDocs(ordersCurrentMonthQuery),
+                getDocs(usersCurrentMonthQuery),
+                getDocs(ordersPreviousMonthQuery),
+                getDocs(usersPreviousMonthQuery),
+                getDocs(collection(db, 'vendors'))
+            ]);
+
+            // Calculate current month's stats
+            let revenueCurrentMonth = 0;
+            ordersCurrentMonthSnapshot.forEach(doc => {
                 const orderData = doc.data();
                 const price = parseFloat(orderData.price?.replace('$', '')) || 0;
-                revenue += price;
+                revenueCurrentMonth += price;
             });
-            setTotalRevenue(revenue);
-            setTotalOrders(ordersSnapshot.size);
-            setNewSignups(usersSnapshot.size);
+            const ordersCurrentMonth = ordersCurrentMonthSnapshot.size;
+            const signupsCurrentMonth = usersCurrentMonthSnapshot.size;
+            
+            // Calculate previous month's stats
+            let revenuePreviousMonth = 0;
+            ordersPreviousMonthSnapshot.forEach(doc => {
+                const orderData = doc.data();
+                const price = parseFloat(orderData.price?.replace('$', '')) || 0;
+                revenuePreviousMonth += price;
+            });
+            const ordersPreviousMonth = ordersPreviousMonthSnapshot.size;
+            const signupsPreviousMonth = usersPreviousMonthSnapshot.size;
+
+            // Set totals
+            setTotalRevenue(revenueCurrentMonth);
+            setTotalOrders(ordersCurrentMonth);
+            setNewSignups(signupsCurrentMonth);
             setActiveVendors(vendorsSnapshot.size);
+
+            // Calculate percentage changes
+            const calcChange = (current: number, previous: number) => {
+                if (previous === 0) return current > 0 ? 100 : 0;
+                return ((current - previous) / previous) * 100;
+            };
+
+            setRevenueChange(calcChange(revenueCurrentMonth, revenuePreviousMonth));
+            setOrdersChange(calcChange(ordersCurrentMonth, ordersPreviousMonth));
+            setSignupsChange(calcChange(signupsCurrentMonth, signupsPreviousMonth));
             
             // Fetch recent sales
             const recentSalesQuery = query(collection(db, 'orders'), orderBy('timestamp', 'desc'), limit(5));
@@ -126,6 +182,12 @@ export default function AdminDashboardPage() {
             currency: 'USD',
         }).format(value);
     }
+    
+    const formatPercentage = (value: number) => {
+        const sign = value > 0 ? '+' : '';
+        return `${sign}${value.toFixed(1)}% from last month`;
+    }
+
   return (
     <div className="flex flex-col gap-6 md:gap-8">
       {/* Metric Cards */}
@@ -152,7 +214,7 @@ export default function AdminDashboardPage() {
                 </CardHeader>
                 <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
-                <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+                <p className="text-xs text-muted-foreground">{formatPercentage(revenueChange)}</p>
                 </CardContent>
             </Card>
             <Card>
@@ -162,7 +224,7 @@ export default function AdminDashboardPage() {
                 </CardHeader>
                 <CardContent>
                 <div className="text-2xl font-bold">+{newSignups}</div>
-                <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+                <p className="text-xs text-muted-foreground">{formatPercentage(signupsChange)}</p>
                 </CardContent>
             </Card>
             <Card>
@@ -172,7 +234,7 @@ export default function AdminDashboardPage() {
                 </CardHeader>
                 <CardContent>
                 <div className="text-2xl font-bold">+{totalOrders}</div>
-                <p className="text-xs text-muted-foreground">+19% from last month</p>
+                <p className="text-xs text-muted-foreground">{formatPercentage(ordersChange)}</p>
                 </CardContent>
             </Card>
             <Card>
@@ -341,5 +403,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-    
