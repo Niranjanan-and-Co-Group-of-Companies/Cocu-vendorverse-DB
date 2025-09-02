@@ -10,23 +10,28 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Edit, Save } from 'lucide-react';
+import { MoreHorizontal, Edit, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Product } from '@/lib/products';
 
 interface InventoryActionsProps {
   product: Product;
   isEditing: boolean;
+  isSaving: boolean;
   onSave: () => void;
 }
 
-export function InventoryActions({ product, isEditing, onSave }: InventoryActionsProps) {
+export function InventoryActions({ product, isEditing, isSaving, onSave }: InventoryActionsProps) {
 
   if (isEditing) {
     return (
-        <Button size="sm" onClick={onSave}>
-            <Save className="mr-2 h-4 w-4" />
-            Save
+        <Button size="sm" onClick={onSave} disabled={isSaving}>
+            {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+                <Save className="mr-2 h-4 w-4" />
+            )}
+            {isSaving ? 'Saving...' : 'Save'}
         </Button>
     )
   }

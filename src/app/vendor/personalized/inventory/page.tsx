@@ -28,10 +28,15 @@ type EditingState = {
     };
 };
 
+type SavingState = {
+    [productId: number]: boolean;
+}
+
 function InventoryTable() {
     const [products, setProducts] = React.useState<ProductWithStatus[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [editingState, setEditingState] = React.useState<EditingState>({});
+    const [savingState, setSavingState] = React.useState<SavingState>({});
     const { toast } = useToast();
     
     // In a real app, you would get the vendor's ID from an authentication context.
@@ -64,11 +69,14 @@ function InventoryTable() {
         const editedData = editingState[productId];
         if (!editedData) return;
 
+        setSavingState(prev => ({ ...prev, [productId]: true }));
+
         const stock = parseInt(editedData.stock, 10);
         const inventoryBuffer = parseInt(editedData.inventoryBuffer, 10);
 
         if (isNaN(stock) || isNaN(inventoryBuffer) || stock < 0 || inventoryBuffer < 0) {
             toast({ title: 'Invalid Input', description: 'Stock and buffer must be non-negative numbers.', variant: 'destructive' });
+            setSavingState(prev => ({ ...prev, [productId]: false }));
             return;
         }
 
@@ -83,6 +91,8 @@ function InventoryTable() {
             });
         } catch (error) {
             toast({ title: 'Error', description: 'Failed to update inventory.', variant: 'destructive' });
+        } finally {
+             setSavingState(prev => ({ ...prev, [productId]: false }));
         }
     };
 
@@ -140,6 +150,7 @@ function InventoryTable() {
                     ) : (
                         products.map((product) => {
                             const isEditing = !!editingState[product.id];
+                            const isSaving = !!savingState[product.id];
                             const currentStock = isEditing ? editingState[product.id].stock : String(product.stock);
                             const currentBuffer = isEditing ? editingState[product.id].inventoryBuffer : String(product.inventoryBuffer);
                             const statusInfo = getStatusInfo(product, currentStock);
@@ -180,6 +191,7 @@ function InventoryTable() {
                                         <InventoryActions
                                             product={product}
                                             isEditing={isEditing}
+                                            isSaving={isSaving}
                                             onSave={() => handleSave(product.id)}
                                         />
                                     </TableCell>
