@@ -1,0 +1,151 @@
+
+'use client'
+
+import { Product } from '@/lib/products';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { Heart, ShoppingCart, Star } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import Header from '@/components/layout/header';
+import Footer from '@/components/layout/footer';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
+import { getCategoryBySlug, getProductsByCategory } from '@/lib/categories-service';
+import type { Category } from '@/lib/categories-service';
+
+export default function CategoryPage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [category, setCategory] = useState<Category | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const [categoryData, productData] = await Promise.all([
+        getCategoryBySlug(slug),
+        getProductsByCategory(slug)
+      ]);
+      setCategory(categoryData);
+      setProducts(productData);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-background">
+        <Header />
+        <main className="flex-grow container py-8">
+            <Skeleton className="h-8 w-1/4 mb-4" />
+            <Skeleton className="h-4 w-1/2 mb-8" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden group h-full flex flex-col">
+                    <CardHeader className="p-0 relative">
+                    <Skeleton className="aspect-[4/3] w-full" />
+                    </CardHeader>
+                    <CardContent className="p-4 flex flex-col flex-grow gap-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-1/4" />
+                    <div className="flex-grow"></div>
+                    <Skeleton className="h-8 w-1/3" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-9 w-full" />
+                        <Skeleton className="h-9 w-full" />
+                    </div>
+                    </CardContent>
+                </Card>
+                ))}
+            </div>
+      </main>
+      <Footer />
+    </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header />
+      <main className="flex-grow container py-8">
+        {category ? (
+            <>
+            <h1 className="text-3xl font-bold font-headline mb-2">{category.name}</h1>
+            <p className="text-muted-foreground mb-8">{category.productCount} products</p>
+            
+            {products.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {products.map((product) => (
+                <Card key={product.id} className="overflow-hidden group h-full flex flex-col">
+                    <CardHeader className="p-0 relative">
+                    <div className="overflow-hidden aspect-[4/3]">
+                        {product.featured && <Badge className="absolute top-2 left-2 z-10">Featured</Badge>}
+                        <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
+                        <Heart className="h-4 w-4" />
+                        <span className="sr-only">Add to Wishlist</span>
+                        </Button>
+                        <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        data-ai-hint="gift product"
+                        />
+                    </div>
+                    </CardHeader>
+                    <CardContent className="p-4 flex flex-col flex-grow">
+                    <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+                    {product.category && (
+                        <Link href={`/category/${product.category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                            {product.category}
+                        </Link>
+                    )}
+                    <div className="flex items-center gap-1 mt-2">
+                        <Star className="w-4 h-4 fill-primary text-primary" />
+                        <span className="text-sm font-medium">{product.rating}</span>
+                    </div>
+                    <div className="flex-grow"></div>
+                    <div className="flex items-end justify-between mt-4">
+                        <p className="text-xl font-bold">{product.price}</p>
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2">
+                        <div className="flex gap-2">
+                        <Button size="sm" className="w-full">Buy Now</Button>
+                        <Button size="sm" variant="secondary" className="w-full">
+                            <ShoppingCart className="mr-2 h-4 w-4" />
+                            Add to Cart
+                        </Button>
+                        </div>
+                        {product.customizable && (
+                        <Button size="sm" variant="outline" className="w-full">Customise Now</Button>
+                        )}
+                    </div>
+                    </CardContent>
+                </Card>
+                ))}
+            </div>
+            ) : (
+            <div className="text-center py-16">
+                <p className="text-muted-foreground">No products found in this category yet.</p>
+            </div>
+            )}
+            </>
+        ) : (
+            <div className="text-center py-16">
+                <h1 className="text-2xl font-bold">Category not found</h1>
+                <p className="text-muted-foreground mt-2">The category you are looking for does not exist.</p>
+                <Button asChild className="mt-4">
+                    <Link href="/">Go back to Home</Link>
+                </Button>
+            </div>
+        )}
+      </main>
+      <Footer />
+    </div>
+  );
+}

@@ -13,11 +13,12 @@ export default function AdminPortal() {
       </div>
       
       <Tabs defaultValue="vendors">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="vendors">Vendors</TabsTrigger>
           <TabsTrigger value="customers">Customers</TabsTrigger>
           <TabsTrigger value="orders">Gift Orders</TabsTrigger>
           <TabsTrigger value="catalog">Gift Catalog</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
         </TabsList>
         <TabsContent value="vendors">
           <Card>
@@ -88,6 +89,17 @@ export default function AdminPortal() {
               <p className="text-center text-muted-foreground py-8">Gift catalog management tools will be here.</p>
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value="categories">
+            <Card>
+                <CardHeader>
+                <CardTitle>Category Management</CardTitle>
+                <CardDescription>Manage all product categories.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <p className="text-center text-muted-foreground py-8">Category management tools will be here.</p>
+                </CardContent>
+            </Card>
         </TabsContent>
       </Tabs>
     </div>
