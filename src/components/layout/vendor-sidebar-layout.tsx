@@ -37,6 +37,8 @@ import { useSidebar } from '@/components/ui/sidebar';
 import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Badge } from '../ui/badge';
+import { VendorNotificationDropdown } from './vendor-notification-dropdown';
+
 
 function CustomSidebarTrigger() {
     const { open, toggleSidebar } = useSidebar();
@@ -220,10 +222,7 @@ export function VendorSidebarLayout({ children }: { children: React.ReactNode; }
                     <h1 className="font-headline text-lg font-semibold">{pageTitle}</h1>
                  </div>
                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                        <Bell />
-                        <span className="sr-only">Notifications</span>
-                    </Button>
+                    <VendorNotificationDropdown />
                  </div>
             </header>
             <main className="flex-1 p-4 md:p-6 bg-muted/40">
