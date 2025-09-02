@@ -87,16 +87,12 @@ export default function VendorSupportPage() {
   return (
     <>
       <div className="flex flex-col gap-8">
-        {/* Header and Search */}
+        {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold">How can we help?</h1>
           <p className="mt-2 text-muted-foreground">
             Find answers, create support tickets, or chat with our team.
           </p>
-          <div className="mt-6 relative max-w-xl mx-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input placeholder="Search our Knowledge Base..." className="pl-10 h-11" />
-          </div>
         </div>
 
         {/* Main Action Cards */}
