@@ -125,6 +125,14 @@ function AdminSidebar() {
                   </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/users')} tooltip={{ children: 'Users' }}>
+                      <Link href="/admin/users">
+                      <UserCog />
+                      <span>Users</span>
+                      </Link>
+                  </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/vendors')} tooltip={{ children: 'Vendors' }}>
                       <Link href="/admin/vendors">
                       <Users />
@@ -205,14 +213,6 @@ function AdminSidebar() {
                       </Link>
                   </SidebarMenuButton>
                   {moderationQueue > 0 && <SidebarMenuBadge>{moderationQueue}</SidebarMenuBadge>}
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive('/admin/users')} tooltip={{ children: 'Users' }}>
-                      <Link href="/admin/users">
-                      <UserCog />
-                      <span>Users</span>
-                      </Link>
-                  </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/settings')} tooltip={{ children: 'Settings' }}>
