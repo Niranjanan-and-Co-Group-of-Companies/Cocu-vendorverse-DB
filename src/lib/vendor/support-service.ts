@@ -1,6 +1,4 @@
 
-'use server';
-
 import { 
     collection, 
     onSnapshot, 
@@ -94,6 +92,7 @@ export function onRecentTicketsUpdate(vendorId: string, callback: (tickets: Supp
 
 // Get popular knowledge base articles
 export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
+    'use server';
   // In a real app, you might query based on view counts. Here, we'll just return mock data.
   return MOCK_ARTICLES.map((article, index) => ({
       ...article,
@@ -104,6 +103,7 @@ export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
 
 // Create a new support ticket
 export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor' | 'expiresAt'>): Promise<string> {
+    'use server';
     const now = Timestamp.now();
     const tenDaysFromNow = new Timestamp(now.seconds + 10 * 24 * 60 * 60, now.nanoseconds);
     
