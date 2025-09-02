@@ -1,4 +1,5 @@
-import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
+
+import { collection, getDocs, writeBatch, doc, onSnapshot, getDoc, query, where, limit } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product } from './products';
 
@@ -9,10 +10,14 @@ const MOCK_PRODUCTS: Product[] = [
     vendor: 'Gourmet Delights',
     price: '$45.00',
     image: 'https://picsum.photos/600/400?random=1',
+    galleryImages: ['https://picsum.photos/600/400?random=11', 'https://picsum.photos/600/400?random=12', 'https://picsum.photos/600/400?random=13'],
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     rating: 4.8,
+    stock: 25,
     customizable: true,
     featured: true,
-    description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth.",
+    description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.",
+    creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.",
     category: "Food & Drink",
   },
   {
@@ -21,10 +26,13 @@ const MOCK_PRODUCTS: Product[] = [
     vendor: 'Serene Moments',
     price: '$85.00',
     image: 'https://picsum.photos/600/400?random=2',
+    galleryImages: ['https://picsum.photos/600/400?random=21', 'https://picsum.photos/600/400?random=22'],
     rating: 4.9,
+    stock: 5,
     customizable: false,
     featured: true,
-    description: "A complete home-spa experience with bath bombs, lotions, and scented candles.",
+    description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.",
+    creatorStory: "Serene Moments was born from a desire to make self-care accessible to everyone. Our founder, a certified aromatherapist, personally formulates each product to ensure the highest quality and efficacy.",
     category: "Wellness",
   },
   {
@@ -34,9 +42,10 @@ const MOCK_PRODUCTS: Product[] = [
     price: '$75.00',
     image: 'https://picsum.photos/600/400?random=3',
     rating: 4.7,
+    stock: 15,
     customizable: true,
     featured: true,
-    description: "A timeless and durable wallet made from full-grain leather, with custom monogram options.",
+    description: "A timeless and durable wallet made from full-grain leather, with custom monogram options. This wallet is designed to last a lifetime and will develop a beautiful patina over time.",
     category: "Fashion & Accessories",
   },
   {
@@ -46,9 +55,10 @@ const MOCK_PRODUCTS: Product[] = [
     price: '$55.00',
     image: 'https://picsum.photos/600/400?random=4',
     rating: 4.8,
+    stock: 50,
     customizable: false,
     featured: true,
-    description: "A selection of single-origin coffee beans from around the world.",
+    description: "A selection of single-origin coffee beans from around the world. This collection includes beans from Ethiopia, Colombia, and Sumatra, each with its own unique flavor profile.",
     category: "Food & Drink",
   },
   {
@@ -58,9 +68,10 @@ const MOCK_PRODUCTS: Product[] = [
     price: '$40.00',
     image: 'https://picsum.photos/600/400?random=5',
     rating: 4.9,
+    stock: 0,
     customizable: false,
     featured: true,
-    description: "Explore a variety of rare and exotic teas in this beautifully packaged sampler.",
+    description: "Explore a variety of rare and exotic teas in this beautifully packaged sampler. A perfect gift for any tea lover.",
     category: "Food & Drink",
   },
   {
@@ -69,7 +80,8 @@ const MOCK_PRODUCTS: Product[] = [
     vendor: 'Signature Gifts',
     price: '$95.00',
     image: 'https://picsum.photos/600/400?random=6',
-rating: 4.6,
+    rating: 4.6,
+    stock: 100,
     customizable: true,
     featured: true,
     description: "A sophisticated writing instrument that can be engraved with a name or message.",
@@ -82,6 +94,7 @@ rating: 4.6,
     price: '$60.00',
     image: 'https://picsum.photos/600/400?random=7',
     rating: 4.5,
+    stock: 30,
     customizable: false,
     featured: false,
     description: "A bottle that tracks your water intake and glows to remind you to hydrate.",
@@ -94,6 +107,7 @@ rating: 4.6,
     price: '$50.00',
     image: 'https://picsum.photos/600/400?random=8',
     rating: 4.9,
+    stock: 100,
     customizable: true,
     featured: false,
     description: "A map of the stars on a specific date, like an anniversary or birthday.",
@@ -116,12 +130,43 @@ async function seedProducts() {
   }
 }
 
+seedProducts();
 
 export async function getAllProducts(): Promise<Product[]> {
-  await seedProducts();
   const snapshot = await getDocs(productsCollection);
   return snapshot.docs.map((doc) => doc.data() as Product);
 }
+
+export async function getProductById(id: string): Promise<Product | null> {
+    const docRef = doc(db, 'products', id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return docSnap.data() as Product;
+    }
+    return null;
+}
+
+export function onProductUpdate(id: string, callback: (product: Product | null) => void): () => void {
+    const docRef = doc(db, 'products', id);
+    return onSnapshot(docRef, (doc) => {
+        callback(doc.exists() ? doc.data() as Product : null);
+    });
+}
+
+export async function getRelatedProducts(category?: string, currentProductId?: number): Promise<Product[]> {
+    if (!category) return [];
+    
+    const q = query(
+        productsCollection, 
+        where('category', '==', category),
+        where('id', '!=', currentProductId), // Exclude the current product
+        limit(4)
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as Product);
+}
+
 
 export interface SearchIndex {
     name: string;
@@ -130,7 +175,6 @@ export interface SearchIndex {
 }
 
 export async function getSearchIndex(): Promise<SearchIndex[]> {
-    await seedProducts();
     const snapshot = await getDocs(productsCollection);
     return snapshot.docs.map(doc => {
         const data = doc.data();
