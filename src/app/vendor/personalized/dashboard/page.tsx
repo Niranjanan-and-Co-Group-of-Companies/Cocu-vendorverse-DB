@@ -85,6 +85,7 @@ const recentActivities = [
 export default function VendorDashboard() {
   return (
     <div className="flex flex-col gap-6">
+      {/* Section 1: Analytics Cards */}
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -127,6 +128,8 @@ export default function VendorDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Section 2: Recent Activity */}
       <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center">
