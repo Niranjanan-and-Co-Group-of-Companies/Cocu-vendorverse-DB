@@ -69,23 +69,17 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
     },
 ];
 
-let hasSeeded = false;
-
 async function seedBids() {
-    if (hasSeeded) return;
     const bidsRef = collection(db, "corporateBids");
     const snapshot = await getDocs(bidsRef);
     if (snapshot.empty) {
-        console.log("Seeding initial corporate bids...");
         const batch = writeBatch(db);
         MOCK_BIDS.forEach(bid => {
             const docRef = doc(bidsRef);
             batch.set(docRef, bid);
         });
         await batch.commit();
-        console.log("Bids seeded.");
     }
-    hasSeeded = true;
 }
 
 
@@ -101,11 +95,11 @@ export function onBidsUpdate(callback: (bids: Bid[]) => void): () => void {
         callback(bidsData.sort((a, b) => new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()));
     };
 
-    seedBids().then(() => {
-        onSnapshot(bidsRef, processSnapshot, (error) => {
-            console.error("Error fetching bids:", error);
-        });
+    seedBids();
+
+    const unsubscribe = onSnapshot(bidsRef, processSnapshot, (error) => {
+        console.error("Error fetching bids:", error);
     });
 
-    return () => console.log("Bids listener detached.");
+    return unsubscribe;
 }

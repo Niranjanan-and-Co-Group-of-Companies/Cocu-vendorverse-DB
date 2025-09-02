@@ -35,8 +35,8 @@ interface Order {
     email: string;
     avatar?: string;
   };
-  amount: number;
-  timestamp: any;
+  total: number;
+  date: any;
 }
 interface HomepageContent {
     id: string;
@@ -72,148 +72,146 @@ export default function AdminDashboardPage() {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
+            try {
+                const now = new Date();
+                const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                
+                const startOfCurrentMonthTs = Timestamp.fromDate(startOfCurrentMonth);
+                const startOfPreviousMonthTs = Timestamp.fromDate(startOfPreviousMonth);
 
-            const now = new Date();
-            const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            
-            const startOfCurrentMonthTs = Timestamp.fromDate(startOfCurrentMonth);
-            const startOfPreviousMonthTs = Timestamp.fromDate(startOfPreviousMonth);
+                // Fetch stats for current month
+                const ordersCurrentMonthQuery = query(collection(db, 'orders'), where('date', '>=', startOfCurrentMonthTs));
+                const usersCurrentMonthQuery = query(collection(db, 'users'), where('joinedDate', '>=', startOfCurrentMonthTs));
+                
+                // Fetch stats for previous month
+                const ordersPreviousMonthQuery = query(collection(db, 'orders'), where('date', '>=', startOfPreviousMonthTs), where('date', '<', startOfCurrentMonthTs));
+                const usersPreviousMonthQuery = query(collection(db, 'users'), where('joinedDate', '>=', startOfPreviousMonthTs), where('joinedDate', '<', startOfCurrentMonthTs));
+                
+                // Fetch other data
+                const vendorsSnapshotPromise = getDocs(collection(db, 'vendors'));
+                const recentSalesQuery = query(collection(db, 'orders'), orderBy('date', 'desc'), limit(5));
+                const recentSalesSnapshotPromise = getDocs(recentSalesQuery);
+                const notificationsQuery = query(collection(db, 'notifications'), where('forAdmin', '==', true), orderBy('timestamp', 'desc'), limit(3));
+                const notificationsSnapshotPromise = getDocs(notificationsQuery);
 
-            // Fetch stats for current month
-            const ordersCurrentMonthQuery = query(collection(db, 'orders'), where('timestamp', '>=', startOfCurrentMonthTs));
-            const usersCurrentMonthQuery = query(collection(db, 'users'), where('createdAt', '>=', startOfCurrentMonthTs));
-            
-            // Fetch stats for previous month
-            const ordersPreviousMonthQuery = query(collection(db, 'orders'), where('timestamp', '>=', startOfPreviousMonthTs), where('timestamp', '<', startOfCurrentMonthTs));
-            const usersPreviousMonthQuery = query(collection(db, 'users'), where('createdAt', '>=', startOfPreviousMonthTs), where('createdAt', '<', startOfCurrentMonthTs));
-            
-            // Fetch other data
-            const vendorsSnapshotPromise = getDocs(collection(db, 'vendors'));
-            const recentSalesQuery = query(collection(db, 'orders'), orderBy('timestamp', 'desc'), limit(5));
-            const recentSalesSnapshotPromise = getDocs(recentSalesQuery);
-            const notificationsQuery = query(collection(db, 'notifications'), where('forAdmin', '==', true), orderBy('timestamp', 'desc'), limit(3));
-            const notificationsSnapshotPromise = getDocs(notificationsQuery);
-
-            const [
-                ordersCurrentMonthSnapshot, 
-                usersCurrentMonthSnapshot, 
-                ordersPreviousMonthSnapshot, 
-                usersPreviousMonthSnapshot,
-                vendorsSnapshot,
-                recentSalesSnapshot,
-                notificationsSnapshot,
-            ] = await Promise.all([
-                getDocs(ordersCurrentMonthQuery),
-                getDocs(usersCurrentMonthQuery),
-                getDocs(ordersPreviousMonthQuery),
-                getDocs(usersPreviousMonthQuery),
-                vendorsSnapshotPromise,
-                recentSalesSnapshotPromise,
-                notificationsSnapshotPromise,
-            ]);
-
-            // Calculate current month's stats
-            let revenueCurrentMonth = 0;
-            ordersCurrentMonthSnapshot.forEach(doc => {
-                const orderData = doc.data();
-                const price = parseFloat(orderData.price?.replace('$', '')) || 0;
-                revenueCurrentMonth += price;
-            });
-            const ordersCurrentMonth = ordersCurrentMonthSnapshot.size;
-            const signupsCurrentMonth = usersCurrentMonthSnapshot.size;
-            
-            // Calculate previous month's stats
-            let revenuePreviousMonth = 0;
-            ordersPreviousMonthSnapshot.forEach(doc => {
-                const orderData = doc.data();
-                const price = parseFloat(orderData.price?.replace('$', '')) || 0;
-                revenuePreviousMonth += price;
-            });
-            const ordersPreviousMonth = ordersPreviousMonthSnapshot.size;
-            const signupsPreviousMonth = usersPreviousMonthSnapshot.size;
-
-            // Set totals
-            setTotalRevenue(revenueCurrentMonth);
-            setTotalOrders(ordersCurrentMonth);
-            setNewSignups(signupsCurrentMonth);
-            setActiveVendors(vendorsSnapshot.size);
-
-            // Calculate percentage changes
-            const calcChange = (current: number, previous: number) => {
-                if (previous === 0) return current > 0 ? 100 : 0;
-                return ((current - previous) / previous) * 100;
-            };
-
-            setRevenueChange(calcChange(revenueCurrentMonth, revenuePreviousMonth));
-            setOrdersChange(calcChange(ordersCurrentMonth, ordersPreviousMonth));
-            setSignupsChange(calcChange(signupsCurrentMonth, signupsPreviousMonth));
-            
-            // Fetch recent sales
-            const salesData = recentSalesSnapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    customer: {
-                        name: data.customerName || 'N/A',
-                        email: data.customerEmail || 'N/A',
-                        avatar: data.customerAvatar || `https://avatar.vercel.sh/${data.customerEmail}`
-                    },
-                    amount: parseFloat(data.price?.replace('$', '')) || 0,
-                    timestamp: data.timestamp,
-                }
-            }) as Order[];
-            setRecentSales(salesData);
-
-            // Fetch admin notifications
-            const iconMap: { [key: string]: React.ElementType } = {
-              'new_vendor': UserPlus,
-              'user_report': Shield,
-              'content_update': FileEdit,
-            };
-
-            const notificationData = notificationsSnapshot.docs.map(doc => {
-                const data = doc.data();
-                // Basic time formatting
-                const eventTime = data.timestamp.toDate();
-                const diffMs = now.getTime() - eventTime.getTime();
-                const diffMins = Math.round(diffMs / 60000);
-                const diffHours = Math.round(diffMins / 60);
-                let timeAgo = `${diffMins}m ago`;
-                if (diffMins > 60) {
-                    timeAgo = `${diffHours}h ago`;
-                }
-
-                return {
-                    id: doc.id,
-                    type: data.type,
-                    text: data.text,
-                    time: timeAgo,
-                    icon: iconMap[data.type] || FileEdit,
-                    link: data.link || '#',
-                }
-            }) as AdminNotification[];
-            
-            if (notificationData.length > 0) {
-                setAdminNotifications(notificationData);
-            } else {
-                 // Mocked data for Notifications as a fallback
-                setAdminNotifications([
-                    { id: '1', type: 'New Vendor', text: "New vendor 'Creative Crafts' is awaiting verification.", time: '15m ago', icon: UserPlus, link: '#' },
-                    { id: '2', type: 'User Report', text: "User 'jane_doe' reported a product.", time: '30m ago', icon: Shield, link: '#' },
-                    { id: '3', type: 'Content Update', text: "The 'About Us' page needs review.", time: '1h ago', icon: FileEdit, link: '#' },
+                const [
+                    ordersCurrentMonthSnapshot, 
+                    usersCurrentMonthSnapshot, 
+                    ordersPreviousMonthSnapshot, 
+                    usersPreviousMonthSnapshot,
+                    vendorsSnapshot,
+                    recentSalesSnapshot,
+                    notificationsSnapshot,
+                ] = await Promise.all([
+                    getDocs(ordersCurrentMonthQuery),
+                    getDocs(usersCurrentMonthQuery),
+                    getDocs(ordersPreviousMonthQuery),
+                    getDocs(usersPreviousMonthQuery),
+                    vendorsSnapshotPromise,
+                    recentSalesSnapshotPromise,
+                    notificationsSnapshotPromise,
                 ]);
+
+                // Calculate current month's stats
+                let revenueCurrentMonth = 0;
+                ordersCurrentMonthSnapshot.forEach(doc => {
+                    revenueCurrentMonth += doc.data().total || 0;
+                });
+                const ordersCurrentMonth = ordersCurrentMonthSnapshot.size;
+                const signupsCurrentMonth = usersCurrentMonthSnapshot.size;
+                
+                // Calculate previous month's stats
+                let revenuePreviousMonth = 0;
+                ordersPreviousMonthSnapshot.forEach(doc => {
+                     revenuePreviousMonth += doc.data().total || 0;
+                });
+                const ordersPreviousMonth = ordersPreviousMonthSnapshot.size;
+                const signupsPreviousMonth = usersPreviousMonthSnapshot.size;
+
+                // Set totals
+                setTotalRevenue(revenueCurrentMonth);
+                setTotalOrders(ordersCurrentMonth);
+                setNewSignups(signupsCurrentMonth);
+                setActiveVendors(vendorsSnapshot.size);
+
+                // Calculate percentage changes
+                const calcChange = (current: number, previous: number) => {
+                    if (previous === 0) return current > 0 ? 100 : 0;
+                    return ((current - previous) / previous) * 100;
+                };
+
+                setRevenueChange(calcChange(revenueCurrentMonth, revenuePreviousMonth));
+                setOrdersChange(calcChange(ordersCurrentMonth, ordersPreviousMonth));
+                setSignupsChange(calcChange(signupsCurrentMonth, signupsPreviousMonth));
+                
+                // Fetch recent sales
+                const salesData = recentSalesSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        customer: {
+                            name: data.customer.name || 'N/A',
+                            email: data.customer.email || 'N/A',
+                            avatar: data.customer.avatar || `https://avatar.vercel.sh/${data.customer.email}`
+                        },
+                        total: data.total || 0,
+                        date: data.date,
+                    }
+                }) as Order[];
+                setRecentSales(salesData);
+
+                // Fetch admin notifications
+                const iconMap: { [key: string]: React.ElementType } = {
+                'new_vendor': UserPlus,
+                'user_report': Shield,
+                'content_update': FileEdit,
+                };
+
+                const notificationData = notificationsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    // Basic time formatting
+                    const eventTime = data.timestamp.toDate();
+                    const diffMs = now.getTime() - eventTime.getTime();
+                    const diffMins = Math.round(diffMs / 60000);
+                    const diffHours = Math.round(diffMins / 60);
+                    let timeAgo = `${diffMins}m ago`;
+                    if (diffMins > 60) {
+                        timeAgo = `${diffHours}h ago`;
+                    }
+
+                    return {
+                        id: doc.id,
+                        type: data.type,
+                        text: data.text,
+                        time: timeAgo,
+                        icon: iconMap[data.type] || FileEdit,
+                        link: data.link || '#',
+                    }
+                }) as AdminNotification[];
+                
+                if (notificationData.length > 0) {
+                    setAdminNotifications(notificationData);
+                } else {
+                    // Mocked data for Notifications as a fallback
+                    setAdminNotifications([
+                        { id: '1', type: 'New Vendor', text: "New vendor 'Creative Crafts' is awaiting verification.", time: '15m ago', icon: UserPlus, link: '#' },
+                        { id: '2', type: 'User Report', text: "User 'jane_doe' reported a product.", time: '30m ago', icon: Shield, link: '#' },
+                        { id: '3', type: 'Content Update', text: "The 'About Us' page needs review.", time: '1h ago', icon: FileEdit, link: '#' },
+                    ]);
+                }
+
+                // Mocked data for Homepage Content as this collection doesn't exist yet
+                setHomepageContent([
+                    { id: 'hero-personal', name: 'Main Hero Carousel (Personal)', status: 'Active' },
+                    { id: 'hero-corporate', name: 'Corporate Hero Carousel (B2B)', status: 'Create' },
+                    { id: 'announcement-banner', name: 'Top Announcement Banner', status: 'Active' },
+                ]);
+            } catch (error) {
+                console.error("Failed to fetch admin dashboard data:", error);
+            } finally {
+                setLoading(false);
             }
-
-            // Mocked data for Homepage Content as this collection doesn't exist yet
-            setHomepageContent([
-                { id: 'hero-personal', name: 'Main Hero Carousel (Personal)', status: 'Active' },
-                { id: 'hero-corporate', name: 'Corporate Hero Carousel (B2B)', status: 'Create' },
-                { id: 'announcement-banner', name: 'Top Announcement Banner', status: 'Active' },
-            ]);
-            
-
-            setLoading(false);
         }
         fetchData();
     }, []);
@@ -340,7 +338,7 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(sale.amount)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(sale.total)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -448,7 +446,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-    
-
-    

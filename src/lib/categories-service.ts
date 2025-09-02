@@ -21,14 +21,10 @@ const MOCK_CATEGORIES = [
     { name: "Home & Decor", slug: "home-decor" },
 ];
 
-let hasSeeded = false;
-
 async function seedCategories() {
-  if (hasSeeded) return;
   const categoriesRef = collection(db, "categories");
   const snapshot = await getDocs(categoriesRef);
   if (snapshot.empty) {
-    console.log("Seeding initial categories...");
     const batch = writeBatch(db);
     MOCK_CATEGORIES.forEach(category => {
       const docRef = doc(categoriesRef);
@@ -37,9 +33,7 @@ async function seedCategories() {
       batch.set(docRef, { ...category, image: imageUrl });
     });
     await batch.commit();
-    console.log("Categories seeded.");
   }
-  hasSeeded = true; // Prevent re-seeding in the same session
 }
 
 // Get product count for a single category
@@ -70,18 +64,17 @@ export function onCategoriesUpdate(callback: (categories: Category[]) => void): 
     const categoriesRef = collection(db, 'categories');
     
     // Seed data if needed, then set up listener
-    seedCategories().then(() => {
-        onSnapshot(categoriesRef, (snapshot) => {
-            const categoriesData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Category));
-            callback(categoriesData);
-        });
+    const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
+        const categoriesData = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as Category));
+        callback(categoriesData);
     });
     
-    // Return a dummy unsubscribe function as the listener is long-lived
-    return () => console.log("Categories listener detached.");
+    seedCategories();
+
+    return unsubscribe;
 }
 
 // Add a new category
@@ -127,12 +120,8 @@ export async function deleteCategory(categoryId: string) {
 // In a real app, these should be deprecated and removed over time.
 
 export async function getCategories(): Promise<Category[]> {
+  await seedCategories();
   const snapshot = await getDocs(collection(db, 'categories'));
-   if (snapshot.empty) {
-    await seedCategories();
-    const seededSnapshot = await getDocs(collection(db, 'categories'));
-    return seededSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
-  }
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
 }
 

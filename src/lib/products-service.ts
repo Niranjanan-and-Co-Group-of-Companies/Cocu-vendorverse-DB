@@ -105,12 +105,15 @@ rating: 4.6,
 const productsCollection = collection(db, 'products');
 
 async function seedProducts() {
-  const batch = writeBatch(db);
-  MOCK_PRODUCTS.forEach((product) => {
-    const docRef = doc(db, 'products', String(product.id));
-    batch.set(docRef, product);
-  });
-  await batch.commit();
+  const snapshot = await getDocs(productsCollection);
+  if (snapshot.empty) {
+    const batch = writeBatch(db);
+    MOCK_PRODUCTS.forEach((product) => {
+        const docRef = doc(db, 'products', String(product.id));
+        batch.set(docRef, product);
+    });
+    await batch.commit();
+  }
 }
 
 let productsCache: Product[] | null = null;
@@ -120,18 +123,8 @@ export async function getAllProducts(): Promise<Product[]> {
         return productsCache;
     }
 
+  await seedProducts();
   const snapshot = await getDocs(productsCollection);
-  if (snapshot.empty) {
-    try {
-        await seedProducts();
-        const seededSnapshot = await getDocs(productsCollection);
-        productsCache = seededSnapshot.docs.map((doc) => doc.data() as Product);
-        return productsCache;
-    } catch (e) {
-        console.error("Failed to seed products:", e);
-        return [];
-    }
-  }
   
   productsCache = snapshot.docs.map((doc) => doc.data() as Product);
   return productsCache;

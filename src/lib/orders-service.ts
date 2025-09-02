@@ -125,23 +125,17 @@ const MOCK_ORDERS: Omit<Order, 'id'>[] = [
     },
 ];
 
-let hasSeeded = false;
-
 async function seedOrders() {
-    if (hasSeeded) return;
     const ordersRef = collection(db, "orders");
     const snapshot = await getDocs(ordersRef);
     if (snapshot.empty) {
-        console.log("Seeding initial orders...");
         const batch = writeBatch(db);
         MOCK_ORDERS.forEach(order => {
             const docRef = doc(ordersRef);
             batch.set(docRef, order);
         });
         await batch.commit();
-        console.log("Orders seeded.");
     }
-    hasSeeded = true;
 }
 
 
@@ -159,14 +153,13 @@ export function onOrdersUpdate(callback: (orders: Order[]) => void): () => void 
         callback(ordersData.sort((a, b) => b.date.toMillis() - a.date.toMillis())); // Sort by newest first
     };
 
-    seedOrders().then(() => {
-        onSnapshot(ordersRef, processSnapshot, (error) => {
-            console.error("Error fetching orders:", error);
-        });
+    seedOrders();
+    
+    const unsubscribe = onSnapshot(ordersRef, processSnapshot, (error) => {
+        console.error("Error fetching orders:", error);
     });
 
-    // Return a dummy unsubscribe function for now, but in a real app, this would be the actual unsubscribe function
-    return () => console.log("Orders listener detached.");
+    return unsubscribe;
 }
 
 
@@ -182,5 +175,3 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
         throw error;
     }
 }
-
-    

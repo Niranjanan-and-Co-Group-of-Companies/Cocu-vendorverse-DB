@@ -64,15 +64,11 @@ const MOCK_MESSAGES: { [key: string]: Omit<Message, 'id'>[] } = {
   ]
 };
 
-let hasSeeded = false;
-
 async function seedChatData() {
-  if (hasSeeded) return;
   const conversationsRef = collection(db, 'conversations');
   const snapshot = await getDocs(conversationsRef);
 
   if (snapshot.empty) {
-    console.log("Seeding chat data...");
     const batch = writeBatch(db);
     
     MOCK_CONVERSATIONS.forEach(conv => {
@@ -91,9 +87,7 @@ async function seedChatData() {
     });
 
     await batch.commit();
-    console.log("Chat data seeded.");
   }
-  hasSeeded = true;
 }
 
 // --- Service Functions ---

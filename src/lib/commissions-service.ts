@@ -1,5 +1,5 @@
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, addDoc, deleteDoc, query } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Category } from './categories-service';
 
@@ -29,21 +29,21 @@ export interface CommissionableItem {
 
 
 // --- Seeding Logic ---
-let hasSeeded = false;
-
 async function seedCommissionRules() {
-    if (hasSeeded) return;
-
     const commissionsRef = collection(db, "commissions");
     const snapshot = await getDocs(commissionsRef);
     if (!snapshot.empty) {
-        hasSeeded = true;
         return;
     }
 
-    console.log("Seeding commission rules...");
     const categoriesRef = collection(db, "categories");
     const categoriesSnapshot = await getDocs(categoriesRef);
+    // If categories are not seeded, wait a bit and retry.
+    if (categoriesSnapshot.empty) {
+        setTimeout(seedCommissionRules, 2000);
+        return;
+    }
+    
     const categories: Category[] = categoriesSnapshot.docs.map(d => ({id: d.id, ...d.data()} as Category));
 
     const batch = writeBatch(db);
@@ -73,8 +73,6 @@ async function seedCommissionRules() {
     });
 
     await batch.commit();
-    console.log("Commission rules seeded.");
-    hasSeeded = true;
 }
 
 
@@ -83,15 +81,14 @@ async function seedCommissionRules() {
 export function onCommissionRulesUpdate(callback: (rules: CommissionRule[]) => void): () => void {
     const commissionsRef = collection(db, 'commissions');
     
-    seedCommissionRules().then(() => {
-        const unsubscribe = onSnapshot(commissionsRef, (snapshot) => {
-            const rules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommissionRule));
-            callback(rules);
-        });
-        return unsubscribe;
-    }).catch(console.error);
-
-    return () => console.log("Detached commission rules listener.");
+    seedCommissionRules();
+    
+    const unsubscribe = onSnapshot(commissionsRef, (snapshot) => {
+        const rules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommissionRule));
+        callback(rules);
+    });
+    
+    return unsubscribe;
 }
 
 export function onOverridesUpdate(type: 'vendor' | 'product', callback: (overrides: Override[]) => void): () => void {

@@ -57,14 +57,10 @@ const MOCK_CAMPAIGNS: Omit<Campaign, 'id'|'creatives'>[] = [
     }
 ];
 
-let hasSeeded = false;
-
 async function seedMarketingCampaigns() {
-    if (hasSeeded) return;
     const campaignsRef = collection(db, "marketingCampaigns");
     const snapshot = await getDocs(campaignsRef);
     if (snapshot.empty) {
-        console.log("Seeding marketing campaigns...");
         const batch = writeBatch(db);
         MOCK_CAMPAIGNS.forEach(campaign => {
             const docRef = doc(campaignsRef);
@@ -81,9 +77,7 @@ async function seedMarketingCampaigns() {
             });
         });
         await batch.commit();
-        console.log("Marketing campaigns seeded.");
     }
-    hasSeeded = true;
 }
 
 // --- Image Upload ---
@@ -110,19 +104,19 @@ export async function getCampaignById(id: string): Promise<Campaign | null> {
 export function onCampaignsUpdate(callback: (campaigns: Campaign[]) => void): () => void {
     const campaignsRef = collection(db, 'marketingCampaigns');
 
-    seedMarketingCampaigns().then(() => {
-        onSnapshot(campaignsRef, (snapshot) => {
-            const campaignsData = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data()
-            } as Campaign));
-            // Sort by start date, most recent first
-            campaignsData.sort((a, b) => b.startDate.toDate() - a.startDate.toDate());
-            callback(campaignsData);
-        });
+    seedMarketingCampaigns();
+    
+    const unsubscribe = onSnapshot(campaignsRef, (snapshot) => {
+        const campaignsData = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+        } as Campaign));
+        // Sort by start date, most recent first
+        campaignsData.sort((a, b) => b.startDate.toDate() - a.startDate.toDate());
+        callback(campaignsData);
     });
 
-    return () => console.log("Marketing campaigns listener detached.");
+    return unsubscribe;
 }
 
 // Create or Update a campaign
