@@ -1,4 +1,6 @@
 
+'use server';
+
 import { 
     collection, 
     onSnapshot, 
@@ -9,7 +11,8 @@ import {
     orderBy,
     limit,
     Timestamp,
-    Unsubscribe 
+    Unsubscribe,
+    getDocs
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -69,9 +72,8 @@ const MOCK_ARTICLES: Omit<KnowledgeBaseArticle, 'id' | 'lastUpdated'>[] = [
 ];
 
 
-// --- Service Functions ---
-
-// Get recent tickets for the vendor dashboard
+// This function is intended to be called from a client component to set up a listener.
+// It is kept separate from the file with 'use server' to avoid build errors.
 export function onRecentTicketsUpdate(vendorId: string, callback: (tickets: SupportTicket[]) => void): Unsubscribe {
   const ticketsRef = collection(db, 'supportTickets');
   const q = query(
@@ -90,10 +92,11 @@ export function onRecentTicketsUpdate(vendorId: string, callback: (tickets: Supp
   });
 }
 
-// Get popular knowledge base articles
+
+// Get popular knowledge base articles - This is a server action
 export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
-    'use server';
   // In a real app, you might query based on view counts. Here, we'll just return mock data.
+  // This can be expanded to fetch from a 'knowledgeBase' collection in Firestore.
   return MOCK_ARTICLES.map((article, index) => ({
       ...article,
       id: `article-${index + 1}`,
@@ -101,9 +104,8 @@ export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
   }));
 }
 
-// Create a new support ticket
+// Create a new support ticket - This is a server action
 export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor' | 'expiresAt'>): Promise<string> {
-    'use server';
     const now = Timestamp.now();
     const tenDaysFromNow = new Timestamp(now.seconds + 10 * 24 * 60 * 60, now.nanoseconds);
     
