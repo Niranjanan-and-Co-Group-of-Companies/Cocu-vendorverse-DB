@@ -42,7 +42,7 @@ export function Search() {
   }, []);
 
   useEffect(() => {
-    if (query.length > 1) {
+    if (query.length > 1 && !loadingProducts) {
       const fetchSuggestions = async () => {
         setLoading(true);
         try {
@@ -64,7 +64,7 @@ export function Search() {
     } else {
       setSuggestions([]);
     }
-  }, [query, products]);
+  }, [query, products, loadingProducts]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,24 +90,32 @@ export function Search() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setShowSuggestions(true)}
-          disabled={loadingProducts}
         />
         {(loading || loadingProducts) && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />}
       </form>
-      {showSuggestions && (suggestions.length > 0 || query.length > 1) && (
+      {showSuggestions && (suggestions.length > 0 || (loading && query.length > 1)) && (
         <div className="absolute top-full mt-2 w-full rounded-md border bg-popover text-popover-foreground shadow-md z-50">
           <ul className="py-1">
-            {suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                className="px-3 py-2 text-sm cursor-pointer hover:bg-accent"
-                onClick={() => handleSuggestionClick(suggestion)}
-              >
-                {suggestion}
-              </li>
-            ))}
-            {suggestions.length === 0 && !loading && query.length > 1 && (
-                <li className="px-3 py-2 text-sm text-muted-foreground">No suggestions found.</li>
+            {loading && query.length > 1 ? (
+                <li className="px-3 py-2 text-sm text-muted-foreground flex items-center">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Loading...</span>
+                </li>
+            ) : (
+                <>
+                    {suggestions.map((suggestion, index) => (
+                    <li
+                        key={index}
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-accent"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                        {suggestion}
+                    </li>
+                    ))}
+                    {suggestions.length === 0 && !loading && query.length > 1 && (
+                        <li className="px-3 py-2 text-sm text-muted-foreground">No suggestions found.</li>
+                    )}
+                </>
             )}
           </ul>
         </div>
