@@ -9,16 +9,25 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { Product } from '@/lib/products';
 import { AlertCircle } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 interface PackageAndShippingCardProps {
   weight: number;
   dimensions: { l: number, w: number, h: number };
   inventoryBuffer: number;
   preparationTime: { min: number, max: number };
+  preparationTimeUnit: 'days' | 'hours';
   onFieldChange: (field: keyof Product, value: any) => void;
 }
 
-export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, preparationTime, onFieldChange }: PackageAndShippingCardProps) {
+export function PackageAndShippingCard({ 
+    weight, 
+    dimensions, 
+    inventoryBuffer, 
+    preparationTime, 
+    preparationTimeUnit,
+    onFieldChange 
+}: PackageAndShippingCardProps) {
   
   const handleDimensionChange = (dim: 'l' | 'w' | 'h', value: string) => {
     onFieldChange('dimensions', { ...dimensions, [dim]: parseFloat(value) || 0 });
@@ -29,6 +38,10 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
   };
 
   const isPrepTimeInvalid = preparationTime.max !== preparationTime.min + 1;
+  
+  const handleUnitToggle = (isHours: boolean) => {
+    onFieldChange('preparationTimeUnit', isHours ? 'hours' : 'days');
+  }
 
   return (
     <Card>
@@ -37,7 +50,18 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-            <Label>Preparation Time (Days)</Label>
+            <div className="flex items-center justify-between">
+                <Label>Preparation Time</Label>
+                 <div className="flex items-center gap-2">
+                    <Label htmlFor="prep-time-unit" className="text-sm">Days</Label>
+                    <Switch 
+                        id="prep-time-unit"
+                        checked={preparationTimeUnit === 'hours'}
+                        onCheckedChange={handleUnitToggle}
+                    />
+                    <Label htmlFor="prep-time-unit" className="text-sm">Hours</Label>
+                </div>
+            </div>
             <div className="grid grid-cols-2 gap-2">
                 <Input 
                     placeholder="Min" 
@@ -55,7 +79,7 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
              {isPrepTimeInvalid && (
                  <Alert variant="destructive" className="mt-2">
                     <AlertDescription className="text-xs">
-                        Max days must be exactly one greater than min days (e.g., 4-5 days).
+                        Max {preparationTimeUnit} must be exactly one greater than min {preparationTimeUnit} (e.g., 4-5 {preparationTimeUnit}).
                     </AlertDescription>
                 </Alert>
              )}
@@ -91,5 +115,3 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
     </Card>
   );
 }
-
-    

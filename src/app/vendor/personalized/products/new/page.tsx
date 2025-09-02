@@ -44,6 +44,7 @@ const createDefaultProduct = (): Partial<Product> => ({
   tags: [],
   allowedCustomizations: [],
   preparationTime: { min: 3, max: 4 }, // Default preparation time
+  preparationTimeUnit: 'days',
 });
 
 function ProductEditorContent() {
@@ -226,6 +227,7 @@ function ProductEditorContent() {
                         dimensions={product.dimensions || { l: 0, w: 0, h: 0 }}
                         inventoryBuffer={product.inventoryBuffer || 0}
                         preparationTime={product.preparationTime || { min: 0, max: 0 }}
+                        preparationTimeUnit={product.preparationTimeUnit || 'days'}
                         onFieldChange={handleFieldChange}
                     />
                      <OrganizeCard 
