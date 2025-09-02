@@ -92,12 +92,14 @@ function ProductPageContent({ params }: { params: { id: string } }) {
 }
 
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = React.use(params);
+    
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-grow">
-                <ProductPageContent params={params} />
+                <ProductPageContent params={resolvedParams} />
             </main>
             <Footer />
         </div>
