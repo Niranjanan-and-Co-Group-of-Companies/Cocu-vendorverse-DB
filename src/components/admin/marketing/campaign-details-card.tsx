@@ -161,6 +161,7 @@ export function CampaignDetailsCard({ campaign, onFieldChange }: CampaignDetails
                     <SelectItem value="All">All Visitors</SelectItem>
                     <SelectItem value="New Customers">New Customers</SelectItem>
                     <SelectItem value="Returning Customers">Returning Customers</SelectItem>
+                    <SelectItem value="Corporate">Corporate Clients</SelectItem>
                 </SelectContent>
             </Select>
         </div>

@@ -20,6 +20,52 @@ export interface ProductSearchResult {
 const featuredCollection = collection(db, 'featured');
 const productsCollection = collection(db, 'products');
 
+async function getFeaturedProductsByPlatform(platform: 'personal' | 'corporate'): Promise<FeaturedProduct[]> {
+  const field = platform === 'personal' ? 'featuredOnPersonal' : 'featuredOnCorporate';
+  const q = query(featuredCollection, where(field, '==', true));
+  const featuredSnapshot = await getDocs(q);
+
+  const featuredDocs = featuredSnapshot.docs;
+    if (featuredDocs.length === 0) {
+      return [];
+    }
+
+    const featuredMap = new Map(featuredDocs.map(d => [d.id, d.data()]));
+    const productIds = featuredDocs.map(d => d.id);
+
+    const productBatches: Promise<any>[] = [];
+    for (let i = 0; i < productIds.length; i += 30) {
+      const batchIds = productIds.slice(i, i + 30);
+      const productQuery = query(productsCollection, where(documentId(), 'in', batchIds));
+      productBatches.push(getDocs(productQuery));
+    }
+
+    const productSnapshots = await Promise.all(productBatches);
+    
+    const mergedProducts: FeaturedProduct[] = [];
+    productSnapshots.forEach(productSnapshot => {
+        productSnapshot.docs.forEach((productDoc: any) => {
+            const productData = productDoc.data() as Product;
+            const featureData = featuredMap.get(productDoc.id);
+
+            if (featureData) {
+                mergedProducts.push({
+                    ...productData,
+                    featuredOnPersonal: featureData.featuredOnPersonal || false,
+                    featuredOnCorporate: featureData.featuredOnCorporate || false,
+                    b2bEnabled: !!productData.customizable,
+                });
+            }
+        });
+    });
+    return mergedProducts;
+}
+
+export async function getFeaturedCorporateProducts(): Promise<FeaturedProduct[]> {
+    return getFeaturedProductsByPlatform('corporate');
+}
+
+
 // Get all featured products with real-time updates and merged product data
 export function onFeaturedProductsUpdate(callback: (products: FeaturedProduct[]) => void): () => void {
   const unsubscribe = onSnapshot(featuredCollection, async (featuredSnapshot) => {

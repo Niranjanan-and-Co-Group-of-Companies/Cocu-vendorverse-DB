@@ -5,7 +5,7 @@ import type { CampaignCreative } from '@/app/admin/marketing/new/page';
 
 export type CampaignType = 'Sale' | 'Promotion' | 'Flash Sale' | 'Content';
 export type CampaignStatus = 'Active' | 'Draft' | 'Scheduled' | 'Finished';
-export type CampaignAudience = 'All' | 'New Customers' | 'Returning Customers';
+export type CampaignAudience = 'All' | 'New Customers' | 'Returning Customers' | 'Corporate';
 export type Placement = 'homepage-hero' | 'top-banner' | 'popup-modal' | 'category-banner';
 
 export interface Campaign {
@@ -139,6 +139,36 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
     // Additional check for end date
     if (campaignData.endDate && campaignData.endDate < now) {
         return null; // Campaign has expired
+    }
+
+    return campaignData;
+}
+
+
+// Get active campaign for a specific placement
+export async function getActiveCorporateCampaignByPlacement(placement: Placement): Promise<Campaign | null> {
+    const campaignsRef = collection(db, 'marketingCampaigns');
+    const now = Timestamp.now();
+
+    const q = query(
+        campaignsRef,
+        where('placement', '==', placement),
+        where('status', '==', 'Active'),
+        where('audience', '==', 'Corporate'),
+        where('startDate', '<=', now),
+        limit(1)
+    );
+
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return null;
+    }
+
+    const campaignDoc = snapshot.docs[0];
+    const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
+
+    if (campaignData.endDate && campaignData.endDate.toDate() < new Date()) {
+        return null;
     }
 
     return campaignData;
