@@ -34,6 +34,7 @@ import {
   Settings,
   PlusCircle,
   HelpCircle,
+  BarChart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
@@ -110,6 +111,14 @@ export default function AdminLayout({
                 <Link href="/admin/products">
                   <Box />
                   <span>Products</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive('/admin/categories')} tooltip={{ children: 'Categories' }}>
+                <Link href="/admin/categories">
+                  <BarChart />
+                  <span>Categories</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
