@@ -75,7 +75,7 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
             <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
           </DialogTitle>
           <DialogDescription>
-             Placed on: {formatDate(order.date)} by {order.customer.name}
+             Placed on: {formatDate(order.date)}
           </DialogDescription>
         </DialogHeader>
 
