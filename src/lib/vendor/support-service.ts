@@ -71,28 +71,6 @@ const MOCK_ARTICLES: Omit<KnowledgeBaseArticle, 'id' | 'lastUpdated'>[] = [
     { title: "Understanding NDR and RTO", category: "Orders & Shipping", content: "..." },
 ];
 
-
-// This function is intended to be called from a client component to set up a listener.
-// It is kept separate from the file with 'use server' to avoid build errors.
-export function onRecentTicketsUpdate(vendorId: string, callback: (tickets: SupportTicket[]) => void): Unsubscribe {
-  const ticketsRef = collection(db, 'supportTickets');
-  const q = query(
-    ticketsRef,
-    where('vendorId', '==', vendorId),
-    orderBy('lastUpdated', 'desc'),
-    limit(3)
-  );
-
-  return onSnapshot(q, (snapshot) => {
-    const tickets = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as SupportTicket));
-    callback(tickets);
-  });
-}
-
-
 // Get popular knowledge base articles - This is a server action
 export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
   // In a real app, you might query based on view counts. Here, we'll just return mock data.
