@@ -21,6 +21,7 @@ import type { Order, OrderStatus } from '@/lib/orders-service';
 import { onVendorOrdersUpdate, updateOrderStatus } from '@/lib/orders-service';
 import { VendorOrderActions } from '@/components/vendor/orders/vendor-order-actions';
 import { VendorOrderDetailsDialog } from '@/components/vendor/orders/vendor-order-details-dialog';
+import Image from 'next/image';
 
 // In a real app, this would come from an auth context
 const VENDOR_NAME = "Gourmet Delights"; 
@@ -92,8 +93,8 @@ export default function VendorOrdersPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Order ID</TableHead>
+                            <TableHead>Product</TableHead>
                             <TableHead>Date</TableHead>
-                            <TableHead>Your Items</TableHead>
                             <TableHead>Your Total</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
@@ -103,29 +104,43 @@ export default function VendorOrdersPage() {
                         {isLoading ? Array.from({length: 5}).map((_, i) => (
                             <TableRow key={i}>
                                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                <TableCell><div className="flex items-center gap-2"><Skeleton className="h-10 w-10 rounded-md" /><Skeleton className="h-4 w-32" /></div></TableCell>
                                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                                <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                 <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                                 <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                             </TableRow>
-                        )) : orders.map(order => (
-                            <TableRow key={order.id}>
-                                <TableCell className="font-mono text-xs">#{order.id.slice(0, 8)}...</TableCell>
-                                <TableCell>{formatDate(order.date)}</TableCell>
-                                <TableCell>{order.vendorItemCount}</TableCell>
-                                <TableCell>{formatCurrency(order.vendorTotal)}</TableCell>
-                                <TableCell>
-                                    <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <VendorOrderActions
-                                        order={order}
-                                        onViewDetails={() => handleViewDetails(order)}
-                                    />
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        )) : orders.map(order => {
+                             const vendorItems = order.items.filter(item => item.vendor === VENDOR_NAME);
+                             const primaryItem = vendorItems[0];
+                            return (
+                                <TableRow key={order.id}>
+                                    <TableCell className="font-mono text-xs">#{order.id.slice(0, 8)}...</TableCell>
+                                     <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Image src={primaryItem.image} alt={primaryItem.name} width={40} height={40} className="rounded-md object-cover" />
+                                            <div>
+                                                <p className="font-medium">{primaryItem.name}</p>
+                                                {vendorItems.length > 1 && (
+                                                    <p className="text-xs text-muted-foreground">+{vendorItems.length - 1} more</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>{formatDate(order.date)}</TableCell>
+                                    <TableCell>{formatCurrency(order.vendorTotal)}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <VendorOrderActions
+                                            order={order}
+                                            onViewDetails={() => handleViewDetails(order)}
+                                        />
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
                     </TableBody>
                 </Table>
             </CardContent>
