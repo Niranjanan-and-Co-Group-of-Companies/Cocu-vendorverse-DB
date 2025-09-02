@@ -116,16 +116,9 @@ async function seedProducts() {
   }
 }
 
-let productsCache: Product[] | null = null;
 
 export async function getAllProducts(): Promise<Product[]> {
-    if (productsCache) {
-        return productsCache;
-    }
-
   await seedProducts();
   const snapshot = await getDocs(productsCollection);
-  
-  productsCache = snapshot.docs.map((doc) => doc.data() as Product);
-  return productsCache;
+  return snapshot.docs.map((doc) => doc.data() as Product);
 }

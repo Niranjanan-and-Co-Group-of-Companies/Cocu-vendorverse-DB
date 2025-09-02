@@ -1,4 +1,3 @@
-
 import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp, updateDoc, query, where, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
@@ -20,64 +19,6 @@ export interface Campaign {
   audience?: CampaignAudience;
   placement: Placement;
   creatives: Omit<CampaignCreative, 'imageFile'>[];
-}
-
-const MOCK_CAMPAIGNS: Omit<Campaign, 'id'|'creatives'>[] = [
-    {
-        name: 'Holiday Kick-off Sale',
-        type: 'Sale',
-        status: 'Active',
-        startDate: Timestamp.fromDate(new Date(new Date().setDate(new Date().getDate() - 5))),
-        endDate: Timestamp.fromDate(new Date(new Date().setDate(new Date().getDate() + 10))),
-        placement: 'homepage-hero'
-    },
-    {
-        name: 'New Year, New Gear',
-        type: 'Promotion',
-        status: 'Scheduled',
-        startDate: Timestamp.fromDate(new Date(new Date().getFullYear() + 1, 0, 1)),
-        endDate: Timestamp.fromDate(new Date(new Date().getFullYear() + 1, 0, 15)),
-        placement: 'homepage-hero'
-    },
-    {
-        name: 'Black Friday Flash Sale',
-        type: 'Flash Sale',
-        status: 'Finished',
-        startDate: Timestamp.fromDate(new Date(new Date().getFullYear() - 1, 10, 24)),
-        endDate: Timestamp.fromDate(new Date(new Date().getFullYear() - 1, 10, 24, 23, 59, 59)),
-        placement: 'homepage-hero'
-    },
-    {
-        name: 'Spring Refresh (Draft)',
-        type: 'Sale',
-        status: 'Draft',
-        startDate: Timestamp.fromDate(new Date(new Date().getFullYear(), 2, 1)),
-        endDate: Timestamp.fromDate(new Date(new Date().getFullYear(), 2, 15)),
-        placement: 'homepage-hero'
-    }
-];
-
-async function seedMarketingCampaigns() {
-    const campaignsRef = collection(db, "marketingCampaigns");
-    const snapshot = await getDocs(campaignsRef);
-    if (snapshot.empty) {
-        const batch = writeBatch(db);
-        MOCK_CAMPAIGNS.forEach(campaign => {
-            const docRef = doc(campaignsRef);
-            batch.set(docRef, {
-              ...campaign,
-              creatives: [{
-                id: '1',
-                title: 'Mock Creative Title',
-                description: 'This is a mock creative description for the campaign.',
-                ctaText: 'Shop The Sale',
-                ctaLink: '#',
-                imageUrl: `https://picsum.photos/seed/${Math.random()}/1200/800`
-              }]
-            });
-        });
-        await batch.commit();
-    }
 }
 
 // --- Image Upload ---
@@ -103,8 +44,6 @@ export async function getCampaignById(id: string): Promise<Campaign | null> {
 // Get all campaigns with real-time updates
 export function onCampaignsUpdate(callback: (campaigns: Campaign[]) => void): () => void {
     const campaignsRef = collection(db, 'marketingCampaigns');
-
-    seedMarketingCampaigns();
     
     const unsubscribe = onSnapshot(campaignsRef, (snapshot) => {
         const campaignsData = snapshot.docs.map((doc) => ({
@@ -178,7 +117,6 @@ export async function deleteCampaign(campaignId: string) {
 
 // Get active campaign for a specific placement
 export async function getActiveCampaignByPlacement(placement: Placement): Promise<Campaign | null> {
-    await seedMarketingCampaigns(); // Ensure data exists
     const campaignsRef = collection(db, 'marketingCampaigns');
     const now = Timestamp.now();
 

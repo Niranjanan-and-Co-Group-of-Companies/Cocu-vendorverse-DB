@@ -1,3 +1,6 @@
+
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,11 +11,39 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { getAllProducts } from '@/lib/products-service';
-import { getCategories } from '@/lib/categories-service';
-import { getActiveCampaignByPlacement } from '@/lib/marketing-service';
+import { getCategories, type Category } from '@/lib/categories-service';
+import { getActiveCampaignByPlacement, type Campaign } from '@/lib/marketing-service';
+import React, { useEffect, useState } from 'react';
+import type { Product } from '@/lib/products';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const HeroSection = async () => {
-  const heroCampaign = await getActiveCampaignByPlacement('homepage-hero');
+const HeroSection = () => {
+  const [heroCampaign, setHeroCampaign] = useState<Campaign | null>();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getActiveCampaignByPlacement('homepage-hero').then(campaign => {
+      // A null value means no active campaign was found
+      setHeroCampaign(campaign);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+     return (
+      <section className="relative py-20 md:py-32">
+        <div className="container text-center">
+            <Skeleton className="w-20 h-20 rounded-full mx-auto mb-8" />
+            <Skeleton className="h-12 w-3/4 mx-auto mb-4" />
+            <Skeleton className="h-6 w-1/2 mx-auto" />
+             <div className="mt-8 flex justify-center gap-4">
+                <Skeleton className="h-12 w-32" />
+                <Skeleton className="h-12 w-32" />
+             </div>
+        </div>
+      </section>
+     )
+  }
 
   if (!heroCampaign || heroCampaign.creatives.length === 0) {
     // Fallback static hero
@@ -77,10 +108,25 @@ const HeroSection = async () => {
   )
 }
 
-export default async function Home() {
-  const allProducts = await getAllProducts();
-  const featuredProducts = allProducts.filter(p => p.featured);
-  const categories = await getCategories();
+export default function Home() {
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const [allProductsData, categoriesData] = await Promise.all([
+        getAllProducts(),
+        getCategories(),
+      ]);
+      setFeaturedProducts(allProductsData.filter(p => p.featured));
+      setCategories(categoriesData);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -96,6 +142,9 @@ export default async function Home() {
                 Handpicked for you, discover our most popular and highly-rated gifts from top vendors.
               </p>
             </div>
+            {loading ? (
+                <div className="mt-12 flex justify-center"><Skeleton className="h-96 w-full max-w-5xl" /></div>
+            ) : (
             <Carousel
               opts={{
                 align: "start",
@@ -158,6 +207,7 @@ export default async function Home() {
               <CarouselPrevious className="ml-14" />
               <CarouselNext className="mr-14"/>
             </Carousel>
+            )}
           </div>
         </section>
 
@@ -170,7 +220,13 @@ export default async function Home() {
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mt-12">
-              {categories.map((category) => (
+              {loading ? (
+                Array.from({length: 8}).map((_, i) => (
+                    <Card key={i} className="overflow-hidden relative">
+                        <Skeleton className="aspect-[4/3] w-full" />
+                    </Card>
+                ))
+              ) : (categories.map((category) => (
                 <Link key={category.slug} href={`/category/${category.slug}`} className="block group">
                   <Card className="overflow-hidden relative">
                     <div className="aspect-[4/3] bg-muted">
@@ -182,7 +238,7 @@ export default async function Home() {
                     </CardContent>
                   </Card>
                 </Link>
-              ))}
+              )))}
             </div>
           </div>
         </section>

@@ -11,31 +11,6 @@ export interface Category {
   productCount?: number; // Make optional as it will be calculated separately
 }
 
-// Seed initial categories if the collection is empty
-const MOCK_CATEGORIES = [
-    { name: "Food & Drink", slug: "food-drink" },
-    { name: "Wellness", slug: "wellness" },
-    { name: "Fashion & Accessories", slug: "fashion-accessories" },
-    { name: "Office & Corporate", slug: "office-corporate" },
-    { name: "Tech", slug: "tech" },
-    { name: "Home & Decor", slug: "home-decor" },
-];
-
-async function seedCategories() {
-  const categoriesRef = collection(db, "categories");
-  const snapshot = await getDocs(categoriesRef);
-  if (snapshot.empty) {
-    const batch = writeBatch(db);
-    MOCK_CATEGORIES.forEach(category => {
-      const docRef = doc(categoriesRef);
-      // Use picsum for initial placeholder images
-      const imageUrl = `https://picsum.photos/seed/${category.slug}/400/300`;
-      batch.set(docRef, { ...category, image: imageUrl });
-    });
-    await batch.commit();
-  }
-}
-
 // Get product count for a single category
 export function getProductCountForCategory(categoryName: string, callback: (count: number) => void): Unsubscribe {
   const productsRef = collection(db, 'products');
@@ -63,7 +38,6 @@ async function uploadCategoryImage(file: File): Promise<string> {
 export function onCategoriesUpdate(callback: (categories: Category[]) => void): Unsubscribe {
     const categoriesRef = collection(db, 'categories');
     
-    // Seed data if needed, then set up listener
     const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
         const categoriesData = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -71,8 +45,6 @@ export function onCategoriesUpdate(callback: (categories: Category[]) => void): 
         } as Category));
         callback(categoriesData);
     });
-    
-    seedCategories();
 
     return unsubscribe;
 }
@@ -117,10 +89,8 @@ export async function deleteCategory(categoryId: string) {
 }
 
 // --- Functions from previous implementation, kept for compatibility ---
-// In a real app, these should be deprecated and removed over time.
 
 export async function getCategories(): Promise<Category[]> {
-  await seedCategories();
   const snapshot = await getDocs(collection(db, 'categories'));
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
 }
