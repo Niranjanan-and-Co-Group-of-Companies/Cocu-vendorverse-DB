@@ -162,7 +162,7 @@ function AdminSidebar() {
                     <Link href="/admin/marketing">
                     <Megaphone />
                     <span>Marketing</span>
-                    </Link>
+                    </Link>_
                 </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
