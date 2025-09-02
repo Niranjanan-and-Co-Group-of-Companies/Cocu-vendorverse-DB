@@ -3,7 +3,6 @@
 
 import { 
     collection, 
-    onSnapshot, 
     addDoc,
     serverTimestamp,
     query,
@@ -70,6 +69,7 @@ const MOCK_ARTICLES: Omit<KnowledgeBaseArticle, 'id' | 'lastUpdated'>[] = [
     { title: "What to do if my KYC verification fails?", category: "KYC & Verification", content: "..." },
     { title: "Understanding NDR and RTO", category: "Orders & Shipping", content: "..." },
 ];
+
 
 // Get popular knowledge base articles - This is a server action
 export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
