@@ -6,16 +6,13 @@ import { getAllProducts } from '@/lib/products-service';
 import type { Product } from '@/lib/products';
 import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function CorporateProductsPage() {
   const [allProducts, setAllProducts] = React.useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [searchQuery, setSearchQuery] = React.useState('');
   const [sortOption, setSortOption] = React.useState('rating-desc');
   const { toast } = useToast();
 
@@ -35,16 +32,6 @@ export default function CorporateProductsPage() {
   React.useEffect(() => {
     let results = [...allProducts];
 
-    // Filter by search query
-    if (searchQuery) {
-      const lowerCaseQuery = searchQuery.toLowerCase();
-      results = results.filter(p =>
-        p.name.toLowerCase().includes(lowerCaseQuery) ||
-        p.vendor.toLowerCase().includes(lowerCaseQuery) ||
-        p.category?.toLowerCase().includes(lowerCaseQuery)
-      );
-    }
-
     // Sort products
     switch (sortOption) {
       case 'rating-desc':
@@ -59,7 +46,7 @@ export default function CorporateProductsPage() {
     }
 
     setFilteredProducts(results);
-  }, [searchQuery, sortOption, allProducts]);
+  }, [sortOption, allProducts]);
 
   const handleActionClick = (actionName: string, productName: string) => {
     toast({
@@ -78,16 +65,7 @@ export default function CorporateProductsPage() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative w-full md:flex-grow">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products, vendors, or categories..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="w-full md:w-auto">
+        <div className="w-full md:w-auto md:ml-auto">
           <Select value={sortOption} onValueChange={setSortOption}>
             <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="Sort by..." />
