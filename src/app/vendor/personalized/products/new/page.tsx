@@ -57,6 +57,9 @@ function ProductEditorContent() {
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    
+    // In a real app, this would come from a user/auth context
+    const [isVerified] = React.useState(false);
 
     React.useEffect(() => {
         if (productId) {
@@ -171,7 +174,7 @@ function ProductEditorContent() {
                         <Save className="mr-2" />
                         {isSaving ? 'Saving...' : 'Save Draft'}
                     </Button>
-                     <Button onClick={() => handleSave(true)} disabled={isSaving}>
+                     <Button onClick={() => handleSave(true)} disabled={isSaving || !isVerified}>
                         <UploadCloud className="mr-2" />
                         {isSaving ? 'Publishing...' : 'Publish Product'}
                     </Button>
