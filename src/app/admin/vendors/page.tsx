@@ -17,52 +17,70 @@ import { PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddVendorDialog } from '@/components/admin/vendors/add-vendor-dialog';
 import { VendorActions } from '@/components/admin/vendors/vendor-actions';
+import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
-// This will eventually come from Firestore
 export interface Vendor {
   id: string;
   name: string;
   email: string;
   avatar: string;
   status: 'Active' | 'Pending' | 'Suspended';
-  joinedDate: string;
+  joinedDate: any; // Keep as any to handle Firestore Timestamps
 }
-
-const MOCK_VENDORS: Vendor[] = [
-  { id: '1', name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', avatar: 'https://picsum.photos/seed/1/40/40', status: 'Active', joinedDate: '2023-10-26' },
-  { id: '2', name: 'Serene Moments', email: 'support@serenemoments.co', avatar: 'https://picsum.photos/seed/2/40/40', status: 'Active', joinedDate: '2023-09-15' },
-  { id: '3', name: 'Heritage Wares', email: 'sales@heritagewares.com', avatar: 'https://picsum.photos/seed/3/40/40', status: 'Pending', joinedDate: '2023-11-01' },
-  { id: '4', name: 'The Daily Grind', email: 'orders@dailygrind.coffee', avatar: 'https://picsum.photos/seed/4/40/40', status: 'Suspended', joinedDate: '2023-08-05' },
-  { id: '5', name: 'Creative Crafts', email: 'info@creativecrafts.net', avatar: 'https://picsum.photos/seed/5/40/40', status: 'Active', joinedDate: '2023-10-30' },
-];
-
 
 export default function VendorsPage() {
   const [vendors, setVendors] = React.useState<Vendor[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isAddVendorOpen, setIsAddVendorOpen] = React.useState(false);
+  const { toast } = useToast();
 
   React.useEffect(() => {
-    // Simulate fetching data from Firestore
-    setTimeout(() => {
-      setVendors(MOCK_VENDORS);
+    const unsub = onSnapshot(collection(db, 'vendors'), (snapshot) => {
+      const vendorsData: Vendor[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Vendor));
+      setVendors(vendorsData);
       setLoading(false);
-    }, 1000);
+    });
+    // Cleanup subscription on unmount
+    return () => unsub();
   }, []);
 
-  const handleVendorAdded = (newVendor: Omit<Vendor, 'id' | 'avatar' | 'status' | 'joinedDate'>) => {
-    const vendor: Vendor = {
+  const handleVendorAdded = async (newVendor: Omit<Vendor, 'id' | 'avatar' | 'status' | 'joinedDate'>) => {
+    try {
+      await addDoc(collection(db, 'vendors'), {
         ...newVendor,
-        id: (vendors.length + 1).toString(),
-        avatar: `https://picsum.photos/seed/${vendors.length + 1}/40/40`,
+        avatar: `https://picsum.photos/seed/${Math.random()}/40/40`,
         status: 'Pending',
-        joinedDate: new Date().toISOString().split('T')[0],
-    };
-    setVendors(prev => [vendor, ...prev]);
+        joinedDate: serverTimestamp(),
+      });
+      // The onSnapshot listener will automatically update the UI
+    } catch (error) {
+      console.error("Error adding vendor: ", error);
+      toast({
+        title: "Error",
+        description: "Failed to add new vendor.",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleVendorStatusChange = (vendorId: string, status: 'Active' | 'Pending' | 'Suspended') => {
-    setVendors(prev => prev.map(v => v.id === vendorId ? { ...v, status } : v));
+  const handleVendorStatusChange = async (vendorId: string, status: 'Active' | 'Pending' | 'Suspended') => {
+     try {
+      const vendorRef = doc(db, 'vendors', vendorId);
+      await updateDoc(vendorRef, { status });
+      // The onSnapshot listener will automatically update the UI
+    } catch (error) {
+       console.error("Error updating vendor status: ", error);
+       toast({
+        title: "Error",
+        description: "Failed to update vendor status.",
+        variant: "destructive",
+      });
+    }
   }
 
   const getStatusVariant = (status: Vendor['status']) => {
@@ -75,6 +93,13 @@ export default function VendorsPage() {
         return 'secondary';
     }
   };
+  
+  const formatDate = (timestamp: any) => {
+    if (timestamp && typeof timestamp.toDate === 'function') {
+      return timestamp.toDate().toLocaleDateString();
+    }
+    return 'N/A';
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -155,7 +180,7 @@ export default function VendorsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(vendor.joinedDate).toLocaleDateString()}
+                      {formatDate(vendor.joinedDate)}
                     </TableCell>
                     <TableCell className="text-right">
                        <VendorActions vendor={vendor} onStatusChange={handleVendorStatusChange} />
@@ -180,7 +205,7 @@ const Card = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
 );
 
 const CardContent = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className="p-6" {...props}>
+    <div className="p-6 pt-0" {...props}>
         {children}
     </div>
 );

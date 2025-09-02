@@ -17,52 +17,71 @@ import { PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddUserDialog } from '@/components/admin/users/add-user-dialog';
 import { UserActions } from '@/components/admin/users/user-actions';
+import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
-// This will eventually come from Firestore
 export interface User {
   id: string;
   name: string;
   email: string;
   avatar: string;
   status: 'Active' | 'Suspended';
-  joinedDate: string;
+  joinedDate: any; // Keep as any for Firestore Timestamps
 }
-
-const MOCK_USERS: User[] = [
-  { id: '1', name: 'Alice Johnson', email: 'alice.j@example.com', avatar: 'https://picsum.photos/seed/10/40/40', status: 'Active', joinedDate: '2023-10-15' },
-  { id: '2', name: 'Bob Williams', email: 'bob.w@example.com', avatar: 'https://picsum.photos/seed/11/40/40', status: 'Active', joinedDate: '2023-09-20' },
-  { id: '3', name: 'Charlie Brown', email: 'charlie.b@example.com', avatar: 'https://picsum.photos/seed/12/40/40', status: 'Suspended', joinedDate: '2023-08-01' },
-  { id: '4', name: 'Diana Miller', email: 'diana.m@example.com', avatar: 'https://picsum.photos/seed/13/40/40', status: 'Active', joinedDate: '2023-11-05' },
-  { id: '5', name: 'Ethan Davis', email: 'ethan.d@example.com', avatar: 'https://picsum.photos/seed/14/40/40', status: 'Active', joinedDate: '2023-10-28' },
-];
-
 
 export default function UsersPage() {
   const [users, setUsers] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isAddUserOpen, setIsAddUserOpen] = React.useState(false);
+  const { toast } = useToast();
 
   React.useEffect(() => {
-    // Simulate fetching data from Firestore
-    setTimeout(() => {
-      setUsers(MOCK_USERS);
-      setLoading(false);
-    }, 1000);
+    const unsub = onSnapshot(collection(db, 'users'), (snapshot) => {
+        const usersData = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as User));
+        setUsers(usersData);
+        setLoading(false);
+    });
+    // Cleanup subscription on unmount
+    return () => unsub();
   }, []);
 
-  const handleUserAdded = (newUser: Omit<User, 'id' | 'avatar' | 'status' | 'joinedDate'>) => {
-    const user: User = {
-        ...newUser,
-        id: (users.length + 1).toString(),
-        avatar: `https://picsum.photos/seed/${users.length + 10}/40/40`,
-        status: 'Active',
-        joinedDate: new Date().toISOString().split('T')[0],
-    };
-    setUsers(prev => [user, ...prev]);
+  const handleUserAdded = async (newUser: Omit<User, 'id' | 'avatar' | 'status' | 'joinedDate'>) => {
+    try {
+        await addDoc(collection(db, 'users'), {
+            ...newUser,
+            avatar: `https://picsum.photos/seed/${Math.random()}/40/40`,
+            status: 'Active',
+            joinedDate: serverTimestamp(),
+            createdAt: serverTimestamp(), // For dashboard queries
+        });
+        // The onSnapshot listener will automatically update the UI
+    } catch (error) {
+        console.error("Error adding user: ", error);
+        toast({
+            title: "Error",
+            description: "Failed to add new customer.",
+            variant: "destructive",
+        });
+    }
   };
   
-  const handleUserStatusChange = (userId: string, status: 'Active' | 'Suspended') => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, status } : u));
+  const handleUserStatusChange = async (userId: string, status: 'Active' | 'Suspended') => {
+    try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, { status });
+        // The onSnapshot listener will automatically update the UI
+    } catch(error) {
+        console.error("Error updating user status: ", error);
+        toast({
+            title: "Error",
+            description: "Failed to update user status.",
+            variant: "destructive",
+        });
+    }
   }
 
   const getStatusVariant = (status: User['status']) => {
@@ -73,6 +92,13 @@ export default function UsersPage() {
         return 'destructive';
     }
   };
+
+  const formatDate = (timestamp: any) => {
+    if (timestamp && typeof timestamp.toDate === 'function') {
+      return timestamp.toDate().toLocaleDateString();
+    }
+    return 'N/A';
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -153,7 +179,7 @@ export default function UsersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(user.joinedDate).toLocaleDateString()}
+                      {formatDate(user.joinedDate)}
                     </TableCell>
                     <TableCell className="text-right">
                        <UserActions user={user} onStatusChange={handleUserStatusChange} />
