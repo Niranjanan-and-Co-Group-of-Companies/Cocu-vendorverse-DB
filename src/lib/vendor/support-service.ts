@@ -57,7 +57,7 @@ export interface KnowledgeBaseArticle {
     title: string;
     category: string;
     content: string;
-    lastUpdated: Timestamp;
+    lastUpdated: string; // Changed from Timestamp to string for serialization
 }
 
 
@@ -78,11 +78,11 @@ export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
   return MOCK_ARTICLES.map((article, index) => ({
       ...article,
       id: `article-${index + 1}`,
-      lastUpdated: Timestamp.now(),
+      lastUpdated: new Date().toISOString(), // Convert Timestamp to ISO string for serialization
   }));
 }
 
-// Create a new support ticket - This is a server action
+// Create a new support ticket
 export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor' | 'expiresAt'>): Promise<string> {
     const now = Timestamp.now();
     const tenDaysFromNow = new Timestamp(now.seconds + 10 * 24 * 60 * 60, now.nanoseconds);
