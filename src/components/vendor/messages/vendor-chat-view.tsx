@@ -28,6 +28,8 @@ interface VendorChatViewProps {
   vendorId: string;
 }
 
+const MAX_CHAR_LIMIT = 30;
+
 export function VendorChatView({ conversation, vendorId }: VendorChatViewProps) {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [newMessage, setNewMessage] = React.useState('');
@@ -81,6 +83,13 @@ export function VendorChatView({ conversation, vendorId }: VendorChatViewProps) 
     }
     setIsEndingChat(false);
   }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    // Remove any numbers from the input value
+    const valueWithoutNumbers = e.target.value.replace(/[0-9]/g, '');
+    setNewMessage(valueWithoutNumbers);
+  };
+
 
   if (!conversation) {
     return (
@@ -137,25 +146,31 @@ export function VendorChatView({ conversation, vendorId }: VendorChatViewProps) 
         {/* Input Form */}
         <div className="p-4 border-t">
           {canSendMessage ? (
-              <form onSubmit={handleSendMessage} className="flex items-start gap-2">
-                <Textarea
-                  ref={textAreaRef}
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-grow resize-none"
-                  rows={2}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage(e);
-                    }
-                  }}
-                />
-                <Button type="submit" disabled={!newMessage.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </form>
+              <div className="space-y-2">
+                <form onSubmit={handleSendMessage} className="flex items-start gap-2">
+                    <Textarea
+                    ref={textAreaRef}
+                    value={newMessage}
+                    onChange={handleInputChange}
+                    placeholder="Type your message..."
+                    className="flex-grow resize-none"
+                    rows={2}
+                    maxLength={MAX_CHAR_LIMIT}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(e);
+                        }
+                    }}
+                    />
+                    <Button type="submit" disabled={!newMessage.trim()}>
+                    <Send className="h-4 w-4" />
+                    </Button>
+                </form>
+                <p className="text-xs text-muted-foreground text-right">
+                    {newMessage.length} / {MAX_CHAR_LIMIT}
+                </p>
+              </div>
           ) : (
             <div className="text-center text-sm text-muted-foreground p-3 bg-muted rounded-md">
                 {conversation.status === 'Locked' ? "This chat has been ended." : "Message limit reached."}
