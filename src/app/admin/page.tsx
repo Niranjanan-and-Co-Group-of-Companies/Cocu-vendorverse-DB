@@ -76,11 +76,9 @@ export default function AdminDashboardPage() {
             const now = new Date();
             const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const startOfTwoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
             
             const startOfCurrentMonthTs = Timestamp.fromDate(startOfCurrentMonth);
             const startOfPreviousMonthTs = Timestamp.fromDate(startOfPreviousMonth);
-            const startOfTwoMonthsAgoTs = Timestamp.fromDate(startOfTwoMonthsAgo);
 
             // Fetch stats for current month
             const ordersCurrentMonthQuery = query(collection(db, 'orders'), where('timestamp', '>=', startOfCurrentMonthTs));
@@ -184,7 +182,10 @@ export default function AdminDashboardPage() {
     }
     
     const formatPercentage = (value: number) => {
-        const sign = value > 0 ? '+' : '';
+        if (!isFinite(value)) {
+             return "N/A";
+        }
+        const sign = value >= 0 ? '+' : '';
         return `${sign}${value.toFixed(1)}% from last month`;
     }
 
@@ -403,3 +404,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    
