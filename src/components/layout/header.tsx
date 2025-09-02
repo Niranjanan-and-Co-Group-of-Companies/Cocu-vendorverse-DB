@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Gift, Heart, ShoppingCart, User } from 'lucide-react';
 import { Search } from '@/components/search/search';
-import { allProducts } from '@/lib/products';
 
 export default function Header() {
   return (
@@ -15,7 +14,7 @@ export default function Header() {
         
         <div className="flex-1 flex justify-center">
           <div className="w-full max-w-lg relative">
-            <Search products={allProducts} />
+            <Search />
           </div>
         </div>
 

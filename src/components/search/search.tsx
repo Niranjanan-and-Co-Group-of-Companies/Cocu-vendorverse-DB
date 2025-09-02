@@ -7,14 +7,27 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSearchSuggestions } from '@/ai/flows/search-flow';
 import type { Product } from '@/lib/products';
+import { getAllProducts } from '@/lib/products-service';
 
-export function Search({ products }: { products: Product[] }) {
+export function Search() {
   const router = useRouter();
   const [query, setQuery] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoadingProducts(true);
+      const allProducts = await getAllProducts();
+      setProducts(allProducts);
+      setLoadingProducts(false);
+    }
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -77,8 +90,9 @@ export function Search({ products }: { products: Product[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setShowSuggestions(true)}
+          disabled={loadingProducts}
         />
-        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />}
+        {(loading || loadingProducts) && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />}
       </form>
       {showSuggestions && (suggestions.length > 0 || query.length > 1) && (
         <div className="absolute top-full mt-2 w-full rounded-md border bg-popover text-popover-foreground shadow-md z-50">

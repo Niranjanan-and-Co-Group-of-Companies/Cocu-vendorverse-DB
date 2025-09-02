@@ -7,11 +7,12 @@ import Footer from '@/components/layout/footer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { allProducts } from '@/lib/products';
+import { getAllProducts } from '@/lib/products-service';
 
-const featuredProducts = allProducts.filter(p => p.featured);
+export default async function Home() {
+  const allProducts = await getAllProducts();
+  const featuredProducts = allProducts.filter(p => p.featured);
 
-export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -58,7 +59,7 @@ export default function Home() {
                   <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3">
                     <Card className="overflow-hidden group h-full flex flex-col">
                       <CardHeader className="p-0 relative">
-                        <div className="overflow-hidden">
+                        <div className="overflow-hidden aspect-[4/3]">
                           {product.featured && <Badge className="absolute top-2 left-2 z-10">Featured</Badge>}
                           <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
                               <Heart className="h-4 w-4" />
@@ -67,9 +68,8 @@ export default function Home() {
                           <Image
                             src={product.image}
                             alt={product.name}
-                            width={600}
-                            height={450}
-                            className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
                             data-ai-hint="gift product"
                           />
                         </div>
