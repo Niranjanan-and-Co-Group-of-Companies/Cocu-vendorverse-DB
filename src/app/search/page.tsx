@@ -14,7 +14,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { getAllProducts } from '@/lib/products-service';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function SearchResults() {
+function SearchResultsContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   const [searchResults, setSearchResults] = useState<Product[]>([]);
@@ -32,8 +32,43 @@ function SearchResults() {
       setSearchResults(results);
       setLoading(false);
     }
-    fetchProducts();
+    if (query) {
+        fetchProducts();
+    } else {
+        setLoading(false);
+        setSearchResults([]);
+    }
   }, [query]);
+
+  if (loading) {
+    return (
+        <main className="flex-grow container py-8">
+            <h1 className="text-2xl font-bold mb-4">
+              Searching...
+            </h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden group h-full flex flex-col">
+                    <CardHeader className="p-0 relative">
+                    <Skeleton className="aspect-[4/3] w-full" />
+                    </CardHeader>
+                    <CardContent className="p-4 flex flex-col flex-grow gap-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-1/4" />
+                    <div className="flex-grow"></div>
+                    <Skeleton className="h-8 w-1/3" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-9 w-full" />
+                        <Skeleton className="h-9 w-full" />
+                    </div>
+                    </CardContent>
+                </Card>
+                ))}
+            </div>
+      </main>
+    )
+  }
 
   return (
     <main className="flex-grow container py-8">
@@ -41,28 +76,7 @@ function SearchResults() {
           Search results for &quot;{query}&quot;
         </h1>
         
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Card key={i} className="overflow-hidden group h-full flex flex-col">
-                <CardHeader className="p-0 relative">
-                  <Skeleton className="aspect-[4/3] w-full" />
-                </CardHeader>
-                <CardContent className="p-4 flex flex-col flex-grow gap-2">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-4 w-1/4" />
-                  <div className="flex-grow"></div>
-                  <Skeleton className="h-8 w-1/3" />
-                   <div className="flex gap-2">
-                     <Skeleton className="h-9 w-full" />
-                     <Skeleton className="h-9 w-full" />
-                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : searchResults.length > 0 ? (
+        {searchResults.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {searchResults.map((product) => (
               <Card key={product.id} className="overflow-hidden group h-full flex flex-col">
@@ -123,8 +137,8 @@ export default function SearchPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
-      <Suspense fallback={<div>Loading...</div>}>
-        <SearchResults />
+      <Suspense>
+        <SearchResultsContent />
       </Suspense>
       <Footer />
     </div>
