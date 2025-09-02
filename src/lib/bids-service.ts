@@ -1,7 +1,9 @@
 
-import { collection, onSnapshot, getDocs, writeBatch, doc } from 'firebase/firestore';
-import { db } from './firebase';
+
+import { collection, onSnapshot, getDocs, writeBatch, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db, storage } from './firebase';
 import type { Product } from './products';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export type BidStatus = 'Active' | 'Awarded' | 'Expired';
 
@@ -18,9 +20,13 @@ export interface Bid {
     products: Pick<Product, 'id' | 'name' | 'image' | 'vendor'>[];
     quantity: number;
     status: BidStatus;
-    dateCreated: string;
-    dateExpires: string;
+    dateCreated: any;
+    dateExpires: any;
     vendorResponses: VendorResponse[];
+    deliveryTimeline?: string;
+    pincode?: string;
+    notes?: string;
+    briefUrl?: string;
 }
 
 const MOCK_BIDS: Omit<Bid, 'id'>[] = [
@@ -102,4 +108,41 @@ export function onBidsUpdate(callback: (bids: Bid[]) => void): () => void {
     });
 
     return unsubscribe;
+}
+
+// Create a new bid
+export async function createBid(data: {
+    products: Pick<Product, 'id' | 'name' | 'image' | 'vendor'>[];
+    quantity: number;
+    pincode: string;
+    deliveryTimeline: string;
+    biddingDuration: '24' | '48';
+    notes: string;
+    briefFile: File | null;
+}) {
+    let briefUrl = '';
+    if (data.briefFile) {
+        const storageRef = ref(storage, `bids/${Date.now()}_${data.briefFile.name}`);
+        const snapshot = await uploadBytes(storageRef, data.briefFile);
+        briefUrl = await getDownloadURL(snapshot.ref);
+    }
+    
+    const now = new Date();
+    const expires = new Date(now.getTime() + parseInt(data.biddingDuration, 10) * 60 * 60 * 1000);
+
+    const newBid = {
+        customerId: 'corp-123', // This should come from auth context
+        products: data.products,
+        quantity: data.quantity,
+        status: 'Active',
+        dateCreated: serverTimestamp(),
+        dateExpires: expires.toISOString(),
+        vendorResponses: [],
+        pincode: data.pincode,
+        deliveryTimeline: data.deliveryTimeline,
+        notes: data.notes,
+        briefUrl,
+    };
+
+    await addDoc(collection(db, 'corporateBids'), newBid);
 }

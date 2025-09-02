@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ShoppingCart, Scale, Gavel, FileText, Brush } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useBidRequest } from '@/hooks/use-bid-request';
 
 interface CorporateProductCardProps {
   product: Product;
@@ -19,11 +20,12 @@ interface CorporateProductCardProps {
 
 export function CorporateProductCard({ product, onAction }: CorporateProductCardProps) {
   const { toast } = useToast();
-  const [isAddedToBid, setIsAddedToBid] = React.useState(false);
+  const { items, addItem } = useBidRequest();
   const [isInCompare, setIsInCompare] = React.useState(false);
 
+  const isAddedToBid = items.some((item) => item.id === product.id);
+
   const handleAddToCart = () => {
-    // Placeholder for useCart context logic
     toast({
       title: 'Added to Cart',
       description: `"${product.name}" (MOQ: ${product.moq}) has been added to your cart.`,
@@ -31,16 +33,13 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   };
 
   const handleBuyNow = () => {
-    // Placeholder for useCart context logic + redirect
     toast({
       title: 'Redirecting to Checkout',
       description: `"${product.name}" has been added to your cart.`,
     });
-    // In a real app: router.push('/checkout');
   };
 
   const handleToggleCompare = () => {
-    // Placeholder for useComparison context logic
     const newCompareState = !isInCompare;
     setIsInCompare(newCompareState);
     toast({
@@ -50,12 +49,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   };
 
   const handleAddToBid = () => {
-    // Placeholder for useBidRequest context logic
-    setIsAddedToBid(true);
-    toast({
-      title: 'Added to Bid Request',
-      description: `"${product.name}" has been added to your bid request.`,
-    });
+    addItem(product);
   };
 
 
