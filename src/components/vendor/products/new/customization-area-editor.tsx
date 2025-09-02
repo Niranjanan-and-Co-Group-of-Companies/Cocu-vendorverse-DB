@@ -36,63 +36,77 @@ const AreaComponent = ({
 }) => {
     const [position, setPosition] = React.useState({x: area.x, y: area.y});
     const [isDragging, setIsDragging] = React.useState(false);
+    const dragStartPos = React.useRef({x: 0, y: 0});
 
     const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+        e.preventDefault();
         e.stopPropagation();
         onSelect(area.id);
+        
+        const event = 'touches' in e ? e.touches[0] : e;
+        dragStartPos.current = {
+            x: event.clientX - area.x,
+            y: event.clientY - area.y,
+        };
         setIsDragging(true);
     };
 
-    const handleDragEnd = (e: React.MouseEvent | React.TouchEvent) => {
-        setIsDragging(false);
-        onUpdate(area.id, { x: position.x, y: position.y });
-    };
-
-    const handleDrag = (e: React.MouseEvent | React.TouchEvent) => {
+    const handleDrag = React.useCallback((e: MouseEvent | TouchEvent) => {
         if (!isDragging || !canvasRef.current) return;
         const event = 'touches' in e ? e.touches[0] : e;
         const canvasRect = canvasRef.current.getBoundingClientRect();
         
-        const newX = event.clientX - canvasRect.left - (area.width / 2);
-        const newY = event.clientY - canvasRect.top - (area.height / 2);
+        let newX = event.clientX - dragStartPos.current.x;
+        let newY = event.clientY - dragStartPos.current.y;
+        
+        newX = Math.max(0, Math.min(newX, canvasRect.width - area.width));
+        newY = Math.max(0, Math.min(newY, canvasRect.height - area.height));
 
-        setPosition({
-            x: Math.max(0, Math.min(newX, canvasRect.width - area.width)),
-            y: Math.max(0, Math.min(newY, canvasRect.height - area.height)),
-        });
-    };
-    
-    React.useEffect(() => {
-        const handleMouseUp = () => {
-            if (isDragging) {
-               onUpdate(area.id, { x: position.x, y: position.y });
-            }
+        setPosition({ x: newX, y: newY });
+    }, [isDragging, canvasRef, area.width, area.height]);
+
+    const handleDragEnd = React.useCallback(() => {
+        if (isDragging) {
+            onUpdate(area.id, { x: position.x, y: position.y });
             setIsDragging(false);
         }
-        window.addEventListener('mouseup', handleMouseUp);
-        window.addEventListener('touchend', handleMouseUp);
-        return () => {
-             window.removeEventListener('mouseup', handleMouseUp);
-             window.removeEventListener('touchend', handleMouseUp);
+    }, [isDragging, onUpdate, area.id, position]);
+
+    React.useEffect(() => {
+        if (isDragging) {
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('touchmove', handleDrag);
+            document.addEventListener('mouseup', handleDragEnd);
+            document.addEventListener('touchend', handleDragEnd);
         }
-    }, [isDragging, position.x, position.y, area.id, onUpdate]);
+
+        return () => {
+            document.removeEventListener('mousemove', handleDrag);
+            document.removeEventListener('touchmove', handleDrag);
+            document.removeEventListener('mouseup', handleDragEnd);
+            document.removeEventListener('touchend', handleDragEnd);
+        };
+    }, [isDragging, handleDrag, handleDragEnd]);
+
+
+    React.useEffect(() => {
+        setPosition({x: area.x, y: area.y});
+    }, [area.x, area.y]);
+    
 
     return (
         <div
             style={{
                 position: 'absolute',
-                left: `${area.x}px`,
-                top: `${area.y}px`,
-                width: `${area.width}px`,
-                height: `${area.height}px`,
+                left: `${position.x}px`,
+                top: `${position.y}px`,
             }}
             onMouseDown={(e) => { e.stopPropagation(); onSelect(area.id); }}
         >
             <ResizableBox
                 width={area.width}
                 height={area.height}
-                onResize={(e, data) => {
-                    e.stopPropagation();
+                onResizeStop={(e, data) => {
                     onUpdate(area.id, { width: data.size.width, height: data.size.height });
                 }}
                 minConstraints={[50, 50]}
@@ -104,7 +118,8 @@ const AreaComponent = ({
                         className={cn(
                             'react-resizable-handle',
                             `react-resizable-handle-${handle}`,
-                            isSelected ? 'bg-primary' : 'bg-gray-500'
+                           'bg-card border-2 border-primary rounded-full w-3 h-3 -m-1.5',
+                           isSelected ? 'opacity-100' : 'opacity-0'
                         )}
                     />
                 )}
@@ -121,8 +136,8 @@ const AreaComponent = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                        cursor: 'grab'
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        cursor: isDragging ? 'grabbing' : 'grab'
                     }}
                     onMouseDown={handleDragStart}
                     onTouchStart={handleDragStart}
@@ -148,17 +163,6 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
         setSelectedAreaId(null);
     }
   }, [initialAreas, isOpen]);
-  
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    // This is now handled within the AreaComponent's drag logic,
-    // but we keep the canvas-level listener for mouse up events
-    // to stop dragging even if the mouse leaves the component.
-  };
-
-  const handleMouseUp = () => {
-    // This is now handled within the AreaComponent's useEffect
-  };
-
 
   const addArea = (type: 'rect' | 'ellipse') => {
     const newArea: CustomizationArea = {
@@ -209,9 +213,6 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
         </DialogHeader>
         <div 
             className="flex-grow grid grid-cols-1 md:grid-cols-4 gap-4 overflow-hidden"
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
         >
           {/* Canvas */}
           <div className="md:col-span-3 bg-muted rounded-md overflow-hidden relative" ref={canvasRef}>
@@ -228,7 +229,7 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
             ))}
           </div>
           {/* Toolbox & Properties Panel */}
-          <div className="flex flex-col gap-4 overflow-y-auto">
+          <div className="flex flex-col gap-4 overflow-y-auto pr-2">
              <div>
                 <h3 className="font-semibold mb-2">Tools</h3>
                  <div className="grid grid-cols-2 gap-2">
@@ -259,16 +260,7 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
                             <Input type="color" value={selectedArea.defaultColor} onChange={(e) => handleAreaPropChange('defaultColor', e.target.value)} className="p-1"/>
                         </div>
                     </div>
-                     <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-2">
-                            <Label>Width</Label>
-                            <Input type="number" value={Math.round(selectedArea.width)} onChange={(e) => handleAreaPropChange('width', parseInt(e.target.value, 10) || 0)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Height</Label>
-                            <Input type="number" value={Math.round(selectedArea.height)} onChange={(e) => handleAreaPropChange('height', parseInt(e.target.value, 10) || 0)} />
-                        </div>
-                    </div>
+                    <p className="text-xs text-muted-foreground">Width and Height are now controlled by dragging the handles on the canvas.</p>
 
                     <Button variant="destructive" size="sm" onClick={() => removeArea(selectedAreaId!)} className="w-full">
                         <Trash2 className="mr-2"/> Remove Selected Area
