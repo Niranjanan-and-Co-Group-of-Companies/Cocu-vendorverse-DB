@@ -46,11 +46,11 @@ export function onDashboardStatsUpdate(vendorName: string, callback: (stats: Das
         totalRevenue: 0,
         revenueChange: 0,
         activeOrders: 0,
-        newOrdersToday: 0, // This remains a mock value for simplicity
+        newOrdersToday: 0,
         unreadMessages: 0,
-        actionableMessages: 0, // This remains a mock value
+        actionableMessages: 0,
         activeListings: 0,
-        draftListings: 0, // This remains a mock value
+        draftListings: 0,
     };
 
     let lastRevenue = 0;
@@ -60,12 +60,10 @@ export function onDashboardStatsUpdate(vendorName: string, callback: (stats: Das
     const notificationsRef = collection(db, 'notifications');
     
     const combinedCallback = () => {
-        // Calculate revenue change based on the last known value
-        // This is a simplified approach to show real-time change without heavy historical queries
-        if (lastRevenue > 0) {
-            stats.revenueChange = ((stats.totalRevenue! - lastRevenue) / lastRevenue) * 100;
-        } else if (stats.totalRevenue! > 0) {
-            stats.revenueChange = 100;
+        // Calculate revenue change based on a static monthly goal for simplicity
+        const monthlyGoal = 50000;
+        if (monthlyGoal > 0) {
+            stats.revenueChange = (stats.totalRevenue! / monthlyGoal) * 100;
         } else {
             stats.revenueChange = 0;
         }
@@ -113,7 +111,6 @@ export function onDashboardStatsUpdate(vendorName: string, callback: (stats: Das
         combinedCallback();
     });
 
-    // Real-time listener for unread messages
     const messagesQuery = query(
         notificationsRef, 
         where('vendorId', '==', vendorName),
@@ -126,7 +123,6 @@ export function onDashboardStatsUpdate(vendorName: string, callback: (stats: Das
     });
 
 
-    // The final unsubscribe function will detach all listeners
     return () => {
         unsubOrders();
         unsubProducts();
@@ -142,31 +138,24 @@ export function onRecentActivityUpdate(vendorName: string, callback: (notificati
   const notificationsRef = collection(db, 'notifications');
   const q = query(
     notificationsRef,
+    where('vendorId', '==', vendorName),
     orderBy('timestamp', 'desc'),
-    limit(20)
+    limit(5)
   );
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
-    const mockActivities: VendorNotification[] = [
-        { id: '1', vendorId: vendorName, type: 'NEW_ORDER', text: 'Order #3124 for Artisanal Chocolate Box', timestamp: Timestamp.fromMillis(Date.now() - 300000), isRead: false, actor: { name: 'Olivia Martin', avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026704d' }},
-        { id: '2', vendorId: vendorName, type: 'NEW_MESSAGE', text: 'Question about Custom Engraved Pen', timestamp: Timestamp.fromMillis(Date.now() - 900000), isRead: false, actor: { name: 'Jackson Lee', avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026705d' }},
-        { id: '3', vendorId: vendorName, type: 'ACTION_REQUIRED', text: 'Customer wants to buy "Handcrafted Leather Wallet". Please approve.', timestamp: Timestamp.fromMillis(Date.now() - 1800000), isRead: false, actor: { name: 'Liam Brown', avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026709d' }, actionable: true},
-        { id: '4', vendorId: vendorName, type: 'NEW_ORDER', text: 'Order #3123 for Luxury Spa Set', timestamp: Timestamp.fromMillis(Date.now() - 3600000), isRead: true, actor: {name: 'Isabella Nguyen', avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026706d'}},
-        { id: '5', vendorId: vendorName, type: 'STOCK_ALERT', text: 'Handcrafted Leather Wallet is low on stock (3 left)', timestamp: Timestamp.fromMillis(Date.now() - 7200000), isRead: true },
-    ].filter(n => n.vendorId === vendorName);
-    
-    if (snapshot.empty && mockActivities.length > 0) {
-        callback(mockActivities);
+    // If snapshot is empty, we now return an empty array instead of mock data.
+    if (snapshot.empty) {
+        callback([]);
         return;
     }
 
     const notifications = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-    } as VendorNotification))
-    .filter(n => n.vendorId === vendorName);
-
-    callback(notifications.length > 0 ? notifications : mockActivities);
+    } as VendorNotification));
+    
+    callback(notifications);
 
   }, (error) => {
     console.error("Error fetching vendor notifications:", error);
