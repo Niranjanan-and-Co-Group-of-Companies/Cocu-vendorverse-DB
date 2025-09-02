@@ -77,11 +77,11 @@ function AdminSidebar() {
                   <AvatarImage src="https://picsum.photos/100" alt="Admin" data-ai-hint="avatar" />
                   <AvatarFallback>A</AvatarFallback>
               </Avatar>
-              <span className="text-base font-semibold">Admin</span>
+              <span className="text-base font-semibold group-data-[state=collapsed]:hidden">Admin</span>
               </SidebarHeader>
 
               <SidebarContent>
-              <div className="flex flex-col gap-2 px-2">
+              <div className="flex flex-col gap-2 px-2 group-data-[state=collapsed]:hidden">
                   <Button asChild variant="outline" size="sm" className="justify-start">
                   <Link href="/admin/orders/new">
                       <PlusCircle />
