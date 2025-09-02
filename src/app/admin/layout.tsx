@@ -35,6 +35,7 @@ import {
   BarChart,
   ChevronsLeft,
   ChevronsRight,
+  Gavel,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
@@ -161,6 +162,14 @@ function AdminSidebar() {
                       <Link href="/admin/orders">
                       <ShoppingCart />
                       <span>Orders</span>
+                      </Link>
+                  </SidebarMenuButton>
+                  </SidebarMenuItem>
+                   <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/bids')} tooltip={{ children: 'Bids' }}>
+                      <Link href="/admin/bids">
+                      <Gavel />
+                      <span>Bids</span>
                       </Link>
                   </SidebarMenuButton>
                   </SidebarMenuItem>
