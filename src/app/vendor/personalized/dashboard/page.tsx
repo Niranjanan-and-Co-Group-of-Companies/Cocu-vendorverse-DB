@@ -53,15 +53,15 @@ export default function VendorDashboard() {
   const [loadingActivities, setLoadingActivities] = React.useState(true);
   
   // Hardcoded vendor ID for now. In a real app, this would come from auth context.
-  const VENDOR_ID = "vendor-gourmet-delights"; 
+  const VENDOR_NAME = "Gourmet Delights"; 
 
   React.useEffect(() => {
-    const unsubStats = onDashboardStatsUpdate(VENDOR_ID, (newStats) => {
+    const unsubStats = onDashboardStatsUpdate(VENDOR_NAME, (newStats) => {
       setStats(newStats);
       setLoadingStats(false);
     });
 
-    const unsubActivities = onRecentActivityUpdate(VENDOR_ID, (activities) => {
+    const unsubActivities = onRecentActivityUpdate(VENDOR_NAME, (activities) => {
         setRecentActivities(activities);
         setLoadingActivities(false);
     });
@@ -70,7 +70,7 @@ export default function VendorDashboard() {
       unsubStats();
       unsubActivities();
     };
-  }, [VENDOR_ID]);
+  }, [VENDOR_NAME]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -213,7 +213,7 @@ export default function VendorDashboard() {
                                 <div className="grid gap-1">
                                 <div className="font-medium">{activity.text}</div>
                                 <div className="text-xs text-muted-foreground">
-                                    {activity.actor && `${activity.actor.name} • `} {activity.type.replace(/_/g, ' ')}
+                                    {activity.actor && `From ${activity.actor.name} • `} {activity.type.replace(/_/g, ' ')}
                                 </div>
                                 {activity.actionable && (
                                     <div className="flex gap-2 mt-1">
