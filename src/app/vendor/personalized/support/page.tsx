@@ -27,6 +27,7 @@ import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { collection, onSnapshot, query, where, orderBy, limit, type Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 // In a real app, this would come from an auth context
 const VENDOR_ID = 'vendor001';
@@ -175,21 +176,20 @@ export default function VendorSupportPage() {
               <CardTitle>Popular Articles</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-1">
                 {popularArticles.length > 0 ? (
-                     popularArticles.map(article => (
-                        <Link href="#" key={article.id} className="flex items-center justify-between p-3 rounded-md hover:bg-muted">
-                            <div className="flex items-center gap-3">
-                                <Book className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium">{article.title}</span>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </Link>
-                     ))
+                    <Accordion type="single" collapsible className="w-full">
+                        {popularArticles.map(article => (
+                            <AccordionItem value={article.id} key={article.id}>
+                                <AccordionTrigger>{article.title}</AccordionTrigger>
+                                <AccordionContent>
+                                    {article.content}
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
                 ) : (
                     <p className="text-sm text-muted-foreground text-center py-4">No articles found.</p>
                 )}
-              </div>
             </CardContent>
           </Card>
         </div>
