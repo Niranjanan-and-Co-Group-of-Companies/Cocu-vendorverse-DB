@@ -47,8 +47,8 @@ const MOCK_CAMPAIGNS: Omit<Campaign, 'id'>[] = [
         name: 'Black Friday Flash Sale',
         type: 'Flash Sale',
         status: 'Finished',
-        startDate: Timestamp.fromDate(new Date(new Date().getFullYear() -1, 10, 24)),
-        endDate: Timestamp.fromDate(new Date(new Date().getFullYear() -1, 10, 24, 23, 59, 59))),
+        startDate: Timestamp.fromDate(new Date(new Date().getFullYear() - 1, 10, 24)),
+        endDate: Timestamp.fromDate(new Date(new Date().getFullYear() - 1, 10, 24, 23, 59, 59)),
     },
     {
         name: 'Spring Refresh (Draft)',
