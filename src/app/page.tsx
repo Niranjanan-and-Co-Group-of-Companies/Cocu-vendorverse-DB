@@ -16,6 +16,7 @@ const featuredProducts = [
     price: '$45.00',
     image: 'https://picsum.photos/600/400?random=1',
     rating: 4.8,
+    customizable: true,
   },
   {
     id: 2,
@@ -24,6 +25,7 @@ const featuredProducts = [
     price: '$85.00',
     image: 'https://picsum.photos/600/400?random=2',
     rating: 4.9,
+    customizable: false,
   },
   {
     id: 3,
@@ -32,6 +34,7 @@ const featuredProducts = [
     price: '$75.00',
     image: 'https://picsum.photos/600/400?random=3',
     rating: 4.7,
+    customizable: true,
   },
   {
     id: 4,
@@ -40,6 +43,7 @@ const featuredProducts = [
     price: '$55.00',
     image: 'https://picsum.photos/600/400?random=4',
     rating: 4.8,
+    customizable: false,
   },
     {
     id: 5,
@@ -48,6 +52,7 @@ const featuredProducts = [
     price: '$40.00',
     image: 'https://picsum.photos/600/400?random=5',
     rating: 4.9,
+    customizable: false,
   },
   {
     id: 6,
@@ -56,6 +61,7 @@ const featuredProducts = [
     price: '$95.00',
     image: 'https://picsum.photos/600/400?random=6',
     rating: 4.6,
+    customizable: true,
   },
 ];
 
@@ -70,7 +76,7 @@ export default function Home() {
                <Gift className="h-10 w-10 text-primary" />
             </div>
             <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter">
-              Welcome to <span className="text-primary">GiftSphere</span>
+              Welcome to <span className="text-primary">VendorVerse</span>
             </h1>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
               A universe of unique gifts from diverse vendors, perfect for personal and corporate occasions.
@@ -130,13 +136,18 @@ export default function Home() {
                         <div className="flex-grow"></div>
                         <div className="flex items-end justify-between mt-4">
                           <p className="text-xl font-bold">{product.price}</p>
-                           <div className="flex gap-2">
-                             <Button size="sm" variant="outline">Customise</Button>
-                            <Button size="sm">
+                        </div>
+                         <div className="mt-4 flex flex-col gap-2">
+                          <div className="flex gap-2">
+                            <Button size="sm" className="w-full">Buy Now</Button>
+                            <Button size="sm" variant="secondary" className="w-full">
                               <ShoppingCart className="mr-2 h-4 w-4" />
-                              Add
+                              Add to Cart
                             </Button>
                           </div>
+                           {product.customizable && (
+                              <Button size="sm" variant="outline" className="w-full">Customise Now</Button>
+                           )}
                         </div>
                       </CardContent>
                     </Card>
@@ -151,7 +162,7 @@ export default function Home() {
 
         <section className="py-20 md:py-28">
           <div className="container text-center">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold">Ready to Join GiftSphere?</h2>
+            <h2 className="font-headline text-3xl md:text-4xl font-bold">Ready to Join VendorVerse?</h2>
             <p className="mt-3 max-w-xl mx-auto text-muted-foreground">
               Create an account today and explore a world of gifting opportunities.
             </p>

@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'GiftSphere',
+  title: 'VendorVerse',
   description: 'A universe of gifts from diverse vendors, perfect for personal and corporate gifting.',
 };
 

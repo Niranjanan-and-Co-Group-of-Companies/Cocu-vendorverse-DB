@@ -46,7 +46,7 @@ export default function DashboardLayout({
           <SidebarHeader>
             <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg">
                <Gift className="h-6 w-6 text-primary" />
-              <span className="font-headline">GiftSphere</span>
+              <span className="font-headline">VendorVerse</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>

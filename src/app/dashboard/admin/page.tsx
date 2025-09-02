@@ -9,7 +9,7 @@ export default function AdminPortal() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold font-headline">Admin Portal</h1>
-        <p className="text-muted-foreground">Oversee and manage the GiftSphere platform.</p>
+        <p className="text-muted-foreground">Oversee and manage the VendorVerse platform.</p>
       </div>
       
       <Tabs defaultValue="vendors">

@@ -8,7 +8,7 @@ export default function Header() {
       <div className="container flex h-14 items-center">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg">
           <Gift className="h-6 w-6 text-primary" />
-          <span className="font-headline">GiftSphere</span>
+          <span className="font-headline">VendorVerse</span>
         </Link>
         <nav className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild>
