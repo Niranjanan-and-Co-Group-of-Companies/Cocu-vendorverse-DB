@@ -1,9 +1,63 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gift, Users, Building } from 'lucide-react';
+import { Gift, Users, Building, Star, ShoppingCart } from 'lucide-react';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
+
+const featuredProducts = [
+  {
+    id: 1,
+    name: 'Artisanal Chocolate Box',
+    vendor: 'Gourmet Delights',
+    price: '$45.00',
+    image: 'https://picsum.photos/600/400?random=1',
+    rating: 4.8,
+  },
+  {
+    id: 2,
+    name: 'Luxury Spa Set',
+    vendor: 'Serene Moments',
+    price: '$85.00',
+    image: 'https://picsum.photos/600/400?random=2',
+    rating: 4.9,
+  },
+  {
+    id: 3,
+    name: 'Handcrafted Leather Wallet',
+    vendor: 'Heritage Wares',
+    price: '$75.00',
+    image: 'https://picsum.photos/600/400?random=3',
+    rating: 4.7,
+  },
+  {
+    id: 4,
+    name: 'Gourmet Coffee Collection',
+    vendor: 'The Daily Grind',
+    price: '$55.00',
+    image: 'https://picsum.photos/600/400?random=4',
+    rating: 4.8,
+  },
+    {
+    id: 5,
+    name: 'Exotic Tea Sampler',
+    vendor: 'The Tea Leaf',
+    price: '$40.00',
+    image: 'https://picsum.photos/600/400?random=5',
+    rating: 4.9,
+  },
+  {
+    id: 6,
+    name: 'Custom Engraved Pen',
+    vendor: 'Signature Gifts',
+    price: '$95.00',
+    image: 'https://picsum.photos/600/400?random=6',
+    rating: 4.6,
+  },
+];
 
 export default function Home() {
   return (
@@ -35,46 +89,56 @@ export default function Home() {
         <section className="py-20 md:py-28 bg-card border-y">
           <div className="container">
             <div className="text-center">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">The Perfect Gift Awaits</h2>
+              <h2 className="font-headline text-3xl md:text-4xl font-bold">Featured Gifts</h2>
               <p className="mt-3 max-w-xl mx-auto text-muted-foreground">
-                Whether for a loved one or a corporate client, find the perfect present from our curated collection of vendors.
+                Handpicked for you, discover our most popular and highly-rated gifts from top vendors.
               </p>
             </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-3">
-              <Card className="text-center">
-                <CardHeader className="items-center">
-                  <div className="p-4 bg-primary/10 rounded-full">
-                    <Gift className="h-8 w-8 text-primary" />
-                  </div>
-                  <CardTitle className="font-headline mt-4">Personal Gifting</CardTitle>
-                </CardHeader>
-                <CardContent className="text-muted-foreground">
-                  Discover unique gifts for every occasion. Surprise and delight your friends and family with a personal touch.
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardHeader className="items-center">
-                  <div className="p-4 bg-primary/10 rounded-full">
-                    <Building className="h-8 w-8 text-primary" />
-                  </div>
-                  <CardTitle className="font-headline mt-4">Corporate Gifting</CardTitle>
-                </CardHeader>
-                <CardContent className="text-muted-foreground">
-                  Elevate your corporate relationships with memorable gifts that reflect your brand's appreciation and values.
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardHeader className="items-center">
-                  <div className="p-4 bg-primary/10 rounded-full">
-                    <Users className="h-8 w-8 text-primary" />
-                  </div>
-                  <CardTitle className="font-headline mt-4">For Vendors</CardTitle>
-                </CardHeader>
-                <CardContent className="text-muted-foreground">
-                  Join our marketplace to showcase your unique products to a wide audience of personal and corporate buyers.
-                </CardContent>
-              </Card>
-            </div>
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full mt-12"
+            >
+              <CarouselContent>
+                {featuredProducts.map((product) => (
+                  <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3">
+                    <Card className="overflow-hidden group h-full flex flex-col">
+                      <CardHeader className="p-0 relative">
+                        <Badge className="absolute top-2 left-2 z-10">Featured</Badge>
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          width={600}
+                          height={400}
+                          className="object-cover aspect-video group-hover:scale-105 transition-transform duration-300"
+                          data-ai-hint="gift product"
+                        />
+                      </CardHeader>
+                      <CardContent className="p-4 flex flex-col flex-grow">
+                         <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+                        <p className="text-sm text-muted-foreground">by {product.vendor}</p>
+                        <div className="flex items-center gap-1 mt-2">
+                           <Star className="w-4 h-4 fill-primary text-primary" />
+                           <span className="text-sm font-medium">{product.rating}</span>
+                        </div>
+                        <div className="flex-grow"></div>
+                        <div className="flex items-end justify-between mt-4">
+                          <p className="text-xl font-bold">{product.price}</p>
+                          <Button size="sm">
+                            <ShoppingCart className="mr-2" />
+                            Add to Cart
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="ml-14" />
+              <CarouselNext className="mr-14"/>
+            </Carousel>
           </div>
         </section>
 
