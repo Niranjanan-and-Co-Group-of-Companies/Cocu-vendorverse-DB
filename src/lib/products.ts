@@ -47,6 +47,7 @@ export type Product = {
   dimensions: { l: number, w: number, h: number };
   inventoryBuffer: number;
   tags: string[];
+  preparationTime?: number; // in days
 };
 
     

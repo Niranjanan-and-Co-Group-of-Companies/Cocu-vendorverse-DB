@@ -7,15 +7,17 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { Product } from '@/lib/products';
+import { AlertCircle } from 'lucide-react';
 
 interface PackageAndShippingCardProps {
   weight: number;
   dimensions: { l: number, w: number, h: number };
   inventoryBuffer: number;
+  preparationTime: number;
   onFieldChange: (field: keyof Product, value: any) => void;
 }
 
-export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, onFieldChange }: PackageAndShippingCardProps) {
+export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, preparationTime, onFieldChange }: PackageAndShippingCardProps) {
   
   const handleDimensionChange = (dim: 'l' | 'w' | 'h', value: string) => {
     onFieldChange('dimensions', { ...dimensions, [dim]: parseFloat(value) || 0 });
@@ -24,9 +26,23 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, on
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Package & Shipping</CardTitle>
+        <CardTitle>Logistics & Fulfillment</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+            <Label htmlFor="preparationTime">Preparation Time (Days)</Label>
+            <Input id="preparationTime" type="number" value={preparationTime} onChange={e => onFieldChange('preparationTime', parseInt(e.target.value, 10) || 0)} />
+             <Alert variant="destructive" className="mt-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                    Commit to your prep time. Delays may lead to penalties or order cancellations, as gifts must be timely.
+                </AlertDescription>
+            </Alert>
+        </div>
+         <div className="space-y-2">
+          <Label htmlFor="inventoryBuffer">Inventory Buffer</Label>
+          <Input id="inventoryBuffer" type="number" value={inventoryBuffer} onChange={e => onFieldChange('inventoryBuffer', parseInt(e.target.value, 10))} />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="weight">Weight (kg)</Label>
           <Input id="weight" type="number" value={weight} onChange={e => onFieldChange('weight', parseFloat(e.target.value) || 0)} />
@@ -39,13 +55,9 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, on
                 <Input placeholder="H" type="number" value={dimensions.h} onChange={e => handleDimensionChange('h', e.target.value)} />
             </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="inventoryBuffer">Inventory Buffer</Label>
-          <Input id="inventoryBuffer" type="number" value={inventoryBuffer} onChange={e => onFieldChange('inventoryBuffer', parseInt(e.target.value, 10))} />
-        </div>
         <Alert>
             <AlertDescription>
-                <strong>Important:</strong> Please provide accurate details. Any price difference in shipping due to incorrect information will be deducted from your payout.
+                <strong>Important:</strong> Please provide accurate shipping details. Any price difference due to incorrect information will be deducted from your payout.
             </AlertDescription>
         </Alert>
       </CardContent>

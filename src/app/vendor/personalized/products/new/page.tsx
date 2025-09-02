@@ -42,6 +42,7 @@ const createDefaultProduct = (): Partial<Product> => ({
   category: '',
   tags: [],
   allowedCustomizations: [],
+  preparationTime: 3, // Default preparation time
 });
 
 function ProductEditorContent() {
@@ -217,6 +218,7 @@ function ProductEditorContent() {
                         weight={product.weight || 0}
                         dimensions={product.dimensions || { l: 0, w: 0, h: 0 }}
                         inventoryBuffer={product.inventoryBuffer || 0}
+                        preparationTime={product.preparationTime || 0}
                         onFieldChange={handleFieldChange}
                     />
                      <OrganizeCard 
