@@ -13,8 +13,6 @@ import {
   SidebarInset,
   SidebarTrigger,
   SidebarMenuBadge,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
   SidebarRail,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
@@ -162,7 +160,7 @@ function AdminSidebar() {
                     <Link href="/admin/marketing">
                     <Megaphone />
                     <span>Marketing</span>
-                    </Link>_
+                    </Link>
                 </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
