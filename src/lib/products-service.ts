@@ -20,6 +20,7 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     rating: 4.8,
     stock: 25,
+    moq: 50,
     customizable: true,
     featured: true,
     description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.",
@@ -30,7 +31,9 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     weight: 1,
     dimensions: { l: 8, w: 6, h: 2 },
     inventoryBuffer: 5,
-    tags: ['chocolate', 'gourmet', 'gift box']
+    tags: ['chocolate', 'gourmet', 'gift box'],
+    preparationTime: { min: 3, max: 4 },
+    preparationTimeUnit: 'days',
   },
   {
     id: 2,
@@ -41,6 +44,7 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     galleryImages: ['https://picsum.photos/600/400?random=21', 'https://picsum.photos/600/400?random=22'],
     rating: 4.9,
     stock: 5,
+    moq: 10,
     customizable: false,
     featured: true,
     description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.",
@@ -51,7 +55,9 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     weight: 3,
     dimensions: { l: 10, w: 8, h: 4 },
     inventoryBuffer: 2,
-    tags: ['spa', 'wellness', 'self-care', 'bath']
+    tags: ['spa', 'wellness', 'self-care', 'bath'],
+    preparationTime: { min: 2, max: 3 },
+    preparationTimeUnit: 'days',
   },
   // Add other mock products with the new fields
   {
@@ -63,7 +69,8 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     rating: 4.7, stock: 15, customizable: true, featured: true, category: "Fashion & Accessories",
     galleryImages: [], videoUrl: '', description: '', creatorStory: '',
     customizationSides: { front: { image: 'https://picsum.photos/600/400?random=3', areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } },
-    allowedCustomizations: ['Text'], weight: 0.5, dimensions: { l: 4, w: 3, h: 0.5 }, inventoryBuffer: 3, tags: ['leather', 'wallet', 'monogram']
+    allowedCustomizations: ['Text'], weight: 0.5, dimensions: { l: 4, w: 3, h: 0.5 }, inventoryBuffer: 3, tags: ['leather', 'wallet', 'monogram'],
+    preparationTime: { min: 5, max: 6 }, preparationTimeUnit: 'days', moq: 25,
   },
   {
     id: 4,
@@ -74,7 +81,8 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     rating: 4.8, stock: 50, customizable: false, featured: true, category: "Food & Drink",
     galleryImages: [], videoUrl: '', description: '', creatorStory: '',
     customizationSides: { front: { image: 'https://picsum.photos/600/400?random=4', areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } },
-    allowedCustomizations: [], weight: 2, dimensions: { l: 12, w: 9, h: 3 }, inventoryBuffer: 10, tags: ['coffee', 'beans', 'sampler']
+    allowedCustomizations: [], weight: 2, dimensions: { l: 12, w: 9, h: 3 }, inventoryBuffer: 10, tags: ['coffee', 'beans', 'sampler'],
+    preparationTime: { min: 1, max: 2 }, preparationTimeUnit: 'days', moq: 100,
   },
   {
     id: 5,
@@ -85,7 +93,8 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     rating: 4.9, stock: 0, customizable: false, featured: true, category: "Food & Drink",
     galleryImages: [], videoUrl: '', description: '', creatorStory: '',
     customizationSides: { front: { image: 'https://picsum.photos/600/400?random=5', areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } },
-    allowedCustomizations: [], weight: 1.5, dimensions: { l: 10, w: 7, h: 3 }, inventoryBuffer: 0, tags: ['tea', 'sampler', 'exotic']
+    allowedCustomizations: [], weight: 1.5, dimensions: { l: 10, w: 7, h: 3 }, inventoryBuffer: 0, tags: ['tea', 'sampler', 'exotic'],
+    preparationTime: { min: 2, max: 3 }, preparationTimeUnit: 'days', moq: 1,
   },
   {
     id: 6,
@@ -96,7 +105,8 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     rating: 4.6, stock: 100, customizable: true, featured: true, category: "Office & Corporate",
     galleryImages: [], videoUrl: '', description: '', creatorStory: '',
     customizationSides: { front: { image: 'https://picsum.photos/600/400?random=6', areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } },
-    allowedCustomizations: ['Text'], weight: 0.2, dimensions: { l: 6, w: 0.5, h: 0.5 }, inventoryBuffer: 10, tags: ['pen', 'engraved', 'corporate']
+    allowedCustomizations: ['Text'], weight: 0.2, dimensions: { l: 6, w: 0.5, h: 0.5 }, inventoryBuffer: 10, tags: ['pen', 'engraved', 'corporate'],
+    preparationTime: { min: 3, max: 4 }, preparationTimeUnit: 'days', moq: 200,
   },
   {
     id: 7,
@@ -107,7 +117,8 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     rating: 4.5, stock: 30, customizable: false, featured: false, category: "Tech",
     galleryImages: [], videoUrl: '', description: '', creatorStory: '',
     customizationSides: { front: { image: 'https://picsum.photos/600/400?random=7', areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } },
-    allowedCustomizations: [], weight: 1, dimensions: { l: 10, w: 3, h: 3 }, inventoryBuffer: 5, tags: ['tech', 'smart', 'water bottle']
+    allowedCustomizations: [], weight: 1, dimensions: { l: 10, w: 3, h: 3 }, inventoryBuffer: 5, tags: ['tech', 'smart', 'water bottle'],
+    preparationTime: { min: 1, max: 2 }, preparationTimeUnit: 'days', moq: 100,
   },
   {
     id: 8,
@@ -118,7 +129,8 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     rating: 4.9, stock: 100, customizable: true, featured: false, category: "Home & Decor",
     galleryImages: [], videoUrl: '', description: '', creatorStory: '',
     customizationSides: { front: { image: 'https://picsum.photos/600/400?random=8', areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } },
-    allowedCustomizations: ['Text'], weight: 2, dimensions: { l: 24, w: 18, h: 0.1 }, inventoryBuffer: 10, tags: ['stars', 'map', 'personalized', 'astronomy']
+    allowedCustomizations: ['Text'], weight: 2, dimensions: { l: 24, w: 18, h: 0.1 }, inventoryBuffer: 10, tags: ['stars', 'map', 'personalized', 'astronomy'],
+    preparationTime: { min: 3, max: 4 }, preparationTimeUnit: 'days', moq: 1,
   },
 ];
 

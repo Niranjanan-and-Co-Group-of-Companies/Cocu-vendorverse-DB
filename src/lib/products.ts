@@ -35,6 +35,7 @@ export type Product = {
   videoUrl?: string;
   rating: number;
   stock: number;
+  moq?: number; // Minimum Order Quantity
   customizable: boolean;
   featured?: boolean;
   description?: string;
