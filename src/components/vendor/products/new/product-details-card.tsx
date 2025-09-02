@@ -1,0 +1,37 @@
+
+'use client';
+
+import * as React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import type { Product } from '@/lib/products';
+
+interface ProductDetailsCardProps {
+  name: string;
+  description: string;
+  onFieldChange: (field: keyof Product, value: any) => void;
+}
+
+export function ProductDetailsCard({ name, description, onFieldChange }: ProductDetailsCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Product Details</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Product Name</Label>
+          <Input id="name" value={name} onChange={e => onFieldChange('name', e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea id="description" value={description} onChange={e => onFieldChange('description', e.target.value)} rows={5} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+    
