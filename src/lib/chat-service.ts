@@ -1,4 +1,5 @@
 
+
 import { collection, onSnapshot, getDocs, writeBatch, doc, query, orderBy, getDoc, updateDoc, Unsubscribe, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -36,10 +37,10 @@ export interface Message {
 // --- Seeding Logic ---
 
 const MOCK_CONVERSATIONS = [
-  { id: 'conv001', type: 'Customer', customerId: 'user001', vendorId: 'vendor001', status: 'Active', unreadCount: 2 },
-  { id: 'conv002', type: 'Corporate', customerId: 'user002', vendorId: 'vendor002', status: 'Flagged', unreadCount: 0 },
-  { id: 'conv003', type: 'Customer', customerId: 'user003', vendorId: 'vendor001', status: 'Locked', unreadCount: 0 },
-  { id: 'conv004', type: 'Customer', customerId: 'user004', vendorId: 'vendor003', status: 'Active', unreadCount: 0 },
+  { id: 'conv001', type: 'Customer', customerId: 'user001', vendorId: 'vendor001', status: 'Active', vendorUnreadCount: 2, customerUnreadCount: 0, productId: '1', messageCount: 4 },
+  { id: 'conv002', type: 'Corporate', customerId: 'user002', vendorId: 'vendor002', status: 'Flagged', vendorUnreadCount: 0, customerUnreadCount: 0, productId: '3', messageCount: 3 },
+  { id: 'conv003', type: 'Customer', customerId: 'user003', vendorId: 'vendor001', status: 'Locked', vendorUnreadCount: 0, customerUnreadCount: 0, productId: '4', messageCount: 3 },
+  { id: 'conv004', type: 'Customer', customerId: 'user004', vendorId: 'vendor003', status: 'Active', vendorUnreadCount: 1, customerUnreadCount: 1, productId: '8', messageCount: 1 },
 ];
 
 const MOCK_MESSAGES: { [key: string]: Omit<Message, 'id'>[] } = {
@@ -73,7 +74,16 @@ async function seedChatData() {
     
     MOCK_CONVERSATIONS.forEach(conv => {
       const convRef = doc(db, 'conversations', conv.id);
-      batch.set(convRef, { type: conv.type, customerId: conv.customerId, vendorId: conv.vendorId, status: conv.status });
+      batch.set(convRef, { 
+          type: conv.type, 
+          customerId: conv.customerId, 
+          vendorId: conv.vendorId, 
+          productId: conv.productId,
+          status: conv.status,
+          vendorUnreadCount: conv.vendorUnreadCount,
+          customerUnreadCount: conv.customerUnreadCount,
+          messageCount: conv.messageCount,
+      });
       
       const messages = MOCK_MESSAGES[conv.id] || [];
       messages.forEach((msg, index) => {
@@ -140,7 +150,7 @@ export function onConversationsUpdate(callback: (summaries: ConversationSummary[
           timestamp: data.lastMessageTimestamp
         },
         status: data.status,
-        unreadCount: Math.floor(Math.random() * 3) // Mock unread count
+        unreadCount: data.adminUnreadCount || 0
       } as ConversationSummary;
     });
     
