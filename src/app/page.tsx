@@ -9,6 +9,73 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { getAllProducts } from '@/lib/products-service';
 import { getCategories } from '@/lib/categories-service';
+import { getActiveCampaignByPlacement } from '@/lib/marketing-service';
+
+const HeroSection = async () => {
+  const heroCampaign = await getActiveCampaignByPlacement('homepage-hero');
+
+  if (!heroCampaign || heroCampaign.creatives.length === 0) {
+    // Fallback static hero
+    return (
+      <section className="relative py-20 md:py-32">
+        <div className="container text-center">
+          <div className="bg-primary/10 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-8">
+             <Gift className="h-10 w-10 text-primary" />
+          </div>
+          <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter">
+            Welcome to <span className="text-primary">VendorVerse</span>
+          </h1>
+          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+            A universe of unique gifts from diverse vendors, perfect for personal and corporate occasions.
+          </p>
+          <div className="mt-8 flex justify-center gap-4">
+            <Button size="lg" asChild>
+              <Link href="/signup">Start Gifting</Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="#">Explore Vendors</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Dynamic hero from campaign
+  return (
+    <section>
+       <Carousel
+          opts={{ loop: true, }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {heroCampaign.creatives.map(creative => (
+              <CarouselItem key={creative.id}>
+                <div className="relative aspect-[16/9] md:aspect-[21/9] w-full">
+                  {creative.imageUrl && <Image src={creative.imageUrl} alt={creative.title} fill className="object-cover" data-ai-hint="promotional background" />}
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="text-center text-white p-8">
+                       <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter">{creative.title}</h1>
+                       <p className="mt-4 max-w-2xl mx-auto text-lg">{creative.description}</p>
+                       <Button size="lg" className="mt-8" asChild>
+                          <Link href={creative.ctaLink}>{creative.ctaText}</Link>
+                       </Button>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          {heroCampaign.creatives.length > 1 && (
+            <>
+              <CarouselPrevious className="left-4" />
+              <CarouselNext className="right-4" />
+            </>
+          )}
+        </Carousel>
+    </section>
+  )
+}
 
 export default async function Home() {
   const allProducts = await getAllProducts();
@@ -19,27 +86,7 @@ export default async function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-grow">
-        <section className="relative py-20 md:py-32">
-          <div className="container text-center">
-            <div className="bg-primary/10 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-8">
-               <Gift className="h-10 w-10 text-primary" />
-            </div>
-            <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter">
-              Welcome to <span className="text-primary">VendorVerse</span>
-            </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              A universe of unique gifts from diverse vendors, perfect for personal and corporate occasions.
-            </p>
-            <div className="mt-8 flex justify-center gap-4">
-              <Button size="lg" asChild>
-                <Link href="/signup">Start Gifting</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="#">Explore Vendors</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
+        <HeroSection />
 
         <section className="py-20 md:py-28 bg-card border-y">
           <div className="container">

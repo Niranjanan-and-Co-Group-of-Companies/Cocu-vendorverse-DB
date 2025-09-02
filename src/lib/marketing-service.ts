@@ -1,5 +1,5 @@
 
-import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp, updateDoc, query, where, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { CampaignCreative } from '@/app/admin/marketing/new/page';
@@ -22,13 +22,14 @@ export interface Campaign {
   creatives: Omit<CampaignCreative, 'imageFile'>[];
 }
 
-const MOCK_CAMPAIGNS: Omit<Campaign, 'id'|'placement'|'creatives'>[] = [
+const MOCK_CAMPAIGNS: Omit<Campaign, 'id'|'creatives'>[] = [
     {
         name: 'Holiday Kick-off Sale',
         type: 'Sale',
         status: 'Active',
         startDate: Timestamp.fromDate(new Date(new Date().setDate(new Date().getDate() - 5))),
         endDate: Timestamp.fromDate(new Date(new Date().setDate(new Date().getDate() + 10))),
+        placement: 'homepage-hero'
     },
     {
         name: 'New Year, New Gear',
@@ -36,6 +37,7 @@ const MOCK_CAMPAIGNS: Omit<Campaign, 'id'|'placement'|'creatives'>[] = [
         status: 'Scheduled',
         startDate: Timestamp.fromDate(new Date(new Date().getFullYear() + 1, 0, 1)),
         endDate: Timestamp.fromDate(new Date(new Date().getFullYear() + 1, 0, 15)),
+        placement: 'homepage-hero'
     },
     {
         name: 'Black Friday Flash Sale',
@@ -43,6 +45,7 @@ const MOCK_CAMPAIGNS: Omit<Campaign, 'id'|'placement'|'creatives'>[] = [
         status: 'Finished',
         startDate: Timestamp.fromDate(new Date(new Date().getFullYear() - 1, 10, 24)),
         endDate: Timestamp.fromDate(new Date(new Date().getFullYear() - 1, 10, 24, 23, 59, 59)),
+        placement: 'homepage-hero'
     },
     {
         name: 'Spring Refresh (Draft)',
@@ -50,6 +53,7 @@ const MOCK_CAMPAIGNS: Omit<Campaign, 'id'|'placement'|'creatives'>[] = [
         status: 'Draft',
         startDate: Timestamp.fromDate(new Date(new Date().getFullYear(), 2, 1)),
         endDate: Timestamp.fromDate(new Date(new Date().getFullYear(), 2, 15)),
+        placement: 'homepage-hero'
     }
 ];
 
@@ -66,14 +70,13 @@ async function seedMarketingCampaigns() {
             const docRef = doc(campaignsRef);
             batch.set(docRef, {
               ...campaign,
-              placement: 'homepage-hero',
               creatives: [{
                 id: '1',
-                title: 'Mock Creative',
-                description: 'This is a mock creative.',
-                ctaText: 'Shop Now',
+                title: 'Mock Creative Title',
+                description: 'This is a mock creative description for the campaign.',
+                ctaText: 'Shop The Sale',
                 ctaLink: '#',
-                imageUrl: 'https://picsum.photos/1200/800'
+                imageUrl: `https://picsum.photos/seed/${Math.random()}/1200/800`
               }]
             });
         });
@@ -177,4 +180,34 @@ export async function duplicateCampaign(campaignId: string) {
 export async function deleteCampaign(campaignId: string) {
     const campaignRef = doc(db, 'marketingCampaigns', campaignId);
     await deleteDoc(campaignRef);
+}
+
+// Get active campaign for a specific placement
+export async function getActiveCampaignByPlacement(placement: Placement): Promise<Campaign | null> {
+    await seedMarketingCampaigns(); // Ensure data exists
+    const campaignsRef = collection(db, 'marketingCampaigns');
+    const now = Timestamp.now();
+
+    const q = query(
+        campaignsRef,
+        where('placement', '==', placement),
+        where('status', '==', 'Active'),
+        where('startDate', '<=', now),
+        limit(1) // Get the most recent one that has started
+    );
+
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return null;
+    }
+
+    const campaignDoc = snapshot.docs[0];
+    const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
+
+    // Additional check for end date
+    if (campaignData.endDate && campaignData.endDate < now) {
+        return null; // Campaign has expired
+    }
+
+    return campaignData;
 }
