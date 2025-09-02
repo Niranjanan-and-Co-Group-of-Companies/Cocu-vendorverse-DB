@@ -1,20 +1,13 @@
 
-import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp } from 'firebase/firestore';
-import { db } from './firebase';
+import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from './firebase';
+import type { CampaignCreative } from '@/app/admin/marketing/new/page';
 
-export type CampaignType = 'Sale' | 'Promotion' | 'Flash Sale';
+export type CampaignType = 'Sale' | 'Promotion' | 'Flash Sale' | 'Content';
 export type CampaignStatus = 'Active' | 'Draft' | 'Scheduled' | 'Finished';
 export type CampaignAudience = 'All' | 'New Customers' | 'Returning Customers';
-export type DiscountType = 'Percentage' | 'Fixed Amount';
-export type CampaignAction = {
-    type: 'Apply Discount';
-    discountType: DiscountType;
-    discountValue: number;
-    appliesTo: 'Entire Order' | 'Specific Products';
-    productIds?: string[];
-} | {
-    type: 'Free Shipping';
-};
+export type Placement = 'homepage-hero' | 'top-banner' | 'popup-modal' | 'category-banner';
 
 export interface Campaign {
   id: string;
@@ -25,10 +18,11 @@ export interface Campaign {
   endDate: any; // Firestore Timestamp
   description?: string;
   audience?: CampaignAudience;
-  action?: CampaignAction;
+  placement: Placement;
+  creatives: Omit<CampaignCreative, 'imageFile'>[];
 }
 
-const MOCK_CAMPAIGNS: Omit<Campaign, 'id'>[] = [
+const MOCK_CAMPAIGNS: Omit<Campaign, 'id'|'placement'|'creatives'>[] = [
     {
         name: 'Holiday Kick-off Sale',
         type: 'Sale',
@@ -70,7 +64,18 @@ async function seedMarketingCampaigns() {
         const batch = writeBatch(db);
         MOCK_CAMPAIGNS.forEach(campaign => {
             const docRef = doc(campaignsRef);
-            batch.set(docRef, campaign);
+            batch.set(docRef, {
+              ...campaign,
+              placement: 'homepage-hero',
+              creatives: [{
+                id: '1',
+                title: 'Mock Creative',
+                description: 'This is a mock creative.',
+                ctaText: 'Shop Now',
+                ctaLink: '#',
+                imageUrl: 'https://picsum.photos/1200/800'
+              }]
+            });
         });
         await batch.commit();
         console.log("Marketing campaigns seeded.");
@@ -78,7 +83,25 @@ async function seedMarketingCampaigns() {
     hasSeeded = true;
 }
 
+// --- Image Upload ---
+async function uploadFile(file: File): Promise<string> {
+    const storageRef = ref(storage, `campaigns/${Date.now()}_${file.name}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return getDownloadURL(snapshot.ref);
+}
+
+
 // --- Service Functions ---
+
+export async function getCampaignById(id: string): Promise<Campaign | null> {
+    const docRef = doc(db, 'marketingCampaigns', id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Campaign;
+    }
+    return null;
+}
+
 
 // Get all campaigns with real-time updates
 export function onCampaignsUpdate(callback: (campaigns: Campaign[]) => void): () => void {
@@ -98,6 +121,38 @@ export function onCampaignsUpdate(callback: (campaigns: Campaign[]) => void): ()
 
     return () => console.log("Marketing campaigns listener detached.");
 }
+
+// Create or Update a campaign
+export async function saveCampaign(campaignData: Campaign) {
+    const { id, ...data } = campaignData;
+
+    // 1. Handle image uploads
+    const processedCreatives = await Promise.all(
+        (data.creatives as (CampaignCreative | Omit<CampaignCreative, 'imageFile'>)[]).map(async (creative) => {
+            if ('imageFile' in creative && creative.imageFile) {
+                const imageUrl = await uploadFile(creative.imageFile);
+                const { imageFile, ...rest } = creative;
+                return { ...rest, imageUrl };
+            }
+            // If there's no new file, just return the creative data as is
+             const { ...rest } = creative as any;
+             delete rest.imageFile;
+             return rest;
+        })
+    );
+    
+    const finalData = { ...data, creatives: processedCreatives };
+
+    if (id) {
+        // Update existing campaign
+        const docRef = doc(db, 'marketingCampaigns', id);
+        await updateDoc(docRef, finalData);
+    } else {
+        // Create new campaign
+        await addDoc(collection(db, 'marketingCampaigns'), finalData);
+    }
+}
+
 
 // Duplicate a campaign
 export async function duplicateCampaign(campaignId: string) {
