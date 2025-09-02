@@ -16,6 +16,10 @@ import {
   DollarSign,
   Package,
   Users,
+  MessageSquare,
+  Check,
+  X,
+  Book,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -32,7 +36,9 @@ import Link from 'next/link';
 // Mock data for the dashboard
 const stats = {
   totalRevenue: 45231.89,
+  revenueChange: 20.1,
   activeOrders: 12,
+  ordersChange: 3,
   newMessages: 5,
   activeListings: 78,
 };
@@ -40,155 +46,161 @@ const stats = {
 const recentActivities = [
   {
     customer: 'Olivia Martin',
-    email: 'olivia.martin@email.com',
     avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026704d',
     type: 'New Order',
     details: 'Order #3124 for Artisanal Chocolate Box',
-    amount: '+$250.00',
-    link: '/vendor/personalized/orders/3124'
+    time: '5m ago',
   },
   {
     customer: 'Jackson Lee',
-    email: 'isabella.nguyen@email.com',
     avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026705d',
     type: 'New Message',
     details: 'Question about Custom Engraved Pen',
-    amount: '',
-    link: '/vendor/personalized/messages/124'
+    time: '15m ago',
+  },
+  {
+    customer: 'Liam Brown',
+    avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026709d',
+    type: 'Action Required',
+    details: 'Customer wants to buy "Handcrafted Leather Wallet". Please approve.',
+    time: '30m ago',
+    actionable: true,
   },
   {
     customer: 'Isabella Nguyen',
-    email: 'isabella.nguyen@email.com',
     avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026706d',
     type: 'New Order',
     details: 'Order #3123 for Luxury Spa Set',
-    amount: '+$150.00',
-    link: '/vendor/personalized/orders/3123'
+    time: '1h ago',
   },
   {
-    customer: 'William Kim',
-    email: 'will@email.com',
-    avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026707d',
+    customer: 'System',
+    avatar: '',
     type: 'Stock Alert',
     details: 'Handcrafted Leather Wallet is low on stock (3 left)',
-    amount: '',
-    link: '/vendor/personalized/inventory'
-  },
-  {
-    customer: 'Sofia Davis',
-    email: 'sofia.davis@email.com',
-    avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026708d',
-    type: 'New Review',
-    details: '5-star review for Gourmet Coffee Collection',
-    amount: '',
-    link: '/vendor/personalized/products/4'
+    time: '2h ago',
   },
 ];
 
 export default function VendorDashboard() {
   return (
     <div className="flex flex-col gap-6">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Orders</CardTitle>
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{stats.activeOrders}</div>
-                    <p className="text-xs text-muted-foreground">+3 from yesterday</p>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">New Messages</CardTitle>
-                    <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">+{stats.newMessages}</div>
-                    <p className="text-xs text-muted-foreground">2 need a reply</p>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{stats.activeListings}</div>
-                    <p className="text-xs text-muted-foreground">+2 since last hour</p>
-                </CardContent>
-            </Card>
+      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">+{stats.revenueChange}% from last month</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Orders</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.activeOrders}</div>
+            <p className="text-xs text-muted-foreground">+{stats.ordersChange} from yesterday</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">New Messages</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">+{stats.newMessages}</div>
+            <p className="text-xs text-muted-foreground">2 need a reply</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.activeListings}</div>
+            <p className="text-xs text-muted-foreground">+2 since last hour</p>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center">
+              <div className="grid gap-2">
+                <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>
+                  A log of recent sales, messages, and other store events.
+                </CardDescription>
+              </div>
+              <Button asChild size="sm" className="ml-auto gap-1">
+                <Link href="/vendor/personalized/orders">
+                  View All
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Event</TableHead>
+                    <TableHead className="text-right">Time</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentActivities.map((activity, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <div className="flex items-start gap-4">
+                          <Avatar className="hidden h-10 w-10 sm:flex">
+                            {activity.avatar && <AvatarImage src={activity.avatar} alt="Avatar" data-ai-hint="avatar" />}
+                            <AvatarFallback>
+                                {activity.type === 'Stock Alert' ? <Package /> : activity.customer.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="grid gap-1">
+                            <div className="font-medium">{activity.details}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {activity.customer !== 'System' && `From ${activity.customer} •`} {activity.type}
+                            </div>
+                            {activity.actionable && (
+                                <div className="flex gap-2 mt-1">
+                                    <Button size="sm" variant="outline"><Check className="mr-2"/> Approve</Button>
+                                    <Button size="sm" variant="destructive-outline"><X className="mr-2"/> Reject</Button>
+                                </div>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-xs text-muted-foreground">{activity.time}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
         <div>
             <Card>
-                <CardHeader className="flex flex-row items-center">
-                    <div className="grid gap-2">
-                    <CardTitle>Recent Activity</CardTitle>
+                <CardHeader>
+                    <CardTitle>Product Page Templates</CardTitle>
                     <CardDescription>
-                        A log of recent sales, messages, and other store events.
+                        Enhance your sales by creating compelling product pages with our advanced templates.
                     </CardDescription>
-                    </div>
-                    <Button asChild size="sm" className="ml-auto gap-1">
-                    <Link href="/vendor/personalized/orders">
-                        View All
-                        <ArrowUpRight className="h-4 w-4" />
-                    </Link>
-                    </Button>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Customer</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Details</TableHead>
-                                <TableHead className="text-right">Amount</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {recentActivities.map((activity, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="hidden h-9 w-9 sm:flex">
-                                                <AvatarImage src={activity.avatar} alt="Avatar" data-ai-hint="avatar" />
-                                                <AvatarFallback>{activity.customer.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="grid gap-0.5">
-                                                <div className="font-medium">{activity.customer}</div>
-                                                <div className="hidden text-xs text-muted-foreground md:inline">
-                                                    {activity.email}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                     <TableCell>
-                                        <div className="text-xs text-muted-foreground">{activity.type}</div>
-                                    </TableCell>
-                                     <TableCell>
-                                         <Link href={activity.link} className="hover:underline">
-                                            {activity.details}
-                                         </Link>
-                                    </TableCell>
-                                    <TableCell className="text-right">{activity.amount}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <Button className="w-full">
+                       <Book className="mr-2"/> Explore Templates
+                    </Button>
                 </CardContent>
             </Card>
         </div>
+      </div>
     </div>
   );
 }

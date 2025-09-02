@@ -172,6 +172,8 @@ function VendorSidebar() {
 }
 
 function VerificationFlowHandler({ children }: { children: React.ReactNode }) {
+    // This state will be replaced with real verification logic later.
+    // For now, set to `false` to see the unverified state, or `true` for the verified state.
     const [isVerified, setIsVerified] = React.useState(false);
 
     if (isVerified) {
@@ -179,16 +181,21 @@ function VerificationFlowHandler({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="flex-1 p-4 md:p-6 flex items-center justify-center">
-            <Alert className="max-w-lg">
-                <AlertTitle className="font-bold text-lg">Complete Your Store Setup!</AlertTitle>
-                <AlertDescription>
-                    Your store is not yet live. Please complete the verification steps to start selling on the platform.
-                </AlertDescription>
-                <div className="mt-4">
-                    <Button>Start Verification</Button>
-                </div>
-            </Alert>
+        <div className="flex-1 flex flex-col">
+            <div className="p-4 md:p-6">
+                 <Alert>
+                    <AlertTitle className="font-bold text-lg">Complete Your Store Setup!</AlertTitle>
+                    <AlertDescription>
+                        Your store is not yet live. Please complete the verification steps to start selling on the platform.
+                        Your products will remain as drafts and you cannot receive orders until verification is complete.
+                    </AlertDescription>
+                    <div className="mt-4">
+                        <Button>Continue Verification</Button>
+                    </div>
+                </Alert>
+            </div>
+            {/* Render children to show vendors what they will unlock */}
+            <div className="opacity-50 pointer-events-none">{children}</div>
         </div>
     );
 }
