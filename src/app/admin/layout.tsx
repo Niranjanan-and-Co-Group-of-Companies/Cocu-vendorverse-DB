@@ -36,6 +36,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Gavel,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
@@ -213,6 +214,14 @@ function AdminSidebar() {
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/chat-logs')} tooltip={{ children: 'Chat Logs' }}>
+                        <Link href="/admin/chat-logs">
+                        <MessageSquare />
+                        <span>Chat Logs</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
                      <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/support')} tooltip={{ children: 'Support' }}>
                         <Link href="/admin/support">
@@ -231,19 +240,19 @@ function AdminSidebar() {
                     </SidebarMenuButton>
                     {moderationQueue > 0 && <SidebarMenuBadge>{moderationQueue}</SidebarMenuBadge>}
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/settings')} tooltip={{ children: 'Settings' }}>
-                        <Link href="/admin/settings">
-                        <Settings />
-                        <span>Settings</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarContent>
 
               <SidebarFooter>
                 <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/admin/settings')} tooltip={{ children: 'Settings' }}>
+                            <Link href="/admin/settings">
+                            <Settings />
+                            <span>Settings</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip={{ children: 'Homepage' }}>
                         <Link href="/">
