@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Gift, Heart, ShoppingCart, User, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Gift, Heart, ShoppingCart, User } from 'lucide-react';
+import { Search } from '@/components/search/search';
+import { allProducts } from '@/lib/products';
 
 export default function Header() {
   return (
@@ -14,11 +15,7 @@ export default function Header() {
         
         <div className="flex-1 flex justify-center">
           <div className="w-full max-w-lg relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search for gifts, vendors, and more..."
-              className="pl-10 h-9"
-            />
+            <Search products={allProducts} />
           </div>
         </div>
 

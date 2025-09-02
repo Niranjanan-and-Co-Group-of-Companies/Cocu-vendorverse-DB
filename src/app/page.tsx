@@ -7,63 +7,9 @@ import Footer from '@/components/layout/footer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { allProducts } from '@/lib/products';
 
-const featuredProducts = [
-  {
-    id: 1,
-    name: 'Artisanal Chocolate Box',
-    vendor: 'Gourmet Delights',
-    price: '$45.00',
-    image: 'https://picsum.photos/600/400?random=1',
-    rating: 4.8,
-    customizable: true,
-  },
-  {
-    id: 2,
-    name: 'Luxury Spa Set',
-    vendor: 'Serene Moments',
-    price: '$85.00',
-    image: 'https://picsum.photos/600/400?random=2',
-    rating: 4.9,
-    customizable: false,
-  },
-  {
-    id: 3,
-    name: 'Handcrafted Leather Wallet',
-    vendor: 'Heritage Wares',
-    price: '$75.00',
-    image: 'https://picsum.photos/600/400?random=3',
-    rating: 4.7,
-    customizable: true,
-  },
-  {
-    id: 4,
-    name: 'Gourmet Coffee Collection',
-    vendor: 'The Daily Grind',
-    price: '$55.00',
-    image: 'https://picsum.photos/600/400?random=4',
-    rating: 4.8,
-    customizable: false,
-  },
-    {
-    id: 5,
-    name: 'Exotic Tea Sampler',
-    vendor: 'The Tea Leaf',
-    price: '$40.00',
-    image: 'https://picsum.photos/600/400?random=5',
-    rating: 4.9,
-    customizable: false,
-  },
-  {
-    id: 6,
-    name: 'Custom Engraved Pen',
-    vendor: 'Signature Gifts',
-    price: '$95.00',
-    image: 'https://picsum.photos/600/400?random=6',
-    rating: 4.6,
-    customizable: true,
-  },
-];
+const featuredProducts = allProducts.filter(p => p.featured);
 
 export default function Home() {
   return (
@@ -112,7 +58,7 @@ export default function Home() {
                   <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3">
                     <Card className="overflow-hidden group h-full flex flex-col">
                       <CardHeader className="p-0 relative">
-                        <Badge className="absolute top-2 left-2 z-10">Featured</Badge>
+                        {product.featured && <Badge className="absolute top-2 left-2 z-10">Featured</Badge>}
                          <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
                             <Heart className="h-4 w-4" />
                             <span className="sr-only">Add to Wishlist</span>
