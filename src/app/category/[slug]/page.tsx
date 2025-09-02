@@ -9,13 +9,14 @@ import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { getCategoryBySlug, getProductsByCategory } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
+import React from 'react';
 
-export default function CategoryPage({ params }: { params: { slug: string } }) {
+function CategoryPageContent({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
@@ -38,8 +39,6 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-background">
-        <Header />
         <main className="flex-grow container py-8">
             <Skeleton className="h-8 w-1/4 mb-4" />
             <Skeleton className="h-4 w-1/2 mb-8" />
@@ -64,14 +63,10 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                 ))}
             </div>
       </main>
-      <Footer />
-    </div>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Header />
       <main className="flex-grow container py-8">
         {category ? (
             <>
@@ -145,6 +140,18 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
             </div>
         )}
       </main>
+  );
+}
+
+
+export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = React.use(params);
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header />
+       <Suspense fallback={<div>Loading...</div>}>
+         <CategoryPageContent params={resolvedParams} />
+       </Suspense>
       <Footer />
     </div>
   );
