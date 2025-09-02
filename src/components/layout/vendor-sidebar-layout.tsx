@@ -171,10 +171,44 @@ function VendorSidebar() {
     );
 }
 
+// This component handles showing the verification prompt without blocking content.
+function VerificationFlowHandler({
+  isVerified,
+  children,
+}: {
+  isVerified: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      {!isVerified && (
+        <Alert className="m-4 border-primary/50 text-foreground dark:border-primary rounded-lg">
+          <Bell className="h-4 w-4 text-primary" />
+          <AlertTitle className="font-bold text-primary">Complete Your Store Setup!</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <div>
+              Your store is not yet live. Please complete the verification steps to start selling on the platform.
+              Your products will remain as drafts and you cannot receive orders until verification is complete.
+            </div>
+            <Button asChild size="sm">
+                <Link href="#">Continue Verification</Link>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      {children}
+    </>
+  );
+}
+
+
 export function VendorSidebarLayout({ children }: { children: React.ReactNode; }) {
   const pathname = usePathname();
-  // Extract the last part of the path for a clean title
   const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard';
+  
+  // For now, we simulate the verification status.
+  // In a real app, this would come from a user context or API call.
+  const [isVerified] = React.useState(false);
 
   return (
     <SidebarProvider>
@@ -193,7 +227,9 @@ export function VendorSidebarLayout({ children }: { children: React.ReactNode; }
                  </div>
             </header>
             <main className="flex-1 p-4 md:p-6 bg-muted/40">
-                {children}
+                <VerificationFlowHandler isVerified={isVerified}>
+                    {children}
+                </VerificationFlowHandler>
             </main>
         </SidebarInset>
     </SidebarProvider>
