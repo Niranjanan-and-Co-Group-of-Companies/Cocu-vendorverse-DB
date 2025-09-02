@@ -1,4 +1,6 @@
 
+'use client';
+
 import { collection, onSnapshot, query, where, orderBy, limit, Timestamp, Unsubscribe } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -41,33 +43,34 @@ export interface VendorNotification {
  * to calculate these stats efficiently.
  */
 export function onDashboardStatsUpdate(vendorId: string, callback: (stats: DashboardStats) => void): Unsubscribe {
-  // This is a simplified mock listener. We'll return static data
-  // but wrap it in a structure that mimics a real-time listener.
-  // In a production app, you would have separate listeners for orders, products, etc.
-  
-  const getMockStats = () => {
-    const stats: DashboardStats = {
-      totalRevenue: Math.floor(Math.random() * 50000) + 10000,
-      revenueChange: (Math.random() * 40) - 10,
-      activeOrders: Math.floor(Math.random() * 20),
-      newOrdersToday: Math.floor(Math.random() * 5),
-      unreadMessages: Math.floor(Math.random() * 10),
-      actionableMessages: Math.floor(Math.random() * 3),
-      activeListings: Math.floor(Math.random() * 100) + 20,
-      draftListings: Math.floor(Math.random() * 10),
+    // This is a simplified mock listener. We'll return static data
+    // but wrap it in a structure that mimics a real-time listener.
+    // In a production app, you would have separate listeners for orders, products, etc.
+    
+    const getMockStats = () => {
+        const stats: DashboardStats = {
+        totalRevenue: Math.floor(Math.random() * 50000) + 10000,
+        revenueChange: (Math.random() * 40) - 10,
+        activeOrders: Math.floor(Math.random() * 20),
+        newOrdersToday: Math.floor(Math.random() * 5),
+        unreadMessages: Math.floor(Math.random() * 10),
+        actionableMessages: Math.floor(Math.random() * 3),
+        activeListings: Math.floor(Math.random() * 100) + 20,
+        draftListings: Math.floor(Math.random() * 10),
+        };
+        callback(stats);
     };
-    callback(stats);
-  };
-  
-  // Simulate initial fetch
-  getMockStats();
+    
+    // Simulate initial fetch
+    getMockStats();
 
-  // Simulate real-time updates every 10 seconds
-  const intervalId = setInterval(getMockStats, 10000);
+    // Simulate real-time updates every 10 seconds
+    const intervalId = setInterval(getMockStats, 10000);
 
-  // The unsubscribe function
-  return () => clearInterval(intervalId);
+    // The unsubscribe function
+    return () => clearInterval(intervalId);
 }
+
 
 /**
  * Subscribes to recent activity notifications for a vendor.
