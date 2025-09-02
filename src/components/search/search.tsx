@@ -6,28 +6,15 @@ import { Input } from '@/components/ui/input';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSearchSuggestions } from '@/ai/flows/search-flow';
-import type { Product } from '@/lib/products';
-import { getAllProducts } from '@/lib/products-service';
 
 export function Search() {
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const [products, setProducts] = useState<Product[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [loadingProducts, setLoadingProducts] = useState(true);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoadingProducts(true);
-      const allProducts = await getAllProducts();
-      setProducts(allProducts);
-      setLoadingProducts(false);
-    }
-    fetchProducts();
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,20 +29,15 @@ export function Search() {
   }, []);
 
   useEffect(() => {
-    if (query.length > 1 && !loadingProducts) {
+    if (query.length > 1) {
       const fetchSuggestions = async () => {
         setLoading(true);
         try {
-          const result = await getSearchSuggestions({ query, products });
+          const result = await getSearchSuggestions({ query });
           setSuggestions(result.suggestions);
         } catch (error) {
           console.error('Error fetching suggestions:', error);
-          // Fallback to simple filtering if AI flow fails
-          const filteredProducts = products
-            .filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
-            .map(p => p.name)
-            .slice(0, 5);
-          setSuggestions(filteredProducts);
+          setSuggestions([]);
         }
         setLoading(false);
       };
@@ -64,7 +46,7 @@ export function Search() {
     } else {
       setSuggestions([]);
     }
-  }, [query, products, loadingProducts]);
+  }, [query]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +73,7 @@ export function Search() {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setShowSuggestions(true)}
         />
-        {(loading || loadingProducts) && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />}
+        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />}
       </form>
       {showSuggestions && (suggestions.length > 0 || (loading && query.length > 1)) && (
         <div className="absolute top-full mt-2 w-full rounded-md border bg-popover text-popover-foreground shadow-md z-50">
