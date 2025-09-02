@@ -150,10 +150,10 @@ function AdminSidebar() {
                         {pendingProducts > 0 && <SidebarMenuBadge>{pendingProducts}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/products')} tooltip={{ children: 'Catalog' }}>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/products')} tooltip={{ children: 'Products' }}>
                         <Link href="/admin/products">
                         <Box />
-                        <span>Catalog</span>
+                        <span>Products</span>
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
