@@ -44,7 +44,10 @@ const iconMap: { [key: string]: React.ElementType } = {
 };
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-const formatPercentage = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+const formatPercentage = (value: number) => {
+    if (!isFinite(value)) return '+0.0%';
+    return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+}
 
 export default function VendorDashboard() {
   const [stats, setStats] = React.useState<DashboardStats | null>(null);
@@ -239,4 +242,3 @@ export default function VendorDashboard() {
     </div>
   );
 }
-
