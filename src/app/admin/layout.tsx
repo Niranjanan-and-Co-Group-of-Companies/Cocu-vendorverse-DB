@@ -110,7 +110,7 @@ function AdminSidebar() {
                     </Link>
                     </Button>
                     <Button asChild variant="outline" size="sm" className="justify-start">
-                    <Link href="/admin/corporate/new-campaign">
+                    <Link href="/admin/marketing/new">
                         <PlusCircle />
                         <span>New Corporate Campaign</span>
                     </Link>
@@ -240,12 +240,7 @@ function AdminSidebar() {
                     </SidebarMenuButton>
                     {moderationQueue > 0 && <SidebarMenuBadge>{moderationQueue}</SidebarMenuBadge>}
                     </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarContent>
-
-              <SidebarFooter>
-                <SidebarMenu>
-                    <SidebarMenuItem>
+                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/admin/settings')} tooltip={{ children: 'Settings' }}>
                             <Link href="/admin/settings">
                             <Settings />
@@ -253,6 +248,11 @@ function AdminSidebar() {
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarContent>
+
+              <SidebarFooter>
+                <SidebarMenu>
                     <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip={{ children: 'Homepage' }}>
                         <Link href="/">
