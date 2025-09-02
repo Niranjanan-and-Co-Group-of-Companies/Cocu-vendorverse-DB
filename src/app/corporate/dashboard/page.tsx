@@ -27,7 +27,7 @@ const HeroSection = () => {
 
   if (loading) {
      return (
-      <section className="relative py-20 md:py-32 bg-muted">
+      <section className="relative py-20 md:py-32 bg-muted rounded-lg">
         <div className="container text-center">
             <Skeleton className="w-20 h-20 rounded-full mx-auto mb-8" />
             <Skeleton className="h-12 w-3/4 mx-auto mb-4" />
@@ -44,7 +44,7 @@ const HeroSection = () => {
   if (!heroCampaign || heroCampaign.creatives.length === 0) {
     // Fallback static hero
     return (
-      <section className="relative py-20 md:py-32 bg-muted">
+      <section className="relative py-20 md:py-32 bg-muted rounded-lg">
         <div className="container text-center">
           <div className="bg-primary/10 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-8">
              <Gift className="h-10 w-10 text-primary" />
@@ -70,7 +70,7 @@ const HeroSection = () => {
 
   // Dynamic hero from campaign
   return (
-    <section>
+    <section className="rounded-lg overflow-hidden">
        <Carousel opts={{ loop: true }} className="w-full">
           <CarouselContent>
             {heroCampaign.creatives.map(creative => (
@@ -122,24 +122,23 @@ export default function CorporateDashboardPage() {
 
 
   return (
-    <>
+    <div className="flex flex-col gap-8">
       <HeroSection />
 
-      <section className="py-20 md:py-28 bg-card border-y">
-        <div className="container">
-          <div className="text-center">
+      <section>
+        <div className="text-left">
             <h2 className="font-headline text-3xl md:text-4xl font-bold">Featured for Corporate</h2>
-            <p className="mt-3 max-w-xl mx-auto text-muted-foreground">
+            <p className="mt-2 text-muted-foreground">
               Handpicked selections perfect for your business needs, from client appreciation to employee recognition.
             </p>
           </div>
           {loading ? (
-              <div className="mt-12 flex justify-center"><Skeleton className="h-96 w-full max-w-5xl" /></div>
+              <div className="mt-6 flex justify-center"><Skeleton className="h-96 w-full max-w-6xl" /></div>
           ) : (
-          <Carousel opts={{ align: "start", loop: true, }} className="w-full mt-12">
+          <Carousel opts={{ align: "start", loop: true, }} className="w-full mt-6 -ml-4">
             <CarouselContent>
               {featuredProducts.map((product) => (
-                <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3">
+                <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
                   <Card className="overflow-hidden group h-full flex flex-col">
                     <CardHeader className="p-0 relative">
                       <div className="overflow-hidden aspect-[4/3]">
@@ -167,22 +166,20 @@ export default function CorporateDashboardPage() {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="ml-14" />
-            <CarouselNext className="mr-14"/>
+            <CarouselPrevious className="ml-16" />
+            <CarouselNext className="mr-16"/>
           </Carousel>
           )}
-        </div>
       </section>
 
-      <section className="py-20 md:py-28">
-        <div className="container">
-          <div className="text-center">
+      <section>
+        <div className="text-left">
             <h2 className="font-headline text-3xl md:text-4xl font-bold">Shop by Category</h2>
-            <p className="mt-3 max-w-xl mx-auto text-muted-foreground">
+            <p className="mt-2 text-muted-foreground">
               Find the perfect gift by browsing our curated categories.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mt-12">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mt-6">
             {loading ? (
               Array.from({length: 8}).map((_, i) => (
                   <Card key={i} className="overflow-hidden relative">
@@ -203,8 +200,7 @@ export default function CorporateDashboardPage() {
               </Link>
             )))}
           </div>
-        </div>
       </section>
-    </>
+    </div>
   );
 }
