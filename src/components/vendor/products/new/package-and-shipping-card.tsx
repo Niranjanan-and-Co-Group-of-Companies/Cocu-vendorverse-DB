@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -13,7 +14,7 @@ interface PackageAndShippingCardProps {
   weight: number;
   dimensions: { l: number, w: number, h: number };
   inventoryBuffer: number;
-  preparationTime: number;
+  preparationTime: { min: number, max: number };
   onFieldChange: (field: keyof Product, value: any) => void;
 }
 
@@ -22,6 +23,12 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
   const handleDimensionChange = (dim: 'l' | 'w' | 'h', value: string) => {
     onFieldChange('dimensions', { ...dimensions, [dim]: parseFloat(value) || 0 });
   };
+  
+  const handlePrepTimeChange = (type: 'min' | 'max', value: string) => {
+    onFieldChange('preparationTime', { ...preparationTime, [type]: parseInt(value, 10) || 0 });
+  };
+
+  const isPrepTimeInvalid = preparationTime.max < preparationTime.min;
 
   return (
     <Card>
@@ -30,8 +37,28 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-            <Label htmlFor="preparationTime">Preparation Time (Days)</Label>
-            <Input id="preparationTime" type="number" value={preparationTime} onChange={e => onFieldChange('preparationTime', parseInt(e.target.value, 10) || 0)} />
+            <Label>Preparation Time (Days)</Label>
+            <div className="grid grid-cols-2 gap-2">
+                <Input 
+                    placeholder="Min" 
+                    type="number" 
+                    value={preparationTime.min} 
+                    onChange={e => handlePrepTimeChange('min', e.target.value)} 
+                />
+                <Input 
+                    placeholder="Max" 
+                    type="number" 
+                    value={preparationTime.max} 
+                    onChange={e => handlePrepTimeChange('max', e.target.value)} 
+                />
+            </div>
+             {isPrepTimeInvalid && (
+                 <Alert variant="destructive" className="mt-2">
+                    <AlertDescription className="text-xs">
+                        Max days cannot be less than min days.
+                    </AlertDescription>
+                </Alert>
+             )}
              <Alert variant="destructive" className="mt-2">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -66,3 +93,4 @@ export function PackageAndShippingCard({ weight, dimensions, inventoryBuffer, pr
 }
 
     
+
