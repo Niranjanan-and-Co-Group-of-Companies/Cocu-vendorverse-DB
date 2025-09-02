@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gift, Users, Building, Star, ShoppingCart } from 'lucide-react';
+import { Gift, Heart, ShoppingCart, Star } from 'lucide-react';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -107,6 +107,10 @@ export default function Home() {
                     <Card className="overflow-hidden group h-full flex flex-col">
                       <CardHeader className="p-0 relative">
                         <Badge className="absolute top-2 left-2 z-10">Featured</Badge>
+                         <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
+                            <Heart className="h-4 w-4" />
+                            <span className="sr-only">Add to Wishlist</span>
+                          </Button>
                         <Image
                           src={product.image}
                           alt={product.name}
@@ -126,10 +130,13 @@ export default function Home() {
                         <div className="flex-grow"></div>
                         <div className="flex items-end justify-between mt-4">
                           <p className="text-xl font-bold">{product.price}</p>
-                          <Button size="sm">
-                            <ShoppingCart className="mr-2" />
-                            Add to Cart
-                          </Button>
+                           <div className="flex gap-2">
+                             <Button size="sm" variant="outline">Buy Now</Button>
+                            <Button size="sm">
+                              <ShoppingCart className="mr-2 h-4 w-4" />
+                              Add
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Gift } from 'lucide-react';
+import { Gift, Heart, ShoppingCart, User } from 'lucide-react';
 
 export default function Header() {
   return (
@@ -11,11 +11,23 @@ export default function Header() {
           <span className="font-headline">GiftSphere</span>
         </Link>
         <nav className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" asChild>
-            <Link href="/login">Log In</Link>
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/wishlist">
+              <Heart />
+              <span className="sr-only">Wishlist</span>
+            </Link>
+          </Button>
+           <Button variant="ghost" size="icon" asChild>
+            <Link href="/cart">
+              <ShoppingCart />
+              <span className="sr-only">Cart</span>
+            </Link>
           </Button>
           <Button asChild>
-            <Link href="/signup">Sign Up</Link>
+            <Link href="/login">
+              <User className="mr-2" />
+              Login / Sign Up
+            </Link>
           </Button>
         </nav>
       </div>

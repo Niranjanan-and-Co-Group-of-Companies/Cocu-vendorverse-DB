@@ -17,9 +17,9 @@ export default function LoginPage() {
         </div>
         <Card>
             <CardHeader>
-            <CardTitle className="text-2xl font-headline">Log In</CardTitle>
+            <CardTitle className="text-2xl font-headline">Login or Create an Account</CardTitle>
             <CardDescription>
-                Enter your email below to log in to your account.
+                Enter your email to login or sign up.
             </CardDescription>
             </CardHeader>
             <CardContent>
@@ -43,17 +43,18 @@ export default function LoginPage() {
                 <Input id="password" type="password" required />
                 </div>
                 <Button type="submit" className="w-full">
-                Log in
+                Continue
                 </Button>
                 <Button variant="outline" className="w-full">
-                Log in with Google
+                Continue with Google
                 </Button>
             </form>
             <div className="mt-4 text-center text-sm">
-                Don&apos;t have an account?{' '}
-                <Link href="/signup" className="underline">
-                Sign up
+                By continuing, you agree to our{' '}
+                <Link href="/tos" className="underline">
+                Terms of Service
                 </Link>
+                .
             </div>
             </CardContent>
         </Card>
