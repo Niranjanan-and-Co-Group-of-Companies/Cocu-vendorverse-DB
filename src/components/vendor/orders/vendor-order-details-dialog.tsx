@@ -24,6 +24,7 @@ import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 interface VendorOrderDetailsDialogProps {
   open: boolean;
@@ -37,6 +38,7 @@ const VENDOR_UPDATABLE_STATUSES: OrderStatus[] = ['Pending', 'Preparing', 'Packa
 
 export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName, onStatusChange }: VendorOrderDetailsDialogProps) {
   const [selectedStatus, setSelectedStatus] = React.useState<OrderStatus | null>(null);
+  const [isSaving, setIsSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (order) {
@@ -44,7 +46,8 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
     } else {
         setSelectedStatus(null);
     }
-  }, [order]);
+    setIsSaving(false); // Reset saving state when dialog opens or order changes
+  }, [order, open]);
   
   if (!order) return null;
 
@@ -58,9 +61,18 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
     return 'N/A';
   }
   
-  const handleSave = () => {
+  const handleSave = async () => {
     if (selectedStatus) {
-        onStatusChange(order.id, selectedStatus);
+        setIsSaving(true);
+        try {
+            await onStatusChange(order.id, selectedStatus);
+            onOpenChange(false);
+        } catch (error) {
+            // Error toast is handled in the parent component
+            console.error("Failed to save status from dialog", error);
+        } finally {
+            setIsSaving(false);
+        }
     }
   }
 
@@ -149,7 +161,10 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
         </div>
         <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!isSavable}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={!isSavable || isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
