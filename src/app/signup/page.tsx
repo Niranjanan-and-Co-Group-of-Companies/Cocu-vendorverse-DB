@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Gift } from 'lucide-react';
 
 export default function SignupPage() {
   return (
@@ -10,28 +11,15 @@ export default function SignupPage() {
        <div className="w-full max-w-sm">
         <div className="text-center mb-6">
             <Link href="/" className="inline-flex items-center gap-2 font-bold text-2xl">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-8 w-8 text-primary"
-                >
-                    <path d="m12 14 4-4" />
-                    <path d="M3.34 19a10 10 0 1 1 17.32 0" />
-                    <path d="m12 20 4-4" />
-                </svg>
-                <span className="font-headline">VendorVerse</span>
+                <Gift className="h-8 w-8 text-primary" />
+                <span className="font-headline">GiftSphere</span>
             </Link>
         </div>
         <Card>
             <CardHeader>
             <CardTitle className="text-2xl font-headline">Create an account</CardTitle>
             <CardDescription>
-                Enter your information to get started with VendorVerse.
+                Enter your information to get started with GiftSphere.
             </CardDescription>
             </CardHeader>
             <CardContent>

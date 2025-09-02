@@ -11,24 +11,24 @@ export default function VendorPortal() {
       <div className="flex justify-between items-center gap-4">
         <div>
             <h1 className="text-3xl font-bold font-headline">Vendor Portal</h1>
-            <p className="text-muted-foreground">Manage your products, orders, and bids.</p>
+            <p className="text-muted-foreground">Manage your gift products and orders.</p>
         </div>
         <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Product
+          <PlusCircle className="mr-2 h-4 w-4" /> Add Gift Product
         </Button>
       </div>
       
       <Tabs defaultValue="orders" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="products">My Products</TabsTrigger>
-          <TabsTrigger value="bids">Bids</TabsTrigger>
+          <TabsTrigger value="orders">Incoming Orders</TabsTrigger>
+          <TabsTrigger value="products">My Gift Products</TabsTrigger>
+          <TabsTrigger value="corporate">Corporate Bids</TabsTrigger>
         </TabsList>
         <TabsContent value="orders">
           <Card>
             <CardHeader>
-              <CardTitle>Incoming Orders</CardTitle>
-              <CardDescription>Manage and fulfill customer orders.</CardDescription>
+              <CardTitle>Incoming Gift Orders</CardTitle>
+              <CardDescription>Manage and fulfill customer gift orders.</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -43,7 +43,7 @@ export default function VendorPortal() {
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell className="font-medium">#3210</TableCell>
+                    <TableCell className="font-medium">#G-3210</TableCell>
                     <TableCell>Jane Smith</TableCell>
                     <TableCell><Badge variant="secondary">Processing</Badge></TableCell>
                     <TableCell>$150.00</TableCell>
@@ -57,24 +57,24 @@ export default function VendorPortal() {
         <TabsContent value="products">
           <Card>
             <CardHeader>
-              <CardTitle>My Products</CardTitle>
-              <CardDescription>Manage your product listings.</CardDescription>
+              <CardTitle>My Gift Products</CardTitle>
+              <CardDescription>Manage your gift product listings.</CardDescription>
             </CardHeader>
             <CardContent className="text-center text-muted-foreground py-8">
-              <p>You haven't added any products yet.</p>
+              <p>You haven't added any gift products yet.</p>
               <Button size="sm" className="mt-4">Add your first product</Button>
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="bids">
+        <TabsContent value="corporate">
           <Card>
             <CardHeader>
-              <CardTitle>Active Bids</CardTitle>
-              <CardDescription>Manage your bids on corporate requirements.</CardDescription>
+              <CardTitle>Corporate Gifting Bids</CardTitle>
+              <CardDescription>Manage your bids on corporate gifting requirements.</CardDescription>
             </CardHeader>
             <CardContent className="text-center text-muted-foreground py-8">
               <p>No active bids to display.</p>
-               <Button variant="outline" size="sm" className="mt-4">Browse Requirements</Button>
+               <Button variant="outline" size="sm" className="mt-4">Browse Corporate Requirements</Button>
             </CardContent>
           </Card>
         </TabsContent>

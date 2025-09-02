@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'VendorVerse',
-  description: 'A comprehensive platform for vendors and customers.',
+  title: 'GiftSphere',
+  description: 'A universe of gifts from diverse vendors, perfect for personal and corporate gifting.',
 };
 
 export default function RootLayout({

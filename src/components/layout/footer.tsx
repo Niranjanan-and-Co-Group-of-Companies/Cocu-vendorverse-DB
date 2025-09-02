@@ -38,7 +38,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} VendorVerse. All rights reserved.
+          © {new Date().getFullYear()} GiftSphere. All rights reserved.
         </div>
       </div>
     </footer>

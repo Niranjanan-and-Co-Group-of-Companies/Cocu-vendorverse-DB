@@ -9,21 +9,21 @@ export default function AdminPortal() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold font-headline">Admin Portal</h1>
-        <p className="text-muted-foreground">Oversee and manage the VendorVerse platform.</p>
+        <p className="text-muted-foreground">Oversee and manage the GiftSphere platform.</p>
       </div>
       
       <Tabs defaultValue="vendors">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="vendors">Vendors</TabsTrigger>
           <TabsTrigger value="customers">Customers</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="catalog">Catalog</TabsTrigger>
+          <TabsTrigger value="orders">Gift Orders</TabsTrigger>
+          <TabsTrigger value="catalog">Gift Catalog</TabsTrigger>
         </TabsList>
         <TabsContent value="vendors">
           <Card>
             <CardHeader>
               <CardTitle>Vendor Management</CardTitle>
-              <CardDescription>Manage all vendors on the platform.</CardDescription>
+              <CardDescription>Manage all gift vendors on the platform.</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -39,14 +39,14 @@ export default function AdminPortal() {
                 <TableBody>
                   <TableRow>
                     <TableCell className="font-medium">V-001</TableCell>
-                    <TableCell>ACME Corp</TableCell>
+                    <TableCell>Artisan Gifts</TableCell>
                     <TableCell><Badge>Approved</Badge></TableCell>
                     <TableCell>2023-01-15</TableCell>
                     <TableCell className="text-right"><Button variant="outline" size="sm">Manage</Button></TableCell>
                   </TableRow>
                    <TableRow>
                     <TableCell className="font-medium">V-002</TableCell>
-                    <TableCell>Creative Goods</TableCell>
+                    <TableCell>Gourmet Baskets</TableCell>
                     <TableCell><Badge variant="secondary">Pending</Badge></TableCell>
                     <TableCell>2023-10-28</TableCell>
                     <TableCell className="text-right"><Button variant="outline" size="sm">Manage</Button></TableCell>
@@ -70,22 +70,22 @@ export default function AdminPortal() {
          <TabsContent value="orders">
           <Card>
             <CardHeader>
-              <CardTitle>Order Management</CardTitle>
-              <CardDescription>Oversee all orders on the platform.</CardDescription>
+              <CardTitle>Gift Order Management</CardTitle>
+              <CardDescription>Oversee all gift orders on the platform.</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground py-8">Order list will be displayed here.</p>
+              <p className="text-center text-muted-foreground py-8">Gift order list will be displayed here.</p>
             </CardContent>
           </Card>
         </TabsContent>
          <TabsContent value="catalog">
           <Card>
             <CardHeader>
-              <CardTitle>Product Catalog Management</CardTitle>
-              <CardDescription>Manage the entire product catalog.</CardDescription>
+              <CardTitle>Gift Catalog Management</CardTitle>
+              <CardDescription>Manage the entire gift catalog.</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground py-8">Product catalog management tools will be here.</p>
+              <p className="text-center text-muted-foreground py-8">Gift catalog management tools will be here.</p>
             </CardContent>
           </Card>
         </TabsContent>
