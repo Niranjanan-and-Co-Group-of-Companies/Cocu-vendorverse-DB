@@ -163,6 +163,8 @@ const Sidebar = React.forwardRef<
     side?: "left" | "right"
     variant?: "sidebar" | "floating" | "inset"
     collapsible?: "offcanvas" | "icon" | "none"
+    onMouseEnter?: React.MouseEventHandler<HTMLDivElement>
+    onMouseLeave?: React.MouseEventHandler<HTMLDivElement>
   }
 >(
   (
@@ -172,11 +174,25 @@ const Sidebar = React.forwardRef<
       collapsible = "icon",
       className,
       children,
+      onMouseEnter,
+      onMouseLeave,
       ...props
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state, openMobile, setOpenMobile, setOpen } = useSidebar()
+
+    const handleMouseEnter: React.MouseEventHandler<HTMLDivElement> = (event) => {
+      onMouseEnter?.(event);
+      if (isMobile) return;
+      setOpen(true);
+    };
+
+    const handleMouseLeave: React.MouseEventHandler<HTMLDivElement> = (event) => {
+      onMouseLeave?.(event);
+      if (isMobile) return;
+      setOpen(false);
+    };
 
     if (collapsible === "none") {
       return (
@@ -217,6 +233,8 @@ const Sidebar = React.forwardRef<
     return (
       <div
         ref={ref}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className="group peer hidden md:block text-sidebar-foreground"
         data-state={state}
         data-collapsible={collapsible}

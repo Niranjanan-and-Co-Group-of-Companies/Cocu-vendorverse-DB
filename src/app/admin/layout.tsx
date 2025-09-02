@@ -99,7 +99,7 @@ function AdminSidebar() {
     };
 
     return (
-        <Sidebar>
+        <Sidebar collapsible='none'>
             <div className="relative h-full flex flex-col">
               <CustomSidebarTrigger />
               <SidebarHeader className="items-center gap-4">
