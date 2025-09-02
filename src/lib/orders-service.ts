@@ -1,5 +1,5 @@
 
-import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product } from './products';
 import type { VendorOrder } from '@/app/vendor/personalized/orders/page';
@@ -208,16 +208,27 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
     try {
         await updateDoc(orderRef, { status });
         
-        // After updating, send a notification to the customer
-        const orderSnap = await getDocs(query(collection(db, 'orders'), where('id', '==', orderId), limit(1)));
+        // After updating, send notifications
+        const orderSnap = await getDoc(orderRef);
 
-        if(!orderSnap.empty){
-            const orderData = orderSnap.docs[0].data() as Order;
+        if(orderSnap.exists()){
+            const orderData = orderSnap.data() as Order;
+            
+            // Notify the customer
             await createNotification({
                 userId: orderData.customer.id,
                 type: 'ORDER_STATUS_UPDATE',
                 text: `Your order #${orderId.slice(0, 8)} has been updated to "${status}".`,
                 link: `/customer/orders/${orderId}`,
+            });
+
+            // Notify the admin
+            await createNotification({
+                userId: 'admin', // A generic ID for admin notifications
+                forAdmin: true,
+                type: 'ORDER_STATUS_UPDATE',
+                text: `Order #${orderId.slice(0, 8)} was updated to "${status}" by vendor.`,
+                link: `/admin/orders?id=${orderId}`,
             });
         }
 
