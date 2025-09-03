@@ -129,12 +129,6 @@ export function TextTool() {
         setFontStyle(newStyle);
         handleUpdate('fontStyle', newStyle);
     }
-    
-    const toggleFontWeight = () => {
-        const newWeight = fontWeight === 700 ? 400 : 700;
-        setFontWeight(newWeight);
-        handleUpdate('fontWeight', newWeight);
-    }
 
 
     return (
@@ -173,14 +167,6 @@ export function TextTool() {
                                 <Button 
                                     variant="outline" 
                                     size="icon" 
-                                    onClick={toggleFontWeight}
-                                    className={cn(fontWeight === 700 && 'bg-accent')}
-                                >
-                                    <Bold />
-                                </Button>
-                                <Button 
-                                    variant="outline" 
-                                    size="icon" 
                                     onClick={toggleFontStyle}
                                     className={cn(fontStyle === 'italic' && 'bg-accent')}
                                 >
@@ -209,6 +195,20 @@ export function TextTool() {
                                     className="p-1 h-10"
                                 />
                             </div>
+                        </div>
+
+                         <div className="space-y-2 pt-2 border-t">
+                            <div className="flex justify-between items-center">
+                                <Label>Thickness</Label>
+                                <span className="text-xs text-muted-foreground">{fontWeight}</span>
+                            </div>
+                             <Slider
+                                value={[fontWeight]}
+                                onValueChange={handleFontWeightChange}
+                                min={100}
+                                max={900}
+                                step={100}
+                            />
                         </div>
 
                         <div className="space-y-2 pt-2 border-t">
