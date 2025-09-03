@@ -11,6 +11,7 @@ import { Button } from '../ui/button';
 import { ShoppingCart } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface RelatedProductsCarouselProps {
   category?: string;
@@ -20,6 +21,9 @@ interface RelatedProductsCarouselProps {
 export function RelatedProductsCarousel({ category, currentProductId }: RelatedProductsCarouselProps) {
   const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const pathname = usePathname();
+
+  const basePath = pathname.includes('/corporate') ? '/corporate' : '';
 
   React.useEffect(() => {
     if (category && currentProductId) {
@@ -55,7 +59,7 @@ export function RelatedProductsCarousel({ category, currentProductId }: RelatedP
         <CarouselContent>
             {relatedProducts.map((product) => (
             <CarouselItem key={product.id} className="md:basis-1/3 lg:basis-1/4">
-                <Link href={`/products/${product.id}`} className="block">
+                <Link href={`${basePath}/products/${product.id}`} className="block">
                 <Card className="overflow-hidden group h-full flex flex-col">
                 <CardHeader className="p-0 relative">
                     <div className="overflow-hidden aspect-[4/3]">
