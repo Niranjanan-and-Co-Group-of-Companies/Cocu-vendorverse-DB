@@ -78,6 +78,22 @@ const PlatformSwitcher = ({ path, children }: { path: string, children: React.Re
     </DropdownMenu>
 );
 
+const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
+    <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+            {children}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="right" align="start">
+            <DropdownMenuItem asChild>
+                <Link href={`/vendor/both/inventory`}>Retail Inventory</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href={`/vendor/corporate/inventory`}>Corporate Inventory</Link>
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+    </DropdownMenu>
+);
+
 
 function BothVendorSidebar() {
     const pathname = usePathname();
@@ -137,9 +153,11 @@ function BothVendorSidebar() {
                     </SidebarMenuItem>
 
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/both/inventory')} tooltip={{ children: 'Retail Inventory' }}>
-                            <Link href="/vendor/both/inventory"><Warehouse /><span>Retail Inventory</span></Link>
-                        </SidebarMenuButton>
+                        <InventorySwitcher>
+                            <SidebarMenuButton isActive={isActive('/vendor/both/inventory') || isActive('/vendor/corporate/inventory')} tooltip={{ children: 'Inventory' }}>
+                                <Warehouse /><span>Inventory</span>
+                            </SidebarMenuButton>
+                        </InventorySwitcher>
                     </SidebarMenuItem>
                     
                     <SidebarMenuItem>
