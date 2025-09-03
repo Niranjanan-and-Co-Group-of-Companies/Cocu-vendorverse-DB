@@ -77,6 +77,8 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                 <ProductDetailsAccordion
                     description={product.description || ''}
                     creatorStory={product.creatorStory || ''}
+                    category={product.category}
+                    platform='corporate'
                 />
             </div>
              <div className="mt-12 lg:mt-20">
