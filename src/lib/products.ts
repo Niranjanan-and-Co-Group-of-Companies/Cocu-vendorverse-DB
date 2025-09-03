@@ -42,6 +42,7 @@ export type Product = {
   rating: number;
   stock: number;
   moq?: number; // Minimum Order Quantity
+  maxQuantityPerOrder?: number; // Max quantity a customer can buy in a single order
   customizable: boolean;
   featured?: boolean;
   description?: string;

@@ -220,6 +220,7 @@ function ProductEditorContent() {
                     <PricingAndInventoryCard 
                         price={product.price || ''}
                         stock={product.stock || 0}
+                        maxQuantityPerOrder={product.maxQuantityPerOrder}
                         onFieldChange={handleFieldChange}
                     />
                      <PackageAndShippingCard

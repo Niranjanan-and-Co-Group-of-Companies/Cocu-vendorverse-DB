@@ -10,10 +10,11 @@ import type { Product } from '@/lib/products';
 interface PricingAndInventoryCardProps {
   price: string;
   stock: number;
+  maxQuantityPerOrder?: number;
   onFieldChange: (field: keyof Product, value: any) => void;
 }
 
-export function PricingAndInventoryCard({ price, stock, onFieldChange }: PricingAndInventoryCardProps) {
+export function PricingAndInventoryCard({ price, stock, maxQuantityPerOrder, onFieldChange }: PricingAndInventoryCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -42,9 +43,17 @@ export function PricingAndInventoryCard({ price, stock, onFieldChange }: Pricing
             onChange={e => onFieldChange('stock', parseInt(e.target.value, 10))} 
           />
         </div>
+         <div className="space-y-2">
+          <Label htmlFor="maxQuantity">Max Quantity Per Order</Label>
+          <Input 
+            id="maxQuantity" 
+            type="number" 
+            value={maxQuantityPerOrder || ''} 
+            onChange={e => onFieldChange('maxQuantityPerOrder', parseInt(e.target.value, 10))}
+            placeholder="e.g., 10"
+          />
+        </div>
       </CardContent>
     </Card>
   );
 }
-
-    

@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { getProductById, onProductUpdate } from '@/lib/products-service';
+import { onProductUpdate } from '@/lib/products-service';
 import type { Product } from '@/lib/products';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
@@ -71,7 +71,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                     videoUrl={product.videoUrl}
                 />
                 <div className="flex flex-col gap-6">
-                    <ProductInfo product={product} />
+                    <ProductInfo product={product} displayPrice={product.price} />
                     <ProductInteractions product={product} />
                 </div>
             </div>
