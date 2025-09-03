@@ -20,7 +20,6 @@ import { Badge } from '../ui/badge';
 import { CorporateCartPreview } from './previews/corporate-cart-preview';
 import { CorporateWishlistPreview } from './previews/corporate-wishlist-preview';
 import { CorporateComparePreview } from './previews/corporate-compare-preview';
-import { CorporateBidPreview } from './previews/corporate-bid-preview';
 
 
 export default function CorporateHeader() {
@@ -47,7 +46,6 @@ export default function CorporateHeader() {
            <CorporateWishlistPreview />
            <CorporateCartPreview />
            <CorporateComparePreview />
-           <CorporateBidPreview />
            
            <DropdownMenu>
             <DropdownMenuTrigger asChild>
