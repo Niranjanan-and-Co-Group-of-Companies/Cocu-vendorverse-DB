@@ -20,9 +20,10 @@ interface InventoryActionsProps {
   isSaving: boolean;
   onSave: () => void;
   isHybrid?: boolean;
+  isCorporate?: boolean;
 }
 
-export function InventoryActions({ product, isEditing, isSaving, onSave, isHybrid = false }: InventoryActionsProps) {
+export function InventoryActions({ product, isEditing, isSaving, onSave, isHybrid = false, isCorporate = false }: InventoryActionsProps) {
 
   if (isEditing) {
     return (
@@ -38,7 +39,7 @@ export function InventoryActions({ product, isEditing, isSaving, onSave, isHybri
   }
   
   const editPath = isHybrid
-    ? `/vendor/both/products/personalized/new?id=${product.id}`
+    ? `/vendor/both/products/${isCorporate ? 'corporate' : 'personalized'}/new?id=${product.id}`
     : `/vendor/personalized/products/new?id=${product.id}`;
 
   return (

@@ -88,7 +88,7 @@ const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
                 <Link href={`/vendor/both/inventory/personalized`}>Retail Inventory</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-                <Link href={`/vendor/corporate/inventory`}>Corporate Inventory</Link>
+                <Link href={`/vendor/both/inventory/corporate`}>Corporate Inventory</Link>
             </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
