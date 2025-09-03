@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -29,13 +28,13 @@ export function TextTool() {
     const selectedElement = elements.find(el => el.id === selectedElementId && el.type === 'text') as TextElement | undefined;
     
     const [content, setContent] = React.useState('');
-    const [fontSize, setFontSize] = React.useState(48);
+    const [fontSize, setFontSize] = React.useState(15);
     const [color, setColor] = React.useState('#000000');
     const [fontFamily, setFontFamily] = React.useState(FONT_OPTIONS[0].value);
     const [outlineColor, setOutlineColor] = React.useState('#ffffff');
     const [outlineWidth, setOutlineWidth] = React.useState(0);
     const [curve, setCurve] = React.useState(0);
-    const [fontWeight, setFontWeight] = React.useState<number>(400);
+    const [fontWeight, setFontWeight] = React.useState<number>(100);
     const [fontStyle, setFontStyle] = React.useState<'normal' | 'italic'>('normal');
     
     React.useEffect(() => {
@@ -47,7 +46,7 @@ export function TextTool() {
             setOutlineColor(selectedElement.outlineColor || '#ffffff');
             setOutlineWidth(selectedElement.outlineWidth || 0);
             setCurve(selectedElement.curve || 0);
-            setFontWeight(selectedElement.fontWeight || 400);
+            setFontWeight(selectedElement.fontWeight || 100);
             setFontStyle(selectedElement.fontStyle || 'normal');
         }
     }, [selectedElementId, selectedElement]);

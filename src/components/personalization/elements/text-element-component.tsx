@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -82,30 +81,30 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
     // SVG Path generation for curved text
     const getPathData = (curve: number) => {
         const w = element.width;
-        if (curve === 0) {
-            return `M 0,${element.height / 2} L ${w},${element.height / 2}`;
-        }
-        const isDownward = curve < 0;
-        const absCurve = Math.abs(curve);
-        const curveStrength = (100 - absCurve) / 100 * w * 1.5;
         const h = element.height;
+        const curveValue = curve / 100; // Normalize curve value to -1 to 1 range
 
-        const startX = 0;
-        const startY = isDownward ? h / 2 : h / 2 + (absCurve / 100 * h);
-        const endX = w;
-        const endY = startY;
+        if (curve === 0) {
+            return `M 0,${h / 2} L ${w},${h / 2}`;
+        }
 
-        const c1X = w / 4;
-        const c1Y = isDownward ? h/2 - curveStrength / 10 : h/2 - (absCurve / 100 * h) - curveStrength/10 ;
-
-        const c2X = w * 3 / 4;
-        const c2Y = c1Y;
+        const arcHeight = curveValue * h * 0.5;
+        const radius = (w * w) / (8 * arcHeight) + arcHeight / 2;
         
-        const M = `M ${startX},${startY}`;
-        const C = `C ${c1X},${c1Y} ${c2X},${c2Y} ${endX},${endY}`;
+        // Ensure radius is not infinite or too small
+        if (!isFinite(radius) || Math.abs(radius) < w / 2) {
+             return `M 0,${h / 2} L ${w},${h / 2}`;
+        }
         
-        return `${M} ${C}`;
+        const sweepFlag = curveValue > 0 ? 0 : 1;
+
+        return `M 0,${h / 2} A ${radius} ${radius} 0 0 ${sweepFlag} ${w},${h/2}`;
     }
+
+     const dynamicHeight = React.useMemo(() => {
+        const absCurve = Math.abs(element.curve || 0);
+        return element.height + absCurve * 0.3; // Adjust multiplier for desired effect
+    }, [element.height, element.curve]);
     
 
     return (
@@ -116,13 +115,13 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                 top: `${position.y}px`,
                 transform: `rotate(${element.rotation}deg)`,
                 width: element.width,
-                height: element.height,
+                height: dynamicHeight, // Use dynamic height
             }}
              onMouseDown={(e) => { e.stopPropagation(); setSelectedElementId(element.id); }}
         >
              <ResizableBox
                 width={element.width}
-                height={element.height}
+                height={dynamicHeight} // Use dynamic height in resizable box
                 onResizeStop={(e, data) => {
                     updateElement(element.id, { width: data.size.width, height: data.size.height });
                 }}
@@ -149,7 +148,7 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                     onMouseDown={handleDragStart}
                     onTouchStart={handleDragStart}
                 >
-                    <svg width="100%" height="100%" viewBox={`0 0 ${element.width} ${element.height}`}>
+                    <svg width="100%" height="100%" viewBox={`0 0 ${element.width} ${dynamicHeight}`}>
                         <defs>
                             <path id={`path-${element.id}`} d={getPathData(element.curve || 0)} />
                         </defs>
