@@ -18,7 +18,7 @@ export default function CorporateLayout({
         <CorporateSidebar />
         <SidebarInset>
             <CorporateHeader />
-            <main className="flex-grow p-4 md:p-6 bg-muted/40 h-[calc(100vh-3.5rem)]">
+            <main className="flex-grow p-4 md:p-6 bg-muted/40 h-[calc(100vh-3.5rem)] overflow-y-auto">
                 {children}
             </main>
         </SidebarInset>

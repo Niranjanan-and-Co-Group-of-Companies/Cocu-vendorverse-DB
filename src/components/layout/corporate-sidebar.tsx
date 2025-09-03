@@ -12,37 +12,29 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-  SidebarMenuBadge,
   useSidebar,
+  SidebarTrigger
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   LayoutDashboard,
   Package,
   Gavel,
-  FileText,
-  LineChart,
-  MessageSquare,
-  LifeBuoy,
+  Users,
   Settings,
   Home,
   LogOut,
-  Bell,
   ChevronsLeft,
   ChevronsRight,
-  ListChecks,
-  Users,
+  ShoppingCart,
+  Heart,
+  Scale
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { VendorNotificationDropdown } from '@/components/layout/vendor-notification-dropdown';
+import { useCorporateCart } from '@/hooks/use-corporate-cart';
+import { useCorporateWishlist } from '@/hooks/use-corporate-wishlist';
+import { useComparison } from '@/hooks/use-comparison';
 
-// In a real app, this would come from an auth context.
-const VENDOR_ID = "vendor001";
 
 function CustomSidebarTrigger() {
     const { open, toggleSidebar } = useSidebar();
@@ -62,8 +54,14 @@ function CustomSidebarTrigger() {
 
 export function CorporateSidebar() {
     const pathname = usePathname();
+    const { items: cartItems } = useCorporateCart();
+    const { items: wishlistItems } = useCorporateWishlist();
+    const { items: compareItems } = useComparison();
 
     const isActive = (path: string) => {
+        if (path === '/corporate/dashboard') {
+            return pathname === path;
+        }
         return pathname.startsWith(path);
     };
 
@@ -73,65 +71,57 @@ export function CorporateSidebar() {
               <CustomSidebarTrigger />
               <SidebarHeader className="items-center gap-4">
                 <Avatar className="size-8">
-                    <AvatarImage src="https://i.pravatar.cc/100?u=vendor-corp" alt="Vendor" data-ai-hint="avatar" />
-                    <AvatarFallback>V</AvatarFallback>
+                    <AvatarImage src="https://i.pravatar.cc/100?u=corporate-customer" alt="Customer" data-ai-hint="avatar" />
+                    <AvatarFallback>C</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col group-data-[state=collapsed]:hidden">
-                    <span className="text-base font-semibold">Gourmet Delights</span>
-                    <Badge variant="secondary" className="w-fit">Corporate B2B</Badge>
+                    <span className="text-base font-semibold">Globex Corp.</span>
                 </div>
               </SidebarHeader>
 
               <SidebarContent>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname === '/vendor/corporate/dashboard'} tooltip={{ children: 'Dashboard' }}>
-                            <Link href="/vendor/corporate/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/dashboard')} tooltip={{ children: 'Dashboard' }}>
+                            <Link href="/corporate/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/products')} tooltip={{ children: 'Products' }}>
-                            <Link href="/vendor/corporate/products"><Package /><span>Products</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/products')} tooltip={{ children: 'Products' }}>
+                            <Link href="/corporate/products"><Package /><span>Products</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/orders')} tooltip={{ children: 'Orders' }}>
-                            <Link href="/vendor/corporate/orders"><ListChecks /><span>Orders</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/bids')} tooltip={{ children: 'My Bids' }}>
+                            <Link href="/corporate/bids"><Gavel /><span>My Bids</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/bids')} tooltip={{ children: 'Bids' }}>
-                            <Link href="/vendor/corporate/bids"><Gavel /><span>Bids</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/cart')} tooltip={{ children: 'Cart' }}>
+                            <Link href="/corporate/cart"><ShoppingCart /><span>Cart</span></Link>
                         </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/quotes')} tooltip={{ children: 'Quotes' }}>
-                            <Link href="/vendor/corporate/quotes"><FileText /><span>Quotes</span></Link>
-                        </SidebarMenuButton>
+                        {cartItems.length > 0 && <SidebarMenuBadge>{cartItems.length}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/analytics')} tooltip={{ children: 'Analytics' }}>
-                            <Link href="/vendor/corporate/analytics"><LineChart /><span>Analytics</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/wishlist')} tooltip={{ children: 'Wishlist' }}>
+                            <Link href="#"><Heart /><span>Wishlist</span></Link>
                         </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/messages')} tooltip={{ children: 'Messages' }}>
-                            <Link href="/vendor/corporate/messages"><MessageSquare /><span>Messages</span></Link>
-                        </SidebarMenuButton>
+                         {wishlistItems.length > 0 && <SidebarMenuBadge>{wishlistItems.length}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                     <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/compare')} tooltip={{ children: 'Compare' }}>
+                            <Link href="/corporate/compare"><Scale /><span>Compare</span></Link>
+                        </SidebarMenuButton>
+                         {compareItems.length > 0 && <SidebarMenuBadge>{compareItems.length}</SidebarMenuBadge>}
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/corporate/accounts')} tooltip={{ children: 'Accounts' }}>
                             <Link href="/corporate/accounts"><Users /><span>Accounts</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/support')} tooltip={{ children: 'Support' }}>
-                            <Link href="/vendor/corporate/support"><LifeBuoy /><span>Support</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/settings')} tooltip={{ children: 'Settings' }}>
-                            <Link href="/vendor/corporate/settings"><Settings /><span>Settings</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/settings')} tooltip={{ children: 'Settings' }}>
+                            <Link href="/corporate/settings"><Settings /><span>Settings</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -152,61 +142,39 @@ export function CorporateSidebar() {
     );
 }
 
-function VerificationFlowHandler({
-  isVerified,
-  children,
-}: {
-  isVerified: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      {!isVerified && (
-        <Alert className="m-4 border-primary/50 text-foreground dark:border-primary rounded-lg">
-          <Bell className="h-4 w-4 text-primary" />
-          <AlertTitle className="font-bold text-primary">Complete Your Store Setup!</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            <div>
-              Your store is not yet live. Please complete the verification steps to start selling on the platform.
-              Your products will remain as drafts and you cannot receive orders until verification is complete.
+// Renaming the existing component to avoid conflicts.
+// This component should ideally be removed or refactored if no longer needed.
+export function CorporateVendorSidebar() {
+    const pathname = usePathname();
+
+    const isActive = (path: string) => {
+        return pathname.startsWith(path);
+    };
+
+    return (
+        <Sidebar>
+            <div className="relative h-full flex flex-col">
+              <CustomSidebarTrigger />
+              <SidebarHeader className="items-center gap-4">
+                <Avatar className="size-8">
+                    <AvatarImage src="https://i.pravatar.cc/100?u=vendor-corp" alt="Vendor" data-ai-hint="avatar" />
+                    <AvatarFallback>V</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col group-data-[state=collapsed]:hidden">
+                    <span className="text-base font-semibold">Gourmet Delights</span>
+                </div>
+              </SidebarHeader>
+
+              <SidebarContent>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname === '/vendor/corporate/dashboard'} tooltip={{ children: 'Dashboard' }}>
+                            <Link href="/vendor/corporate/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarContent>
             </div>
-            <Button asChild size="sm">
-                <Link href="#">Continue Verification</Link>
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-      {children}
-    </>
-  );
-}
-
-
-export default function CorporateVendorLayout({ children }: { children: React.ReactNode; }) {
-  const pathname = usePathname();
-  const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard';
-  
-  const [isVerified] = React.useState(false); // Set to false to show the verification prompt
-
-  return (
-    <SidebarProvider>
-        <CorporateSidebar />
-        <SidebarInset>
-            <header className="flex items-center justify-between gap-4 border-b p-2 h-14">
-                 <div className="flex items-center gap-4">
-                    <SidebarTrigger className="md:hidden"/>
-                    <h1 className="font-headline text-lg font-semibold">{pageTitle}</h1>
-                 </div>
-                 <div className="flex items-center gap-2">
-                    <VendorNotificationDropdown />
-                 </div>
-            </header>
-            <main className="flex-1 p-4 md:p-6 bg-muted/40">
-                 <VerificationFlowHandler isVerified={isVerified}>
-                    {children}
-                </VerificationFlowHandler>
-            </main>
-        </SidebarInset>
-    </SidebarProvider>
-  );
+        </Sidebar>
+    );
 }
