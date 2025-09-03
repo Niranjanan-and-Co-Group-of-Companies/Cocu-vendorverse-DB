@@ -1,6 +1,6 @@
 
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, addDoc, serverTimestamp, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, storage } from './firebase';
 import type { Product } from './products';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -8,11 +8,13 @@ import { createNotification } from './notifications-service';
 
 export type BidStatus = 'Active' | 'Awarded' | 'Expired';
 
-export interface VendorResponse {
+export interface VendorBid {
     vendorId: string;
     vendorName: string;
     pricePerUnit: number;
     estimatedDeliveryDays: number;
+    notes?: string;
+    timestamp: any;
 }
 
 export interface Bid {
@@ -23,7 +25,7 @@ export interface Bid {
     status: BidStatus;
     dateCreated: any;
     dateExpires: any;
-    vendorResponses: VendorResponse[];
+    vendorResponses: VendorBid[];
     deliveryTimeline?: string;
     pincode?: string;
     notes?: string;
@@ -40,10 +42,10 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
         quantity: 250,
         status: 'Active',
         dateCreated: new Date(2023, 10, 1).toISOString(),
-        dateExpires: new Date(2023, 10, 30).toISOString(),
+        dateExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         vendorResponses: [
-            { vendorId: 'vendor-01', vendorName: 'Signature Gifts', pricePerUnit: 85.50, estimatedDeliveryDays: 20 },
-            { vendorId: 'vendor-02', vendorName: 'Corporate Swag Co.', pricePerUnit: 82.00, estimatedDeliveryDays: 25 },
+            { vendorId: 'vendor-01', vendorName: 'Signature Gifts', pricePerUnit: 85.50, estimatedDeliveryDays: 20, timestamp: serverTimestamp() },
+            { vendorId: 'vendor-02', vendorName: 'Corporate Swag Co.', pricePerUnit: 82.00, estimatedDeliveryDays: 25, timestamp: serverTimestamp() },
         ]
     },
     {
@@ -56,9 +58,9 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
         dateCreated: new Date(2023, 9, 15).toISOString(),
         dateExpires: new Date(2023, 10, 15).toISOString(),
         vendorResponses: [
-            { vendorId: 'vendor-03', vendorName: 'Techie Gifts', pricePerUnit: 52.00, estimatedDeliveryDays: 30 },
-            { vendorId: 'vendor-04', vendorName: 'Gadget Gurus', pricePerUnit: 55.50, estimatedDeliveryDays: 28 },
-            { vendorId: 'vendor-05', vendorName: 'Innovate Inc.', pricePerUnit: 50.75, estimatedDeliveryDays: 35 },
+            { vendorId: 'vendor-03', vendorName: 'Techie Gifts', pricePerUnit: 52.00, estimatedDeliveryDays: 30, timestamp: serverTimestamp() },
+            { vendorId: 'vendor-04', vendorName: 'Gadget Gurus', pricePerUnit: 55.50, estimatedDeliveryDays: 28, timestamp: serverTimestamp() },
+            { vendorId: 'vendor-05', vendorName: 'Innovate Inc.', pricePerUnit: 50.75, estimatedDeliveryDays: 35, timestamp: serverTimestamp() },
         ]
     },
     {
@@ -71,7 +73,7 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
         dateCreated: new Date(2023, 8, 1).toISOString(),
         dateExpires: new Date(2023, 9, 1).toISOString(),
         vendorResponses: [
-            { vendorId: 'vendor-06', vendorName: 'The Daily Grind', pricePerUnit: 50.00, estimatedDeliveryDays: 10 },
+            { vendorId: 'vendor-06', vendorName: 'The Daily Grind', pricePerUnit: 50.00, estimatedDeliveryDays: 10, timestamp: serverTimestamp() },
         ]
     },
 ];
@@ -174,4 +176,52 @@ export async function createBid(data: {
             link: `/vendor/corporate/bids/${bidRef.id}`
         });
     }
+}
+
+// Place or update a bid from a vendor
+export async function placeOrUpdateBid(
+    bidId: string, 
+    vendorId: string, 
+    vendorName: string, 
+    bidData: Omit<VendorBid, 'vendorId' | 'vendorName' | 'timestamp'>
+) {
+    const bidRef = doc(db, 'corporateBids', bidId);
+    const bidSnap = await getDoc(bidRef);
+
+    if (!bidSnap.exists()) {
+        throw new Error("Bid not found");
+    }
+
+    const bid = bidSnap.data() as Bid;
+    const existingBid = bid.vendorResponses.find(vr => vr.vendorId === vendorId);
+
+    const batch = writeBatch(db);
+
+    // If the vendor has an existing bid, remove it first.
+    if (existingBid) {
+        batch.update(bidRef, {
+            vendorResponses: arrayRemove(existingBid)
+        });
+    }
+
+    // Add the new/updated bid.
+    const newBid: VendorBid = {
+        vendorId,
+        vendorName,
+        ...bidData,
+        timestamp: serverTimestamp()
+    };
+    batch.update(bidRef, {
+        vendorResponses: arrayUnion(newBid)
+    });
+
+    await batch.commit();
+
+    // Create a notification for the corporate customer
+    await createNotification({
+        userId: bid.customerId,
+        type: 'NEW_BID_RESPONSE',
+        text: `You have a new bid from ${vendorName} for your request #${bidId.slice(0,6)}.`,
+        link: `/corporate/bids/${bidId}`
+    });
 }
