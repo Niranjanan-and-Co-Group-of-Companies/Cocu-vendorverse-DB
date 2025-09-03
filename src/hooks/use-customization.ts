@@ -1,9 +1,7 @@
-
 'use client';
 
 import { create } from 'zustand';
 import type { CustomizationElement } from '@/lib/customization';
-import * as React from 'react';
 
 // --- Store Definition ---
 
@@ -16,7 +14,7 @@ interface CustomizationState {
   setSelectedElementId: (id: string | null) => void;
 }
 
-export const useCustomization = create<CustomizationState>((set) => ({
+export const useCustomizationStore = create<CustomizationState>()((set) => ({
     elements: [],
     selectedElementId: null,
 
@@ -47,17 +45,3 @@ export const useCustomization = create<CustomizationState>((set) => ({
         set({ selectedElementId: id });
     }
 }));
-
-
-// --- Context and Provider ---
-
-export const CustomizationContext = React.createContext<ReturnType<typeof useCustomization> | null>(null);
-
-export const CustomizationProvider = ({ children }: { children: React.ReactNode }) => {
-    const store = useCustomization();
-    return (
-        <CustomizationContext.Provider value={store}>
-            {children}
-        </CustomizationContext.Provider>
-    );
-};
