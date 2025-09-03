@@ -78,40 +78,47 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
     }, [element.x, element.y]);
 
 
+    const dynamicHeight = React.useMemo(() => {
+        const absCurve = Math.abs(element.curve || 0);
+        if (absCurve === 0) return element.height;
+        const sagitta = (element.width / 2) * Math.tan(absCurve / 100 * Math.PI / 4);
+        return Math.max(element.height, sagitta * 2);
+    }, [element.height, element.width, element.curve]);
+
     // SVG Path generation for curved text
     const getPathData = (curve: number) => {
         const w = element.width;
-        const h = dynamicHeight; // Use the dynamic height for calculations
+        const h = dynamicHeight;
         const curveValue = curve / 100;
 
         if (curve === 0) {
             return `M 0,${h / 2} L ${w},${h / 2}`;
         }
+        
+        const arcHeight = (w / 2) * curveValue;
 
-        const arcHeight = (element.height / 2) * curveValue;
         if (Math.abs(arcHeight) === 0) {
             return `M 0,${h / 2} L ${w},${h / 2}`;
         }
         
+        // This is a special case for a perfect semicircle
+        if(Math.abs(curveValue) === 1){
+            const yPos = h / 2;
+            const sweepFlag = curveValue > 0 ? 0 : 1;
+            return `M 0,${yPos} A ${w/2} ${w/2} 0 1 ${sweepFlag} ${w},${yPos}`;
+        }
+
         const radius = (w * w) / (8 * arcHeight) + arcHeight / 2;
         
-        if (!isFinite(radius) || Math.abs(radius) < w / 2) {
+        if (!isFinite(radius)) {
              return `M 0,${h / 2} L ${w},${h / 2}`;
         }
         
         const sweepFlag = curveValue > 0 ? 0 : 1;
         const yPos = h / 2 - arcHeight;
 
-
         return `M 0,${yPos} A ${Math.abs(radius)} ${Math.abs(radius)} 0 0 ${sweepFlag} ${w},${yPos}`;
     }
-
-     const dynamicHeight = React.useMemo(() => {
-        const absCurve = Math.abs(element.curve || 0);
-        // We calculate the arc's sagitta (height) and add it to the base height
-        const sagitta = (element.width / 2) * Math.tan(Math.abs(element.curve || 0) * Math.PI / 360) * 0.5;
-        return element.height + sagitta + (absCurve / 100 * element.fontSize * 0.5);
-    }, [element.height, element.width, element.curve, element.fontSize]);
     
 
     return (
@@ -122,18 +129,18 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                 top: `${position.y}px`,
                 transform: `rotate(${element.rotation}deg)`,
                 width: element.width,
-                height: dynamicHeight, // Use dynamic height
+                height: dynamicHeight,
             }}
              onMouseDown={(e) => { e.stopPropagation(); setSelectedElementId(element.id); }}
         >
              <ResizableBox
                 width={element.width}
-                height={dynamicHeight} // Use dynamic height in resizable box
+                height={dynamicHeight}
                 onResizeStop={(e, data) => {
                     updateElement(element.id, { width: data.size.width, height: data.size.height });
                 }}
                 minConstraints={[50, 20]}
-                maxConstraints={[800, 400]}
+                maxConstraints={[800, 800]}
                 handle={(handle, ref) => (
                     <div
                         ref={ref as any}
