@@ -34,7 +34,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ListChecks,
-  Warehouse,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -60,7 +59,7 @@ function CustomSidebarTrigger() {
 }
 
 
-function CorporateVendorSidebar() {
+export function CorporateSidebar() {
     const pathname = usePathname();
 
     const isActive = (path: string) => {
@@ -92,11 +91,6 @@ function CorporateVendorSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/products')} tooltip={{ children: 'Products' }}>
                             <Link href="/vendor/corporate/products"><Package /><span>Products</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/inventory')} tooltip={{ children: 'Inventory' }}>
-                            <Link href="/vendor/corporate/inventory"><Warehouse /><span>Inventory</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
@@ -190,7 +184,7 @@ export default function CorporateVendorLayout({ children }: { children: React.Re
 
   return (
     <SidebarProvider>
-        <CorporateVendorSidebar />
+        <CorporateSidebar />
         <SidebarInset>
             <header className="flex items-center justify-between gap-4 border-b p-2 h-14">
                  <div className="flex items-center gap-4">
