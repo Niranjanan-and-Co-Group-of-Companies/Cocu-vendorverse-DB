@@ -19,9 +19,10 @@ interface InventoryActionsProps {
   isEditing: boolean;
   isSaving: boolean;
   onSave: () => void;
+  isHybrid?: boolean;
 }
 
-export function InventoryActions({ product, isEditing, isSaving, onSave }: InventoryActionsProps) {
+export function InventoryActions({ product, isEditing, isSaving, onSave, isHybrid = false }: InventoryActionsProps) {
 
   if (isEditing) {
     return (
@@ -36,6 +37,10 @@ export function InventoryActions({ product, isEditing, isSaving, onSave }: Inven
     )
   }
   
+  const editPath = isHybrid
+    ? `/vendor/both/products/personalized/new?id=${product.id}`
+    : `/vendor/personalized/products/new?id=${product.id}`;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -47,7 +52,7 @@ export function InventoryActions({ product, isEditing, isSaving, onSave }: Inven
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuItem asChild>
-          <Link href={`/vendor/personalized/products/new?id=${product.id}`}>
+          <Link href={editPath}>
             <Edit className="mr-2 h-4 w-4" />
             Edit Product
           </Link>

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -194,6 +193,7 @@ function InventoryTable() {
                                             isEditing={isEditing}
                                             isSaving={isSaving}
                                             onSave={() => handleSave(product.id)}
+                                            isHybrid={true}
                                         />
                                     </TableCell>
                                 </TableRow>
