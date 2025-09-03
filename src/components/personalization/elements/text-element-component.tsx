@@ -7,18 +7,21 @@ import { useCustomization } from '@/hooks/use-customization';
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import { cn } from '@/lib/utils';
+import type { CustomizationArea } from '@/lib/products';
 
 
 interface TextElementComponentProps {
     element: TextElement;
     canvasRef: React.RefObject<HTMLDivElement>;
+    constraintArea: CustomizationArea | null;
 }
 
-export function TextElementComponent({ element, canvasRef }: TextElementComponentProps) {
+export function TextElementComponent({ element, canvasRef, constraintArea }: TextElementComponentProps) {
     const { updateElement, selectedElementId, setSelectedElementId } = useCustomization();
     const isSelected = selectedElementId === element.id;
 
     const [position, setPosition] = React.useState({ x: element.x, y: element.y });
+    const [size, setSize] = React.useState({ width: element.width, height: element.height });
     const [isDragging, setIsDragging] = React.useState(false);
     const dragStartPos = React.useRef({ x: 0, y: 0 });
 
@@ -38,16 +41,17 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
     const handleDrag = React.useCallback((e: MouseEvent | TouchEvent) => {
         if (!isDragging || !canvasRef.current) return;
         const event = 'touches' in e ? e.touches[0] : e;
-        const canvasRect = canvasRef.current.getBoundingClientRect();
         
         let newX = event.clientX - dragStartPos.current.x;
         let newY = event.clientY - dragStartPos.current.y;
         
-        newX = Math.max(0, Math.min(newX, canvasRect.width - element.width));
-        newY = Math.max(0, Math.min(newY, canvasRect.height - element.height));
+        if (constraintArea) {
+            newX = Math.max(constraintArea.x, Math.min(newX, constraintArea.x + constraintArea.width - size.width));
+            newY = Math.max(constraintArea.y, Math.min(newY, constraintArea.y + constraintArea.height - size.height));
+        }
 
         setPosition({ x: newX, y: newY });
-    }, [isDragging, canvasRef, element.width, element.height]);
+    }, [isDragging, canvasRef, size.width, size.height, constraintArea]);
 
     const handleDragEnd = React.useCallback(() => {
         if (isDragging) {
@@ -75,20 +79,19 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
 
     React.useEffect(() => {
         setPosition({x: element.x, y: element.y});
-    }, [element.x, element.y]);
+        setSize({width: element.width, height: element.height})
+    }, [element.x, element.y, element.width, element.height]);
 
 
     const dynamicHeight = React.useMemo(() => {
         const absCurve = Math.abs(element.curve || 0);
-        if (absCurve === 0) return element.height;
-        // The new calculation for a more dramatic curve, approaching a semicircle at extremes.
-        const sagitta = (element.width / 2) * Math.tan(absCurve / 100 * Math.PI / 4);
-        return Math.max(element.height, sagitta * 2);
-    }, [element.height, element.width, element.curve]);
+        if (absCurve === 0) return size.height;
+        const sagitta = (size.width / 2) * Math.tan(absCurve / 100 * Math.PI / 4);
+        return Math.max(size.height, sagitta * 2);
+    }, [size.height, size.width, element.curve]);
 
-    // SVG Path generation for curved text
     const getPathData = (curve: number) => {
-        const w = element.width;
+        const w = size.width;
         const h = dynamicHeight;
         const curveValue = curve / 100;
 
@@ -98,8 +101,6 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
         
         const isDownward = curveValue < 0;
         const absCurveValue = Math.abs(curveValue);
-
-        // Approach a semicircle at the extremes
         const sagitta = (w / 2) * Math.tan(absCurveValue * Math.PI / 4);
         const radius = (sagitta / 2) + (w * w) / (8 * sagitta);
         
@@ -108,10 +109,21 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
         }
         
         const sweepFlag = isDownward ? 0 : 1;
-        const yPos = isDownward ? h / 2 - sagitta : h / 2 + sagitta;
-
+        const yPos = isDownward ? sagitta : h - sagitta;
+        
         return `M 0,${yPos} A ${Math.abs(radius)} ${Math.abs(radius)} 0 0 ${sweepFlag} ${w},${yPos}`;
     }
+
+    const onResizeStop = (event: React.SyntheticEvent, { size: finalSize }: { size: { width: number, height: number }}) => {
+        let constrainedWidth = finalSize.width;
+        let constrainedHeight = finalSize.height;
+
+        if (constraintArea) {
+            constrainedWidth = Math.min(finalSize.width, constraintArea.width);
+            constrainedHeight = Math.min(finalSize.height, constraintArea.height);
+        }
+        updateElement(element.id, { width: constrainedWidth, height: constrainedHeight });
+    };
     
 
     return (
@@ -121,19 +133,18 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                 left: `${position.x}px`,
                 top: `${position.y}px`,
                 transform: `rotate(${element.rotation}deg)`,
-                width: element.width,
+                width: size.width,
                 height: dynamicHeight,
             }}
              onMouseDown={(e) => { e.stopPropagation(); setSelectedElementId(element.id); }}
         >
              <ResizableBox
-                width={element.width}
+                width={size.width}
                 height={dynamicHeight}
-                onResizeStop={(e, data) => {
-                    updateElement(element.id, { width: data.size.width, height: data.size.height });
-                }}
+                onResize={(e, {size: newSize}) => setSize(newSize)}
+                onResizeStop={onResizeStop}
                 minConstraints={[50, 20]}
-                maxConstraints={[800, 800]}
+                maxConstraints={constraintArea ? [constraintArea.width, constraintArea.height] : [800, 800]}
                 handle={(handle, ref) => (
                     <div
                         ref={ref as any}
@@ -154,7 +165,7 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                     onMouseDown={handleDragStart}
                     onTouchStart={handleDragStart}
                 >
-                    <svg width="100%" height="100%" viewBox={`0 0 ${element.width} ${dynamicHeight}`}>
+                    <svg width="100%" height="100%" viewBox={`0 0 ${size.width} ${dynamicHeight}`}>
                         <defs>
                             <path id={`path-${element.id}`} d={getPathData(element.curve || 0)} />
                         </defs>

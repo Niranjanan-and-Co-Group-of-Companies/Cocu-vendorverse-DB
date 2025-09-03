@@ -8,17 +8,20 @@ import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import type { CustomizationArea } from '@/lib/products';
 
 interface ImageElementComponentProps {
     element: ImageElement;
     canvasRef: React.RefObject<HTMLDivElement>;
+    constraintArea: CustomizationArea | null;
 }
 
-export function ImageElementComponent({ element, canvasRef }: ImageElementComponentProps) {
+export function ImageElementComponent({ element, canvasRef, constraintArea }: ImageElementComponentProps) {
     const { updateElement, selectedElementId, setSelectedElementId } = useCustomization();
     const isSelected = selectedElementId === element.id;
 
     const [position, setPosition] = React.useState({ x: element.x, y: element.y });
+    const [size, setSize] = React.useState({ width: element.width, height: element.height });
     const [isDragging, setIsDragging] = React.useState(false);
     const dragStartPos = React.useRef({ x: 0, y: 0 });
 
@@ -38,16 +41,17 @@ export function ImageElementComponent({ element, canvasRef }: ImageElementCompon
     const handleDrag = React.useCallback((e: MouseEvent | TouchEvent) => {
         if (!isDragging || !canvasRef.current) return;
         const event = 'touches' in e ? e.touches[0] : e;
-        const canvasRect = canvasRef.current.getBoundingClientRect();
         
         let newX = event.clientX - dragStartPos.current.x;
         let newY = event.clientY - dragStartPos.current.y;
-        
-        newX = Math.max(0, Math.min(newX, canvasRect.width - element.width));
-        newY = Math.max(0, Math.min(newY, canvasRect.height - element.height));
 
+        if (constraintArea) {
+            newX = Math.max(constraintArea.x, Math.min(newX, constraintArea.x + constraintArea.width - size.width));
+            newY = Math.max(constraintArea.y, Math.min(newY, constraintArea.y + constraintArea.height - size.height));
+        }
+        
         setPosition({ x: newX, y: newY });
-    }, [isDragging, canvasRef, element.width, element.height]);
+    }, [isDragging, canvasRef, size.width, size.height, constraintArea]);
 
     const handleDragEnd = React.useCallback(() => {
         if (isDragging) {
@@ -55,6 +59,29 @@ export function ImageElementComponent({ element, canvasRef }: ImageElementCompon
             setIsDragging(false);
         }
     }, [isDragging, updateElement, element.id, position]);
+
+    const onResize = (event: React.SyntheticEvent, { size: newSize }: { size: { width: number, height: number } }) => {
+        let constrainedWidth = newSize.width;
+        let constrainedHeight = newSize.height;
+
+        if (constraintArea) {
+            constrainedWidth = Math.min(newSize.width, constraintArea.width);
+            constrainedHeight = Math.min(newSize.height, constraintArea.height);
+        }
+        setSize({ width: constrainedWidth, height: constrainedHeight });
+    };
+
+    const onResizeStop = (event: React.SyntheticEvent, { size: finalSize }: { size: { width: number, height: number } }) => {
+        let constrainedWidth = finalSize.width;
+        let constrainedHeight = finalSize.height;
+
+        if (constraintArea) {
+            constrainedWidth = Math.min(finalSize.width, constraintArea.width);
+            constrainedHeight = Math.min(finalSize.height, constraintArea.height);
+        }
+        
+        updateElement(element.id, { width: constrainedWidth, height: constrainedHeight });
+    }
 
     React.useEffect(() => {
         if (isDragging) {
@@ -75,7 +102,8 @@ export function ImageElementComponent({ element, canvasRef }: ImageElementCompon
 
     React.useEffect(() => {
         setPosition({x: element.x, y: element.y});
-    }, [element.x, element.y]);
+        setSize({width: element.width, height: element.height});
+    }, [element.x, element.y, element.width, element.height]);
     
 
     return (
@@ -85,19 +113,18 @@ export function ImageElementComponent({ element, canvasRef }: ImageElementCompon
                 left: `${position.x}px`,
                 top: `${position.y}px`,
                 transform: `rotate(${element.rotation}deg)`,
-                width: element.width,
-                height: element.height,
+                width: size.width,
+                height: size.height,
             }}
              onMouseDown={(e) => { e.stopPropagation(); setSelectedElementId(element.id); }}
         >
              <ResizableBox
-                width={element.width}
-                height={element.height}
-                onResizeStop={(e, data) => {
-                    updateElement(element.id, { width: data.size.width, height: data.size.height });
-                }}
+                width={size.width}
+                height={size.height}
+                onResize={onResize}
+                onResizeStop={onResizeStop}
                 minConstraints={[50, 50]}
-                maxConstraints={[800, 800]}
+                maxConstraints={constraintArea ? [constraintArea.width, constraintArea.height] : [800, 800]}
                 lockAspectRatio
                 handle={(handle, ref) => (
                     <div
