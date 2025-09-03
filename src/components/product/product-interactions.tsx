@@ -10,6 +10,7 @@ import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Label } from '../ui/label';
+import { useWishlist } from '@/hooks/use-wishlist';
 
 interface ProductInteractionsProps {
   product: Product;
@@ -22,10 +23,12 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
   const [quantity, setQuantity] = React.useState(1);
   const [showMaxQuantityWarning, setShowMaxQuantityWarning] = React.useState(false);
   const { addItem } = useCart();
+  const { addItem: toggleWishlistItem, isItemInWishlist } = useWishlist();
   const { toast } = useToast();
   const router = useRouter();
   
   const maxQuantity = product.maxQuantityPerOrder || product.stock;
+  const inWishlist = isItemInWishlist(product.id);
 
   const handleQuantityChange = (amount: number) => {
     const newQuantity = quantity + amount;
@@ -56,6 +59,13 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
     addItem(product, quantity);
     router.push('/cart'); // Navigate to cart after adding
   };
+
+  const handleWishlistToggle = () => {
+    const result = toggleWishlistItem(product);
+    toast({
+      title: result.message,
+    });
+  }
 
 
   const handleCheckDelivery = () => {
@@ -140,9 +150,9 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
         {renderMainActions()}
         
          <div className="grid grid-cols-2 gap-3">
-            <Button size="lg" variant="outline" className="w-full">
-                <Heart className="mr-2" />
-                Add to Wishlist
+            <Button size="lg" variant="outline" className="w-full" onClick={handleWishlistToggle}>
+                <Heart className={inWishlist ? "mr-2 fill-red-500 text-red-500" : "mr-2"} />
+                {inWishlist ? 'In Wishlist' : 'Add to Wishlist'}
             </Button>
              <Button size="lg" variant="outline" className="w-full">
                 <MessageSquare className="mr-2" />

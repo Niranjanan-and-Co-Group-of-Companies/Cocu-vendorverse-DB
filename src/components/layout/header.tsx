@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Gift, Heart, User } from 'lucide-react';
 import { Search } from '@/components/search/search';
 import { CartPreview } from './cart-preview';
+import { WishlistPreview } from './wishlist-preview';
 
 export default function Header() {
   return (
@@ -23,12 +24,7 @@ export default function Header() {
         </div>
 
         <nav className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/wishlist">
-              <Heart />
-              <span className="sr-only">Wishlist</span>
-            </Link>
-          </Button>
+          <WishlistPreview />
            <CartPreview />
           <Button asChild>
             <Link href="/login">
