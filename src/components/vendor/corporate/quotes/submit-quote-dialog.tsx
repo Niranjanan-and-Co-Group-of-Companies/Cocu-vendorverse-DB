@@ -68,7 +68,7 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
         <DialogHeader>
           <DialogTitle>Quote Request for: {quoteRequest.productName}</DialogTitle>
           <DialogDescription>
-            Customer: {quoteRequest.customerName} | Quantity: {quoteRequest.quantity}
+            Quantity: {quoteRequest.quantity}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex-grow overflow-hidden">
@@ -126,7 +126,7 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>Timeline Commitment</AlertTitle>
                         <AlertDescription>
-                          This date is a commitment to the customer. Delays may result in financial penalties or order cancellation.
+                            This date is a commitment to the customer. Delays may result in financial penalties or order cancellation.
                         </AlertDescription>
                     </Alert>
                      <DialogFooter className="mt-auto pt-4">
