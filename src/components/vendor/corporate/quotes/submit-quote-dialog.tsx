@@ -33,8 +33,10 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
-    if (quoteRequest?.vendorQuote?.estimatedCompletionDate) {
+    if (quoteRequest?.vendorQuote?.finalPrice) {
         setFinalPrice(quoteRequest.vendorQuote.finalPrice);
+    }
+    if (quoteRequest?.vendorQuote?.estimatedCompletionDate) {
         setEstimatedCompletionDate(quoteRequest.vendorQuote.estimatedCompletionDate.toDate());
     } else {
         setFinalPrice(0);
@@ -116,7 +118,7 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
                                 </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
-                                <Calendar mode="single" selected={estimatedCompletionDate} onSelect={setEstimatedCompletionDate} disabled={(date) => date < new Date()} initialFocus />
+                                <Calendar mode="single" selected={estimatedCompletionDate} onSelect={setEstimatedCompletionDate} disabled={(date) => date < new Date() || isReadOnly} initialFocus />
                                 </PopoverContent>
                             </Popover>
                         </div>
