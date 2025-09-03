@@ -129,6 +129,29 @@ export function ClipartTool() {
 
   return (
     <div className="p-4 space-y-4 h-full flex flex-col">
+        {selectedClipart && (
+            <div className="pb-4 border-b space-y-4">
+                <h3 className="font-semibold text-sm px-1">Clipart Style</h3>
+                <div className="space-y-2">
+                    <Label htmlFor="clipart-color">Color</Label>
+                    <Input 
+                        id="clipart-color" 
+                        type="color" 
+                        className="p-1 h-10" 
+                        value={selectedClipart.color}
+                        onChange={(e) => handleUpdate('color', e.target.value)}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>Stroke Width</Label>
+                    <Slider 
+                        value={[selectedClipart.strokeWidth]}
+                        onValueChange={(value) => handleUpdate('strokeWidth', value[0])}
+                        min={0.5} max={5} step={0.25}
+                    />
+                </div>
+            </div>
+        )}
         <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -165,30 +188,6 @@ export function ClipartTool() {
             )}
             </div>
         </ScrollArea>
-
-        {selectedClipart && (
-            <div className="pt-4 border-t space-y-4">
-                <h3 className="font-semibold text-sm px-1">Clipart Style</h3>
-                <div className="space-y-2">
-                    <Label htmlFor="clipart-color">Color</Label>
-                    <Input 
-                        id="clipart-color" 
-                        type="color" 
-                        className="p-1 h-10" 
-                        value={selectedClipart.color}
-                        onChange={(e) => handleUpdate('color', e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>Stroke Width</Label>
-                    <Slider 
-                        value={[selectedClipart.strokeWidth]}
-                        onValueChange={(value) => handleUpdate('strokeWidth', value[0])}
-                        min={0.5} max={5} step={0.25}
-                    />
-                </div>
-            </div>
-        )}
     </div>
   );
 }
