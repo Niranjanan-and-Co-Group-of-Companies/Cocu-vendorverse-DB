@@ -28,7 +28,7 @@ function CustomizePageContent({ params }: { params: { id: string } }) {
     if (loading) {
         return (
             <div className="flex-grow container py-8">
-                <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_320px] gap-6 h-[75vh]">
+                <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_320px] gap-6 h-[calc(100vh-10rem)]">
                     <Skeleton className="h-full w-full" />
                     <Skeleton className="h-full w-full" />
                     <Skeleton className="h-full w-full" />
@@ -69,7 +69,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
     return (
         <div className="flex flex-col h-screen bg-background">
             <Header />
-            <main className="flex-grow overflow-y-auto">
+            <main className="flex-grow overflow-hidden">
                 <React.Suspense fallback={<p>Loading...</p>}>
                     <CustomizePageContent params={resolvedParams} />
                 </React.Suspense>

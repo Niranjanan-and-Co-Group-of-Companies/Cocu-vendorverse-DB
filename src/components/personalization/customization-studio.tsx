@@ -20,7 +20,7 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
       {/* Desktop View: 3-panel layout */}
       <div className="hidden md:grid md:grid-cols-[280px_1fr_320px] h-full gap-4 p-4">
         {/* Left Panel */}
-        <div className="bg-card rounded-lg border h-full overflow-y-auto">
+        <div className="bg-card rounded-lg border h-full overflow-hidden">
           <StudioLeftPanel product={product} />
         </div>
 
@@ -30,7 +30,7 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
         </div>
 
         {/* Right Panel */}
-        <div className="bg-card rounded-lg border h-full">
+        <div className="bg-card rounded-lg border h-full overflow-hidden">
           <StudioRightPanel product={product} />
         </div>
       </div>
