@@ -126,8 +126,9 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
               <ShoppingCart className="mr-2" />
               Add to Cart
             </Button>
-            <Button size="lg" variant="secondary" onClick={handleBuyNow} className="w-full">
-              Buy Now
+            <Button size="lg" variant="secondary" onClick={() => openChat(product)} className="w-full">
+                <MessageSquare className="mr-2" />
+                Message Vendor
             </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -140,9 +141,8 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
               {isInCompare ? 'In Compare' : 'Compare'}
             </Button>
         </div>
-        <Button size="lg" variant="outline" className="w-full" onClick={() => openChat(product)}>
-            <MessageSquare className="mr-2" />
-            Message Vendor
+        <Button size="lg" variant="default" className="w-full" onClick={handleBuyNow}>
+          Buy Now
         </Button>
       </>
     );
