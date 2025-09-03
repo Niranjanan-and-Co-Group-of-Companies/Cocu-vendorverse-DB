@@ -17,7 +17,7 @@ export function QrCodeTool() {
   
   const [value, setValue] = React.useState('');
   const [color, setColor] = React.useState('#000000');
-  const [hasBackground, setHasBackground] = React.useState(true);
+  const [hasBackground, setHasBackground] = React.useState(false);
   
   React.useEffect(() => {
     if (selectedElement) {
@@ -27,7 +27,7 @@ export function QrCodeTool() {
     } else {
         setValue('');
         setColor('#000000');
-        setHasBackground(true);
+        setHasBackground(false);
     }
   }, [selectedElementId, selectedElement]);
 
