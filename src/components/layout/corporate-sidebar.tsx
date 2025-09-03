@@ -60,10 +60,13 @@ export function CorporateSidebar() {
     const { items: compareItems } = useComparison();
 
     const isActive = (path: string) => {
-        if (path === '/corporate/dashboard') {
-            return pathname === path;
+        if (path === '/corporate/dashboard' && pathname === path) {
+            return true;
         }
-        return pathname.startsWith(path);
+        if(path !== '/corporate/dashboard') {
+            return pathname.startsWith(path);
+        }
+        return false;
     };
 
     return (
@@ -138,43 +141,6 @@ export function CorporateSidebar() {
                     </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarFooter>
-            </div>
-        </Sidebar>
-    );
-}
-
-// Renaming the existing component to avoid conflicts.
-// This component should ideally be removed or refactored if no longer needed.
-export function CorporateVendorSidebar() {
-    const pathname = usePathname();
-
-    const isActive = (path: string) => {
-        return pathname.startsWith(path);
-    };
-
-    return (
-        <Sidebar>
-            <div className="relative h-full flex flex-col">
-              <CustomSidebarTrigger />
-              <SidebarHeader className="items-center gap-4">
-                <Avatar className="size-8">
-                    <AvatarImage src="https://i.pravatar.cc/100?u=vendor-corp" alt="Vendor" data-ai-hint="avatar" />
-                    <AvatarFallback>V</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col group-data-[state=collapsed]:hidden">
-                    <span className="text-base font-semibold">Gourmet Delights</span>
-                </div>
-              </SidebarHeader>
-
-              <SidebarContent>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname === '/vendor/corporate/dashboard'} tooltip={{ children: 'Dashboard' }}>
-                            <Link href="/vendor/corporate/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarContent>
             </div>
         </Sidebar>
     );
