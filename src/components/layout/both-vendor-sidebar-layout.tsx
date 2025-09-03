@@ -101,7 +101,8 @@ function BothVendorSidebar() {
 
     React.useEffect(() => {
         const unsubscribe = onVendorConversationsUpdate(VENDOR_ID, (conversations) => {
-            const totalUnread = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
+            const corporateConversations = conversations.filter(c => c.type === 'Corporate');
+            const totalUnread = corporateConversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
             setTotalUnreadMessages(totalUnread);
         });
 
@@ -181,11 +182,9 @@ function BothVendorSidebar() {
                     </SidebarMenuItem>
                     
                      <SidebarMenuItem>
-                        <PlatformSwitcher path="messages">
-                            <SidebarMenuButton isActive={isActive('/vendor/both/messages')} tooltip={{ children: 'Messages' }}>
-                                <MessageSquare /><span>Messages</span>
-                            </SidebarMenuButton>
-                        </PlatformSwitcher>
+                        <SidebarMenuButton asChild isActive={isActive('/vendor/both/messages')} tooltip={{ children: 'Messages' }}>
+                            <Link href="/vendor/both/messages"><MessageSquare /><span>Messages</span></Link>
+                        </SidebarMenuButton>
                         {totalUnreadMessages > 0 && <SidebarMenuBadge>{totalUnreadMessages}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                     
