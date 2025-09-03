@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useBidRequest } from '@/hooks/use-bid-request';
+import { useComparison } from '@/hooks/use-comparison';
 
 export function CorporateSidebar() {
     const pathname = usePathname();
@@ -40,13 +41,12 @@ export function CorporateSidebar() {
         return false;
     };
     
-    // Placeholder hooks - in a real app, these would come from a global state/context
+    // Placeholder hooks - in a real app, this would come from a global state/context
     const useCart = () => ({ itemCount: 3 });
-    const useComparison = () => ({ itemCount: 2 });
     
     const { items: bidItems } = useBidRequest();
+    const { items: comparisonItems } = useComparison();
     const cart = useCart();
-    const comparison = useComparison();
 
     return (
         <Sidebar>
@@ -86,7 +86,7 @@ export function CorporateSidebar() {
                             <SidebarMenuButton asChild isActive={isActive('/corporate/compare')} tooltip={{ children: 'Compare' }}>
                                 <Link href="/corporate/compare"><Scale/><span>Compare</span></Link>
                             </SidebarMenuButton>
-                             {comparison.itemCount > 0 && <SidebarMenuBadge>{comparison.itemCount}</SidebarMenuBadge>}
+                             {comparisonItems.length > 0 && <SidebarMenuBadge>{comparisonItems.length}</SidebarMenuBadge>}
                         </SidebarMenuItem>
                         <SidebarMenuItem>
                             <SidebarMenuButton asChild isActive={isActive('/corporate/bids')} tooltip={{ children: 'Active Bids' }}>
