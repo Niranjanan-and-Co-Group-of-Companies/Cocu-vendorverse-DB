@@ -85,7 +85,7 @@ const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start">
             <DropdownMenuItem asChild>
-                <Link href={`/vendor/both/inventory`}>Retail Inventory</Link>
+                <Link href={`/vendor/both/inventory/personalized`}>Retail Inventory</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
                 <Link href={`/vendor/corporate/inventory`}>Corporate Inventory</Link>
