@@ -50,10 +50,6 @@ export function StudioLeftPanel({ product }: StudioLeftPanelProps) {
                  <div className="mt-4 space-y-2">
                     <Button className="w-full">Add to Cart</Button>
                     <Button variant="secondary" className="w-full">Buy Now</Button>
-                    <Button variant="outline" className="w-full">
-                        <MessageSquare className="mr-2" />
-                        Message Vendor
-                    </Button>
                  </div>
             </div>
         </div>

@@ -152,14 +152,10 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
 
         {renderMainActions()}
         
-         <div className="grid grid-cols-2 gap-3">
+         <div className="grid grid-cols-1 gap-3">
             <Button size="lg" variant="outline" className="w-full" onClick={handleWishlistToggle}>
                 <Heart className={inWishlist ? "mr-2 fill-red-500 text-red-500" : "mr-2"} />
                 {inWishlist ? 'In Wishlist' : 'Add to Wishlist'}
-            </Button>
-             <Button size="lg" variant="outline" className="w-full">
-                <MessageSquare className="mr-2" />
-                Message Vendor
             </Button>
         </div>
         <div className="rounded-lg border p-4 space-y-3">
