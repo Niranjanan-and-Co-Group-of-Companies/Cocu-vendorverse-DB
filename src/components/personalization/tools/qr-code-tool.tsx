@@ -31,8 +31,17 @@ export function QrCodeTool() {
     }
   }, [selectedElementId, selectedElement]);
 
+  // Real-time update effect
+  React.useEffect(() => {
+    if (selectedElement) {
+        updateElement(selectedElement.id, { value, color, hasBackground });
+    }
+  }, [value, color, hasBackground, selectedElement, updateElement]);
+
+
   const handleAddOrUpdate = () => {
     if (selectedElement) {
+        // Already updated in real-time, this button could just confirm or be removed
         updateElement(selectedElement.id, { value, color, hasBackground });
     } else {
         addElement({
@@ -85,7 +94,7 @@ export function QrCodeTool() {
         </div>
       </div>
 
-      <Button onClick={handleAddOrUpdate} className="w-full" disabled={!value.trim()}>
+      <Button onClick={handleAddOrUpdate} className="w-full" disabled={!value.trim() && !selectedElement}>
         <QrCode className="mr-2" />
         {selectedElement ? 'Update QR Code' : 'Add QR Code'}
       </Button>
