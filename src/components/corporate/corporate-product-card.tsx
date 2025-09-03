@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { ShoppingCart, Scale, Gavel, FileText, Brush } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useBidRequest } from '@/hooks/use-bid-request';
+import { useComparison } from '@/hooks/use-comparison';
 
 interface CorporateProductCardProps {
   product: Product;
@@ -20,10 +21,12 @@ interface CorporateProductCardProps {
 
 export function CorporateProductCard({ product, onAction }: CorporateProductCardProps) {
   const { toast } = useToast();
-  const { items, addItem } = useBidRequest();
-  const [isInCompare, setIsInCompare] = React.useState(false);
+  const { items: bidItems, addItem: addBidItem } = useBidRequest();
+  const { items: compareItems, addItem: addCompareItem, removeItem: removeCompareItem } = useComparison();
 
-  const isAddedToBid = items.some((item) => item.id === product.id);
+  const isAddedToBid = bidItems.some((item) => item.id === product.id);
+  const isInCompare = compareItems.some((item) => item.id === product.id);
+
 
   const handleAddToCart = () => {
     toast({
@@ -40,16 +43,15 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   };
 
   const handleToggleCompare = () => {
-    const newCompareState = !isInCompare;
-    setIsInCompare(newCompareState);
-    toast({
-      title: newCompareState ? 'Added to Compare' : 'Removed from Compare',
-      description: `"${product.name}" has been ${newCompareState ? 'added to' : 'removed from'} your comparison list.`,
-    });
+    if (isInCompare) {
+      removeCompareItem(product.id);
+    } else {
+      addCompareItem(product);
+    }
   };
 
   const handleAddToBid = () => {
-    addItem(product);
+    addBidItem(product);
   };
 
 
@@ -112,7 +114,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
               <TooltipTrigger asChild>
                 <Button variant={isInCompare ? "default" : "outline"} onClick={handleToggleCompare}>
                   <Scale className="mr-2" />
-                  Compare
+                  {isInCompare ? 'In Compare' : 'Compare'}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Add to a list to compare products side-by-side.</TooltipContent>
