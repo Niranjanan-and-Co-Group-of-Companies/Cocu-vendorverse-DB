@@ -37,22 +37,6 @@ import { useCorporateWishlist } from '@/hooks/use-corporate-wishlist';
 import { useComparison } from '@/hooks/use-comparison';
 
 
-function CustomSidebarTrigger() {
-    const { open, toggleSidebar } = useSidebar();
-  
-    return (
-      <Button
-        variant={open ? 'outline' : 'default'}
-        size="icon"
-        onClick={toggleSidebar}
-        className="hidden md:flex absolute top-1/2 right-[-14px] -translate-y-1/2 z-20 rounded-full"
-      >
-        {open ? <ChevronsLeft /> : <ChevronsRight />}
-      </Button>
-    );
-}
-
-
 export function CorporateSidebar() {
     const pathname = usePathname();
     const { items: cartItems } = useCorporateCart();
@@ -72,7 +56,6 @@ export function CorporateSidebar() {
     return (
         <Sidebar>
             <div className="relative h-full flex flex-col">
-              <CustomSidebarTrigger />
               <SidebarHeader className="items-center gap-4">
                 <Avatar className="size-8">
                     <AvatarImage src="https://i.pravatar.cc/100?u=corporate-customer" alt="Customer" data-ai-hint="avatar" />
