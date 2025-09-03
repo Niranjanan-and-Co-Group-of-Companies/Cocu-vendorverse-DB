@@ -16,6 +16,7 @@ import {
   SidebarInset,
   SidebarTrigger,
   SidebarMenuBadge,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -30,6 +31,8 @@ import {
   Home,
   LogOut,
   Bell,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -38,6 +41,22 @@ import { VendorNotificationDropdown } from '@/components/layout/vendor-notificat
 
 // In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor001";
+
+function CustomSidebarTrigger() {
+    const { open, toggleSidebar } = useSidebar();
+  
+    return (
+      <Button
+        variant={open ? 'outline' : 'default'}
+        size="icon"
+        onClick={toggleSidebar}
+        className="hidden md:flex absolute top-1/2 right-[-14px] -translate-y-1/2 z-20 rounded-full"
+      >
+        {open ? <ChevronsLeft /> : <ChevronsRight />}
+      </Button>
+    );
+}
+
 
 function CorporateVendorSidebar() {
     const pathname = usePathname();
@@ -49,6 +68,7 @@ function CorporateVendorSidebar() {
     return (
         <Sidebar>
             <div className="relative h-full flex flex-col">
+              <CustomSidebarTrigger />
               <SidebarHeader className="items-center gap-4">
                 <Avatar className="size-8">
                     <AvatarImage src="https://i.pravatar.cc/100?u=vendor-corp" alt="Vendor" data-ai-hint="avatar" />
