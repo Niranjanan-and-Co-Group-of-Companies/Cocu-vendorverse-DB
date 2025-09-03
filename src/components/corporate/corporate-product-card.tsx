@@ -13,6 +13,8 @@ import { ShoppingCart, Scale, Gavel, FileText, Brush } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useBidRequest } from '@/hooks/use-bid-request';
 import { useComparison } from '@/hooks/use-comparison';
+import { useCart } from '@/hooks/use-cart';
+import { useRouter } from 'next/navigation';
 
 interface CorporateProductCardProps {
   product: Product;
@@ -23,23 +25,32 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   const { toast } = useToast();
   const { items: bidItems, addItem: addBidItem } = useBidRequest();
   const { items: compareItems, addItem: addCompareItem, removeItem: removeCompareItem } = useComparison();
+  const { addItem: addCartItem } = useCart();
+  const router = useRouter();
 
   const isAddedToBid = bidItems.some((item) => item.id === product.id);
   const isInCompare = compareItems.some((item) => item.id === product.id);
 
 
   const handleAddToCart = () => {
+    const result = addCartItem(product);
     toast({
-      title: 'Added to Cart',
-      description: `"${product.name}" (MOQ: ${product.moq}) has been added to your cart.`,
+      title: result.success ? 'Added to Cart' : 'Could Not Add to Cart',
+      description: result.message,
+      variant: result.success ? 'default' : 'destructive',
     });
   };
 
   const handleBuyNow = () => {
+    const result = addCartItem(product);
     toast({
-      title: 'Redirecting to Checkout',
-      description: `"${product.name}" has been added to your cart.`,
+      title: result.success ? 'Added to Cart' : 'Could Not Add to Cart',
+      description: result.message,
+      variant: result.success ? 'default' : 'destructive',
     });
+    if (result.success) {
+      router.push('/corporate/cart');
+    }
   };
 
   const handleToggleCompare = () => {
@@ -71,18 +82,11 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
 
   const handleAddToBid = () => {
     const result = addBidItem(product);
-    if(result.success) {
-        toast({
-            title: 'Product Added to Bid',
-            description: result.message,
-        });
-    } else {
-        toast({
-            title: 'Could Not Add Product',
-            description: result.message,
-            variant: result.variant,
-        });
-    }
+    toast({
+        title: result.success ? 'Product Added to Bid' : 'Could Not Add Product',
+        description: result.message,
+        variant: result.success ? 'default' : 'destructive',
+    });
   };
 
 

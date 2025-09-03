@@ -31,6 +31,7 @@ import {
 import { Badge } from '../ui/badge';
 import { useBidRequest } from '@/hooks/use-bid-request';
 import { useComparison } from '@/hooks/use-comparison';
+import { useCart } from '@/hooks/use-cart';
 
 export function CorporateSidebar() {
     const pathname = usePathname();
@@ -41,12 +42,9 @@ export function CorporateSidebar() {
         return false;
     };
     
-    // Placeholder hooks - in a real app, this would come from a global state/context
-    const useCart = () => ({ itemCount: 3 });
-    
     const { items: bidItems } = useBidRequest();
     const { items: comparisonItems } = useComparison();
-    const cart = useCart();
+    const { items: cartItems } = useCart();
 
     return (
         <Sidebar>
@@ -80,7 +78,7 @@ export function CorporateSidebar() {
                             <SidebarMenuButton asChild isActive={isActive('/corporate/cart')} tooltip={{ children: 'Cart' }}>
                                 <Link href="/corporate/cart"><ShoppingCart/><span>Cart</span></Link>
                             </SidebarMenuButton>
-                             {cart.itemCount > 0 && <SidebarMenuBadge>{cart.itemCount}</SidebarMenuBadge>}
+                             {cartItems.length > 0 && <SidebarMenuBadge>{cartItems.length}</SidebarMenuBadge>}
                         </SidebarMenuItem>
                         <SidebarMenuItem>
                             <SidebarMenuButton asChild isActive={isActive('/corporate/compare')} tooltip={{ children: 'Compare' }}>
