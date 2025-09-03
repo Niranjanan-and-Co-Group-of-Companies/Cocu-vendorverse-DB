@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, serverTimestamp, query, where } from 'firebase/firestore';
@@ -90,10 +91,10 @@ async function seedQuoteRequests() {
 
 // --- Service Functions ---
 
-export async function onQuoteRequestsUpdate(vendorId: string, callback: (requests: QuoteRequest[]) => void): Promise<() => void> {
+export function onQuoteRequestsUpdate(vendorId: string, callback: (requests: QuoteRequest[]) => void): () => void {
     const q = query(collection(db, 'quoteRequests'), where('vendorId', '==', vendorId));
 
-    await seedQuoteRequests();
+    seedQuoteRequests();
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as QuoteRequest));
