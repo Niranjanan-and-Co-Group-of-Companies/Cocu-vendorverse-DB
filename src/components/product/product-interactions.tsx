@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Label } from '../ui/label';
 import { useWishlist } from '@/hooks/use-wishlist';
+import Link from 'next/link';
 
 interface ProductInteractionsProps {
   product: Product;
@@ -92,9 +93,11 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
     if (product.customizable) {
         return (
             <div className="space-y-4">
-                 <Button size="lg" className="w-full">
-                    <Brush className="mr-2" />
-                    Customize Now
+                 <Button asChild size="lg" className="w-full">
+                    <Link href={`/customize/${product.id}`}>
+                        <Brush className="mr-2" />
+                        Customize Now
+                    </Link>
                 </Button>
                 <div className="grid grid-cols-2 gap-3">
                     <Button size="lg" className="w-full" onClick={handleAddToCart}>
@@ -142,7 +145,7 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
                     </Button>
                 </div>
                 {showMaxQuantityWarning && (
-                    <p className="text-sm text-destructive">Max. order quantity is {maxQuantity}.</p>
+                    <p className="text-sm text-destructive">Max. order quantity per order is {maxQuantity}.</p>
                 )}
             </div>
         )}
