@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarMenuBadge,
+  useSidebar
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -35,6 +36,7 @@ import { useCart } from '@/hooks/use-cart';
 
 export function CorporateSidebar() {
     const pathname = usePathname();
+    const { setOpen } = useSidebar();
 
     const isActive = (path: string) => {
         if (path === '/corporate/dashboard' && pathname === path) return true;
@@ -47,7 +49,7 @@ export function CorporateSidebar() {
     const { items: cartItems } = useCart();
 
     return (
-        <Sidebar>
+        <Sidebar onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
             <div className="flex h-full flex-col">
                 <SidebarHeader className="items-center gap-2">
                      <Gift className="size-7 text-primary" />
