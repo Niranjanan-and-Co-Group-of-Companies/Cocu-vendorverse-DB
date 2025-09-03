@@ -27,16 +27,14 @@ export const useCart = create(
         const moq = product.moq || 1;
 
         if (existingItem) {
-          // If item already exists, just update its quantity
           const newQuantity = existingItem.quantity + moq;
           set({
             items: currentItems.map(item =>
               item.id === product.id ? { ...item, quantity: newQuantity } : item
             ),
           });
-          return { success: true, message: `${moq} more "${product.name}" added to cart.` };
+          return { success: true, message: `Added ${moq} more of "${product.name}" to your cart.` };
         } else {
-          // Add new item with MOQ
           set({ items: [...currentItems, { ...product, quantity: moq }] });
           return { success: true, message: `"${product.name}" (x${moq}) added to cart.` };
         }
@@ -52,9 +50,8 @@ export const useCart = create(
           const moq = itemToUpdate?.moq || 1;
 
           if (quantity < moq) {
-            // Optionally, prevent quantity from going below MOQ or handle as a business rule
             console.warn(`Attempted to set quantity for ${itemToUpdate?.name} below MOQ.`);
-            return state; // Do not update if below MOQ
+            return state; 
           }
 
           return {
