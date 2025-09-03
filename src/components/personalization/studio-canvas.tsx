@@ -6,6 +6,7 @@ import type { Product } from '@/lib/products';
 import Image from 'next/image';
 import { useCustomization } from '@/hooks/use-customization';
 import { TextElementComponent } from './elements/text-element-component';
+import { ImageElementComponent } from './elements/image-element-component';
 
 interface StudioCanvasProps {
   product: Product;
@@ -44,6 +45,9 @@ export function StudioCanvas({ product }: StudioCanvasProps) {
                         {elements.map(element => {
                             if (element.type === 'text') {
                                 return <TextElementComponent key={element.id} element={element} canvasRef={canvasRef} />
+                            }
+                            if (element.type === 'ai-image' || element.type === 'image') {
+                                return <ImageElementComponent key={element.id} element={element} canvasRef={canvasRef} />
                             }
                             // Add other element types here in the future
                             return null;
