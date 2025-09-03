@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -17,7 +18,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { onQuoteRequestsUpdate, type QuoteRequest, submitVendorQuote } from '@/lib/quotes-service';
+import { onQuoteRequestsUpdate, type QuoteRequest } from '@/lib/quotes-service';
+import { submitVendorQuote } from '@/lib/quotes-actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';

@@ -109,17 +109,3 @@ export function onQuoteRequestsUpdate(vendorId: string, callback: (requests: Quo
 
     return unsubscribe;
 }
-
-export async function submitVendorQuote(requestId: string, quoteData: Omit<VendorQuote, 'respondedAt'>) {
-    const requestRef = doc(db, 'quoteRequests', requestId);
-    
-    const vendorQuote: VendorQuote = {
-        ...quoteData,
-        respondedAt: serverTimestamp()
-    };
-    
-    await updateDoc(requestRef, {
-        vendorQuote: vendorQuote,
-        status: 'Responded'
-    });
-}
