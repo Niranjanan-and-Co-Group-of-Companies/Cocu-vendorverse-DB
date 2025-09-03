@@ -4,6 +4,7 @@ import { collection, onSnapshot, getDocs, writeBatch, doc, addDoc, serverTimesta
 import { db, storage } from './firebase';
 import type { Product } from './products';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { createNotification } from './notifications-service';
 
 export type BidStatus = 'Active' | 'Awarded' | 'Expired';
 
@@ -17,7 +18,7 @@ export interface VendorResponse {
 export interface Bid {
     id: string;
     customerId: string;
-    products: Pick<Product, 'id' | 'name' | 'image' | 'vendor'>[];
+    products: Pick<Product, 'id' | 'name' | 'image' | 'vendor' | 'vendorId'>[];
     quantity: number;
     status: BidStatus;
     dateCreated: any;
@@ -33,8 +34,8 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
     {
         customerId: 'corp-123',
         products: [
-            { id: 6, name: 'Custom Engraved Pen', image: 'https://picsum.photos/600/400?random=6', vendor: 'Signature Gifts' },
-            { id: 3, name: 'Handcrafted Leather Wallet', image: 'https://picsum.photos/600/400?random=3', vendor: 'Heritage Wares' },
+            { id: 6, name: 'Custom Engraved Pen', image: 'https://picsum.photos/600/400?random=6', vendor: 'Signature Gifts', vendorId: 'vendor006' },
+            { id: 3, name: 'Handcrafted Leather Wallet', image: 'https://picsum.photos/600/400?random=3', vendor: 'Heritage Wares', vendorId: 'vendor003' },
         ],
         quantity: 250,
         status: 'Active',
@@ -48,7 +49,7 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
     {
         customerId: 'corp-456',
         products: [
-            { id: 7, name: 'Smart Water Bottle', image: 'https://picsum.photos/600/400?random=7', vendor: 'Techie Gifts' },
+            { id: 7, name: 'Smart Water Bottle', image: 'https://picsum.photos/600/400?random=7', vendor: 'Techie Gifts', vendorId: 'vendor007' },
         ],
         quantity: 500,
         status: 'Awarded',
@@ -63,7 +64,7 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
     {
         customerId: 'corp-789',
         products: [
-            { id: 4, name: 'Gourmet Coffee Collection', image: 'https://picsum.photos/600/400?random=4', vendor: 'The Daily Grind' },
+            { id: 4, name: 'Gourmet Coffee Collection', image: 'https://picsum.photos/600/400?random=4', vendor: 'The Daily Grind', vendorId: 'vendor004' },
         ],
         quantity: 100,
         status: 'Expired',
@@ -112,7 +113,7 @@ export function onBidsUpdate(callback: (bids: Bid[]) => void): () => void {
 
 // Create a new bid
 export async function createBid(data: {
-    products: Pick<Product, 'id' | 'name' | 'image' | 'vendor'>[];
+    products: Pick<Product, 'id' | 'name' | 'image' | 'vendor' | 'vendorId'>[];
     quantity: number;
     pincode: string;
     deliveryTimeline: string;
@@ -131,12 +132,16 @@ export async function createBid(data: {
     
     const now = new Date();
     const expires = new Date(now.getTime() + parseInt(data.biddingDuration, 10) * 60 * 60 * 1000);
+    
+    // In a real app, customer name would come from auth context.
+    const customerName = "A Corporate Client"; 
+    const customerId = "corp-123";
 
     const newBid = {
-        customerId: 'corp-123', // This should come from auth context
+        customerId: customerId,
         products: data.products,
         quantity: data.quantity,
-        status: 'Active',
+        status: 'Active' as BidStatus,
         dateCreated: serverTimestamp(),
         dateExpires: expires.toISOString(),
         vendorResponses: [],
@@ -146,5 +151,27 @@ export async function createBid(data: {
         briefUrls,
     };
 
-    await addDoc(collection(db, 'corporateBids'), newBid);
+    const bidRef = await addDoc(collection(db, 'corporateBids'), newBid);
+    
+    // --- Notification Logic ---
+    // 1. Notify Admin
+    await createNotification({
+        userId: 'admin',
+        forAdmin: true,
+        type: 'NEW_BID_RESPONSE', // This should probably be a new type like NEW_BID_REQUEST
+        text: `New bid request #${bidRef.id.slice(0,6)} created by ${customerName}.`,
+        link: `/admin/bids?id=${bidRef.id}`
+    });
+
+    // 2. Notify relevant vendors
+    const uniqueVendorIds = new Set(data.products.map(p => p.vendorId));
+    for (const vendorId of uniqueVendorIds) {
+        if (!vendorId) continue;
+        await createNotification({
+            userId: vendorId,
+            type: 'NEW_BID_RESPONSE', // Also should be a new type
+            text: `You have a new bid request from ${customerName}.`,
+            link: `/vendor/corporate/bids/${bidRef.id}`
+        });
+    }
 }
