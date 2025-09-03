@@ -40,7 +40,7 @@ export function LayersPanel() {
     return (
         <div className="space-y-2">
             <h3 className="font-semibold text-sm px-1">Layers</h3>
-            <ScrollArea className="h-32">
+            <ScrollArea className="h-24">
                 <div className="space-y-1 pr-2">
                 {elements.length > 0 ? (
                     [...elements].reverse().map(element => (
