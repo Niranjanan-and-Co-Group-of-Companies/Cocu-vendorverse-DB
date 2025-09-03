@@ -106,7 +106,7 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
 
   return (
     <div className="space-y-6">
-        {product.stock > 0 && !product.customizable && (
+        {product.stock > 0 && (
             <div className="space-y-2">
                 <Label>Quantity</Label>
                 <div className="flex items-center gap-2">
