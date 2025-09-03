@@ -121,7 +121,7 @@ export default function VendorProductsPage() {
                     <p className="text-muted-foreground">Manage your B2C product catalog.</p>
                 </div>
                 <Button asChild>
-                    <Link href="/vendor/personalized/products/new">
+                    <Link href="/vendor/both/products/personalized/new">
                         <PlusCircle className="mr-2" />
                         Add Product
                     </Link>
