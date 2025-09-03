@@ -81,7 +81,6 @@ export function ChatView({ conversation }: ChatViewProps) {
                 </Avatar>
                 <div>
                      <h3 className="font-semibold">{conversation.product.name}</h3>
-                     <p className="text-sm text-muted-foreground">with {conversation.vendor.name}</p>
                 </div>
             </div>
           <div className="flex items-center gap-2">
