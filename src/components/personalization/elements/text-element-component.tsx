@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -78,6 +79,35 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
     }, [element.x, element.y]);
 
 
+    // SVG Path generation for curved text
+    const getPathData = (curve: number) => {
+        const w = element.width;
+        if (curve === 0) {
+            return `M 0,${element.height / 2} L ${w},${element.height / 2}`;
+        }
+        const isDownward = curve < 0;
+        const absCurve = Math.abs(curve);
+        const curveStrength = (100 - absCurve) / 100 * w * 1.5;
+        const h = element.height;
+
+        const startX = 0;
+        const startY = isDownward ? h / 2 : h / 2 + (absCurve / 100 * h);
+        const endX = w;
+        const endY = startY;
+
+        const c1X = w / 4;
+        const c1Y = isDownward ? h/2 - curveStrength / 10 : h/2 - (absCurve / 100 * h) - curveStrength/10 ;
+
+        const c2X = w * 3 / 4;
+        const c2Y = c1Y;
+        
+        const M = `M ${startX},${startY}`;
+        const C = `C ${c1X},${c1Y} ${c2X},${c2Y} ${endX},${endY}`;
+        
+        return `${M} ${C}`;
+    }
+    
+
     return (
         <div
             style={{
@@ -114,24 +144,30 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                         width: '100%',
                         height: '100%',
                         border: isSelected ? '1px dashed hsl(var(--primary))' : '1px dashed transparent',
-                        color: element.color,
-                        fontFamily: element.fontFamily,
-                        fontSize: `${element.fontSize}px`,
-                        fontWeight: element.fontWeight,
-                        fontStyle: element.fontStyle,
-                        textAlign: element.textAlign,
-                        WebkitTextStrokeWidth: `${element.outlineWidth || 0}px`,
-                        WebkitTextStrokeColor: element.outlineColor,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
                         cursor: isDragging ? 'grabbing' : 'grab'
                     }}
-                    className="whitespace-pre-wrap break-words"
                     onMouseDown={handleDragStart}
                     onTouchStart={handleDragStart}
                 >
-                    {element.content}
+                    <svg width="100%" height="100%" viewBox={`0 0 ${element.width} ${element.height}`}>
+                        <defs>
+                            <path id={`path-${element.id}`} d={getPathData(element.curve || 0)} />
+                        </defs>
+                        <text
+                            fill={element.color}
+                            fontFamily={element.fontFamily}
+                            fontSize={element.fontSize}
+                            fontWeight={element.fontWeight}
+                            fontStyle={element.fontStyle}
+                            stroke={element.outlineColor}
+                            strokeWidth={element.outlineWidth}
+                            letterSpacing="1"
+                        >
+                            <textPath href={`#path-${element.id}`} startOffset="50%" textAnchor="middle">
+                                {element.content}
+                            </textPath>
+                        </text>
+                    </svg>
                 </div>
             </ResizableBox>
         </div>

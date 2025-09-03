@@ -1,4 +1,5 @@
 
+
 export type ElementType = 'text' | 'image' | 'ai-image' | 'qr-code' | 'clipart';
 
 interface BaseElement {
@@ -25,6 +26,7 @@ export interface TextElement extends BaseElement {
   textDecoration: 'none' | 'underline';
   outlineColor?: string;
   outlineWidth?: number;
+  curve?: number; // -100 to 100, where 0 is straight
 }
 
 export interface ImageElement extends BaseElement {

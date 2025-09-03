@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -11,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { PlusCircle } from 'lucide-react';
 import type { TextElement } from '@/lib/customization';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 
 const FONT_OPTIONS = [
     { value: 'Arial, sans-serif', label: 'Arial' },
@@ -30,6 +32,7 @@ export function TextTool() {
     const [fontFamily, setFontFamily] = React.useState(FONT_OPTIONS[0].value);
     const [outlineColor, setOutlineColor] = React.useState('#ffffff');
     const [outlineWidth, setOutlineWidth] = React.useState(0);
+    const [curve, setCurve] = React.useState(0);
     
     React.useEffect(() => {
         if (selectedElement) {
@@ -39,6 +42,7 @@ export function TextTool() {
             setFontFamily(selectedElement.fontFamily);
             setOutlineColor(selectedElement.outlineColor || '#ffffff');
             setOutlineWidth(selectedElement.outlineWidth || 0);
+            setCurve(selectedElement.curve || 0);
         }
     }, [selectedElementId, selectedElement]);
 
@@ -62,6 +66,7 @@ export function TextTool() {
             locked: false,
             outlineWidth: 0,
             outlineColor: '#ffffff',
+            curve: 0,
         });
     };
 
@@ -101,6 +106,11 @@ export function TextTool() {
         const newWidth = parseInt(e.target.value, 10) || 0;
         setOutlineWidth(newWidth);
         handleUpdate('outlineWidth', newWidth);
+    }
+    
+    const handleCurveChange = (value: number[]) => {
+        setCurve(value[0]);
+        handleUpdate('curve', value[0]);
     }
 
 
@@ -184,6 +194,20 @@ export function TextTool() {
                                     />
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t">
+                            <div className="flex justify-between items-center">
+                                <Label>Curve</Label>
+                                <span className="text-xs text-muted-foreground">{curve}</span>
+                            </div>
+                             <Slider
+                                value={[curve]}
+                                onValueChange={handleCurveChange}
+                                min={-100}
+                                max={100}
+                                step={1}
+                            />
                         </div>
                     </div>
                 )}
