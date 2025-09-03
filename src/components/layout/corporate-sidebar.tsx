@@ -13,7 +13,6 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-  SidebarTrigger,
   SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,13 +24,10 @@ import {
   Settings,
   Home,
   LogOut,
-  ChevronsLeft,
-  ChevronsRight,
   ShoppingCart,
   Heart,
   Scale
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useCorporateWishlist } from '@/hooks/use-corporate-wishlist';
 import { useComparison } from '@/hooks/use-comparison';
@@ -42,6 +38,7 @@ export function CorporateSidebar() {
     const { items: cartItems } = useCorporateCart();
     const { items: wishlistItems } = useCorporateWishlist();
     const { items: compareItems } = useComparison();
+    const { setOpen } = useSidebar();
 
     const isActive = (path: string) => {
         if (path === '/corporate/dashboard' && pathname === path) {
@@ -54,7 +51,7 @@ export function CorporateSidebar() {
     };
 
     return (
-        <Sidebar>
+        <Sidebar onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
             <div className="relative h-full flex flex-col">
               <SidebarHeader className="items-center gap-4">
                 <Avatar className="size-8">
