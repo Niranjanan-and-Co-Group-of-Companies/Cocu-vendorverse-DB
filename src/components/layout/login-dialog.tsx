@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface LoginDialogProps {
   open: boolean;
@@ -21,6 +22,9 @@ interface LoginDialogProps {
 }
 
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  
   // In a real app, these handlers would call an authentication service
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +59,18 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="password-login">Password</Label>
-                        <Input id="password-login" type="password" required />
+                         <div className="relative">
+                            <Input id="password-login" type={showPassword ? 'text' : 'password'} required />
+                             <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOff /> : <Eye />}
+                            </Button>
+                        </div>
                     </div>
                     <Button type="submit" className="w-full">Login</Button>
                     <Button variant="outline" className="w-full">Login with Google</Button>
@@ -73,7 +88,33 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="password-signup">Password</Label>
-                        <Input id="password-signup" type="password" required />
+                        <div className="relative">
+                            <Input id="password-signup" type={showPassword ? 'text' : 'password'} required />
+                             <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOff /> : <Eye />}
+                            </Button>
+                        </div>
+                    </div>
+                     <div className="grid gap-2">
+                        <Label htmlFor="confirm-password-signup">Confirm Password</Label>
+                         <div className="relative">
+                            <Input id="confirm-password-signup" type={showConfirmPassword ? 'text' : 'password'} required />
+                             <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                                {showConfirmPassword ? <EyeOff /> : <Eye />}
+                            </Button>
+                        </div>
                     </div>
                     <Button type="submit" className="w-full">Create Account</Button>
                 </form>
