@@ -112,7 +112,7 @@ export function PlaceBidDialog({ open, onOpenChange, bid, onBidPlaced, vendorId 
                  <Alert>
                     <Info className="h-4 w-4" />
                     <AlertDescription>
-                        The lowest bid is not always the winning bid, but price is a very important parameter.
+                        Always the lowest bid is not the winning bit but price is a very important parameter for bidding.
                     </AlertDescription>
                 </Alert>
                 <DialogFooter className="mt-auto">
@@ -136,7 +136,6 @@ export function PlaceBidDialog({ open, onOpenChange, bid, onBidPlaced, vendorId 
                                     <Image src={p.image} alt={p.name} width={40} height={40} className="rounded-md object-cover" />
                                     <div>
                                         <p className="font-medium">{p.name}</p>
-                                        <p className="text-xs text-muted-foreground">by {p.vendor}</p>
                                     </div>
                                 </li>
                             ))}
