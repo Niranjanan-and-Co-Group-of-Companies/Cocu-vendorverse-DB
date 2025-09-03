@@ -41,17 +41,20 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
     const handleDrag = React.useCallback((e: MouseEvent | TouchEvent) => {
         if (!isDragging || !canvasRef.current) return;
         const event = 'touches' in e ? e.touches[0] : e;
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+
+        const constraint = constraintArea ?? { x: 0, y: 0, width: canvasRect.width, height: canvasRect.height };
         
         let newX = event.clientX - dragStartPos.current.x;
         let newY = event.clientY - dragStartPos.current.y;
         
-        if (constraintArea) {
-            newX = Math.max(constraintArea.x, Math.min(newX, constraintArea.x + constraintArea.width - size.width));
-            newY = Math.max(constraintArea.y, Math.min(newY, constraintArea.y + constraintArea.height - size.height));
-        }
+        const dynamicHeight = getDynamicHeight(size, element.curve);
+
+        newX = Math.max(constraint.x, Math.min(newX, constraint.x + constraint.width - size.width));
+        newY = Math.max(constraint.y, Math.min(newY, constraint.y + constraint.height - dynamicHeight));
 
         setPosition({ x: newX, y: newY });
-    }, [isDragging, canvasRef, size.width, size.height, constraintArea]);
+    }, [isDragging, canvasRef, size, element.curve, constraintArea]);
 
     const handleDragEnd = React.useCallback(() => {
         if (isDragging) {
@@ -82,13 +85,14 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
         setSize({width: element.width, height: element.height})
     }, [element.x, element.y, element.width, element.height]);
 
+    const getDynamicHeight = (currentSize: { width: number, height: number }, curve?: number) => {
+        const absCurve = Math.abs(curve || 0);
+        if (absCurve === 0) return currentSize.height;
+        const sagitta = (currentSize.width / 2) * Math.tan(absCurve / 100 * Math.PI / 4);
+        return Math.max(currentSize.height, sagitta);
+    };
 
-    const dynamicHeight = React.useMemo(() => {
-        const absCurve = Math.abs(element.curve || 0);
-        if (absCurve === 0) return size.height;
-        const sagitta = (size.width / 2) * Math.tan(absCurve / 100 * Math.PI / 4);
-        return Math.max(size.height, sagitta * 2);
-    }, [size.height, size.width, element.curve]);
+    const dynamicHeight = getDynamicHeight(size, element.curve);
 
     const getPathData = (curve: number) => {
         const w = size.width;
@@ -109,22 +113,24 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
         }
         
         const sweepFlag = isDownward ? 0 : 1;
-        const yPos = isDownward ? sagitta : h - sagitta;
+        const yPos = isDownward ? h - sagitta : sagitta;
         
         return `M 0,${yPos} A ${Math.abs(radius)} ${Math.abs(radius)} 0 0 ${sweepFlag} ${w},${yPos}`;
     }
 
     const onResizeStop = (event: React.SyntheticEvent, { size: finalSize }: { size: { width: number, height: number }}) => {
-        let constrainedWidth = finalSize.width;
-        let constrainedHeight = finalSize.height;
-
-        if (constraintArea) {
-            constrainedWidth = Math.min(finalSize.width, constraintArea.width);
-            constrainedHeight = Math.min(finalSize.height, constraintArea.height);
-        }
-        updateElement(element.id, { width: constrainedWidth, height: constrainedHeight });
+        updateElement(element.id, { width: finalSize.width, height: finalSize.height });
     };
     
+    const maxConstraints = React.useMemo(() => {
+        if (!canvasRef.current) return [Infinity, Infinity];
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const constraint = constraintArea ?? { x: 0, y: 0, width: canvasRect.width, height: canvasRect.height };
+        return [
+            constraint.width - (position.x - constraint.x),
+            constraint.height - (position.y - constraint.y)
+        ];
+    }, [canvasRef, constraintArea, position]);
 
     return (
         <div
@@ -141,10 +147,10 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
              <ResizableBox
                 width={size.width}
                 height={dynamicHeight}
-                onResize={(e, {size: newSize}) => setSize(newSize)}
+                onResize={(e, {size: newSize}) => setSize({width: newSize.width, height: getDynamicHeight({width: newSize.width, height: size.height}, element.curve)})}
                 onResizeStop={onResizeStop}
                 minConstraints={[50, 20]}
-                maxConstraints={constraintArea ? [constraintArea.width, constraintArea.height] : [800, 800]}
+                maxConstraints={maxConstraints}
                 handle={(handle, ref) => (
                     <div
                         ref={ref as any}

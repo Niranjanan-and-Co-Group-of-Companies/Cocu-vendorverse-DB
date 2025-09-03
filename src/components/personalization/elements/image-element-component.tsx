@@ -41,14 +41,15 @@ export function ImageElementComponent({ element, canvasRef, constraintArea }: Im
     const handleDrag = React.useCallback((e: MouseEvent | TouchEvent) => {
         if (!isDragging || !canvasRef.current) return;
         const event = 'touches' in e ? e.touches[0] : e;
+        const canvasRect = canvasRef.current.getBoundingClientRect();
         
+        const constraint = constraintArea ?? { x: 0, y: 0, width: canvasRect.width, height: canvasRect.height };
+
         let newX = event.clientX - dragStartPos.current.x;
         let newY = event.clientY - dragStartPos.current.y;
 
-        if (constraintArea) {
-            newX = Math.max(constraintArea.x, Math.min(newX, constraintArea.x + constraintArea.width - size.width));
-            newY = Math.max(constraintArea.y, Math.min(newY, constraintArea.y + constraintArea.height - size.height));
-        }
+        newX = Math.max(constraint.x, Math.min(newX, constraint.x + constraint.width - size.width));
+        newY = Math.max(constraint.y, Math.min(newY, constraint.y + constraint.height - size.height));
         
         setPosition({ x: newX, y: newY });
     }, [isDragging, canvasRef, size.width, size.height, constraintArea]);
@@ -60,27 +61,8 @@ export function ImageElementComponent({ element, canvasRef, constraintArea }: Im
         }
     }, [isDragging, updateElement, element.id, position]);
 
-    const onResize = (event: React.SyntheticEvent, { size: newSize }: { size: { width: number, height: number } }) => {
-        let constrainedWidth = newSize.width;
-        let constrainedHeight = newSize.height;
-
-        if (constraintArea) {
-            constrainedWidth = Math.min(newSize.width, constraintArea.width);
-            constrainedHeight = Math.min(newSize.height, constraintArea.height);
-        }
-        setSize({ width: constrainedWidth, height: constrainedHeight });
-    };
-
     const onResizeStop = (event: React.SyntheticEvent, { size: finalSize }: { size: { width: number, height: number } }) => {
-        let constrainedWidth = finalSize.width;
-        let constrainedHeight = finalSize.height;
-
-        if (constraintArea) {
-            constrainedWidth = Math.min(finalSize.width, constraintArea.width);
-            constrainedHeight = Math.min(finalSize.height, constraintArea.height);
-        }
-        
-        updateElement(element.id, { width: constrainedWidth, height: constrainedHeight });
+        updateElement(element.id, { width: finalSize.width, height: finalSize.height });
     }
 
     React.useEffect(() => {
@@ -105,6 +87,15 @@ export function ImageElementComponent({ element, canvasRef, constraintArea }: Im
         setSize({width: element.width, height: element.height});
     }, [element.x, element.y, element.width, element.height]);
     
+    const maxConstraints = React.useMemo(() => {
+        if (!canvasRef.current) return [Infinity, Infinity];
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const constraint = constraintArea ?? { x: 0, y: 0, width: canvasRect.width, height: canvasRect.height };
+        return [
+            constraint.width - (position.x - constraint.x),
+            constraint.height - (position.y - constraint.y)
+        ];
+    }, [canvasRef, constraintArea, position]);
 
     return (
         <div
@@ -121,10 +112,10 @@ export function ImageElementComponent({ element, canvasRef, constraintArea }: Im
              <ResizableBox
                 width={size.width}
                 height={size.height}
-                onResize={onResize}
+                onResize={(e, {size: newSize}) => setSize(newSize)}
                 onResizeStop={onResizeStop}
                 minConstraints={[50, 50]}
-                maxConstraints={constraintArea ? [constraintArea.width, constraintArea.height] : [800, 800]}
+                maxConstraints={maxConstraints}
                 lockAspectRatio
                 handle={(handle, ref) => (
                     <div
