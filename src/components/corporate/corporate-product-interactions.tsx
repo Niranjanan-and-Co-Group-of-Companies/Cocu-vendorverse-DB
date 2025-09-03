@@ -47,13 +47,14 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
 
   const handleBuyNow = () => {
     const result = addToCart(product);
-    toast({
-      title: result.success ? 'Success' : 'Could Not Add to Cart',
-      description: result.message,
-      variant: result.success ? 'default' : 'destructive',
-    });
     if (result.success) {
       router.push('/corporate/cart');
+    } else {
+        toast({
+            title: 'Could Not Add to Cart',
+            description: result.message,
+            variant: 'destructive',
+        });
     }
   };
 
