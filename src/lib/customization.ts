@@ -21,7 +21,7 @@ export interface TextElement extends BaseElement {
   fontSize: number;
   color: string;
   textAlign: 'left' | 'center' | 'right';
-  fontWeight: 'normal' | 'bold';
+  fontWeight: number;
   fontStyle: 'normal' | 'italic';
   textDecoration: 'none' | 'underline';
   outlineColor?: string;
