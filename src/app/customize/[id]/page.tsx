@@ -67,9 +67,9 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
     const resolvedParams = React.use(params);
     
     return (
-        <div className="flex flex-col h-screen bg-background">
+        <div className="flex flex-col min-h-screen bg-background">
             <Header />
-            <main className="flex-grow overflow-hidden">
+            <main className="flex-grow">
                 <React.Suspense fallback={<p>Loading...</p>}>
                     <CustomizePageContent params={resolvedParams} />
                 </React.Suspense>
