@@ -1,5 +1,4 @@
 
-
 export type ElementType = 'text' | 'image' | 'ai-image' | 'qr-code' | 'clipart';
 
 interface BaseElement {
@@ -40,6 +39,7 @@ export interface QrCodeElement extends BaseElement {
   color: string;
   hasBackground: boolean;
   backgroundColor: string;
+  imageSrc?: string; // Optional URL for a center image
 }
 
 export type CustomizationElement = TextElement | ImageElement | QrCodeElement;

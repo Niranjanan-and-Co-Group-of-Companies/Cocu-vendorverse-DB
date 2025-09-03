@@ -4,9 +4,10 @@
 import * as React from 'react';
 import { useCustomization } from '@/hooks/use-customization';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Eye, EyeOff, Lock, Unlock, Trash2, Text, Image as ImageIcon, Copy, QrCode } from 'lucide-react';
+import { Eye, EyeOff, Lock, Unlock, Trash2, Text, Image as ImageIcon, Copy, QrCode, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import type { CustomizationElement } from '@/lib/customization';
 
 export function LayersPanel() {
     const { elements, selectedElementId, setSelectedElementId, removeElement, updateElement, duplicateElement } = useCustomization();
@@ -29,23 +30,24 @@ export function LayersPanel() {
         duplicateElement(id);
     }
 
-    const getIconForType = (type: string) => {
+    const getIconForType = (type: CustomizationElement['type']) => {
         switch(type) {
             case 'text': return <Text className="h-4 w-4" />;
-            case 'image':
-            case 'ai-image': 
-                return <ImageIcon className="h-4 w-4" />;
+            case 'image': return <ImageIcon className="h-4 w-4" />;
+            case 'ai-image': return <ImageIcon className="h-4 w-4" />;
             case 'qr-code': return <QrCode className="h-4 w-4" />;
+            case 'clipart': return <Smile className="h-4 w-4" />;
             default: return <div className="w-4 h-4" />;
         }
     }
 
-    const getLabelForElement = (element: any) => {
+    const getLabelForElement = (element: CustomizationElement) => {
         switch(element.type) {
             case 'text': return element.content;
             case 'image': return 'Image';
             case 'ai-image': return 'AI Image';
             case 'qr-code': return 'QR Code';
+            case 'clipart': return element.src.split('/').pop()?.replace('.svg', '') || 'Clipart';
             default: return 'Element';
         }
     }

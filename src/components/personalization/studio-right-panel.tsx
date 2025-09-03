@@ -11,6 +11,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { AiImageTool } from './tools/ai-image-tool';
 import { UploadTool } from './tools/upload-tool';
 import { QrCodeTool } from './tools/qr-code-tool';
+import { ClipartTool } from './tools/clipart-tool';
 
 
 interface StudioRightPanelProps {
@@ -43,9 +44,8 @@ export function StudioRightPanel({ product }: StudioRightPanelProps) {
                 <TabsContent value="qr-code" className="p-0 m-0">
                     <QrCodeTool />
                 </TabsContent>
-                <TabsContent value="clipart" className="p-4">
-                    <h3 className="font-semibold">Add Clipart</h3>
-                    <p className="text-sm text-muted-foreground">Clipart library coming soon.</p>
+                <TabsContent value="clipart" className="p-0 m-0">
+                    <ClipartTool />
                 </TabsContent>
             </ScrollArea>
         </Tabs>
