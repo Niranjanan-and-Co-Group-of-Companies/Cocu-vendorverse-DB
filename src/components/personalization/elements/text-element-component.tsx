@@ -88,7 +88,11 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
             return `M 0,${h / 2} L ${w},${h / 2}`;
         }
 
-        const arcHeight = curveValue * h * 0.5;
+        const arcHeight = (element.height / 2) * curveValue;
+        if (Math.abs(arcHeight) === 0) {
+            return `M 0,${h / 2} L ${w},${h / 2}`;
+        }
+        
         const radius = (w * w) / (8 * arcHeight) + arcHeight / 2;
         
         if (!isFinite(radius) || Math.abs(radius) < w / 2) {
@@ -96,7 +100,7 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
         }
         
         const sweepFlag = curveValue > 0 ? 0 : 1;
-        const yPos = curveValue > 0 ? h / 2 - arcHeight : h / 2 + arcHeight;
+        const yPos = h / 2 - arcHeight;
 
 
         return `M 0,${yPos} A ${Math.abs(radius)} ${Math.abs(radius)} 0 0 ${sweepFlag} ${w},${yPos}`;
@@ -104,8 +108,10 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
 
      const dynamicHeight = React.useMemo(() => {
         const absCurve = Math.abs(element.curve || 0);
-        return element.height + absCurve * 0.3; // Adjust multiplier for desired effect
-    }, [element.height, element.curve]);
+        // We calculate the arc's sagitta (height) and add it to the base height
+        const sagitta = (element.width / 2) * Math.tan(Math.abs(element.curve || 0) * Math.PI / 360) * 0.5;
+        return element.height + sagitta + (absCurve / 100 * element.fontSize * 0.5);
+    }, [element.height, element.width, element.curve, element.fontSize]);
     
 
     return (
