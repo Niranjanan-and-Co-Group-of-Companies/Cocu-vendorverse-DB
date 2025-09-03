@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import * as icons from 'lucide-react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { useCustomization } from '@/hooks/use-customization';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -45,16 +46,25 @@ export function ClipartTool() {
   const [search, setSearch] = React.useState('');
 
   const handleAddClipart = (name: string) => {
-    // To add an SVG as an image, we need to convert it to a data URI
-    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${(icons as any)[name].displayName === name ? (icons as any)[name]({}).props.children.map((c: any) => c.props.d).join('') : ''}</svg>`;
-    const iconNode = renderIcon(name);
+    const iconNode = renderIcon(name, {
+        xmlns: "http://www.w3.org/2000/svg",
+        width: "100",
+        height: "100",
+        viewBox: "0 0 24 24",
+        fill: "none",
+        stroke: "currentColor",
+        strokeWidth: "2",
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+    });
 
-    if(!iconNode) return;
+    if (!iconNode) {
+        toast({ title: 'Error', description: 'Could not render this icon.', variant: 'destructive' });
+        return;
+    }
 
-    // A simplified way to get SVG paths, might not work for all lucide icons
-    const paths = React.Children.map(iconNode.props.children, child => child.props.d)?.join(' ');
-    const fullSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
-    const dataUri = `data:image/svg+xml;base64,${btoa(fullSvg)}`;
+    const svgString = renderToStaticMarkup(iconNode);
+    const dataUri = `data:image/svg+xml;base64,${btoa(svgString)}`;
 
     addElement({
         type: 'clipart',
