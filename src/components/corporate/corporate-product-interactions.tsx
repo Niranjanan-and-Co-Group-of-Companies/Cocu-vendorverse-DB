@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ShoppingCart, Gavel, Scale, FileText, Brush, MessageSquare, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useCart } from '@/hooks/use-cart';
+import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useBidRequest } from '@/hooks/use-bid-request';
 import { useComparison } from '@/hooks/use-comparison';
 import Link from 'next/link';
@@ -22,7 +22,7 @@ interface CorporateProductInteractionsProps {
 
 export function CorporateProductInteractions({ product, onPriceChange }: CorporateProductInteractionsProps) {
   const { toast } = useToast();
-  const { addItem: addToCart } = useCart();
+  const { addItem: addToCart } = useCorporateCart();
   const { addItem: addToBid, items: bidItems } = useBidRequest();
   const { addItem: addToCompare, removeItem: removeFromCompare, items: compareItems } = useComparison();
   const router = useRouter();

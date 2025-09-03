@@ -17,7 +17,7 @@ interface CartState {
   clearCart: () => void;
 }
 
-export const useCart = create(
+export const useCorporateCart = create(
   persist<CartState>(
     (set, get) => ({
       items: [],
@@ -34,8 +34,8 @@ export const useCart = create(
           });
           return { success: true, message: `Added ${quantity} more of "${product.name}" to your cart.` };
         } else {
-          set({ items: [...currentItems, { ...product, quantity: quantity }] });
-          return { success: true, message: `"${product.name}" (x${quantity}) added to cart.` };
+          set({ items: [...currentItems, { ...product, quantity: product.moq || quantity }] });
+          return { success: true, message: `"${product.name}" (x${product.moq || quantity}) added to cart.` };
         }
       },
       removeItem: (productId) => {
@@ -48,8 +48,8 @@ export const useCart = create(
           const itemToUpdate = state.items.find(item => item.id === productId);
           if (!itemToUpdate) return state;
 
-          const maxQty = itemToUpdate.maxQuantityPerOrder || itemToUpdate.stock;
-          const newQuantity = Math.max(1, Math.min(quantity, maxQty));
+          const minQty = itemToUpdate.moq || 1;
+          const newQuantity = Math.max(minQty, quantity);
 
           return {
             items: state.items.map(item =>
@@ -61,7 +61,7 @@ export const useCart = create(
       clearCart: () => set({ items: [] }),
     }),
     {
-      name: 'personal-cart-storage',
+      name: 'corporate-cart-storage', 
       storage: createJSONStorage(() => localStorage),
     }
   )

@@ -32,7 +32,7 @@ import {
 import { Badge } from '../ui/badge';
 import { useBidRequest } from '@/hooks/use-bid-request';
 import { useComparison } from '@/hooks/use-comparison';
-import { useCart } from '@/hooks/use-cart';
+import { useCorporateCart } from '@/hooks/use-corporate-cart';
 
 export function CorporateSidebar() {
     const pathname = usePathname();
@@ -46,7 +46,7 @@ export function CorporateSidebar() {
     
     const { items: bidItems } = useBidRequest();
     const { items: comparisonItems } = useComparison();
-    const { items: cartItems } = useCart();
+    const { items: cartItems } = useCorporateCart();
 
     return (
         <Sidebar onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import type { CartItem } from '@/hooks/use-cart';
+import type { CartItem } from '@/hooks/use-corporate-cart';
 
 interface CartSummaryProps {
   items: CartItem[];

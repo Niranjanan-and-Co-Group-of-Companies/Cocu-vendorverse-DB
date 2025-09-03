@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useCart } from '@/hooks/use-cart';
+import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
@@ -10,7 +10,7 @@ import { CartItem } from '@/components/corporate/cart/cart-item';
 import { CartSummary } from '@/components/corporate/cart/cart-summary';
 
 export default function CorporateCartPage() {
-  const { items } = useCart();
+  const { items } = useCorporateCart();
 
   return (
     <div className="flex flex-col gap-8">

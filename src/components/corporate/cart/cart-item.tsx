@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Trash2 } from 'lucide-react';
-import { useCart, type CartItem as CartItemType } from '@/hooks/use-cart';
+import { useCorporateCart, type CartItem as CartItemType } from '@/hooks/use-corporate-cart';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -15,7 +15,7 @@ interface CartItemProps {
 }
 
 export function CartItem({ item }: CartItemProps) {
-  const { updateQuantity, removeItem } = useCart();
+  const { updateQuantity, removeItem } = useCorporateCart();
   const { toast } = useToast();
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {

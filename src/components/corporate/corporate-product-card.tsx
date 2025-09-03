@@ -13,7 +13,7 @@ import { ShoppingCart, Scale, Gavel, FileText, Brush, PlusCircle } from 'lucide-
 import { useToast } from '@/hooks/use-toast';
 import { useBidRequest } from '@/hooks/use-bid-request';
 import { useComparison } from '@/hooks/use-comparison';
-import { useCart } from '@/hooks/use-cart';
+import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useRouter } from 'next/navigation';
 
 interface CorporateProductCardProps {
@@ -25,7 +25,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   const { toast } = useToast();
   const { items: bidItems, addItem: addBidItem } = useBidRequest();
   const { items: compareItems, addItem: addCompareItem, removeItem: removeCompareItem } = useComparison();
-  const { items: cartItems, addItem: addCartItem } = useCart();
+  const { items: cartItems, addItem: addCartItem } = useCorporateCart();
   const router = useRouter();
 
   const isAddedToBid = bidItems.some((item) => item.id === product.id);
