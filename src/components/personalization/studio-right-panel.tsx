@@ -5,6 +5,9 @@ import * as React from 'react';
 import type { Product } from '@/lib/products';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Text, ImageIcon, Upload, QrCode, Smile } from 'lucide-react';
+import { TextTool } from './tools/text-tool';
+import { LayersPanel } from './tools/layers-panel';
+
 
 interface StudioRightPanelProps {
   product: Product;
@@ -23,9 +26,8 @@ export function StudioRightPanel({ product }: StudioRightPanelProps) {
             </TabsList>
         </div>
         <div className="flex-grow overflow-y-auto">
-            <TabsContent value="text" className="p-4">
-                <h3 className="font-semibold">Add Text</h3>
-                <p className="text-sm text-muted-foreground">Text tool coming soon.</p>
+            <TabsContent value="text" className="p-0 m-0">
+                <TextTool />
             </TabsContent>
             <TabsContent value="ai-image" className="p-4">
                  <h3 className="font-semibold">Generate AI Image</h3>
@@ -45,10 +47,7 @@ export function StudioRightPanel({ product }: StudioRightPanelProps) {
             </TabsContent>
         </div>
         <div className="p-4 border-t">
-            <h3 className="font-semibold">Layers</h3>
-            <div className="text-center text-muted-foreground text-sm py-8">
-                Layers panel coming soon.
-            </div>
+            <LayersPanel />
         </div>
     </Tabs>
   );
