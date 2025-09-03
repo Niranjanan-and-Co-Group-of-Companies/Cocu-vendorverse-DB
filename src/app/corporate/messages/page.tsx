@@ -7,7 +7,6 @@ import { ChatConversationList } from '@/components/corporate/messages/chat-conve
 import { ChatView } from '@/components/corporate/messages/chat-view';
 import { MessageSquare } from 'lucide-react';
 import { useCorporateChat } from '@/hooks/use-corporate-chat-store';
-import { ChatSafetyDialog } from '@/components/corporate/messages/chat-safety-dialog';
 
 function CorporateMessagesPageContent() {
     const { conversations, selectedConversation, selectConversation, isLoading, initiateNewConversation, isReady } = useCorporateChat();
@@ -59,7 +58,6 @@ function CorporateMessagesPageContent() {
                 </>
             )}
         </div>
-        <ChatSafetyDialog />
     </>
   );
 }
