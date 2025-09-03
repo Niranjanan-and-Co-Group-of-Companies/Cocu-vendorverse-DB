@@ -26,11 +26,13 @@ import {
   LogOut,
   ShoppingCart,
   Heart,
-  Scale
+  Scale,
+  MessageSquare
 } from 'lucide-react';
 import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useCorporateWishlist } from '@/hooks/use-corporate-wishlist';
 import { useComparison } from '@/hooks/use-comparison';
+import { useCorporateChat } from '@/hooks/use-corporate-chat-store';
 
 
 export function CorporateSidebar() {
@@ -38,7 +40,10 @@ export function CorporateSidebar() {
     const { items: cartItems } = useCorporateCart();
     const { items: wishlistItems } = useCorporateWishlist();
     const { items: compareItems } = useComparison();
-    const { setOpen } = useSidebar();
+    const { conversations } = useCorporateChat();
+    const { open, setOpen } = useSidebar();
+
+    const totalUnreadMessages = conversations.reduce((acc, conv) => acc + conv.unreadCount, 0);
 
     const isActive = (path: string) => {
         if (path === '/corporate/dashboard' && pathname === path) {
@@ -81,6 +86,12 @@ export function CorporateSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/messages')} tooltip={{ children: 'Messages' }}>
+                            <Link href="/corporate/messages"><MessageSquare /><span>Messages</span></Link>
+                        </SidebarMenuButton>
+                        {totalUnreadMessages > 0 && <SidebarMenuBadge>{totalUnreadMessages}</SidebarMenuBadge>}
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/corporate/cart')} tooltip={{ children: 'Cart' }}>
                             <Link href="/corporate/cart"><ShoppingCart /><span>Cart</span></Link>
                         </SidebarMenuButton>
@@ -88,7 +99,7 @@ export function CorporateSidebar() {
                     </SidebarMenuItem>
                      <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/corporate/wishlist')} tooltip={{ children: 'Wishlist' }}>
-                            <Link href="#"><Heart /><span>Wishlist</span></Link>
+                            <Link href="/corporate/wishlist"><Heart /><span>Wishlist</span></Link>
                         </SidebarMenuButton>
                          {wishlistItems.length > 0 && <SidebarMenuBadge>{wishlistItems.length}</SidebarMenuBadge>}
                     </SidebarMenuItem>
