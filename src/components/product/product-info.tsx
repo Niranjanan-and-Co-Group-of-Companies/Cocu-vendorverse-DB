@@ -9,15 +9,15 @@ import { VendorInfoDialog } from './vendor-info-dialog';
 
 interface ProductInfoProps {
   product: Product;
+  displayPrice?: string;
 }
 
-export function ProductInfo({ product }: ProductInfoProps) {
+export function ProductInfo({ product, displayPrice }: ProductInfoProps) {
   const [isVendorInfoOpen, setIsVendorInfoOpen] = React.useState(false);
 
-  // NOTE: Pricing logic with commissions and discounts will be added here later.
-  // For now, it displays the base price.
-  const displayPrice = product.price;
-  const originalPrice = null; // Placeholder for when discounts are active
+  // Use the passed displayPrice if available, otherwise default to the product's base price.
+  const currentPrice = displayPrice || product.price;
+  const originalPrice = displayPrice && displayPrice !== product.price ? product.price : null; // Show original price if tiered price is active
 
   return (
     <>
@@ -51,7 +51,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </div>
         
         <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-primary">{displayPrice}</span>
+            <span className="text-3xl font-bold text-primary">{currentPrice}</span>
             {originalPrice && (
             <span className="text-xl text-muted-foreground line-through">{originalPrice}</span>
             )}

@@ -5,6 +5,11 @@ export type ProductStatus = 'Live' | 'Draft' | 'Archived' | 'Pending Review' | '
 export type CustomizationSide = 'front' | 'back' | 'left' | 'right' | 'top' | 'bottom';
 export type AllowedCustomizationType = 'Text' | 'AI Image' | 'Image Upload' | 'QR Code' | 'Clipart';
 
+export interface TieredPrice {
+  quantity: number;
+  price: string; // e.g., "$42.00"
+}
+
 export interface CustomizationArea {
   id: string;
   x: number;
@@ -30,6 +35,7 @@ export type Product = {
   vendor: string; // Vendor Name
   vendorId: string;
   price: string;
+  tieredPricing?: TieredPrice[];
   image: string; // This will now be the 'front' image from customizationSides
   galleryImages: string[];
   videoUrl?: string;
