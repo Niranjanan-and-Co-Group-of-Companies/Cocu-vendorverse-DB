@@ -24,7 +24,7 @@ export default function NewBidPage() {
   });
   const [additionalInfo, setAdditionalInfo] = React.useState<AdditionalInfo>({
     notes: '',
-    briefFile: null,
+    briefFiles: [],
   });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 

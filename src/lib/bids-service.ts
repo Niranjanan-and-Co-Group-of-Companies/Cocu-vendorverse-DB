@@ -26,7 +26,7 @@ export interface Bid {
     deliveryTimeline?: string;
     pincode?: string;
     notes?: string;
-    briefUrl?: string;
+    briefUrls?: string[];
 }
 
 const MOCK_BIDS: Omit<Bid, 'id'>[] = [
@@ -118,13 +118,15 @@ export async function createBid(data: {
     deliveryTimeline: string;
     biddingDuration: '24' | '48';
     notes: string;
-    briefFile: File | null;
+    briefFiles: File[];
 }) {
-    let briefUrl = '';
-    if (data.briefFile) {
-        const storageRef = ref(storage, `bids/${Date.now()}_${data.briefFile.name}`);
-        const snapshot = await uploadBytes(storageRef, data.briefFile);
-        briefUrl = await getDownloadURL(snapshot.ref);
+    let briefUrls: string[] = [];
+    if (data.briefFiles && data.briefFiles.length > 0) {
+        const uploadPromises = data.briefFiles.map(file => {
+            const storageRef = ref(storage, `bids/${Date.now()}_${file.name}`);
+            return uploadBytes(storageRef, file).then(snapshot => getDownloadURL(snapshot.ref));
+        });
+        briefUrls = await Promise.all(uploadPromises);
     }
     
     const now = new Date();
@@ -141,7 +143,7 @@ export async function createBid(data: {
         pincode: data.pincode,
         deliveryTimeline: data.deliveryTimeline,
         notes: data.notes,
-        briefUrl,
+        briefUrls,
     };
 
     await addDoc(collection(db, 'corporateBids'), newBid);

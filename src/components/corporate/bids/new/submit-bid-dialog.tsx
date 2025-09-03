@@ -45,7 +45,8 @@ export function SubmitBidDialog({ isOpen, onClose, bidDetails, additionalInfo, p
         await createBid({
             products: products.map(p => ({ id: p.id, name: p.name, image: p.image, vendor: p.vendor })),
             ...bidDetails,
-            ...additionalInfo,
+            notes: additionalInfo.notes,
+            briefFiles: additionalInfo.briefFiles,
         });
         toast({ title: 'Bid Submitted!', description: 'Vendors will now be notified of your request.' });
         onBidFinalized();
