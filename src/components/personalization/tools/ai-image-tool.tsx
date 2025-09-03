@@ -13,12 +13,9 @@ import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ImageUpload } from '@/components/common/image-upload';
 
-const STYLE_PRESETS = ['Minimalist', 'Cartoon', 'Photorealistic', 'Abstract'];
-
 export function AiImageTool() {
   const { addElement } = useCustomization();
   const [prompt, setPrompt] = React.useState('');
-  const [selectedStyle, setSelectedStyle] = React.useState<string | null>(null);
   const [sourceImageFile, setSourceImageFile] = React.useState<File | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const { toast } = useToast();
@@ -48,7 +45,6 @@ export function AiImageTool() {
 
       const result = await generateImage({ 
           prompt, 
-          style: selectedStyle || undefined,
           sourceImageUrl
       });
       
@@ -93,24 +89,6 @@ export function AiImageTool() {
           rows={3}
           disabled={isGenerating}
         />
-      </div>
-
-      <div>
-        <Label>Style Presets (Optional)</Label>
-        <div className="grid grid-cols-2 gap-2 mt-2">
-          {STYLE_PRESETS.map(style => (
-            <Button
-              key={style}
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedStyle(current => current === style ? null : style)}
-              className={cn(selectedStyle === style && 'bg-accent')}
-              disabled={isGenerating}
-            >
-              {style}
-            </Button>
-          ))}
-        </div>
       </div>
 
       <Button onClick={handleGenerate} className="w-full" disabled={isGenerateDisabled}>
