@@ -101,6 +101,9 @@ export function onQuoteRequestsUpdate(vendorId: string, callback: (requests: Quo
         requests.sort((a, b) => {
             if (a.status === 'Pending' && b.status !== 'Pending') return -1;
             if (a.status !== 'Pending' && b.status === 'Pending') return 1;
+            // Add safe-guards for missing timestamps
+            if (!a.createdAt) return 1;
+            if (!b.createdAt) return -1;
             return b.createdAt.toMillis() - a.createdAt.toMillis();
         });
         callback(requests);
