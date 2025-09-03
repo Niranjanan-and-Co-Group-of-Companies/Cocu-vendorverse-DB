@@ -13,7 +13,8 @@ interface CustomizationState {
   setSelectedElementId: (id: string | null) => void;
 }
 
-export const useCustomization = create<CustomizationState>((set, get) => ({
+export const useCustomization = create<CustomizationState,>(
+(set, get) => ({
     elements: [],
     selectedElementId: null,
 
