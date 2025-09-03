@@ -1,6 +1,6 @@
 
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, addDoc, serverTimestamp, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, addDoc, serverTimestamp, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { db, storage } from './firebase';
 import type { Product } from './products';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -44,8 +44,8 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
         dateCreated: new Date(2023, 10, 1).toISOString(),
         dateExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         vendorResponses: [
-            { vendorId: 'vendor-01', vendorName: 'Signature Gifts', pricePerUnit: 85.50, estimatedDeliveryDays: 20, timestamp: serverTimestamp() },
-            { vendorId: 'vendor-02', vendorName: 'Corporate Swag Co.', pricePerUnit: 82.00, estimatedDeliveryDays: 25, timestamp: serverTimestamp() },
+            { vendorId: 'vendor-01', vendorName: 'Signature Gifts', pricePerUnit: 85.50, estimatedDeliveryDays: 20, timestamp: new Date() },
+            { vendorId: 'vendor-02', vendorName: 'Corporate Swag Co.', pricePerUnit: 82.00, estimatedDeliveryDays: 25, timestamp: new Date() },
         ]
     },
     {
@@ -58,9 +58,9 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
         dateCreated: new Date(2023, 9, 15).toISOString(),
         dateExpires: new Date(2023, 10, 15).toISOString(),
         vendorResponses: [
-            { vendorId: 'vendor-03', vendorName: 'Techie Gifts', pricePerUnit: 52.00, estimatedDeliveryDays: 30, timestamp: serverTimestamp() },
-            { vendorId: 'vendor-04', vendorName: 'Gadget Gurus', pricePerUnit: 55.50, estimatedDeliveryDays: 28, timestamp: serverTimestamp() },
-            { vendorId: 'vendor-05', vendorName: 'Innovate Inc.', pricePerUnit: 50.75, estimatedDeliveryDays: 35, timestamp: serverTimestamp() },
+            { vendorId: 'vendor-03', vendorName: 'Techie Gifts', pricePerUnit: 52.00, estimatedDeliveryDays: 30, timestamp: new Date() },
+            { vendorId: 'vendor-04', vendorName: 'Gadget Gurus', pricePerUnit: 55.50, estimatedDeliveryDays: 28, timestamp: new Date() },
+            { vendorId: 'vendor-05', vendorName: 'Innovate Inc.', pricePerUnit: 50.75, estimatedDeliveryDays: 35, timestamp: new Date() },
         ]
     },
     {
@@ -73,7 +73,7 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
         dateCreated: new Date(2023, 8, 1).toISOString(),
         dateExpires: new Date(2023, 9, 1).toISOString(),
         vendorResponses: [
-            { vendorId: 'vendor-06', vendorName: 'The Daily Grind', pricePerUnit: 50.00, estimatedDeliveryDays: 10, timestamp: serverTimestamp() },
+            { vendorId: 'vendor-06', vendorName: 'The Daily Grind', pricePerUnit: 50.00, estimatedDeliveryDays: 10, timestamp: new Date() },
         ]
     },
 ];
@@ -209,7 +209,7 @@ export async function placeOrUpdateBid(
         vendorId,
         vendorName,
         ...bidData,
-        timestamp: serverTimestamp()
+        timestamp: new Date() // Use client-side timestamp
     };
     batch.update(bidRef, {
         vendorResponses: arrayUnion(newBid)
