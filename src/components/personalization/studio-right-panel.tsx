@@ -8,6 +8,7 @@ import { Text, ImageIcon, Upload, QrCode, Smile } from 'lucide-react';
 import { TextTool } from './tools/text-tool';
 import { LayersPanel } from './tools/layers-panel';
 import { ScrollArea } from '../ui/scroll-area';
+import { AiImageTool } from './tools/ai-image-tool';
 
 
 interface StudioRightPanelProps {
@@ -31,9 +32,8 @@ export function StudioRightPanel({ product }: StudioRightPanelProps) {
                 <TabsContent value="text" className="p-0 m-0">
                     <TextTool />
                 </TabsContent>
-                <TabsContent value="ai-image" className="p-4">
-                    <h3 className="font-semibold">Generate AI Image</h3>
-                    <p className="text-sm text-muted-foreground">AI Image tool coming soon.</p>
+                <TabsContent value="ai-image" className="p-0 m-0">
+                    <AiImageTool />
                 </TabsContent>
                 <TabsContent value="upload" className="p-4">
                     <h3 className="font-semibold">Upload Image</h3>
