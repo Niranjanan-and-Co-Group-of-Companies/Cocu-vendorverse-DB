@@ -28,6 +28,8 @@ export function TextTool() {
     const [fontSize, setFontSize] = React.useState(24);
     const [color, setColor] = React.useState('#000000');
     const [fontFamily, setFontFamily] = React.useState(FONT_OPTIONS[0].value);
+    const [outlineColor, setOutlineColor] = React.useState('#ffffff');
+    const [outlineWidth, setOutlineWidth] = React.useState(0);
     
     React.useEffect(() => {
         if (selectedElement) {
@@ -35,6 +37,8 @@ export function TextTool() {
             setFontSize(selectedElement.fontSize);
             setColor(selectedElement.color);
             setFontFamily(selectedElement.fontFamily);
+            setOutlineColor(selectedElement.outlineColor || '#ffffff');
+            setOutlineWidth(selectedElement.outlineWidth || 0);
         }
     }, [selectedElementId, selectedElement]);
 
@@ -56,6 +60,8 @@ export function TextTool() {
             rotation: 0,
             opacity: 1,
             locked: false,
+            outlineWidth: 0,
+            outlineColor: '#ffffff',
         });
     };
 
@@ -84,6 +90,17 @@ export function TextTool() {
     const handleFontChange = (value: string) => {
         setFontFamily(value);
         handleUpdate('fontFamily', value);
+    }
+
+    const handleOutlineColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setOutlineColor(e.target.value);
+        handleUpdate('outlineColor', e.target.value);
+    }
+
+    const handleOutlineWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newWidth = parseInt(e.target.value, 10) || 0;
+        setOutlineWidth(newWidth);
+        handleUpdate('outlineWidth', newWidth);
     }
 
 
@@ -139,6 +156,33 @@ export function TextTool() {
                                     onChange={handleColorChange}
                                     className="p-1 h-10"
                                 />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t">
+                            <Label>Outline</Label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="outline-width" className="text-xs">Width</Label>
+                                    <Input 
+                                        id="outline-width" 
+                                        type="number"
+                                        value={outlineWidth}
+                                        onChange={handleOutlineWidthChange}
+                                        min={0}
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="outline-color" className="text-xs">Color</Label>
+                                    <Input 
+                                        id="outline-color" 
+                                        type="color"
+                                        value={outlineColor}
+                                        onChange={handleOutlineColorChange}
+                                        className="p-1 h-10"
+                                        disabled={outlineWidth === 0}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

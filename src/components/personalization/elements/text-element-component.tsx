@@ -120,6 +120,8 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                         fontWeight: element.fontWeight,
                         fontStyle: element.fontStyle,
                         textAlign: element.textAlign,
+                        WebkitTextStrokeWidth: `${element.outlineWidth || 0}px`,
+                        WebkitTextStrokeColor: element.outlineColor,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',

@@ -23,6 +23,8 @@ export interface TextElement extends BaseElement {
   fontWeight: 'normal' | 'bold';
   fontStyle: 'normal' | 'italic';
   textDecoration: 'none' | 'underline';
+  outlineColor?: string;
+  outlineWidth?: number;
 }
 
 export interface ImageElement extends BaseElement {
