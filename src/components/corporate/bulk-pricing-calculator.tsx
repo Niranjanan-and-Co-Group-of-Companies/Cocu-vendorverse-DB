@@ -5,6 +5,7 @@ import * as React from 'react';
 import type { Product, TieredPrice } from '@/lib/products';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface BulkPricingCalculatorProps {
   product: Product;
@@ -49,13 +50,39 @@ export function BulkPricingCalculator({ product, onPriceChange }: BulkPricingCal
     const value = parseInt(e.target.value, 10);
     setQuantity(isNaN(value) ? 0 : value);
   };
+  
+  const handleTierChange = (tierQuantity: string) => {
+    const qty = parseInt(tierQuantity, 10);
+    if (!isNaN(qty)) {
+      setQuantity(qty);
+    }
+  }
+  
+  const sortedTiers = product.tieredPricing ? [...product.tieredPricing].sort((a, b) => a.quantity - b.quantity) : [];
 
   return (
-    <div className="rounded-lg border p-4 space-y-3 bg-muted/20">
+    <div className="rounded-lg border p-4 space-y-4 bg-muted/20">
         <h4 className="font-semibold">Bulk Pricing Calculator</h4>
+        {sortedTiers.length > 0 && (
+             <div className="space-y-2">
+                <Label htmlFor="quantity-tier">Select Quantity Tier</Label>
+                 <Select onValueChange={handleTierChange}>
+                    <SelectTrigger id="quantity-tier">
+                        <SelectValue placeholder="Select a tier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {sortedTiers.map((tier) => (
+                        <SelectItem key={tier.quantity} value={String(tier.quantity)}>
+                            {tier.quantity}+ units ({tier.price}/unit)
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+        )}
         <div className="grid grid-cols-2 gap-4">
              <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
+                <Label htmlFor="quantity">Enter Quantity</Label>
                 <Input
                     id="quantity"
                     type="number"
