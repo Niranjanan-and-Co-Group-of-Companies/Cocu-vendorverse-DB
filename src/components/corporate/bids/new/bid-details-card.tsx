@@ -7,6 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 
 export interface BidDetails {
     quantity: number;
@@ -21,10 +26,29 @@ interface BidDetailsCardProps {
 }
 
 export function BidDetailsCard({ details, onDetailsChange }: BidDetailsCardProps) {
+    const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
 
     const handleChange = (field: keyof BidDetails, value: string | number) => {
         onDetailsChange({ ...details, [field]: value });
     }
+
+    const handleTimelineChange = (value: string) => {
+        if (value === 'other') {
+            setIsCalendarOpen(true);
+        } else {
+            setIsCalendarOpen(false);
+            handleChange('deliveryTimeline', value);
+        }
+    };
+    
+    const handleDateSelect = (date?: Date) => {
+        if (date) {
+            handleChange('deliveryTimeline', format(date, "PPP"));
+        }
+        setIsCalendarOpen(false);
+    }
+    
+    const isCustomDate = !['1_week', '2_weeks', '1_month', 'flexible', ''].includes(details.deliveryTimeline);
 
     return (
         <Card>
@@ -57,17 +81,36 @@ export function BidDetailsCard({ details, onDetailsChange }: BidDetailsCardProps
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div className="space-y-2">
                         <Label htmlFor="timeline">Preferred Delivery Timeline</Label>
-                        <Select value={details.deliveryTimeline} onValueChange={value => handleChange('deliveryTimeline', value)}>
-                            <SelectTrigger id="timeline">
-                                <SelectValue placeholder="Select a timeline" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="1_week">Within 1 Week</SelectItem>
-                                <SelectItem value="2_weeks">Within 2 Weeks</SelectItem>
-                                <SelectItem value="1_month">Within 1 Month</SelectItem>
-                                <SelectItem value="flexible">Flexible</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                            <PopoverTrigger asChild>
+                                 <Select 
+                                    value={isCustomDate ? 'other' : details.deliveryTimeline} 
+                                    onValueChange={handleTimelineChange}
+                                >
+                                    <SelectTrigger id="timeline">
+                                        <SelectValue placeholder="Select a timeline">
+                                            {isCustomDate ? details.deliveryTimeline : undefined}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="1_week">Within 1 Week</SelectItem>
+                                        <SelectItem value="2_weeks">Within 2 Weeks</SelectItem>
+                                        <SelectItem value="1_month">Within 1 Month</SelectItem>
+                                        <SelectItem value="flexible">Flexible</SelectItem>
+                                        <SelectItem value="other">Other (Select a date)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </PopoverTrigger>
+                             <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={isCustomDate ? new Date(details.deliveryTimeline) : undefined}
+                                    onSelect={handleDateSelect}
+                                    disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1))}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
                     <div className="space-y-2">
                         <Label>Bidding Duration</Label>
