@@ -102,10 +102,9 @@ export function TextTool() {
         handleUpdate('outlineColor', e.target.value);
     }
 
-    const handleOutlineWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newWidth = parseInt(e.target.value, 10) || 0;
-        setOutlineWidth(newWidth);
-        handleUpdate('outlineWidth', newWidth);
+    const handleOutlineWidthChange = (value: number[]) => {
+        setOutlineWidth(value[0]);
+        handleUpdate('outlineWidth', value[0]);
     }
     
     const handleCurveChange = (value: number[]) => {
@@ -169,21 +168,22 @@ export function TextTool() {
                             </div>
                         </div>
 
-                        <div className="space-y-2 pt-2 border-t">
-                            <Label>Outline</Label>
+                        <div className="space-y-4 pt-2 border-t">
+                            <div className="flex justify-between items-center">
+                                <Label>Outline</Label>
+                                <span className="text-xs text-muted-foreground">{outlineWidth}px</span>
+                            </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="outline-width" className="text-xs">Width</Label>
-                                    <Input 
-                                        id="outline-width" 
-                                        type="number"
-                                        value={outlineWidth}
-                                        onChange={handleOutlineWidthChange}
+                                     <Slider
+                                        value={[outlineWidth]}
+                                        onValueChange={handleOutlineWidthChange}
                                         min={0}
+                                        max={10}
+                                        step={1}
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="outline-color" className="text-xs">Color</Label>
                                     <Input 
                                         id="outline-color" 
                                         type="color"
