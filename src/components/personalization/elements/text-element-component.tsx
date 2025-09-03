@@ -98,7 +98,6 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                 }}
                 minConstraints={[50, 20]}
                 maxConstraints={[800, 400]}
-                lockAspectRatio
                 handle={(handle, ref) => (
                     <div
                         ref={ref as any}

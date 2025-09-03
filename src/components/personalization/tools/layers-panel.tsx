@@ -4,12 +4,12 @@
 import * as React from 'react';
 import { useCustomization } from '@/hooks/use-customization';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Eye, EyeOff, Lock, Unlock, Trash2, Text, Image as ImageIcon } from 'lucide-react';
+import { Eye, EyeOff, Lock, Unlock, Trash2, Text, Image as ImageIcon, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export function LayersPanel() {
-    const { elements, selectedElementId, setSelectedElementId, removeElement, updateElement } = useCustomization();
+    const { elements, selectedElementId, setSelectedElementId, removeElement, updateElement, duplicateElement } = useCustomization();
 
     const handleToggleLock = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
@@ -23,6 +23,11 @@ export function LayersPanel() {
         e.stopPropagation();
         removeElement(id);
     };
+
+    const handleDuplicate = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        duplicateElement(id);
+    }
 
     const getIconForType = (type: string) => {
         switch(type) {
@@ -54,6 +59,9 @@ export function LayersPanel() {
                                 </span>
                             </div>
                             <div className="flex items-center gap-1">
+                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => handleDuplicate(e, element.id)}>
+                                    <Copy className="h-3 w-3" />
+                                </Button>
                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => handleToggleLock(e, element.id)}>
                                     {element.locked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
                                 </Button>
