@@ -180,19 +180,7 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile, setOpen } = useSidebar()
-
-    const handleMouseEnter: React.MouseEventHandler<HTMLDivElement> = (event) => {
-      onMouseEnter?.(event);
-      if (isMobile) return;
-      setOpen(true);
-    };
-
-    const handleMouseLeave: React.MouseEventHandler<HTMLDivElement> = (event) => {
-      onMouseLeave?.(event);
-      if (isMobile) return;
-      setOpen(false);
-    };
+    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
     if (collapsible === "none") {
       return (
@@ -233,8 +221,8 @@ const Sidebar = React.forwardRef<
     return (
       <div
         ref={ref}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         className="group peer hidden md:block text-sidebar-foreground"
         data-state={state}
         data-collapsible={collapsible}
