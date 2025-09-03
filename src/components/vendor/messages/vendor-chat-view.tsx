@@ -28,7 +28,7 @@ interface VendorChatViewProps {
   vendorId: string;
 }
 
-const MAX_CHAR_LIMIT = 30;
+const MAX_CHAR_LIMIT = 300;
 
 export function VendorChatView({ conversation, vendorId }: VendorChatViewProps) {
   const [messages, setMessages] = React.useState<Message[]>([]);
