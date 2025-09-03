@@ -29,7 +29,7 @@ export function StudioRightPanel({ product }: StudioRightPanelProps) {
                     <TabsTrigger value="clipart"><Smile /></TabsTrigger>
                 </TabsList>
             </div>
-            <ScrollArea className="flex-grow" style={{ overflowY: 'scroll' }}>
+            <ScrollArea className="flex-grow">
                 <TabsContent value="text" className="p-0 m-0">
                     <TextTool />
                 </TabsContent>

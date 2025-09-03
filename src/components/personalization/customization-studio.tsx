@@ -18,7 +18,7 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
   return (
     <>
       {/* Desktop View: 3-panel layout */}
-      <div className="hidden md:grid md:grid-cols-[280px_1fr_320px] h-full gap-4 p-4">
+      <div className="hidden md:grid md:grid-cols-[280px_1fr_320px] h-[calc(100vh-8rem)] gap-4 p-4">
         {/* Left Panel */}
         <div className="bg-card rounded-lg border h-full overflow-hidden">
           <StudioLeftPanel product={product} />
