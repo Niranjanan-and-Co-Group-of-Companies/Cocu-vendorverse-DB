@@ -38,7 +38,6 @@ import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Badge } from '../ui/badge';
 import { VendorNotificationDropdown } from './vendor-notification-dropdown';
-import { onVendorConversationsUpdate } from '@/lib/vendor/messages-service';
 
 // In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor001";
@@ -60,17 +59,6 @@ function CustomSidebarTrigger() {
 
 function VendorSidebar() {
     const pathname = usePathname();
-    const [totalUnreadMessages, setTotalUnreadMessages] = React.useState(0);
-
-    React.useEffect(() => {
-        const unsubscribe = onVendorConversationsUpdate(VENDOR_ID, (conversations) => {
-            const totalUnread = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
-            setTotalUnreadMessages(totalUnread);
-        });
-
-        return () => unsubscribe();
-    }, []);
-
 
     const isActive = (path: string) => {
         // Make the messages link active when on the messages page
@@ -136,15 +124,6 @@ function VendorSidebar() {
                                 <span>Analytics</span>
                             </Link>
                         </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/personalized/messages')} tooltip={{ children: 'Messages' }}>
-                            <Link href="/vendor/personalized/messages">
-                                <MessageSquare />
-                                <span>Messages</span>
-                            </Link>
-                        </SidebarMenuButton>
-                         {totalUnreadMessages > 0 && <SidebarMenuBadge>{totalUnreadMessages}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                      <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/personalized/support')} tooltip={{ children: 'Support' }}>
