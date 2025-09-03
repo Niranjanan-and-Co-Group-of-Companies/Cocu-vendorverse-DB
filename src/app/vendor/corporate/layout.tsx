@@ -33,6 +33,7 @@ import {
   Bell,
   ChevronsLeft,
   ChevronsRight,
+  ListChecks,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -90,6 +91,11 @@ function CorporateVendorSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/products')} tooltip={{ children: 'Products' }}>
                             <Link href="/vendor/corporate/products"><Package /><span>Products</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/orders')} tooltip={{ children: 'Orders' }}>
+                            <Link href="/vendor/corporate/orders"><ListChecks /><span>Orders</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
