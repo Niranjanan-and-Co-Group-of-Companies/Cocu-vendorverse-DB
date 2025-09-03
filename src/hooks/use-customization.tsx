@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useCustomizationStore } from './use-customization';
+import { useCustomizationStore } from './use-customization-store';
 
 // --- Context and Provider ---
 
