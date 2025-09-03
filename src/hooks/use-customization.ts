@@ -3,6 +3,9 @@
 
 import { create } from 'zustand';
 import type { CustomizationElement } from '@/lib/customization';
+import * as React from 'react';
+
+// --- Store Definition ---
 
 interface CustomizationState {
   elements: CustomizationElement[];
@@ -13,8 +16,7 @@ interface CustomizationState {
   setSelectedElementId: (id: string | null) => void;
 }
 
-export const useCustomization = create<CustomizationState,>(
-(set, get) => ({
+export const useCustomization = create<CustomizationState>((set) => ({
     elements: [],
     selectedElementId: null,
 
@@ -47,10 +49,9 @@ export const useCustomization = create<CustomizationState,>(
 }));
 
 
-// Wrapper Provider for context
-import * as React from 'react';
+// --- Context and Provider ---
 
-export const CustomizationContext = React.createContext<CustomizationState | null>(null);
+export const CustomizationContext = React.createContext<ReturnType<typeof useCustomization> | null>(null);
 
 export const CustomizationProvider = ({ children }: { children: React.ReactNode }) => {
     const store = useCustomization();
@@ -58,5 +59,5 @@ export const CustomizationProvider = ({ children }: { children: React.ReactNode 
         <CustomizationContext.Provider value={store}>
             {children}
         </CustomizationContext.Provider>
-    )
-}
+    );
+};
