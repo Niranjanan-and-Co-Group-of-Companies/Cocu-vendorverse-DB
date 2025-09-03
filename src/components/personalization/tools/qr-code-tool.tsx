@@ -31,12 +31,26 @@ export function QrCodeTool() {
     }
   }, [selectedElementId, selectedElement]);
 
-  // Real-time update effect
-  React.useEffect(() => {
+  const handleValueChange = (newValue: string) => {
+    setValue(newValue);
     if (selectedElement) {
-        updateElement(selectedElement.id, { value, color, hasBackground });
+      updateElement(selectedElement.id, { value: newValue });
     }
-  }, [value, color, hasBackground, selectedElement, updateElement]);
+  };
+
+  const handleColorChange = (newColor: string) => {
+    setColor(newColor);
+    if (selectedElement) {
+      updateElement(selectedElement.id, { color: newColor });
+    }
+  };
+  
+  const handleBackgroundChange = (newHasBackground: boolean) => {
+    setHasBackground(newHasBackground);
+    if (selectedElement) {
+      updateElement(selectedElement.id, { hasBackground: newHasBackground });
+    }
+  };
 
 
   const handleAddOrUpdate = () => {
@@ -67,7 +81,7 @@ export function QrCodeTool() {
         <Textarea
           id="qr-value"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => handleValueChange(e.target.value)}
           placeholder="https://example.com"
           rows={3}
         />
@@ -80,7 +94,7 @@ export function QrCodeTool() {
             id="qr-color"
             type="color"
             value={color}
-            onChange={(e) => setColor(e.target.value)}
+            onChange={(e) => handleColorChange(e.target.value)}
             className="p-1 h-10"
           />
         </div>
@@ -89,7 +103,7 @@ export function QrCodeTool() {
             <Switch
                 id="qr-background"
                 checked={hasBackground}
-                onCheckedChange={setHasBackground}
+                onCheckedChange={handleBackgroundChange}
             />
         </div>
       </div>
