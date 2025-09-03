@@ -12,14 +12,24 @@ import { useToast } from '@/hooks/use-toast';
 
 // We can expand this list with more icons from lucide-react or custom SVGs
 const CLIPART_CATEGORIES = {
-  'Shapes': ['Circle', 'Square', 'Triangle', 'Heart', 'Star'],
-  'Objects': ['Award', 'Gift', 'Camera', 'Rocket', 'Briefcase', 'CakeSlice'],
-  'Nature': ['Sun', 'Moon', 'Cloud', 'Flower', 'TreePine', 'Leaf'],
-  'Symbols': ['Sparkles', 'ThumbsUp', 'PartyPopper', 'Music', 'Mail'],
+  'Holidays & Events': ['CakeSlice', 'PartyPopper', 'Gift', 'Heart', 'Star', 'Trophy', 'Award', 'CalendarDays', 'Anniversary', 'Baby', 'GraduationCap', 'Church'],
+  'Family & People': ['Users', 'User', 'Home', 'PersonStanding', 'Smile', 'Frown', 'Laugh', 'Handshake', 'HeartHandshake'],
+  'School & Office': ['School', 'Book', 'Pencil', 'Notebook', 'Briefcase', 'PenTool', 'Clipboard', 'Printer', 'FileText'],
+  'Animals': ['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Turtle', 'PawPrint', 'Bone', 'Squirrel'],
+  'Nature': ['Sun', 'Moon', 'Cloud', 'Flower', 'TreePine', 'Leaf', 'Mountain', 'Waves', 'Wind', 'Sprout', 'Feather'],
+  'Food & Drink': ['Pizza', 'Coffee', 'IceCream', 'Cookie', 'CupSoda', 'Apple', 'Sandwich', 'Wine', 'Beer', 'Utensils'],
+  'Travel & Places': ['Plane', 'Sailboat', 'Map', 'Globe', 'Hotel', 'Train', 'Caravan', 'Compass', 'Luggage', 'Pyramid'],
+  'Automotive': ['Car', 'Wrench', 'Truck', 'Bike', 'Bus', 'Fuel', 'Tractor', 'ParkingCircle'],
+  'Music & Audio': ['Music', 'Guitar', 'Mic', 'Headphones', 'Volume2', 'Play', 'Pause', 'Radio', 'Speaker'],
+  'Sports': ['Swords', 'Goal', 'Dumbbell', 'Football', 'Basketball', 'Baseball', 'Medal', 'Skate', 'Surfboard'],
+  'Technology': ['Laptop', 'Smartphone', 'Gamepad2', 'MousePointer', 'Keyboard', 'Camera', 'Tablet', 'HardDrive'],
+  'Weather': ['CloudSun', 'CloudRain', 'CloudSnow', 'CloudLightning', 'Thermometer', 'Sunrise', 'Sunset'],
+  'Shapes & Symbols': ['Circle', 'Square', 'Triangle', 'Hexagon', 'Diamond', 'Sparkles', 'ThumbsUp', 'Mail', 'Check', 'X', 'Info'],
 };
 
 // Create a flat list for searching
-const ALL_ICONS = Object.values(CLIPART_CATEGORIES).flat();
+const ALL_ICONS = Object.values(CLIPART_CATEGORIES).flat().filter((value, index, self) => self.indexOf(value) === index);
+
 
 const renderIcon = (name: string, props = {}) => {
   const LucideIcon = (icons as any)[name];
