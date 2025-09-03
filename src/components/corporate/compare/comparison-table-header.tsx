@@ -30,11 +30,11 @@ export function ComparisonTableHeader({ product }: ComparisonTableHeaderProps) {
   }
 
   return (
-    <div className="p-4 space-y-3 relative h-full flex flex-col">
+    <div className="space-y-3 relative h-full flex flex-col pt-4">
         <Button 
             variant="ghost" 
             size="icon" 
-            className="absolute top-2 right-2 h-7 w-7 text-muted-foreground"
+            className="absolute top-0 right-0 h-7 w-7 text-muted-foreground"
             onClick={handleRemove}
         >
             <X className="h-4 w-4" />
@@ -47,7 +47,7 @@ export function ComparisonTableHeader({ product }: ComparisonTableHeaderProps) {
           className="w-full h-full object-cover"
         />
       </Link>
-      <h3 className="font-bold text-base h-12 line-clamp-2 flex-grow">
+      <h3 className="font-bold text-base h-12 line-clamp-2">
         <Link href={`/products/${product.id}`} className="hover:underline">
             {product.name}
         </Link>
