@@ -55,8 +55,8 @@ export function ClipartTool() {
         updateElement(selectedElementId, { [prop]: value });
     }
   };
-
-  const handleAddClipart = (name: string, color = '#000000', strokeWidth = 2) => {
+  
+  const generateDataUri = (name: string, color: string, strokeWidth: number) => {
     const iconNode = renderIcon(name, {
         xmlns: "http://www.w3.org/2000/svg",
         width: "100",
@@ -69,13 +69,18 @@ export function ClipartTool() {
         strokeLinejoin: "round",
     });
 
-    if (!iconNode) {
+    if (!iconNode) return null;
+
+    const svgString = renderToStaticMarkup(iconNode);
+    return `data:image/svg+xml;base64,${btoa(svgString)}`;
+  };
+
+  const handleAddClipart = (name: string) => {
+    const dataUri = generateDataUri(name, '#000000', 2);
+    if (!dataUri) {
         toast({ title: 'Error', description: 'Could not render this icon.', variant: 'destructive' });
         return;
     }
-
-    const svgString = renderToStaticMarkup(iconNode);
-    const dataUri = `data:image/svg+xml;base64,${btoa(svgString)}`;
 
     addElement({
         type: 'clipart',
@@ -87,8 +92,9 @@ export function ClipartTool() {
         rotation: 0,
         opacity: 1,
         locked: false,
-        color: color,
-        strokeWidth: strokeWidth,
+        color: '#000000',
+        strokeWidth: 2,
+        iconName: name, // Store the original icon name
     });
     toast({
         title: `Added ${name}`,
@@ -97,30 +103,19 @@ export function ClipartTool() {
   };
   
   React.useEffect(() => {
-    if(selectedClipart) {
-        // Re-render SVG with new props
-         const iconName = selectedClipart.src.split('alt="')[1]?.split('"')[0] || '';
-         const iconNode = renderIcon(iconName, {
-            xmlns: "http://www.w3.org/2000/svg",
-            width: "100",
-            height: "100",
-            viewBox: "0 0 24 24",
-            fill: "none",
-            stroke: selectedClipart.color,
-            strokeWidth: selectedClipart.strokeWidth,
-            strokeLinecap: "round",
-            strokeLinejoin: "round",
-        });
+    if (selectedClipart) {
+        // This effect runs when color or strokeWidth changes for the selected clipart
+        const { iconName, color, strokeWidth, id, src } = selectedClipart;
+        if (!iconName) return; // Should not happen for new cliparts
 
-        if (iconNode) {
-            const svgString = renderToStaticMarkup(iconNode);
-            const dataUri = `data:image/svg+xml;base64,${btoa(svgString)}`;
-            if (selectedClipart.src !== dataUri) {
-                updateElement(selectedClipart.id, { src: dataUri });
-            }
+        const newDataUri = generateDataUri(iconName, color, strokeWidth);
+        
+        // Only update if the URI has actually changed, to prevent loops.
+        if (newDataUri && newDataUri !== src) {
+            updateElement(id, { src: newDataUri });
         }
     }
-  }, [selectedClipart?.color, selectedClipart?.strokeWidth]);
+  }, [selectedClipart?.color, selectedClipart?.strokeWidth, selectedClipart?.id]);
 
 
   const filteredIcons = search

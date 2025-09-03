@@ -35,9 +35,10 @@ export interface ImageElement extends BaseElement {
 
 export interface ClipartElement extends BaseElement {
     type: 'clipart';
-    src: string;
+    src: string; // This will be a data URI for the SVG
     color: string;
     strokeWidth: number;
+    iconName: string; // The original name of the Lucide icon
 }
 
 export interface QrCodeElement extends BaseElement {
