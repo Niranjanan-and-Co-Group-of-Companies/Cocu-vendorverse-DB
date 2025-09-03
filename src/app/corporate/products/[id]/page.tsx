@@ -2,14 +2,14 @@
 'use client';
 
 import * as React from 'react';
-import { getProductById, onProductUpdate } from '@/lib/products-service';
+import { onProductUpdate } from '@/lib/products-service';
 import type { Product } from '@/lib/products';
 import { ProductMediaGallery } from '@/components/product/product-media-gallery';
 import { ProductInfo } from '@/components/product/product-info';
-import { ProductInteractions } from '@/components/product/product-interactions';
 import { ProductDetailsAccordion } from '@/components/product/product-details-accordion';
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CorporateProductInteractions } from '@/components/corporate/corporate-product-interactions';
 
 function ProductPageContent({ params }: { params: { id: string } }) {
     const [product, setProduct] = React.useState<Product | null>(null);
@@ -70,7 +70,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                 />
                 <div className="flex flex-col gap-6">
                     <ProductInfo product={product} />
-                    <ProductInteractions product={product} />
+                    <CorporateProductInteractions product={product} />
                 </div>
             </div>
             <div className="mt-12 lg:mt-20">
