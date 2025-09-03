@@ -28,19 +28,6 @@ export default function NewBidPage() {
   });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  if (items.length === 0) {
-    return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold">Your bid request is empty.</h2>
-        <p className="text-muted-foreground mt-2">Add products to a bid from the catalog to get started.</p>
-        <Button asChild className="mt-4">
-          <Link href="/corporate/products">
-            <ArrowLeft className="mr-2" /> Back to Products
-          </Link>
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -60,7 +47,8 @@ export default function NewBidPage() {
           </div>
           <div className="lg:sticky top-20">
             <SubmitBidCard 
-                disabled={isSubmitting}
+                isSubmitting={isSubmitting}
+                itemCount={items.length}
                 onSubmit={() => setIsSubmitting(true)}
             />
           </div>
