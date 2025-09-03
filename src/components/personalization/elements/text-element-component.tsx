@@ -81,6 +81,7 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
     const dynamicHeight = React.useMemo(() => {
         const absCurve = Math.abs(element.curve || 0);
         if (absCurve === 0) return element.height;
+        // The new calculation for a more dramatic curve, approaching a semicircle at extremes.
         const sagitta = (element.width / 2) * Math.tan(absCurve / 100 * Math.PI / 4);
         return Math.max(element.height, sagitta * 2);
     }, [element.height, element.width, element.curve]);
@@ -95,27 +96,19 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
             return `M 0,${h / 2} L ${w},${h / 2}`;
         }
         
-        const arcHeight = (w / 2) * curveValue;
+        const isDownward = curveValue < 0;
+        const absCurveValue = Math.abs(curveValue);
 
-        if (Math.abs(arcHeight) === 0) {
-            return `M 0,${h / 2} L ${w},${h / 2}`;
-        }
-        
-        // This is a special case for a perfect semicircle
-        if(Math.abs(curveValue) === 1){
-            const yPos = h / 2;
-            const sweepFlag = curveValue > 0 ? 0 : 1;
-            return `M 0,${yPos} A ${w/2} ${w/2} 0 1 ${sweepFlag} ${w},${yPos}`;
-        }
-
-        const radius = (w * w) / (8 * arcHeight) + arcHeight / 2;
+        // Approach a semicircle at the extremes
+        const sagitta = (w / 2) * Math.tan(absCurveValue * Math.PI / 4);
+        const radius = (sagitta / 2) + (w * w) / (8 * sagitta);
         
         if (!isFinite(radius)) {
              return `M 0,${h / 2} L ${w},${h / 2}`;
         }
         
-        const sweepFlag = curveValue > 0 ? 0 : 1;
-        const yPos = h / 2 - arcHeight;
+        const sweepFlag = isDownward ? 0 : 1;
+        const yPos = isDownward ? h / 2 - sagitta : h / 2 + sagitta;
 
         return `M 0,${yPos} A ${Math.abs(radius)} ${Math.abs(radius)} 0 0 ${sweepFlag} ${w},${yPos}`;
     }
@@ -156,7 +149,6 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                     style={{
                         width: '100%',
                         height: '100%',
-                        border: isSelected ? '1px dashed hsl(var(--primary))' : '1px dashed transparent',
                         cursor: isDragging ? 'grabbing' : 'grab'
                     }}
                     onMouseDown={handleDragStart}
@@ -166,15 +158,24 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                         <defs>
                             <path id={`path-${element.id}`} d={getPathData(element.curve || 0)} />
                         </defs>
+                        {isSelected && (
+                            <path 
+                                d={getPathData(element.curve || 0)} 
+                                stroke="hsl(var(--primary))" 
+                                strokeWidth="1" 
+                                strokeDasharray="3 3"
+                                fill="none"
+                            />
+                        )}
                         <text
                             fill={element.color}
                             fontFamily={element.fontFamily}
                             fontSize={element.fontSize}
                             fontWeight={element.fontWeight}
                             fontStyle={element.fontStyle}
+                            paintOrder="stroke"
                             stroke={element.outlineColor}
                             strokeWidth={element.outlineWidth}
-                            paintOrder="stroke"
                             strokeLinejoin="round"
                         >
                             <textPath href={`#path-${element.id}`} startOffset="50%" textAnchor="middle">
