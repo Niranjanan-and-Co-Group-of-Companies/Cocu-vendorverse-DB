@@ -13,7 +13,8 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-  SidebarTrigger
+  SidebarTrigger,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
