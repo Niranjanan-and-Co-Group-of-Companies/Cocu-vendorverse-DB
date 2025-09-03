@@ -78,7 +78,7 @@ function ProductTable({ products, loading }: { products: ProductWithStatus[], lo
                                 <TableCell>{product.price}</TableCell>
                                 <TableCell>{product.stock}</TableCell>
                                 <TableCell className="text-right">
-                                    <ProductActions product={product} />
+                                    <ProductActions product={product} isHybrid={true} />
                                 </TableCell>
                             </TableRow>
                         ))

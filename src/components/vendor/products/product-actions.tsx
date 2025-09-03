@@ -30,9 +30,10 @@ import { ProductWithStatus, updateProductStatus } from '@/lib/products-service';
 interface ProductActionsProps {
   product: ProductWithStatus;
   isCorporate?: boolean;
+  isHybrid?: boolean;
 }
 
-export function ProductActions({ product, isCorporate = false }: ProductActionsProps) {
+export function ProductActions({ product, isCorporate = false, isHybrid = false }: ProductActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const { toast } = useToast();
 
@@ -65,7 +66,14 @@ export function ProductActions({ product, isCorporate = false }: ProductActionsP
     });
   };
   
-  const basePath = isCorporate ? '/vendor/corporate' : '/vendor/personalized';
+  let basePath = '/vendor/personalized';
+  if (isHybrid) {
+    basePath = isCorporate ? '/vendor/both/products/corporate' : '/vendor/both/products/personalized';
+  } else if (isCorporate) {
+    basePath = '/vendor/corporate/products';
+  }
+
+  const editPath = `${basePath}/new?id=${product.id}`;
   const livePath = isCorporate ? '/corporate/products' : '/products';
 
   return (
@@ -80,7 +88,7 @@ export function ProductActions({ product, isCorporate = false }: ProductActionsP
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem asChild>
-             <Link href={`${basePath}/products/new?id=${product.id}`}>
+             <Link href={editPath}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
             </Link>
