@@ -10,6 +10,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import type { ClipartElement } from '@/lib/customization';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 
 // We can expand this list with more icons from lucide-react or custom SVGs
 const CLIPART_CATEGORIES = {
@@ -41,19 +44,27 @@ const renderIcon = (name: string, props = {}) => {
 };
 
 export function ClipartTool() {
-  const { addElement } = useCustomization();
+  const { elements, selectedElementId, addElement, updateElement } = useCustomization();
   const { toast } = useToast();
   const [search, setSearch] = React.useState('');
 
-  const handleAddClipart = (name: string) => {
+  const selectedClipart = elements.find(el => el.id === selectedElementId && el.type === 'clipart') as ClipartElement | undefined;
+
+  const handleUpdate = (prop: keyof ClipartElement, value: any) => {
+    if (selectedElementId) {
+        updateElement(selectedElementId, { [prop]: value });
+    }
+  };
+
+  const handleAddClipart = (name: string, color = '#000000', strokeWidth = 2) => {
     const iconNode = renderIcon(name, {
         xmlns: "http://www.w3.org/2000/svg",
         width: "100",
         height: "100",
         viewBox: "0 0 24 24",
         fill: "none",
-        stroke: "currentColor",
-        strokeWidth: "2",
+        stroke: color,
+        strokeWidth: strokeWidth,
         strokeLinecap: "round",
         strokeLinejoin: "round",
     });
@@ -76,12 +87,41 @@ export function ClipartTool() {
         rotation: 0,
         opacity: 1,
         locked: false,
+        color: color,
+        strokeWidth: strokeWidth,
     });
     toast({
         title: `Added ${name}`,
         description: 'The clipart has been added to your design.'
     });
   };
+  
+  React.useEffect(() => {
+    if(selectedClipart) {
+        // Re-render SVG with new props
+         const iconName = selectedClipart.src.split('alt="')[1]?.split('"')[0] || '';
+         const iconNode = renderIcon(iconName, {
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "100",
+            height: "100",
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: selectedClipart.color,
+            strokeWidth: selectedClipart.strokeWidth,
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+        });
+
+        if (iconNode) {
+            const svgString = renderToStaticMarkup(iconNode);
+            const dataUri = `data:image/svg+xml;base64,${btoa(svgString)}`;
+            if (selectedClipart.src !== dataUri) {
+                updateElement(selectedClipart.id, { src: dataUri });
+            }
+        }
+    }
+  }, [selectedClipart?.color, selectedClipart?.strokeWidth]);
+
 
   const filteredIcons = search
     ? ALL_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase()))
@@ -125,6 +165,30 @@ export function ClipartTool() {
             )}
             </div>
         </ScrollArea>
+
+        {selectedClipart && (
+            <div className="pt-4 border-t space-y-4">
+                <h3 className="font-semibold text-sm px-1">Clipart Style</h3>
+                <div className="space-y-2">
+                    <Label htmlFor="clipart-color">Color</Label>
+                    <Input 
+                        id="clipart-color" 
+                        type="color" 
+                        className="p-1 h-10" 
+                        value={selectedClipart.color}
+                        onChange={(e) => handleUpdate('color', e.target.value)}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>Stroke Width</Label>
+                    <Slider 
+                        value={[selectedClipart.strokeWidth]}
+                        onValueChange={(value) => handleUpdate('strokeWidth', value[0])}
+                        min={0.5} max={5} step={0.25}
+                    />
+                </div>
+            </div>
+        )}
     </div>
   );
 }

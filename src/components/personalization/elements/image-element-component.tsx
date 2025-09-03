@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import type { ImageElement } from '@/lib/customization';
+import type { ImageElement, ClipartElement } from '@/lib/customization';
 import { useCustomization } from '@/hooks/use-customization';
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
@@ -11,7 +11,7 @@ import Image from 'next/image';
 import type { CustomizationArea } from '@/lib/products';
 
 interface ImageElementComponentProps {
-    element: ImageElement;
+    element: ImageElement | ClipartElement;
     canvasRef: React.RefObject<HTMLDivElement>;
     constraintArea: CustomizationArea | null;
 }
@@ -141,7 +141,7 @@ export function ImageElementComponent({ element, canvasRef, constraintArea }: Im
                 >
                     <Image 
                         src={element.src}
-                        alt="Customization element"
+                        alt={element.type === 'clipart' ? (element as ClipartElement).src.split('/').pop() || 'Clipart' : "Customization element"}
                         fill
                         className="object-contain"
                     />

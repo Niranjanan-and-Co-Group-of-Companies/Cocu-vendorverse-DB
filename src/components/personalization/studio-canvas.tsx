@@ -9,6 +9,7 @@ import { TextElementComponent } from './elements/text-element-component';
 import { ImageElementComponent } from './elements/image-element-component';
 import { QrCodeElementComponent } from './elements/qr-code-element';
 import { cn } from '@/lib/utils';
+import { ClipartElement } from '@/lib/customization';
 
 interface StudioCanvasProps {
   product: Product;
@@ -70,11 +71,14 @@ export function StudioCanvas({ product }: StudioCanvasProps) {
                             if (element.type === 'text') {
                                 return <TextElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
                             }
-                            if (element.type === 'ai-image' || element.type === 'image' || element.type === 'clipart') {
+                            if (element.type === 'ai-image' || element.type === 'image') {
                                 return <ImageElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
                             }
                              if (element.type === 'qr-code') {
                                 return <QrCodeElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
+                            }
+                             if (element.type === 'clipart') {
+                                return <ImageElementComponent key={element.id} element={element as ClipartElement} canvasRef={canvasRef} constraintArea={constraintArea} />
                             }
                             return null;
                         })}

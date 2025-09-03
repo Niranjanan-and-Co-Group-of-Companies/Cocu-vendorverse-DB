@@ -29,8 +29,15 @@ export interface TextElement extends BaseElement {
 }
 
 export interface ImageElement extends BaseElement {
-  type: 'image' | 'ai-image' | 'clipart';
+  type: 'image' | 'ai-image';
   src: string; // URL to the image
+}
+
+export interface ClipartElement extends BaseElement {
+    type: 'clipart';
+    src: string;
+    color: string;
+    strokeWidth: number;
 }
 
 export interface QrCodeElement extends BaseElement {
@@ -39,7 +46,6 @@ export interface QrCodeElement extends BaseElement {
   color: string;
   hasBackground: boolean;
   backgroundColor: string;
-  imageSrc?: string; // Optional URL for a center image
 }
 
-export type CustomizationElement = TextElement | ImageElement | QrCodeElement;
+export type CustomizationElement = TextElement | ImageElement | QrCodeElement | ClipartElement;
