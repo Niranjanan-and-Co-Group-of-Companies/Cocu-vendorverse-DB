@@ -19,10 +19,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShoppingCart, X } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
+import { LoginDialog } from './login-dialog';
 
 export function CartPreview() {
   const { items, removeItem } = useCart();
   const { toast } = useToast();
+  // In a real app, this would come from an auth hook/context
+  const [isLoggedIn] = React.useState(false); 
+  const [isLoginOpen, setIsLoginOpen] = React.useState(false);
 
   const handleRemove = (e: React.MouseEvent, productId: number, productName: string) => {
     e.preventDefault(); // Prevent dropdown from closing
@@ -39,6 +43,17 @@ export function CartPreview() {
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  }
+  
+  if (!isLoggedIn) {
+      return (
+          <>
+            <Button variant="ghost" size="icon" className="relative" onClick={() => setIsLoginOpen(true)}>
+                <ShoppingCart />
+            </Button>
+            <LoginDialog open={isLoginOpen} onOpenChange={setIsLoginOpen} />
+          </>
+      )
   }
 
   return (
@@ -99,4 +114,3 @@ export function CartPreview() {
     </DropdownMenu>
   );
 }
-

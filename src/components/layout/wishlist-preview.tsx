@@ -19,10 +19,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Heart, X } from 'lucide-react';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
+import { LoginDialog } from './login-dialog';
 
 export function WishlistPreview() {
   const { items, removeItem } = useWishlist();
   const { toast } = useToast();
+  // In a real app, this would come from an auth hook/context
+  const [isLoggedIn] = React.useState(false); 
+  const [isLoginOpen, setIsLoginOpen] = React.useState(false);
+
 
   const handleRemove = (e: React.MouseEvent, productId: number) => {
     e.preventDefault(); // Prevent dropdown from closing
@@ -33,6 +38,17 @@ export function WishlistPreview() {
             variant: 'destructive',
         });
     }
+  }
+
+  if (!isLoggedIn) {
+      return (
+        <>
+            <Button variant="ghost" size="icon" className="relative" onClick={() => setIsLoginOpen(true)}>
+                <Heart />
+            </Button>
+            <LoginDialog open={isLoginOpen} onOpenChange={setIsLoginOpen} />
+        </>
+      )
   }
 
   return (
