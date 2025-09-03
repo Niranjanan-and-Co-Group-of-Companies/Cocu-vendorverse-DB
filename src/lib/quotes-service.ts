@@ -1,6 +1,5 @@
 
-
-'use server';
+'use client';
 
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { db } from './firebase';
