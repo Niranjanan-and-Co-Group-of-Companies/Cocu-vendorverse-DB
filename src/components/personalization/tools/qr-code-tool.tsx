@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { QrCode } from 'lucide-react';
 import type { QrCodeElement } from '@/lib/customization';
+import { Switch } from '@/components/ui/switch';
 
 export function QrCodeTool() {
   const { addElement, updateElement, selectedElementId, elements } = useCustomization();
@@ -16,25 +17,29 @@ export function QrCodeTool() {
   
   const [value, setValue] = React.useState('');
   const [color, setColor] = React.useState('#000000');
+  const [hasBackground, setHasBackground] = React.useState(true);
   
   React.useEffect(() => {
     if (selectedElement) {
       setValue(selectedElement.value);
       setColor(selectedElement.color);
+      setHasBackground(selectedElement.hasBackground);
     } else {
         setValue('');
         setColor('#000000');
+        setHasBackground(true);
     }
   }, [selectedElementId, selectedElement]);
 
   const handleAddOrUpdate = () => {
     if (selectedElement) {
-        updateElement(selectedElement.id, { value, color });
+        updateElement(selectedElement.id, { value, color, hasBackground });
     } else {
         addElement({
             type: 'qr-code',
             value: value || 'https://vendorverse.com',
             color: color,
+            hasBackground: hasBackground,
             x: 50,
             y: 50,
             width: 150,
@@ -69,6 +74,14 @@ export function QrCodeTool() {
             onChange={(e) => setColor(e.target.value)}
             className="p-1 h-10"
           />
+        </div>
+        <div className="flex flex-col items-center justify-center space-y-2">
+            <Label htmlFor="qr-background">Background</Label>
+            <Switch
+                id="qr-background"
+                checked={hasBackground}
+                onCheckedChange={setHasBackground}
+            />
         </div>
       </div>
 

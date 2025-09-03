@@ -38,6 +38,7 @@ export interface QrCodeElement extends BaseElement {
   type: 'qr-code';
   value: string; // The URL or text for the QR code
   color: string;
+  hasBackground: boolean;
 }
 
 export type CustomizationElement = TextElement | ImageElement | QrCodeElement;
