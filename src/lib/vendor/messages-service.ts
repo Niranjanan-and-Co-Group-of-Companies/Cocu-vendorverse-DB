@@ -1,4 +1,5 @@
 
+
 import { collection, onSnapshot, getDoc, doc, query, where, orderBy, Unsubscribe, updateDoc, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Product } from '../products';
@@ -8,6 +9,7 @@ import type { Product } from '../products';
 export interface VendorConversation {
   id: string;
   vendorId: string;
+  type: 'Customer' | 'Corporate'; // Added type for filtering
   product: Pick<Product, 'id' | 'name' | 'image'>;
   lastMessage: {
     text: string;
@@ -61,6 +63,7 @@ export function onVendorConversationsUpdate(vendorId: string, callback: (summari
       return {
         id: docSnap.id,
         vendorId: data.vendorId,
+        type: data.type || 'Customer', // Default to 'Customer' for old data
         product,
         lastMessage: {
           text: data.lastMessageText || 'No messages yet',

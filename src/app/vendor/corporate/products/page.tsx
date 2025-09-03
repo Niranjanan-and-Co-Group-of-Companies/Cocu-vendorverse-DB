@@ -41,8 +41,8 @@ function ProductTable({ products, loading }: { products: ProductWithStatus[], lo
                         <TableHead className="w-[80px]">Image</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Inventory</TableHead>
+                        <TableHead>Base Price</TableHead>
+                        <TableHead>MOQ</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -58,7 +58,7 @@ function ProductTable({ products, loading }: { products: ProductWithStatus[], lo
                                 <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                             </TableRow>
                         ))
-                    ) : (
+                    ) : products.length > 0 ? (
                         products.map((product) => (
                             <TableRow key={product.id}>
                                 <TableCell>
@@ -76,12 +76,18 @@ function ProductTable({ products, loading }: { products: ProductWithStatus[], lo
                                     <Badge variant={getStatusVariant(product.status)}>{product.status}</Badge>
                                 </TableCell>
                                 <TableCell>{product.price}</TableCell>
-                                <TableCell>{product.stock}</TableCell>
+                                <TableCell>{product.moq || 'N/A'}</TableCell>
                                 <TableCell className="text-right">
-                                    <ProductActions product={product} />
+                                    <ProductActions product={product} isCorporate={true} />
                                 </TableCell>
                             </TableRow>
                         ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
+                                No B2B enabled products found.
+                            </TableCell>
+                        </TableRow>
                     )}
                 </TableBody>
             </Table>
@@ -99,7 +105,8 @@ export default function CorporateVendorProductsPage() {
         const VENDOR_ID = 'vendor001'; 
         
         const unsubscribe = onVendorProductsUpdate(VENDOR_ID, (products) => {
-            setAllProducts(products);
+            // Corporate portal only cares about B2B products (those with MOQ > 1)
+            setAllProducts(products.filter(p => p.moq && p.moq > 1));
             setLoading(false);
         });
 
@@ -108,7 +115,6 @@ export default function CorporateVendorProductsPage() {
     
     const filteredProducts = React.useMemo(() => {
         if (activeTab === 'All') return allProducts;
-        if (activeTab === 'B2B Enabled') return allProducts.filter(p => p.moq && p.moq > 1);
         return allProducts.filter(p => p.status === activeTab);
     }, [allProducts, activeTab]);
 
@@ -130,7 +136,6 @@ export default function CorporateVendorProductsPage() {
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
                 <TabsList>
                     <TabsTrigger value="All">All</TabsTrigger>
-                    <TabsTrigger value="B2B Enabled">B2B Enabled</TabsTrigger>
                     <TabsTrigger value="Live">Live</TabsTrigger>
                     <TabsTrigger value="Draft">Draft</TabsTrigger>
                     <TabsTrigger value="Archived">Archived</TabsTrigger>

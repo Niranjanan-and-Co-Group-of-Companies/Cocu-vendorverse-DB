@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -16,14 +17,16 @@ export default function VendorMessagesPage() {
 
   React.useEffect(() => {
     const unsubscribe = onVendorConversationsUpdate(VENDOR_ID, (updatedConversations) => {
-      setConversations(updatedConversations);
+      // Filter for corporate conversations only
+      const corporateConversations = updatedConversations.filter(c => c.type === 'Corporate');
+      setConversations(corporateConversations);
       setLoading(false);
 
       if (selectedConversation) {
-        const updatedSelected = updatedConversations.find(c => c.id === selectedConversation.id);
+        const updatedSelected = corporateConversations.find(c => c.id === selectedConversation.id);
         setSelectedConversation(updatedSelected || null);
-      } else if (updatedConversations.length > 0) {
-        setSelectedConversation(updatedConversations[0]);
+      } else if (corporateConversations.length > 0) {
+        setSelectedConversation(corporateConversations[0]);
       }
     });
 

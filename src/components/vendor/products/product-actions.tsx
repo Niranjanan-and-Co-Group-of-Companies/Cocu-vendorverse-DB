@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -28,9 +29,10 @@ import { ProductWithStatus, updateProductStatus } from '@/lib/products-service';
 
 interface ProductActionsProps {
   product: ProductWithStatus;
+  isCorporate?: boolean;
 }
 
-export function ProductActions({ product }: ProductActionsProps) {
+export function ProductActions({ product, isCorporate = false }: ProductActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const { toast } = useToast();
 
@@ -62,6 +64,9 @@ export function ProductActions({ product }: ProductActionsProps) {
         variant: 'destructive'
     });
   };
+  
+  const basePath = isCorporate ? '/vendor/corporate' : '/vendor/personalized';
+  const livePath = isCorporate ? '/corporate/products' : '/products';
 
   return (
     <>
@@ -75,14 +80,14 @@ export function ProductActions({ product }: ProductActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem asChild>
-             <Link href={`/vendor/personalized/products/new?id=${product.id}`}>
+             <Link href={`${basePath}/products/new?id=${product.id}`}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
             </Link>
           </DropdownMenuItem>
           {product.status === 'Live' && (
             <DropdownMenuItem asChild>
-                <Link href={`/products/${product.id}`} target="_blank">
+                <Link href={`${livePath}/${product.id}`} target="_blank">
                     <Eye className="mr-2 h-4 w-4" />
                     View Live Page
                 </Link>
