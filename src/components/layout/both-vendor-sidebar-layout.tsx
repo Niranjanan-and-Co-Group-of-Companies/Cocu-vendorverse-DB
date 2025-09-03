@@ -137,8 +137,8 @@ function BothVendorSidebar() {
                     </SidebarMenuItem>
 
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/both/inventory')} tooltip={{ children: 'Inventory (Retail)' }}>
-                            <Link href="/vendor/both/inventory"><Warehouse /><span>Inventory</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('/vendor/both/inventory')} tooltip={{ children: 'Retail Inventory' }}>
+                            <Link href="/vendor/both/inventory"><Warehouse /><span>Retail Inventory</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     
