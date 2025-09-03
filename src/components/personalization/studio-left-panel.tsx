@@ -6,7 +6,7 @@ import type { Product } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Check } from 'lucide-react';
+import { Check, MessageSquare } from 'lucide-react';
 import Image from 'next/image';
 
 interface StudioLeftPanelProps {
@@ -47,7 +47,14 @@ export function StudioLeftPanel({ product }: StudioLeftPanelProps) {
             <div>
                 <h3 className="font-semibold mb-3">Total Price</h3>
                 <p className="text-3xl font-bold">{product.price}</p>
-                 <Button className="w-full mt-4">Add to Cart</Button>
+                 <div className="mt-4 space-y-2">
+                    <Button className="w-full">Add to Cart</Button>
+                    <Button variant="secondary" className="w-full">Buy Now</Button>
+                    <Button variant="outline" className="w-full">
+                        <MessageSquare className="mr-2" />
+                        Message Vendor
+                    </Button>
+                 </div>
             </div>
         </div>
     </ScrollArea>
