@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Italic } from 'lucide-react';
+import { PlusCircle, Italic, Bold } from 'lucide-react';
 import type { TextElement } from '@/lib/customization';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
@@ -61,10 +61,10 @@ export function TextTool() {
             height: 50,
             content: 'Your Text Here',
             fontFamily: FONT_OPTIONS[0].value,
-            fontSize: 48,
+            fontSize: 15,
             color: '#000000',
             textAlign: 'center',
-            fontWeight: 400,
+            fontWeight: 100,
             fontStyle: 'normal',
             textDecoration: 'none',
             rotation: 0,
@@ -129,6 +129,12 @@ export function TextTool() {
         setFontStyle(newStyle);
         handleUpdate('fontStyle', newStyle);
     }
+    
+    const toggleFontWeight = () => {
+        const newWeight = fontWeight === 700 ? 400 : 700;
+        setFontWeight(newWeight);
+        handleUpdate('fontWeight', newWeight);
+    }
 
 
     return (
@@ -167,6 +173,14 @@ export function TextTool() {
                                 <Button 
                                     variant="outline" 
                                     size="icon" 
+                                    onClick={toggleFontWeight}
+                                    className={cn(fontWeight === 700 && 'bg-accent')}
+                                >
+                                    <Bold />
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    size="icon" 
                                     onClick={toggleFontStyle}
                                     className={cn(fontStyle === 'italic' && 'bg-accent')}
                                 >
@@ -174,19 +188,7 @@ export function TextTool() {
                                 </Button>
                             </div>
                         </div>
-                        <div className="space-y-2">
-                             <div className="flex justify-between items-center">
-                                <Label>Thickness</Label>
-                                <span className="text-xs text-muted-foreground">{fontWeight}</span>
-                            </div>
-                            <Slider
-                                value={[fontWeight]}
-                                onValueChange={handleFontWeightChange}
-                                min={100}
-                                max={900}
-                                step={100}
-                            />
-                        </div>
+                        
                         <div className="grid grid-cols-2 gap-4">
                              <div>
                                 <Label htmlFor="font-size">Font Size</Label>
