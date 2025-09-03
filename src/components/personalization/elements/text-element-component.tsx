@@ -81,8 +81,8 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
     // SVG Path generation for curved text
     const getPathData = (curve: number) => {
         const w = element.width;
-        const h = element.height;
-        const curveValue = curve / 100; // Normalize curve value to -1 to 1 range
+        const h = dynamicHeight; // Use the dynamic height for calculations
+        const curveValue = curve / 100;
 
         if (curve === 0) {
             return `M 0,${h / 2} L ${w},${h / 2}`;
@@ -91,14 +91,15 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
         const arcHeight = curveValue * h * 0.5;
         const radius = (w * w) / (8 * arcHeight) + arcHeight / 2;
         
-        // Ensure radius is not infinite or too small
         if (!isFinite(radius) || Math.abs(radius) < w / 2) {
              return `M 0,${h / 2} L ${w},${h / 2}`;
         }
         
         const sweepFlag = curveValue > 0 ? 0 : 1;
+        const yPos = curveValue > 0 ? h / 2 - arcHeight : h / 2 + arcHeight;
 
-        return `M 0,${h / 2} A ${radius} ${radius} 0 0 ${sweepFlag} ${w},${h/2}`;
+
+        return `M 0,${yPos} A ${Math.abs(radius)} ${Math.abs(radius)} 0 0 ${sweepFlag} ${w},${yPos}`;
     }
 
      const dynamicHeight = React.useMemo(() => {
@@ -160,7 +161,6 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                             fontStyle={element.fontStyle}
                             stroke={element.outlineColor}
                             strokeWidth={element.outlineWidth}
-                            letterSpacing="1"
                             paintOrder="stroke"
                             strokeLinejoin="round"
                         >
