@@ -134,7 +134,7 @@ export function QrCodeElementComponent({ element, canvasRef, constraintArea }: Q
                         cursor: isDragging ? 'grabbing' : 'grab',
                         outline: isSelected ? '2px dashed hsl(var(--primary))' : 'none',
                         outlineOffset: '2px',
-                        background: element.hasBackground ? 'white' : 'transparent',
+                        background: element.hasBackground ? element.backgroundColor : 'transparent',
                         padding: element.hasBackground ? '4px' : '0px',
                     }}
                     onMouseDown={handleDragStart}
@@ -143,7 +143,7 @@ export function QrCodeElementComponent({ element, canvasRef, constraintArea }: Q
                     <QRCode
                         value={element.value}
                         size={Math.min(size.width, size.height) - (element.hasBackground ? 8 : 0)}
-                        bgColor={element.hasBackground ? 'white' : 'transparent'}
+                        bgColor="transparent"
                         fgColor={element.color}
                         style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                         viewBox={`0 0 256 256`}

@@ -18,16 +18,19 @@ export function QrCodeTool() {
   const [value, setValue] = React.useState('');
   const [color, setColor] = React.useState('#000000');
   const [hasBackground, setHasBackground] = React.useState(false);
+  const [backgroundColor, setBackgroundColor] = React.useState('#ffffff');
   
   React.useEffect(() => {
     if (selectedElement) {
       setValue(selectedElement.value);
       setColor(selectedElement.color);
       setHasBackground(selectedElement.hasBackground);
+      setBackgroundColor(selectedElement.backgroundColor);
     } else {
         setValue('');
         setColor('#000000');
         setHasBackground(false);
+        setBackgroundColor('#ffffff');
     }
   }, [selectedElementId, selectedElement]);
 
@@ -52,17 +55,25 @@ export function QrCodeTool() {
     }
   };
 
+  const handleBackgroundColorChange = (newColor: string) => {
+    setBackgroundColor(newColor);
+    if (selectedElement) {
+      updateElement(selectedElement.id, { backgroundColor: newColor });
+    }
+  };
+
 
   const handleAddOrUpdate = () => {
     if (selectedElement) {
         // Already updated in real-time, this button could just confirm or be removed
-        updateElement(selectedElement.id, { value, color, hasBackground });
+        updateElement(selectedElement.id, { value, color, hasBackground, backgroundColor });
     } else {
         addElement({
             type: 'qr-code',
             value: value || 'https://vendorverse.com',
             color: color,
             hasBackground: hasBackground,
+            backgroundColor: backgroundColor,
             x: 50,
             y: 50,
             width: 150,
@@ -89,7 +100,7 @@ export function QrCodeTool() {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="qr-color">Color</Label>
+          <Label htmlFor="qr-color">Code Color</Label>
           <Input
             id="qr-color"
             type="color"
@@ -107,6 +118,19 @@ export function QrCodeTool() {
             />
         </div>
       </div>
+      
+      {hasBackground && (
+        <div>
+          <Label htmlFor="qr-bg-color">Background Color</Label>
+          <Input
+            id="qr-bg-color"
+            type="color"
+            value={backgroundColor}
+            onChange={(e) => handleBackgroundColorChange(e.target.value)}
+            className="p-1 h-10"
+          />
+        </div>
+      )}
 
       <Button onClick={handleAddOrUpdate} className="w-full" disabled={!value.trim() && !selectedElement}>
         <QrCode className="mr-2" />
