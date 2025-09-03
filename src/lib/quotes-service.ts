@@ -90,10 +90,10 @@ async function seedQuoteRequests() {
 
 // --- Service Functions ---
 
-export function onQuoteRequestsUpdate(vendorId: string, callback: (requests: QuoteRequest[]) => void): () => void {
+export async function onQuoteRequestsUpdate(vendorId: string, callback: (requests: QuoteRequest[]) => void): Promise<() => void> {
     const q = query(collection(db, 'quoteRequests'), where('vendorId', '==', vendorId));
 
-    seedQuoteRequests();
+    await seedQuoteRequests();
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as QuoteRequest));
