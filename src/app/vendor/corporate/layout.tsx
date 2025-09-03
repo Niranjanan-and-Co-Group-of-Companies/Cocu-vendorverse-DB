@@ -174,7 +174,7 @@ export default function CorporateVendorLayout({ children }: { children: React.Re
   const pathname = usePathname();
   const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard';
   
-  const [isVerified] = React.useState(true); // Assuming corporate vendors are pre-verified
+  const [isVerified] = React.useState(false); // Set to false to show the verification prompt
 
   return (
     <SidebarProvider>
