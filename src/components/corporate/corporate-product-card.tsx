@@ -44,14 +44,45 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
 
   const handleToggleCompare = () => {
     if (isInCompare) {
-      removeCompareItem(product.id);
+      const result = removeCompareItem(product.id);
+       if (result.success) {
+        toast({
+            title: 'Removed from Compare',
+            description: result.message,
+            variant: result.variant,
+        });
+      }
     } else {
-      addCompareItem(product);
+      const result = addCompareItem(product);
+      if (result.success) {
+        toast({
+            title: 'Added to Compare',
+            description: result.message,
+        });
+      } else if (result.message) {
+         toast({
+            title: 'Could Not Add to Compare',
+            description: result.message,
+            variant: result.variant,
+        });
+      }
     }
   };
 
   const handleAddToBid = () => {
-    addBidItem(product);
+    const result = addBidItem(product);
+    if(result.success) {
+        toast({
+            title: 'Product Added to Bid',
+            description: result.message,
+        });
+    } else {
+        toast({
+            title: 'Could Not Add Product',
+            description: result.message,
+            variant: result.variant,
+        });
+    }
   };
 
 
