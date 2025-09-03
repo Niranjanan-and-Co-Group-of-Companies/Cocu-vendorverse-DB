@@ -29,6 +29,7 @@ import {
   Gift,
 } from 'lucide-react';
 import { Badge } from '../ui/badge';
+import { useBidRequest } from '@/hooks/use-bid-request';
 
 export function CorporateSidebar() {
     const pathname = usePathname();
@@ -42,11 +43,10 @@ export function CorporateSidebar() {
     // Placeholder hooks - in a real app, these would come from a global state/context
     const useCart = () => ({ itemCount: 3 });
     const useComparison = () => ({ itemCount: 2 });
-    const useBidRequest = () => ({ itemCount: 5 });
-
+    
+    const { items: bidItems } = useBidRequest();
     const cart = useCart();
     const comparison = useComparison();
-    const bidRequest = useBidRequest();
 
     return (
         <Sidebar>
@@ -74,7 +74,7 @@ export function CorporateSidebar() {
                             <SidebarMenuButton asChild isActive={isActive('/corporate/bids/new')} tooltip={{ children: 'Create Bid' }}>
                                 <Link href="/corporate/bids/new"><PlusCircle/><span>Create Bid</span></Link>
                             </SidebarMenuButton>
-                            {bidRequest.itemCount > 0 && <SidebarMenuBadge>{bidRequest.itemCount}</SidebarMenuBadge>}
+                            {bidItems.length > 0 && <SidebarMenuBadge>{bidItems.length}</SidebarMenuBadge>}
                         </SidebarMenuItem>
                         <SidebarMenuItem>
                             <SidebarMenuButton asChild isActive={isActive('/corporate/cart')} tooltip={{ children: 'Cart' }}>
