@@ -5,7 +5,7 @@ import * as React from 'react';
 import type { Product } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, MessageSquare, Heart, Bell, Minus, Plus } from 'lucide-react';
+import { ShoppingCart, MessageSquare, Heart, Bell, Minus, Plus, Brush } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -71,7 +71,23 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
         );
     }
     if (product.customizable) {
-        return <Button size="lg" className="w-full">Customize Now</Button>
+        return (
+            <div className="space-y-4">
+                 <Button size="lg" className="w-full">
+                    <Brush className="mr-2" />
+                    Customize Now
+                </Button>
+                <div className="grid grid-cols-2 gap-3">
+                    <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                        <ShoppingCart className="mr-2" />
+                        Add to Cart
+                    </Button>
+                    <Button size="lg" variant="secondary" className="w-full" onClick={handleBuyNow}>
+                        Buy Now
+                    </Button>
+                </div>
+            </div>
+        );
     }
     return (
       <div className="space-y-4">
