@@ -20,19 +20,28 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
   const [deliveryInfo, setDeliveryInfo] = React.useState('');
   const [checking, setChecking] = React.useState(false);
   const [quantity, setQuantity] = React.useState(1);
+  const [showMaxQuantityWarning, setShowMaxQuantityWarning] = React.useState(false);
   const { addItem } = useCart();
   const { toast } = useToast();
   const router = useRouter();
-
+  
+  const maxQuantity = product.maxQuantityPerOrder || product.stock;
 
   const handleQuantityChange = (amount: number) => {
-    setQuantity(prev => {
-        const newQuantity = prev + amount;
-        const maxQty = product.maxQuantityPerOrder || product.stock;
-        if (newQuantity < 1) return 1;
-        if (newQuantity > maxQty) return maxQty;
-        return newQuantity;
-    });
+    const newQuantity = quantity + amount;
+
+    if (newQuantity < 1) {
+        setQuantity(1);
+        return;
+    }
+    
+    if (newQuantity > maxQuantity) {
+      setQuantity(maxQuantity);
+      setShowMaxQuantityWarning(true);
+    } else {
+      setQuantity(newQuantity);
+      setShowMaxQuantityWarning(false);
+    }
   };
 
   const handleAddToCart = () => {
@@ -102,7 +111,6 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
     );
   }
 
-  const maxQuantity = product.maxQuantityPerOrder || product.stock;
 
   return (
     <div className="space-y-6">
@@ -122,8 +130,10 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
                      <Button variant="outline" size="icon" onClick={() => handleQuantityChange(1)} disabled={quantity >= maxQuantity}>
                         <Plus className="h-4 w-4" />
                     </Button>
-                    <span className="text-sm text-muted-foreground">({maxQuantity} available)</span>
                 </div>
+                {showMaxQuantityWarning && (
+                    <p className="text-sm text-destructive">Max. order quantity is {maxQuantity}.</p>
+                )}
             </div>
         )}
 
