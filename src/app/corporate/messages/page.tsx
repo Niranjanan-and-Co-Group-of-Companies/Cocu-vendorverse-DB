@@ -10,10 +10,12 @@ import { useCorporateChat } from '@/hooks/use-corporate-chat-store';
 import { ChatSafetyDialog } from '@/components/corporate/messages/chat-safety-dialog';
 
 function CorporateMessagesPageContent() {
-    const { conversations, selectedConversation, selectConversation, isLoading, initiateNewConversation } = useCorporateChat();
+    const { conversations, selectedConversation, selectConversation, isLoading, initiateNewConversation, isReady } = useCorporateChat();
     const searchParams = useSearchParams();
 
     React.useEffect(() => {
+        if (!isReady) return; // Wait for store to be ready
+
         const vendorId = searchParams.get('vendorId');
         const productId = searchParams.get('productId');
         const productName = searchParams.get('productName');
@@ -29,7 +31,7 @@ function CorporateMessagesPageContent() {
                 vendorName,
             });
         }
-    }, [searchParams, initiateNewConversation]);
+    }, [searchParams, initiateNewConversation, isReady]);
 
 
   return (

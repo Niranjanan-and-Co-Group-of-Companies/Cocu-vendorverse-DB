@@ -3,6 +3,7 @@
 
 import { create } from 'zustand';
 import type { Product } from '@/lib/products';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 // This will be replaced by the actual service types later
 export interface Conversation {
@@ -38,6 +39,7 @@ interface CorporateChatState {
   conversations: Conversation[];
   selectedConversation: Conversation | null;
   isLoading: boolean;
+  isReady: boolean; // Add a ready state
   isSafetyNoticeOpen: boolean;
   newConversationInfo: NewConversationInfo | null;
   selectConversation: (conversation: Conversation) => void;
@@ -46,42 +48,79 @@ interface CorporateChatState {
   closeSafetyNotice: (shouldProceed: boolean) => void;
 }
 
-export const useCorporateChat = create<CorporateChatState>((set, get) => ({
-    conversations: [],
-    selectedConversation: null,
-    isLoading: true,
-    isSafetyNoticeOpen: false,
-    newConversationInfo: null,
-    
-    selectConversation: (conversation) => {
-        set({ selectedConversation: conversation });
-        // Later, this will also mark the conversation as read
-    },
-
-    openChat: (product) => {
-        set({ 
-            isSafetyNoticeOpen: true, 
-            newConversationInfo: {
-                vendorId: product.vendorId,
-                productId: String(product.id),
-                productName: product.name,
-                productImage: product.image,
-                vendorName: product.vendor,
-            }
-        });
-    },
-
-    initiateNewConversation: (info) => {
-        // This will be replaced by logic to find or create a conversation
-        console.log('Finding or creating conversation for:', info);
-        // For now, let's just log it.
-    },
-
-    closeSafetyNotice: (shouldProceed) => {
-        if (shouldProceed && get().newConversationInfo) {
-            const info = get().newConversationInfo!;
-            // The router logic will be handled inside the component
+export const useCorporateChat = create(
+    persist<CorporateChatState>(
+        (set, get) => ({
+            conversations: [],
+            selectedConversation: null,
+            isLoading: false, // Set to false initially
+            isReady: false,
+            isSafetyNoticeOpen: false,
+            newConversationInfo: null,
+            
+            selectConversation: (conversation) => {
+                set({ selectedConversation: conversation });
+            },
+        
+            openChat: (product) => {
+                set({ 
+                    isSafetyNoticeOpen: true, 
+                    newConversationInfo: {
+                        vendorId: product.vendorId,
+                        productId: String(product.id),
+                        productName: product.name,
+                        productImage: product.image,
+                        vendorName: product.vendor,
+                    }
+                });
+            },
+        
+            initiateNewConversation: (info) => {
+                const existingConversation = get().conversations.find(
+                    c => c.product.id === info.productId && c.vendor.id === info.vendorId
+                );
+        
+                if (existingConversation) {
+                    set({ selectedConversation: existingConversation });
+                } else {
+                    // Create a new placeholder conversation and add it to the list
+                    const newConversation: Conversation = {
+                        id: `conv_${info.productId}_${info.vendorId}`,
+                        product: {
+                            id: info.productId,
+                            name: info.productName,
+                            image: info.productImage,
+                        },
+                        vendor: {
+                            id: info.vendorId,
+                            name: info.vendorName,
+                        },
+                        lastMessage: { text: "Hi, I have a question about this product.", timestamp: new Date() },
+                        unreadCount: 0,
+                        status: 'Active',
+                        messageCount: 0,
+                        attachmentsCount: 0,
+                    };
+                    set(state => ({
+                        conversations: [newConversation, ...state.conversations],
+                        selectedConversation: newConversation,
+                    }));
+                }
+            },
+        
+            closeSafetyNotice: (shouldProceed) => {
+                if (shouldProceed && get().newConversationInfo) {
+                    // Logic is handled in the dialog component
+                }
+                set({ isSafetyNoticeOpen: false, newConversationInfo: null });
+            },
+        }),
+        {
+            name: 'corporate-chat-storage',
+            storage: createJSONStorage(() => localStorage),
+             onRehydrateStorage: () => (state) => {
+                if (state) state.isReady = true;
+            },
         }
-        set({ isSafetyNoticeOpen: false, newConversationInfo: null });
-    },
-}));
+    )
+);
