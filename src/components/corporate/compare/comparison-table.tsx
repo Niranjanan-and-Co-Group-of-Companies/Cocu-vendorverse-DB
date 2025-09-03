@@ -34,36 +34,49 @@ const featureRows: FeatureRow[] = [
 
 
 export function ComparisonTable({ products }: ComparisonTableProps) {
+  const gridCols = `grid-cols-[12rem_repeat(${products.length},_minmax(14rem,_1fr))]`;
+
   return (
     <ScrollArea className="w-full whitespace-nowrap rounded-lg border">
-      <div className="flex w-max">
-        {/* Header Column */}
-        <div className="w-48 sticky left-0 bg-background z-10 border-r">
-          <div className="h-[213px]"></div> {/* Spacer for header */}
-          {featureRows.map((feature, index) => (
-            <div key={index} className={cn("p-4 h-16 flex items-center font-semibold", index % 2 === 1 ? 'bg-muted/50' : 'bg-background' )}>
-              {feature.label}
+      <div className={cn("grid w-full", gridCols)}>
+        {/* Row 1: Product Headers */}
+        <div className="sticky left-0 bg-background z-10 border-r"></div>
+        {products.map(product => (
+            <div key={`header-${product.id}`} className="border-r">
+                <ComparisonTableHeader product={product} />
             </div>
-          ))}
-           <div className="h-[93px]"></div> {/* Spacer for actions */}
-        </div>
-
-        {/* Product Columns */}
-        {products.map((product) => (
-          <div key={product.id} className="w-56 border-r">
-            <ComparisonTableHeader product={product} />
-            <div className="border-t">
-              {featureRows.map((feature, index) => (
-                <div key={index} className={cn("p-4 h-16 flex items-center text-sm truncate", index % 2 === 1 ? 'bg-muted/50' : 'bg-background' )}>
-                  {feature.getValue(product)}
-                </div>
-              ))}
-            </div>
-            <div className="border-t">
-              <ComparisonTableActions product={product} />
-            </div>
-          </div>
         ))}
+        
+        {/* Feature Rows */}
+        {featureRows.map((feature, index) => (
+            <React.Fragment key={feature.label}>
+                {/* Feature Label Column */}
+                <div className={cn(
+                    "sticky left-0 bg-background z-10 p-4 h-16 flex items-center font-semibold border-r border-t",
+                    index % 2 === 1 ? 'bg-muted/50' : 'bg-background'
+                )}>
+                    {feature.label}
+                </div>
+                {/* Product Value Columns */}
+                {products.map(product => (
+                    <div key={`cell-${product.id}-${feature.label}`} className={cn(
+                        "p-4 h-16 flex items-center text-sm truncate border-r border-t",
+                        index % 2 === 1 ? 'bg-muted/50' : 'bg-background'
+                    )}>
+                        {feature.getValue(product)}
+                    </div>
+                ))}
+            </React.Fragment>
+        ))}
+
+        {/* Action Row */}
+        <div className="sticky left-0 bg-background z-10 border-r border-t"></div>
+        {products.map(product => (
+             <div key={`action-${product.id}`} className="border-r border-t">
+                <ComparisonTableActions product={product} />
+            </div>
+        ))}
+
       </div>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
