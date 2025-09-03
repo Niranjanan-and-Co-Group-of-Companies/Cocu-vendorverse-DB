@@ -162,6 +162,8 @@ export function TextElementComponent({ element, canvasRef }: TextElementComponen
                             stroke={element.outlineColor}
                             strokeWidth={element.outlineWidth}
                             letterSpacing="1"
+                            paintOrder="stroke"
+                            strokeLinejoin="round"
                         >
                             <textPath href={`#path-${element.id}`} startOffset="50%" textAnchor="middle">
                                 {element.content}
