@@ -12,6 +12,7 @@ import { AiImageTool } from './tools/ai-image-tool';
 import { UploadTool } from './tools/upload-tool';
 import { QrCodeTool } from './tools/qr-code-tool';
 import { ClipartTool } from './tools/clipart-tool';
+import { cn } from '@/lib/utils';
 
 
 interface StudioRightPanelProps {
@@ -19,36 +20,41 @@ interface StudioRightPanelProps {
 }
 
 export function StudioRightPanel({ product }: StudioRightPanelProps) {
+  const availableTools = [
+    { type: 'Text', icon: <Text />, content: <TextTool /> },
+    { type: 'AI Image', icon: <ImageIcon />, content: <AiImageTool /> },
+    { type: 'Image Upload', icon: <Upload />, content: <UploadTool /> },
+    { type: 'QR Code', icon: <QrCode />, content: <QrCodeTool /> },
+    { type: 'Clipart', icon: <Smile />, content: <ClipartTool /> },
+  ].filter(tool => product.allowedCustomizations?.includes(tool.type));
+
+  const gridCols = `grid-cols-${availableTools.length}`;
+  const defaultTab = availableTools.length > 0 ? availableTools[0].type.toLowerCase().replace(' ', '-') : '';
+
   return (
     <div className="h-full flex flex-col">
-        <Tabs defaultValue="text" className="h-full flex flex-col flex-grow overflow-hidden">
-            <div className="p-2">
-                <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="text"><Text /></TabsTrigger>
-                    <TabsTrigger value="ai-image"><ImageIcon /></TabsTrigger>
-                    <TabsTrigger value="upload"><Upload /></TabsTrigger>
-                    <TabsTrigger value="qr-code"><QrCode /></TabsTrigger>
-                    <TabsTrigger value="clipart"><Smile /></TabsTrigger>
-                </TabsList>
+        {availableTools.length > 0 ? (
+            <Tabs defaultValue={defaultTab} className="h-full flex flex-col flex-grow overflow-hidden">
+                <div className="p-2">
+                    <TabsList className={cn("grid w-full", gridCols)}>
+                        {availableTools.map(tool => (
+                            <TabsTrigger key={tool.type} value={tool.type.toLowerCase().replace(' ', '-')}>{tool.icon}</TabsTrigger>
+                        ))}
+                    </TabsList>
+                </div>
+                <ScrollArea className="flex-grow">
+                    {availableTools.map(tool => (
+                         <TabsContent key={tool.type} value={tool.type.toLowerCase().replace(' ', '-')} className="p-0 m-0">
+                            {tool.content}
+                        </TabsContent>
+                    ))}
+                </ScrollArea>
+            </Tabs>
+        ) : (
+            <div className="p-4 text-center text-muted-foreground">
+                This product does not have any customization options enabled.
             </div>
-            <ScrollArea className="flex-grow">
-                <TabsContent value="text" className="p-0 m-0">
-                    <TextTool />
-                </TabsContent>
-                <TabsContent value="ai-image" className="p-0 m-0">
-                    <AiImageTool />
-                </TabsContent>
-                <TabsContent value="upload" className="p-0 m-0">
-                    <UploadTool />
-                </TabsContent>
-                <TabsContent value="qr-code" className="p-0 m-0">
-                    <QrCodeTool />
-                </TabsContent>
-                <TabsContent value="clipart" className="p-0 m-0">
-                    <ClipartTool />
-                </TabsContent>
-            </ScrollArea>
-        </Tabs>
+        )}
         <div className="p-4 border-t mt-auto">
             <LayersPanel />
         </div>
