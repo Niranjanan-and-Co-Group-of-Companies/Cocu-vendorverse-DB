@@ -34,6 +34,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ListChecks,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -116,6 +117,11 @@ export function CorporateSidebar() {
                      <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/messages')} tooltip={{ children: 'Messages' }}>
                             <Link href="/vendor/corporate/messages"><MessageSquare /><span>Messages</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/accounts')} tooltip={{ children: 'Accounts' }}>
+                            <Link href="/corporate/accounts"><Users /><span>Accounts</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
