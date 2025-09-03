@@ -18,7 +18,7 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
   return (
     <>
       {/* Desktop View: 3-panel layout */}
-      <div className="hidden md:grid md:grid-cols-[280px_1fr_320px] h-[calc(100vh-8.5rem)] gap-4 p-4">
+      <div className="hidden md:grid md:grid-cols-[280px_1fr_320px] h-full gap-4 p-4">
         {/* Left Panel */}
         <div className="bg-card rounded-lg border h-full overflow-y-auto">
           <StudioLeftPanel product={product} />
@@ -36,7 +36,7 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
       </div>
 
       {/* Mobile View: Tabbed interface */}
-      <div className="md:hidden h-[calc(100vh-8.5rem)] flex flex-col">
+      <div className="md:hidden h-full flex flex-col">
         <Tabs defaultValue="canvas" className="flex-grow flex flex-col overflow-hidden">
            <TabsContent value="product" className="flex-grow overflow-y-auto p-4">
               <StudioLeftPanel product={product} />
