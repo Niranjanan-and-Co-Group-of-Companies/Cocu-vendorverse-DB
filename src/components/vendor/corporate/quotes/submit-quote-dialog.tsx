@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarIcon, Loader2, Download, Paperclip, Image as ImageIcon, FileText, AlertCircle } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
-import type { QuoteRequest } from '@/lib/quotes-service';
+import type { QuoteRequest, VendorQuote } from '@/lib/quotes-service';
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -33,7 +33,7 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
-    if (quoteRequest?.vendorQuote) {
+    if (quoteRequest?.vendorQuote?.estimatedCompletionDate) {
         setFinalPrice(quoteRequest.vendorQuote.finalPrice);
         setEstimatedCompletionDate(quoteRequest.vendorQuote.estimatedCompletionDate.toDate());
     } else {
