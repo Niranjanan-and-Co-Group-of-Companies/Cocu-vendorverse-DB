@@ -131,11 +131,11 @@ export function CorporateProductInteractions({ product, onTierChange }: Corporat
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={`${product.moq}-${product.price}`}>
-                  {product.moq}+ (Base Price)
+                  {product.moq}+ units ({product.price}/unit)
                 </SelectItem>
                 {product.tieredPricing.map(tier => (
                   <SelectItem key={tier.quantity} value={`${tier.quantity}-${tier.price}`}>
-                    {tier.quantity}+ units
+                    {tier.quantity}+ units ({tier.price}/unit)
                   </SelectItem>
                 ))}
               </SelectContent>
