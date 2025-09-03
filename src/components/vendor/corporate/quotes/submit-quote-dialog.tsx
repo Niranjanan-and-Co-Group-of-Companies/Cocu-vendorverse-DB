@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -15,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, Loader2, Download, Paperclip, Image as ImageIcon, FileText } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, Download, Paperclip, Image as ImageIcon, FileText, AlertCircle } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import type { QuoteRequest } from '@/lib/quotes-service';
 import { format } from 'date-fns';
@@ -122,6 +121,14 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
                             </Popover>
                         </div>
                     </div>
+                     <div className="flex-grow" />
+                     <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Timeline Commitment</AlertTitle>
+                        <AlertDescription>
+                          This date is a commitment to the customer. Delays may result in financial penalties or order cancellation.
+                        </AlertDescription>
+                    </Alert>
                      <DialogFooter className="mt-auto pt-4">
                         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
                         {!isReadOnly && (
