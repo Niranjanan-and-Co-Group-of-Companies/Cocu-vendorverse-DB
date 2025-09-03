@@ -4,13 +4,15 @@
 import * as React from 'react';
 import type { Product } from '@/lib/products';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Gavel, Scale, FileText, Brush } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ShoppingCart, Gavel, Scale, FileText, Brush, MessageSquare, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/use-cart';
 import { useBidRequest } from '@/hooks/use-bid-request';
 import { useComparison } from '@/hooks/use-comparison';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 interface CorporateProductInteractionsProps {
   product: Product;
@@ -21,6 +23,11 @@ export function CorporateProductInteractions({ product }: CorporateProductIntera
   const { addItem: addToCart } = useCart();
   const { addItem: addToBid, items: bidItems } = useBidRequest();
   const { addItem: addToCompare, removeItem: removeFromCompare, items: compareItems } = useComparison();
+  const router = useRouter();
+
+  const [pincode, setPincode] = React.useState('');
+  const [deliveryInfo, setDeliveryInfo] = React.useState('');
+  const [checking, setChecking] = React.useState(false);
   
   const isAddedToBid = bidItems.some((item) => item.id === product.id);
   const isInCompare = compareItems.some((item) => item.id === product.id);
@@ -32,6 +39,18 @@ export function CorporateProductInteractions({ product }: CorporateProductIntera
       description: result.message,
       variant: result.success ? 'default' : 'destructive',
     });
+  };
+
+  const handleBuyNow = () => {
+    const result = addToCart(product);
+    toast({
+      title: result.success ? 'Success' : 'Could Not Add to Cart',
+      description: result.message,
+      variant: result.success ? 'default' : 'destructive',
+    });
+    if (result.success) {
+      router.push('/corporate/cart');
+    }
   };
 
   const handleAddToBid = () => {
@@ -56,6 +75,18 @@ export function CorporateProductInteractions({ product }: CorporateProductIntera
     }
   };
 
+  const handleCheckDelivery = () => {
+    if (!pincode) return;
+    setChecking(true);
+    // Simulate API call
+    setTimeout(() => {
+        const deliveryDate = new Date();
+        deliveryDate.setDate(deliveryDate.getDate() + 5);
+        setDeliveryInfo(`Estimated delivery by ${deliveryDate.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })}.`);
+        setChecking(false);
+    }, 1000);
+  };
+
   const primaryAction = product.customizable ? (
     <Button asChild size="lg" className="w-full">
       <Link href={`/corporate/customize/${product.id}`}>
@@ -72,23 +103,65 @@ export function CorporateProductInteractions({ product }: CorporateProductIntera
     </Button>
   );
 
+  const renderActions = () => {
+    if (product.stock === 0) {
+      return (
+        <Button size="lg" className="w-full">
+            <Bell className="mr-2" />
+            Notify Me When Available
+        </Button>
+      );
+    }
+    return (
+      <>
+        {primaryAction}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Button size="lg" variant="secondary" onClick={handleAddToCart} className="w-full">
+              <ShoppingCart className="mr-2" />
+              Add to Cart
+            </Button>
+            <Button size="lg" variant="secondary" onClick={handleBuyNow} className="w-full">
+              Buy Now
+            </Button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Button size="lg" variant="outline" onClick={handleAddToBid} disabled={isAddedToBid} className="w-full">
+              <Gavel className="mr-2" />
+              {isAddedToBid ? 'Added to Bid' : 'Add to Bid'}
+            </Button>
+            <Button size="lg" variant="outline" onClick={handleToggleCompare} className={cn("w-full", isInCompare && "bg-accent")}>
+              <Scale className="mr-2" />
+              {isInCompare ? 'In Compare' : 'Compare'}
+            </Button>
+            <Button size="lg" variant="outline" className="w-full">
+              <MessageSquare className="mr-2" />
+              Message Vendor
+            </Button>
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      {primaryAction}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Button size="lg" variant="outline" onClick={handleAddToCart} className="w-full">
-          <ShoppingCart className="mr-2" />
-          Add to Cart
-        </Button>
-        <Button size="lg" variant="outline" onClick={handleAddToBid} disabled={isAddedToBid} className="w-full">
-          <Gavel className="mr-2" />
-          {isAddedToBid ? 'Added to Bid' : 'Add to Bid'}
-        </Button>
-        <Button size="lg" variant="outline" onClick={handleToggleCompare} className={cn("w-full", isInCompare && "bg-accent")}>
-          <Scale className="mr-2" />
-          {isInCompare ? 'In Compare' : 'Compare'}
-        </Button>
-      </div>
+      <div className="space-y-3">{renderActions()}</div>
+      
+      {product.stock > 0 && (
+        <div className="rounded-lg border p-4 space-y-3">
+            <h4 className="font-semibold">Check Delivery</h4>
+            <div className="flex gap-2">
+                <Input 
+                    placeholder="Enter Pincode" 
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value)}
+                />
+                <Button onClick={handleCheckDelivery} disabled={checking}>
+                    {checking ? 'Checking...' : 'Check'}
+                </Button>
+            </div>
+            {deliveryInfo && <p className="text-sm text-muted-foreground">{deliveryInfo}</p>}
+        </div>
+      )}
     </div>
   );
 }
