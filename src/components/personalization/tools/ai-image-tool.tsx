@@ -4,7 +4,6 @@
 import * as React from 'react';
 import { useCustomization } from '@/hooks/use-customization';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Loader2 } from 'lucide-react';
@@ -12,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateImage } from '@/ai/flows/generate-image-flow';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ImageUpload } from '@/components/common/image-upload';
 
 const STYLE_PRESETS = ['Minimalist', 'Cartoon', 'Photorealistic', 'Abstract'];
 
@@ -19,8 +19,18 @@ export function AiImageTool() {
   const { addElement } = useCustomization();
   const [prompt, setPrompt] = React.useState('');
   const [selectedStyle, setSelectedStyle] = React.useState<string | null>(null);
+  const [sourceImageFile, setSourceImageFile] = React.useState<File | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const { toast } = useToast();
+
+  const fileToDataUri = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+  }
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -29,8 +39,18 @@ export function AiImageTool() {
     }
 
     setIsGenerating(true);
+    let sourceImageUrl: string | undefined = undefined;
+
     try {
-      const result = await generateImage({ prompt, style: selectedStyle || undefined });
+        if(sourceImageFile) {
+            sourceImageUrl = await fileToDataUri(sourceImageFile);
+        }
+
+      const result = await generateImage({ 
+          prompt, 
+          style: selectedStyle || undefined,
+          sourceImageUrl
+      });
       
       addElement({
         type: 'ai-image',
@@ -53,16 +73,23 @@ export function AiImageTool() {
       setIsGenerating(false);
     }
   };
+  
+  const isGenerateDisabled = !prompt.trim() || isGenerating;
 
   return (
     <div className="p-4 space-y-4">
+       <div>
+        <Label>Source Image (Optional)</Label>
+         <ImageUpload onFileSelect={setSourceImageFile} />
+      </div>
+
       <div>
         <Label htmlFor="ai-prompt">Image Prompt</Label>
         <Textarea
           id="ai-prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="e.g., watercolor roses with pastel background"
+          placeholder="e.g., make this a cartoon, add a floral background..."
           rows={3}
           disabled={isGenerating}
         />
@@ -86,7 +113,7 @@ export function AiImageTool() {
         </div>
       </div>
 
-      <Button onClick={handleGenerate} className="w-full" disabled={isGenerating}>
+      <Button onClick={handleGenerate} className="w-full" disabled={isGenerateDisabled}>
         {isGenerating ? <Loader2 className="mr-2 animate-spin" /> : <Sparkles className="mr-2" />}
         {isGenerating ? 'Generating...' : 'Generate Image'}
       </Button>

@@ -14,6 +14,7 @@ import {googleAI} from '@genkit-ai/googleai';
 const GenerateImageInputSchema = z.object({
   prompt: z.string().describe('The text prompt to generate an image from.'),
   style: z.string().optional().describe('An optional style preset for the image.'),
+  sourceImageUrl: z.string().optional().describe("An optional source image as a data URI. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 export type GenerateImageInput = z.infer<typeof GenerateImageInputSchema>;
 
@@ -32,18 +33,39 @@ const generateImageFlow = ai.defineFlow(
     inputSchema: GenerateImageInputSchema,
     outputSchema: GenerateImageOutputSchema,
   },
-  async ({ prompt, style }) => {
-    const fullPrompt = `${prompt}${style ? `, in a ${style} style` : ''}`;
-    
-    const { media } = await ai.generate({
-      model: googleAI.model('imagen-4.0-fast-generate-001'),
-      prompt: fullPrompt,
-    });
+  async ({ prompt, style, sourceImageUrl }) => {
 
-    if (!media || !media.url) {
-        throw new Error('Image generation failed to produce an image.');
+    if (sourceImageUrl) {
+        // Image-to-Image generation
+        const { media } = await ai.generate({
+            model: googleAI.model('gemini-2.0-flash-preview-image-generation'),
+            prompt: [
+                { media: { url: sourceImageUrl } },
+                { text: `${prompt}${style ? `, in a ${style} style` : ''}` },
+            ],
+            config: {
+                responseModalities: ['TEXT', 'IMAGE'],
+            },
+        });
+        if (!media || !media.url) {
+            throw new Error('Image generation failed to produce an image.');
+        }
+        return { imageUrl: media.url };
+
+    } else {
+        // Text-to-Image generation
+        const fullPrompt = `${prompt}${style ? `, in a ${style} style` : ''}`;
+        
+        const { media } = await ai.generate({
+          model: googleAI.model('imagen-4.0-fast-generate-001'),
+          prompt: fullPrompt,
+        });
+
+        if (!media || !media.url) {
+            throw new Error('Image generation failed to produce an image.');
+        }
+        
+        return { imageUrl: media.url };
     }
-    
-    return { imageUrl: media.url };
   }
 );
