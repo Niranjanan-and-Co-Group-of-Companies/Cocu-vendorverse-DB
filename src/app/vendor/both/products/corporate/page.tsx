@@ -126,7 +126,7 @@ export default function CorporateVendorProductsPage() {
                     <p className="text-muted-foreground">Manage your B2B product catalog and tiered pricing.</p>
                 </div>
                 <Button asChild>
-                    <Link href="/vendor/corporate/products/new">
+                    <Link href="/vendor/both/products/corporate/new">
                         <PlusCircle className="mr-2" />
                         Add B2B Product
                     </Link>
