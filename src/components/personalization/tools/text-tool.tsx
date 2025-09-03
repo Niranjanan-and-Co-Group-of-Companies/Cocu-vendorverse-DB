@@ -10,6 +10,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { PlusCircle } from 'lucide-react';
 import type { TextElement } from '@/lib/customization';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const FONT_OPTIONS = [
+    { value: 'Arial, sans-serif', label: 'Arial' },
+    { value: 'Georgia, serif', label: 'Georgia' },
+    { value: '"Courier New", monospace', label: 'Courier New' },
+    { value: '"Brush Script MT", cursive', label: 'Brush Script' },
+    { value: 'Impact, sans-serif', label: 'Impact' },
+];
 
 export function TextTool() {
     const { addElement, updateElement, selectedElementId, elements } = useCustomization();
@@ -18,12 +27,14 @@ export function TextTool() {
     const [content, setContent] = React.useState('');
     const [fontSize, setFontSize] = React.useState(24);
     const [color, setColor] = React.useState('#000000');
+    const [fontFamily, setFontFamily] = React.useState(FONT_OPTIONS[0].value);
     
     React.useEffect(() => {
         if (selectedElement) {
             setContent(selectedElement.content);
             setFontSize(selectedElement.fontSize);
             setColor(selectedElement.color);
+            setFontFamily(selectedElement.fontFamily);
         }
     }, [selectedElementId, selectedElement]);
 
@@ -35,7 +46,7 @@ export function TextTool() {
             width: 200,
             height: 50,
             content: 'Your Text Here',
-            fontFamily: 'Arial',
+            fontFamily: FONT_OPTIONS[0].value,
             fontSize: 24,
             color: '#000000',
             textAlign: 'center',
@@ -69,6 +80,11 @@ export function TextTool() {
         setColor(e.target.value);
         handleUpdate('color', e.target.value);
     }
+    
+    const handleFontChange = (value: string) => {
+        setFontFamily(value);
+        handleUpdate('fontFamily', value);
+    }
 
 
     return (
@@ -88,6 +104,21 @@ export function TextTool() {
                                 onChange={handleContentChange}
                                 rows={3}
                             />
+                        </div>
+                        <div>
+                            <Label htmlFor="font-family">Font</Label>
+                            <Select value={fontFamily} onValueChange={handleFontChange}>
+                                <SelectTrigger id="font-family">
+                                    <SelectValue placeholder="Select a font" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {FONT_OPTIONS.map(font => (
+                                        <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                                            {font.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                              <div>
