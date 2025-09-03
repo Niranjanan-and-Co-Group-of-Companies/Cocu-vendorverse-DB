@@ -9,15 +9,17 @@ import { VendorInfoDialog } from './vendor-info-dialog';
 
 interface ProductInfoProps {
   product: Product;
-  displayPrice?: string;
+  displayPrice?: string | null;
+  totalPrice?: number | null;
+  quantity?: number;
 }
 
-export function ProductInfo({ product, displayPrice }: ProductInfoProps) {
+export function ProductInfo({ product, displayPrice, totalPrice, quantity }: ProductInfoProps) {
   const [isVendorInfoOpen, setIsVendorInfoOpen] = React.useState(false);
 
-  // Use the passed displayPrice if available, otherwise default to the product's base price.
-  const currentPrice = displayPrice || product.price;
-  const originalPrice = displayPrice && displayPrice !== product.price ? product.price : null; // Show original price if tiered price is active
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+
+  const showTotals = totalPrice && quantity && quantity >= (product.moq || 1);
 
   return (
     <>
@@ -50,10 +52,15 @@ export function ProductInfo({ product, displayPrice }: ProductInfoProps) {
             </div>
         </div>
         
-        <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-primary">{currentPrice}</span>
-            {originalPrice && (
-            <span className="text-xl text-muted-foreground line-through">{originalPrice}</span>
+        <div className="flex flex-col gap-2 rounded-lg border bg-muted/50 p-4">
+            <div className="flex items-baseline gap-3">
+                <span className="text-3xl font-bold text-primary">{displayPrice}</span>
+                <span className="text-muted-foreground">/ unit</span>
+            </div>
+             {showTotals && (
+                <div className="text-lg">
+                    Estimated Total for {quantity} units: <span className="font-bold">{formatCurrency(totalPrice)}</span>
+                </div>
             )}
         </div>
         </div>

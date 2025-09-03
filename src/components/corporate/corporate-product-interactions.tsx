@@ -13,15 +13,14 @@ import { useComparison } from '@/hooks/use-comparison';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Label } from '../ui/label';
+import { BulkPricingCalculator } from './bulk-pricing-calculator';
 
 interface CorporateProductInteractionsProps {
   product: Product;
-  onTierChange: (price: string) => void;
+  onPriceChange: (details: { unit: string; total: number; quantity: number }) => void;
 }
 
-export function CorporateProductInteractions({ product, onTierChange }: CorporateProductInteractionsProps) {
+export function CorporateProductInteractions({ product, onPriceChange }: CorporateProductInteractionsProps) {
   const { toast } = useToast();
   const { addItem: addToCart } = useCart();
   const { addItem: addToBid, items: bidItems } = useBidRequest();
@@ -90,11 +89,6 @@ export function CorporateProductInteractions({ product, onTierChange }: Corporat
     }, 1000);
   };
   
-  const handleTierChange = (value: string) => {
-    const price = value.split('-')[1];
-    onTierChange(price);
-  };
-
   const primaryAction = product.customizable ? (
     <Button asChild size="lg" className="w-full">
       <Link href={`/corporate/customize/${product.id}`}>
@@ -122,26 +116,8 @@ export function CorporateProductInteractions({ product, onTierChange }: Corporat
     }
     return (
       <>
-        {product.tieredPricing && product.tieredPricing.length > 0 && (
-          <div>
-            <Label htmlFor="quantity-tier">Select Quantity</Label>
-            <Select onValueChange={handleTierChange} defaultValue={`${product.moq}-${product.price}`}>
-              <SelectTrigger id="quantity-tier">
-                <SelectValue placeholder="Select quantity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={`${product.moq}-${product.price}`}>
-                  {product.moq}+ units ({product.price}/unit)
-                </SelectItem>
-                {product.tieredPricing.map(tier => (
-                  <SelectItem key={tier.quantity} value={`${tier.quantity}-${tier.price}`}>
-                    {tier.quantity}+ units ({tier.price}/unit)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        {product.moq && <BulkPricingCalculator product={product} onPriceChange={onPriceChange} />}
+
         {primaryAction}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button size="lg" variant="secondary" onClick={handleAddToCart} className="w-full">

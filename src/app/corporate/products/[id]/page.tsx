@@ -14,14 +14,20 @@ import { CorporateProductInteractions } from '@/components/corporate/corporate-p
 function ProductPageContent({ params }: { params: { id: string } }) {
     const [product, setProduct] = React.useState<Product | null>(null);
     const [loading, setLoading] = React.useState(true);
-    const [displayPrice, setDisplayPrice] = React.useState<string | undefined>(undefined);
+    const [quantity, setQuantity] = React.useState(1);
+    const [totalPrice, setTotalPrice] = React.useState<number | null>(null);
+    const [unitPrice, setUnitPrice] = React.useState<string | null>(null);
+
 
     React.useEffect(() => {
         if (params.id) {
             setLoading(true);
             const unsubscribe = onProductUpdate(params.id, (productData) => {
                 setProduct(productData);
-                setDisplayPrice(productData?.price);
+                if (productData) {
+                    setQuantity(productData.moq || 1);
+                    setUnitPrice(productData.price);
+                }
                 setLoading(false);
             });
             return () => unsubscribe();
@@ -71,8 +77,20 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                     videoUrl={product.videoUrl}
                 />
                 <div className="flex flex-col gap-6">
-                    <ProductInfo product={product} displayPrice={displayPrice} />
-                    <CorporateProductInteractions product={product} onTierChange={setDisplayPrice} />
+                    <ProductInfo
+                        product={product}
+                        displayPrice={unitPrice}
+                        totalPrice={totalPrice}
+                        quantity={quantity}
+                    />
+                    <CorporateProductInteractions 
+                        product={product} 
+                        onPriceChange={({unit, total, quantity}) => {
+                            setUnitPrice(unit);
+                            setTotalPrice(total);
+                            setQuantity(quantity);
+                        }}
+                    />
                 </div>
             </div>
             <div className="mt-12 lg:mt-20">
