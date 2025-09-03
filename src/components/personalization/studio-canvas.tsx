@@ -70,7 +70,7 @@ export function StudioCanvas({ product }: StudioCanvasProps) {
                             if (element.type === 'text') {
                                 return <TextElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
                             }
-                            if (element.type === 'ai-image' || element.type === 'image') {
+                            if (element.type === 'ai-image' || element.type === 'image' || element.type === 'clipart') {
                                 return <ImageElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
                             }
                              if (element.type === 'qr-code') {
