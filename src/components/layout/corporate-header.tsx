@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Gift, Briefcase, Building, LogOut, User, Menu, Heart, ShoppingCart, Scale } from 'lucide-react';
+import { Briefcase, LogOut, User } from 'lucide-react';
 import { Search } from '@/components/search/search';
 import {
     DropdownMenu,
@@ -17,16 +17,13 @@ import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { CorporateNotificationDropdown } from './corporate-notification-dropdown';
 import { SidebarTrigger } from '../ui/sidebar';
 import { Badge } from '../ui/badge';
-import { useCorporateWishlist } from '@/hooks/use-corporate-wishlist';
-import { useCorporateCart } from '@/hooks/use-corporate-cart';
-import { useComparison } from '@/hooks/use-comparison';
+import { CorporateCartPreview } from './previews/corporate-cart-preview';
+import { CorporateWishlistPreview } from './previews/corporate-wishlist-preview';
+import { CorporateComparePreview } from './previews/corporate-compare-preview';
+import { CorporateBidPreview } from './previews/corporate-bid-preview';
 
 
 export default function CorporateHeader() {
-  const { items: wishlistItems } = useCorporateWishlist();
-  const { items: cartItems } = useCorporateCart();
-  const { items: compareItems } = useComparison();
-
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -47,30 +44,11 @@ export default function CorporateHeader() {
 
         <nav className="ml-auto flex items-center gap-1">
            <CorporateNotificationDropdown />
-           <Button variant="ghost" size="icon" className="relative" asChild>
-                <Link href="/corporate/wishlist">
-                    <Heart />
-                     {wishlistItems.length > 0 && (
-                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{wishlistItems.length}</Badge>
-                    )}
-                </Link>
-           </Button>
-           <Button variant="ghost" size="icon" className="relative" asChild>
-                <Link href="/corporate/cart">
-                    <ShoppingCart />
-                     {cartItems.length > 0 && (
-                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{cartItems.length}</Badge>
-                    )}
-                </Link>
-           </Button>
-            <Button variant="ghost" size="icon" className="relative" asChild>
-                <Link href="/corporate/compare">
-                    <Scale />
-                     {compareItems.length > 0 && (
-                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{compareItems.length}</Badge>
-                    )}
-                </Link>
-           </Button>
+           <CorporateWishlistPreview />
+           <CorporateCartPreview />
+           <CorporateComparePreview />
+           <CorporateBidPreview />
+           
            <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
