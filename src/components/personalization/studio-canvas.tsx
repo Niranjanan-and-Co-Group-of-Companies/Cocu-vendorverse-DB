@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useCustomization } from '@/hooks/use-customization';
 import { TextElementComponent } from './elements/text-element-component';
 import { ImageElementComponent } from './elements/image-element-component';
+import { QrCodeElementComponent } from './elements/qr-code-element';
 import { cn } from '@/lib/utils';
 
 interface StudioCanvasProps {
@@ -72,7 +73,9 @@ export function StudioCanvas({ product }: StudioCanvasProps) {
                             if (element.type === 'ai-image' || element.type === 'image') {
                                 return <ImageElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
                             }
-                            // Add other element types here in the future
+                             if (element.type === 'qr-code') {
+                                return <QrCodeElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
+                            }
                             return null;
                         })}
                     </>

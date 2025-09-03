@@ -10,6 +10,7 @@ import { LayersPanel } from './tools/layers-panel';
 import { ScrollArea } from '../ui/scroll-area';
 import { AiImageTool } from './tools/ai-image-tool';
 import { UploadTool } from './tools/upload-tool';
+import { QrCodeTool } from './tools/qr-code-tool';
 
 
 interface StudioRightPanelProps {
@@ -39,9 +40,8 @@ export function StudioRightPanel({ product }: StudioRightPanelProps) {
                 <TabsContent value="upload" className="p-0 m-0">
                     <UploadTool />
                 </TabsContent>
-                <TabsContent value="qr-code" className="p-4">
-                    <h3 className="font-semibold">Add QR Code</h3>
-                    <p className="text-sm text-muted-foreground">QR Code tool coming soon.</p>
+                <TabsContent value="qr-code" className="p-0 m-0">
+                    <QrCodeTool />
                 </TabsContent>
                 <TabsContent value="clipart" className="p-4">
                     <h3 className="font-semibold">Add Clipart</h3>
