@@ -1,7 +1,11 @@
+
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Gift, Heart, ShoppingCart, User } from 'lucide-react';
+import { Gift, Heart, User } from 'lucide-react';
 import { Search } from '@/components/search/search';
+import { CartPreview } from './cart-preview';
 
 export default function Header() {
   return (
@@ -25,12 +29,7 @@ export default function Header() {
               <span className="sr-only">Wishlist</span>
             </Link>
           </Button>
-           <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart">
-              <ShoppingCart />
-              <span className="sr-only">Cart</span>
-            </Link>
-          </Button>
+           <CartPreview />
           <Button asChild>
             <Link href="/login">
               <User className="mr-2" />
