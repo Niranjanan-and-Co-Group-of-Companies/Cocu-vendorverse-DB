@@ -14,38 +14,32 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, Loader2, Download, Paperclip, Image as ImageIcon, FileText, Info } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, Download, Paperclip, Image as ImageIcon, FileText } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import type { QuoteRequest } from '@/lib/quotes-service';
-import { submitVendorQuote } from '@/lib/quotes-actions';
 import { format } from 'date-fns';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface SubmitQuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
   quoteRequest: QuoteRequest | null;
-  onSubmit: (data: { finalPrice: number, estimatedCompletionDate: Date, vendorNotes: string }) => void;
+  onSubmit: (data: { finalPrice: number, estimatedCompletionDate: Date }) => void;
 }
 
 export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: SubmitQuoteDialogProps) {
   const [finalPrice, setFinalPrice] = React.useState(0);
   const [estimatedCompletionDate, setEstimatedCompletionDate] = React.useState<Date | undefined>();
-  const [vendorNotes, setVendorNotes] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (quoteRequest?.vendorQuote) {
         setFinalPrice(quoteRequest.vendorQuote.finalPrice);
         setEstimatedCompletionDate(quoteRequest.vendorQuote.estimatedCompletionDate.toDate());
-        setVendorNotes(quoteRequest.vendorQuote.vendorNotes);
     } else {
         setFinalPrice(0);
         setEstimatedCompletionDate(undefined);
-        setVendorNotes('');
     }
   }, [quoteRequest]);
   
@@ -55,7 +49,7 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
     e.preventDefault();
     if (!estimatedCompletionDate || finalPrice <= 0) return;
     setIsSubmitting(true);
-    await onSubmit({ finalPrice, estimatedCompletionDate, vendorNotes });
+    await onSubmit({ finalPrice, estimatedCompletionDate });
     setIsSubmitting(false);
   };
   
@@ -71,7 +65,7 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh]">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Quote Request for: {quoteRequest.productName}</DialogTitle>
           <DialogDescription>
@@ -127,16 +121,6 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
                                 </PopoverContent>
                             </Popover>
                         </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="vendor-notes">Notes for Customer (Optional)</Label>
-                            <Textarea id="vendor-notes" value={vendorNotes} onChange={e => setVendorNotes(e.target.value)} rows={4} readOnly={isReadOnly} placeholder="e.g., Volume discount applied, includes premium packaging." />
-                        </div>
-                        <Alert variant="destructive">
-                            <Info className="h-4 w-4" />
-                            <AlertDescription>
-                                Do not share personal contact information (phone, email, etc.) in the notes. All communication must be handled through the platform.
-                            </AlertDescription>
-                        </Alert>
                     </div>
                      <DialogFooter className="mt-auto pt-4">
                         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
