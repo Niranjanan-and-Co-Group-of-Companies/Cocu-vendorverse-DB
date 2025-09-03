@@ -157,23 +157,27 @@ export default function Home() {
                   <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3">
                     <Card className="overflow-hidden group h-full flex flex-col">
                       <CardHeader className="p-0 relative">
-                        <div className="overflow-hidden aspect-[4/3]">
-                          {product.featured && <Badge className="absolute top-2 left-2 z-10">Featured</Badge>}
-                          <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
-                              <Heart className="h-4 w-4" />
-                              <span className="sr-only">Add to Wishlist</span>
-                            </Button>
-                          <Image
-                            src={product.image}
-                            alt={product.name}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            data-ai-hint="gift product"
-                          />
-                        </div>
+                        <Link href={`/products/${product.id}`} className="block w-full h-full">
+                            <div className="overflow-hidden aspect-[4/3]">
+                            {product.featured && <Badge className="absolute top-2 left-2 z-10">Featured</Badge>}
+                            <Image
+                                src={product.image}
+                                alt={product.name}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                data-ai-hint="gift product"
+                            />
+                            </div>
+                        </Link>
+                        <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
+                            <Heart className="h-4 w-4" />
+                            <span className="sr-only">Add to Wishlist</span>
+                        </Button>
                       </CardHeader>
                       <CardContent className="p-4 flex flex-col flex-grow">
-                         <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+                        <Link href={`/products/${product.id}`} className="block">
+                            <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+                        </Link>
                          {product.category && (
                             <Link href={`/category/${product.category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                                 {product.category}

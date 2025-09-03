@@ -141,24 +141,28 @@ export default function CorporateDashboardPage() {
                 <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
                   <Card className="overflow-hidden group h-full flex flex-col">
                     <CardHeader className="p-0 relative">
-                      <div className="overflow-hidden aspect-[4/3]">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          data-ai-hint="corporate gift"
-                        />
-                      </div>
+                      <Link href={`/corporate/products/${product.id}`} className="block">
+                        <div className="overflow-hidden aspect-[4/3]">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            data-ai-hint="corporate gift"
+                          />
+                        </div>
+                      </Link>
                     </CardHeader>
                     <CardContent className="p-4 flex flex-col flex-grow">
-                       <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+                        <Link href={`/corporate/products/${product.id}`} className="block">
+                            <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+                        </Link>
                        <p className="text-sm text-muted-foreground">by {product.vendor}</p>
                       <div className="flex-grow"></div>
                       <div className="flex items-end justify-between mt-4">
                         <p className="text-xl font-bold">{product.price}</p>
-                         <Button size="sm" variant="secondary" className="w-auto">
-                            View Product
+                         <Button asChild size="sm" variant="secondary">
+                            <Link href={`/corporate/products/${product.id}`}>View Product</Link>
                           </Button>
                       </div>
                     </CardContent>

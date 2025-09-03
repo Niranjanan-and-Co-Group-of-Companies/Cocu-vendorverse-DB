@@ -95,15 +95,17 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   return (
     <Card className="overflow-hidden group h-full flex flex-col">
       <div className="relative">
-        <div className="overflow-hidden aspect-[4/3] bg-muted">
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            data-ai-hint="corporate gift"
-          />
-        </div>
+        <Link href={`/corporate/products/${product.id}`} className="block">
+          <div className="overflow-hidden aspect-[4/3] bg-muted">
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              data-ai-hint="corporate gift"
+            />
+          </div>
+        </Link>
         {product.moq && (
           <Badge className="absolute top-2 left-2 z-10" variant="secondary">
             MOQ: {product.moq}
@@ -114,7 +116,9 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
       <CardContent className="p-4 flex flex-col flex-grow gap-3">
         <div>
           <p className="text-sm text-muted-foreground">{product.vendor}</p>
-          <h3 className="text-lg font-bold font-headline truncate">{product.name}</h3>
+          <Link href={`/corporate/products/${product.id}`} className="block">
+            <h3 className="text-lg font-bold font-headline truncate">{product.name}</h3>
+          </Link>
         </div>
 
         <div className="flex-grow"></div>
