@@ -114,12 +114,10 @@ function ProductPageContent({ params }: { params: { id: string } }) {
 }
 
 
-export default function CorporateProductPage({ params }: { params: Promise<{ id: string }> }) {
-    const resolvedParams = React.use(params);
-    
+export default function CorporateProductPage({ params }: { params: { id: string } }) {
     return (
         <main className="flex-grow">
-            <ProductPageContent params={resolvedParams} />
+            <ProductPageContent params={params} />
         </main>
     );
 }

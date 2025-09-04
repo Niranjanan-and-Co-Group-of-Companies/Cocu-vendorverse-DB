@@ -22,12 +22,10 @@ function BidDetailsPageContent({ params }: { params: { id: string } }) {
 }
 
 
-export default function BidDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-    const resolvedParams = React.use(params);
-    
+export default function BidDetailsPage({ params }: { params: { id: string } }) {
     return (
         <React.Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
-            <BidDetailsPageContent params={resolvedParams} />
+            <BidDetailsPageContent params={params} />
         </React.Suspense>
     );
 }

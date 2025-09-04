@@ -61,13 +61,11 @@ function CorporateCustomizePageContent({ params }: { params: { id: string } }) {
 }
 
 
-export default function CorporateCustomizePage({ params }: { params: Promise<{ id: string }> }) {
-    const resolvedParams = React.use(params);
-    
+export default function CorporateCustomizePage({ params }: { params: { id: string } }) {
     return (
         <main className="flex-grow h-full">
             <React.Suspense fallback={<p>Loading...</p>}>
-                <CorporateCustomizePageContent params={resolvedParams} />
+                <CorporateCustomizePageContent params={params} />
             </React.Suspense>
         </main>
     );

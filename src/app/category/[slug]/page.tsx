@@ -172,13 +172,12 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
 }
 
 
-export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = React.use(params);
+export default function CategoryPage({ params }: { params: { slug: string } }) {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
        <Suspense fallback={<div>Loading...</div>}>
-         <CategoryPageContent params={resolvedParams} />
+         <CategoryPageContent params={params} />
        </Suspense>
       <Footer />
     </div>
