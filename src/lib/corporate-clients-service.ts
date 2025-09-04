@@ -1,5 +1,5 @@
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, serverTimestamp, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export interface CorporateClient {
@@ -85,4 +85,15 @@ export async function addCorporateClient(client: Omit<CorporateClient, 'id' | 'c
         totalSpent: 0,
         createdAt: serverTimestamp()
     });
+}
+
+
+export async function updateCorporateClient(id: string, data: Partial<Omit<CorporateClient, 'id' | 'createdAt' | 'status' | 'totalSpent'>>) {
+    const clientRef = doc(db, 'corporateClients', id);
+    await updateDoc(clientRef, data);
+}
+
+export async function deleteCorporateClient(id: string) {
+    const clientRef = doc(db, 'corporateClients', id);
+    await deleteDoc(clientRef);
 }

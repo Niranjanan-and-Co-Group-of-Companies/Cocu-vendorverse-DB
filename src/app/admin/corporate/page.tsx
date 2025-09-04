@@ -22,7 +22,9 @@ import { ClientActions } from '@/components/admin/corporate/client-actions';
 export default function CorporatePage() {
     const [clients, setClients] = React.useState<CorporateClient[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [editingClient, setEditingClient] = React.useState<CorporateClient | null>(null);
     const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
+
 
     React.useEffect(() => {
         const unsubscribe = onCorporateClientsUpdate((data) => {
@@ -31,6 +33,11 @@ export default function CorporatePage() {
         });
         return () => unsubscribe();
     }, []);
+    
+    const handleEdit = (client: CorporateClient) => {
+        setEditingClient(client);
+        // The dialog will be opened by the action component, but we set the state here.
+    }
 
     const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
@@ -50,7 +57,7 @@ export default function CorporatePage() {
                 <h1 className="text-2xl font-bold">Manage Corporate Clients</h1>
                 <p className="text-muted-foreground">Here you can manage corporate accounts and campaigns.</p>
             </div>
-             <AddClientDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+             <AddClientDialog>
                 <Button>
                     <PlusCircle className="mr-2" />
                     Add Client
@@ -91,7 +98,9 @@ export default function CorporatePage() {
                                 </TableCell>
                                 <TableCell>{formatCurrency(client.totalSpent)}</TableCell>
                                 <TableCell className="text-right">
-                                    <ClientActions />
+                                    <AddClientDialog client={client}>
+                                        <ClientActions client={client} onEdit={() => {}} />
+                                    </AddClientDialog>
                                 </TableCell>
                             </TableRow>
                         ))}
