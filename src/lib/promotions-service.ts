@@ -51,7 +51,7 @@ export function onPromotionsUpdate(callback: (promotions: Promotion[]) => void):
             id: doc.id,
             ...doc.data()
         } as Promotion));
-        promotionsData.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+        promotionsData.sort((a, b) => (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0));
         callback(promotionsData);
     });
 
@@ -61,16 +61,6 @@ export function onPromotionsUpdate(callback: (promotions: Promotion[]) => void):
 // Add or update a promotion
 export async function savePromotion(promotion: Partial<Promotion>) {
     const { id, ...data } = promotion;
-
-    // Convert empty string usageLimit to null
-    if (data.usageLimit === '') {
-        data.usageLimit = null;
-    }
-    
-    if (data.expiresAt && typeof data.expiresAt === 'string') {
-        data.expiresAt = Timestamp.fromDate(new Date(data.expiresAt));
-    }
-
 
     if (id) {
         const docRef = doc(db, 'promotions', id);

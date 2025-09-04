@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { savePromotion, type Promotion, type PromotionPlatform, type PromotionType } from '@/lib/promotions-service';
 import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { format, toDate } from 'date-fns';
+import { Timestamp } from 'firebase/firestore';
 
 interface PromotionDialogProps {
   open: boolean;
@@ -27,21 +28,14 @@ interface PromotionDialogProps {
   promotion: Promotion | null;
 }
 
-export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDialogProps) {
-  const [formData, setFormData] = React.useState<Partial<Promotion>>({});
-  const [isSaving, setIsSaving] = React.useState(false);
-  const { toast } = useToast();
-
-  React.useEffect(() => {
+const getInitialFormData = (promotion: Promotion | null): Partial<Promotion> => {
     if (promotion) {
-      setFormData({
-        ...promotion,
-        // Convert Firestore Timestamp to Date object for the calendar if it exists
-        expiresAt: promotion.expiresAt?.toDate ? promotion.expiresAt.toDate() : undefined
-      });
-    } else {
-      // Default values for a new promotion
-      setFormData({
+        return {
+            ...promotion,
+            expiresAt: promotion.expiresAt?.toDate ? promotion.expiresAt.toDate() : undefined,
+        };
+    }
+    return {
         code: '',
         type: 'Percentage',
         value: 10,
@@ -49,11 +43,21 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
         status: 'Active',
         usageLimit: null,
         expiresAt: undefined,
-      });
+    };
+};
+
+export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDialogProps) {
+  const [formData, setFormData] = React.useState<Partial<Promotion>>(getInitialFormData(promotion));
+  const [isSaving, setIsSaving] = React.useState(false);
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (open) {
+      setFormData(getInitialFormData(promotion));
     }
   }, [promotion, open]);
 
-  const handleChange = (field: keyof Promotion, value: string | number | null | PromotionPlatform | PromotionType) => {
+  const handleChange = (field: keyof Promotion, value: string | number | null | Date | undefined | PromotionPlatform | PromotionType) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -63,8 +67,19 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
         return;
     }
     setIsSaving(true);
+    
+    // Prepare data for Firestore
+    const dataToSave: Partial<Promotion> = { ...formData };
+    if (dataToSave.usageLimit === '') {
+        dataToSave.usageLimit = null;
+    }
+    if (dataToSave.expiresAt) {
+        dataToSave.expiresAt = Timestamp.fromDate(new Date(dataToSave.expiresAt));
+    }
+
+
     try {
-        await savePromotion(formData);
+        await savePromotion(dataToSave);
         toast({ title: "Promotion Saved", description: `"${formData.code}" has been successfully saved.` });
         onOpenChange(false);
     } catch (error) {
@@ -129,10 +144,10 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start text-left font-normal">
                                 <CalendarIcon className="mr-2" />
-                                {formData.expiresAt ? format(toDate(formData.expiresAt), "PPP") : <span>Pick a date</span>}
+                                {formData.expiresAt ? format(toDate(formData.expiresAt as any), "PPP") : <span>Pick a date</span>}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.expiresAt ? toDate(formData.expiresAt) : undefined} onSelect={(date) => handleChange('expiresAt', date)} initialFocus /></PopoverContent>
+                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.expiresAt ? toDate(formData.expiresAt as any) : undefined} onSelect={(date) => handleChange('expiresAt', date)} initialFocus /></PopoverContent>
                     </Popover>
                 </div>
             </div>
