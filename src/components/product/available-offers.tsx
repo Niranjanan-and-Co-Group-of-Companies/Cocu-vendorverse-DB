@@ -8,29 +8,30 @@ import { Badge } from '@/components/ui/badge';
 import { Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
-import { getCategoryByName } from '@/lib/categories-service';
-import type { Category } from '@/lib/categories-service';
 
 interface AvailableOffersProps {
-    categoryName?: string;
+    categoryId?: string;
     productId?: number;
 }
 
-export function AvailableOffers({ categoryName, productId }: AvailableOffersProps) {
+export function AvailableOffers({ categoryId, productId }: AvailableOffersProps) {
     const [offers, setOffers] = React.useState<Promotion[]>([]);
     const [loading, setLoading] = React.useState(true);
     const { toast } = useToast();
 
     React.useEffect(() => {
         async function fetchOffers() {
+            if (!categoryId && !productId) {
+                setLoading(false);
+                return;
+            }
             setLoading(true);
-            const category = await getCategoryByName(categoryName);
-            const availableOffers = await getAvailableOffers(category?.id, productId);
+            const availableOffers = await getAvailableOffers(categoryId, productId);
             setOffers(availableOffers);
             setLoading(false);
         }
         fetchOffers();
-    }, [categoryName, productId]);
+    }, [categoryId, productId]);
 
     const handleCopyCode = (code: string) => {
         navigator.clipboard.writeText(code);

@@ -13,11 +13,12 @@ import { CorporateProductInteractions } from '@/components/corporate/corporate-p
 import { AvailableOffers } from '@/components/product/available-offers';
 import { use } from 'react';
 import { getCategoryByName } from '@/lib/categories-service';
+import type { Category } from '@/lib/categories-service';
 
-function ProductPageContent({ params }: { params: Promise<{ id: string }> }) {
+function ProductPageContent({ params }: { params: { id: string } }) {
     const { id } = use(params);
     const [product, setProduct] = React.useState<Product | null>(null);
-    const [category, setCategory] = React.useState<any>(null);
+    const [category, setCategory] = React.useState<Category | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [quantity, setQuantity] = React.useState(1);
     const [totalPrice, setTotalPrice] = React.useState<number | null>(null);

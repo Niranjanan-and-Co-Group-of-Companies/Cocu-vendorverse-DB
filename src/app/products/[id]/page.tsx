@@ -14,17 +14,24 @@ import { RelatedProductsCarousel } from '@/components/product/related-products-c
 import { Skeleton } from '@/components/ui/skeleton';
 import { AvailableOffers } from '@/components/product/available-offers';
 import { use } from 'react';
+import { getCategoryByName } from '@/lib/categories-service';
+import type { Category } from '@/lib/categories-service';
 
 function ProductPageContent({ params }: { params: { id: string } }) {
     const { id } = params;
     const [product, setProduct] = React.useState<Product | null>(null);
+    const [category, setCategory] = React.useState<Category | null>(null);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
         if (id) {
             setLoading(true);
-            const unsubscribe = onProductUpdate(id, (productData) => {
+            const unsubscribe = onProductUpdate(id, async (productData) => {
                 setProduct(productData);
+                 if (productData?.category) {
+                    const categoryData = await getCategoryByName(productData.category);
+                    setCategory(categoryData);
+                }
                 setLoading(false);
             });
             return () => unsubscribe();
@@ -75,7 +82,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                 />
                 <div className="flex flex-col gap-6">
                     <ProductInfo product={product} />
-                    <AvailableOffers categoryName={product.category} productId={product.id} />
+                    <AvailableOffers categoryId={category?.id} productId={product.id} />
                     <ProductInteractions product={product} categoryName={product.category} />
                 </div>
             </div>
