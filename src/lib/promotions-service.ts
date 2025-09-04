@@ -1,4 +1,5 @@
 
+
 import { collection, onSnapshot, getDocs, writeBatch, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -114,7 +115,8 @@ export async function getAvailableOffers(category?: string, productId?: number):
         .filter(promo => {
             const hasStarted = !promo.startDate || promo.startDate.toDate() <= now;
             const hasNotExpired = !promo.expiresAt || promo.expiresAt.toDate() >= now;
-            return hasStarted && hasNotExpired;
+            const isUnderUsageLimit = !promo.usageLimit || promo.usageCount < promo.usageLimit;
+            return hasStarted && hasNotExpired && isUnderUsageLimit;
         });
         
     // Client-side filtering
