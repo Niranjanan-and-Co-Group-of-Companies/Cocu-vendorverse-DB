@@ -15,6 +15,8 @@ import { useBidRequest } from '@/hooks/use-bid-request';
 import { useComparison } from '@/hooks/use-comparison';
 import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useRouter } from 'next/navigation';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { Skeleton } from '../ui/skeleton';
 
 interface CorporateProductCardProps {
   product: Product;
@@ -27,6 +29,16 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   const { items: compareItems, addItem: addCompareItem, removeItem: removeCompareItem } = useComparison();
   const { items: cartItems, addItem: addCartItem } = useCorporateCart();
   const router = useRouter();
+  const [priceInfo, setPriceInfo] = React.useState<DisplayPrice | null>(null);
+  const [loadingPrice, setLoadingPrice] = React.useState(true);
+
+  React.useEffect(() => {
+    setLoadingPrice(true);
+    calculateDisplayPrice(product, 'corporate').then(info => {
+      setPriceInfo(info);
+      setLoadingPrice(false);
+    });
+  }, [product]);
 
   const isAddedToBid = bidItems.some((item) => item.id === product.id);
   const isInCompare = compareItems.some((item) => item.id === product.id);
@@ -75,6 +87,8 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
     }
   };
 
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+
 
   const primaryAction = product.customizable ? (
     <Button asChild className="w-full">
@@ -97,6 +111,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
       <div className="relative">
         <Link href={`/corporate/products/${product.id}`} className="block">
           <div className="overflow-hidden aspect-[4/3] bg-muted">
+            {priceInfo?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{priceInfo.discountText}</Badge>}
             <Image
               src={product.image}
               alt={product.name}
@@ -107,7 +122,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
           </div>
         </Link>
         {product.moq && (
-          <Badge className="absolute top-2 left-2 z-10" variant="secondary">
+          <Badge className="absolute top-2 right-2 z-10" variant="secondary">
             MOQ: {product.moq}
           </Badge>
         )}
@@ -120,6 +135,17 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
             <h3 className="text-lg font-bold font-headline truncate">{product.name}</h3>
           </Link>
         </div>
+
+        {loadingPrice ? <Skeleton className="h-6 w-1/2" /> : priceInfo ? (
+            <div className="flex flex-col">
+                <span className="text-xl font-bold">{formatCurrency(priceInfo.finalPrice)}</span>
+                {priceInfo.hasDiscount && (
+                    <span className="text-sm text-muted-foreground line-through">{formatCurrency(priceInfo.originalPrice)}</span>
+                )}
+            </div>
+        ) : (
+             <p className="text-xl font-bold">{product.price}</p>
+        )}
 
         <div className="flex-grow"></div>
 

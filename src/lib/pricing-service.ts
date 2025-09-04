@@ -5,7 +5,7 @@ import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/fi
 import { db } from './firebase';
 import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
-import type { Campaign, Promotion } from './marketing-service';
+import type { Promotion } from './promotions-service';
 
 export interface DisplayPrice {
     finalPrice: number;
@@ -80,7 +80,8 @@ export async function calculateDisplayPrice(product: Product, platform: 'persona
     let appliedPromotionId: string | undefined = undefined;
 
     const applicablePromotions = promotions.filter(promo => {
-        if (!promo.platform || (promo.platform !== 'Both' && promo.platform !== platform)) {
+        const platformName = platform === 'personal' ? 'Personalized' : 'Corporate';
+        if (!promo.platform || (promo.platform !== 'Both' && promo.platform !== platformName)) {
             return false;
         }
         if (promo.scope === 'All Products') return true;

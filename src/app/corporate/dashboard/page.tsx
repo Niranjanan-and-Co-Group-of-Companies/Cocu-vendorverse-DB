@@ -13,6 +13,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getFeaturedCorporateProducts, type FeaturedProduct } from '@/lib/featured-service';
 import { getCategories, type Category } from '@/lib/categories-service';
 import { getActiveCorporateCampaignByPlacement, type Campaign } from '@/lib/marketing-service';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import type { Product } from '@/lib/products';
+
+interface ProductWithPrice extends Product {
+    displayPrice?: DisplayPrice;
+}
 
 const HeroSection = () => {
   const [heroCampaign, setHeroCampaign] = useState<Campaign | null>();
@@ -101,8 +107,10 @@ const HeroSection = () => {
   )
 }
 
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+
 export default function CorporateDashboardPage() {
-  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<ProductWithPrice[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -113,7 +121,14 @@ export default function CorporateDashboardPage() {
         getFeaturedCorporateProducts(),
         getCategories(),
       ]);
-      setFeaturedProducts(featuredData);
+
+      const pricedProducts = await Promise.all(
+        featuredData.map(async (p) => ({
+          ...p,
+          displayPrice: await calculateDisplayPrice(p, 'corporate'),
+        }))
+      );
+      setFeaturedProducts(pricedProducts);
       setCategories(categoriesData);
       setLoading(false);
     };
@@ -143,6 +158,7 @@ export default function CorporateDashboardPage() {
                     <CardHeader className="p-0 relative">
                       <Link href={`/corporate/products/${product.id}`} className="block">
                         <div className="overflow-hidden aspect-[4/3]">
+                          {product.displayPrice?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>}
                           <Image
                             src={product.image}
                             alt={product.name}
@@ -160,7 +176,16 @@ export default function CorporateDashboardPage() {
                        <p className="text-sm text-muted-foreground">by {product.vendor}</p>
                       <div className="flex-grow"></div>
                       <div className="flex items-end justify-between mt-4">
-                        <p className="text-xl font-bold">{product.price}</p>
+                        {product.displayPrice ? (
+                            <div className="flex flex-col">
+                                <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
+                                {product.displayPrice.hasDiscount && (
+                                    <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
+                                )}
+                            </div>
+                        ) : (
+                            <p className="text-xl font-bold">{product.price}</p>
+                        )}
                          <Button asChild size="sm" variant="secondary">
                             <Link href={`/corporate/products/${product.id}`}>View Product</Link>
                           </Button>

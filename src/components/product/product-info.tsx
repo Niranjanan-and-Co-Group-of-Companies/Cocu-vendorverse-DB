@@ -9,6 +9,7 @@ import { VendorInfoDialog } from './vendor-info-dialog';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
+import { usePathname } from 'next/navigation';
 
 interface ProductInfoProps {
   product: Product;
@@ -21,13 +22,17 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
   const [isVendorInfoOpen, setIsVendorInfoOpen] = React.useState(false);
   const [priceInfo, setPriceInfo] = React.useState<DisplayPrice | null>(null);
   const [loadingPrice, setLoadingPrice] = React.useState(true);
+  const pathname = usePathname();
   
+  const platform = pathname.includes('/corporate') ? 'corporate' : 'personal';
+
   React.useEffect(() => {
-    calculateDisplayPrice(product).then(info => {
+    setLoadingPrice(true);
+    calculateDisplayPrice(product, platform).then(info => {
         setPriceInfo(info);
         setLoadingPrice(false);
     });
-  }, [product]);
+  }, [product, platform]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 

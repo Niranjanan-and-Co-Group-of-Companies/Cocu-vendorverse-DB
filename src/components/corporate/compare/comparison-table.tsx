@@ -9,32 +9,57 @@ import { ComparisonTableHeader } from './comparison-table-header';
 import { ComparisonTableActions } from './comparison-table-actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ComparisonTableProps {
   products: Product[];
 }
 
-interface FeatureRow {
-    label: string;
-    getValue: (product: Product) => React.ReactNode;
+interface ProductWithPrice extends Product {
+    displayPrice?: DisplayPrice;
 }
 
-const featureRows: FeatureRow[] = [
-    { label: "Price", getValue: (p) => <span className="font-bold text-primary">{p.price}</span> },
-    { label: "Rating", getValue: (p) => (
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+
+const featureRows = [
+    { 
+        label: "Price", 
+        getValue: (p: ProductWithPrice) => p.displayPrice ? (
+             <div className="flex flex-col">
+                <span className="font-bold text-primary">{formatCurrency(p.displayPrice.finalPrice)}</span>
+                {p.displayPrice.hasDiscount && <span className="text-xs text-muted-foreground line-through">{formatCurrency(p.displayPrice.originalPrice)}</span>}
+            </div>
+        ) : <Skeleton className="h-6 w-16" />
+    },
+    { label: "Rating", getValue: (p: Product) => (
         <div className="flex items-center gap-1">
             <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
             <span>{p.rating}</span>
         </div>
     )},
-    { label: "Min. Order Qty (MOQ)", getValue: (p) => p.moq || '1' },
-    { label: "Customizable", getValue: (p) => p.customizable ? <Check className="text-green-600"/> : <XIcon className="text-destructive"/> },
-    { label: "Category", getValue: (p) => p.category },
-    { label: "Vendor", getValue: (p) => p.vendor },
+    { label: "Min. Order Qty (MOQ)", getValue: (p: Product) => p.moq || '1' },
+    { label: "Customizable", getValue: (p: Product) => p.customizable ? <Check className="text-green-600"/> : <XIcon className="text-destructive"/> },
+    { label: "Category", getValue: (p: Product) => p.category },
+    { label: "Vendor", getValue: (p: Product) => p.vendor },
 ];
 
 
 export function ComparisonTable({ products }: ComparisonTableProps) {
+  const [productsWithPrices, setProductsWithPrices] = React.useState<ProductWithPrice[]>([]);
+
+  React.useEffect(() => {
+    const fetchPrices = async () => {
+        const pricedProducts = await Promise.all(
+            products.map(async p => ({
+                ...p,
+                displayPrice: await calculateDisplayPrice(p, 'corporate')
+            }))
+        );
+        setProductsWithPrices(pricedProducts);
+    }
+    fetchPrices();
+  }, [products]);
   
   return (
     <ScrollArea className="w-full whitespace-nowrap rounded-lg border">
@@ -42,7 +67,7 @@ export function ComparisonTable({ products }: ComparisonTableProps) {
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-48 sticky left-0 bg-background z-10">Product</TableHead>
-            {products.map(product => (
+            {productsWithPrices.map(product => (
                 <TableHead key={product.id} className="w-56">
                     <ComparisonTableHeader product={product} />
                 </TableHead>
@@ -53,7 +78,7 @@ export function ComparisonTable({ products }: ComparisonTableProps) {
           {featureRows.map((feature, index) => (
             <TableRow key={feature.label} className={cn(index % 2 === 1 && 'bg-muted/50')}>
                 <TableCell className="w-48 sticky left-0 bg-inherit z-10 font-semibold">{feature.label}</TableCell>
-                {products.map(product => (
+                {productsWithPrices.map(product => (
                     <TableCell key={`${product.id}-${feature.label}`} className="text-sm">
                         {feature.getValue(product)}
                     </TableCell>
@@ -62,7 +87,7 @@ export function ComparisonTable({ products }: ComparisonTableProps) {
           ))}
            <TableRow className={cn(featureRows.length % 2 === 1 && 'bg-muted/50', "hover:bg-transparent")}>
                 <TableCell className="w-48 sticky left-0 bg-inherit z-10 font-semibold">Actions</TableCell>
-                {products.map(product => (
+                {productsWithPrices.map(product => (
                     <TableCell key={`action-${product.id}`} className="text-sm">
                         <ComparisonTableActions product={product} />
                     </TableCell>
