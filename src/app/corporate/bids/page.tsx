@@ -119,7 +119,9 @@ export default function BidsPage() {
                                         </TableCell>
                                         <TableCell>{bid.vendorResponses.length} vendors</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="outline" size="sm">View Details</Button>
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={`/corporate/bids/${bid.id}`}>View Details</Link>
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
