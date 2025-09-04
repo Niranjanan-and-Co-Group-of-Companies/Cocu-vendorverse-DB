@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  LayoutDashboard,
   Package,
   Brush,
   MapPin,
@@ -27,21 +26,22 @@ import {
   FileText,
   Home,
   LogOut,
-  MessageSquare
+  Settings
 } from 'lucide-react';
 
 export function AccountSidebar() {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { setOpen } = useSidebar();
+    const tab = searchParams.get('tab');
 
-    const isActive = (path: string) => {
-        if (path === '/account' && pathname === path) {
-            return true;
+    const isActive = (path: string, isTab: boolean = false) => {
+        if (isTab) {
+            // For tabs, we check if we are on the base /account page and if the tab matches
+            return pathname === '/account' && tab === path;
         }
-        if (path !== '/account' && pathname.startsWith(path)) {
-            return true;
-        }
-        return false;
+        // For separate pages, we check the pathname
+        return pathname.startsWith(path);
     };
 
     return (
@@ -50,7 +50,7 @@ export function AccountSidebar() {
               <SidebarHeader className="items-center gap-4">
                 <Avatar className="size-8">
                     <AvatarImage src="https://i.pravatar.cc/100?u=customer" alt="Customer" data-ai-hint="avatar" />
-                    <AvatarFallback>C</AvatarFallback>
+                    <AvatarFallback>A</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col group-data-[state=collapsed]:hidden">
                     <span className="text-base font-semibold">Alex Doe</span>
@@ -60,43 +60,38 @@ export function AccountSidebar() {
               <SidebarContent>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/account')} tooltip={{ children: 'Dashboard' }}>
-                            <Link href="/account"><LayoutDashboard /><span>Dashboard</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('orders', true)} tooltip={{ children: 'My Orders' }}>
+                            <Link href="/account?tab=orders"><Package /><span>My Orders</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/account/orders')} tooltip={{ children: 'My Orders' }}>
-                            <Link href="/account/orders"><Package /><span>My Orders</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/account/designs')} tooltip={{ children: 'Saved Designs' }}>
-                            <Link href="/account/designs"><Brush /><span>Saved Designs</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('designs', true)} tooltip={{ children: 'Saved Designs' }}>
+                            <Link href="/account?tab=designs"><Brush /><span>Saved Designs</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/account/addresses')} tooltip={{ children: 'Addresses' }}>
-                            <Link href="/account/addresses"><MapPin /><span>Addresses</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('addresses', true)} tooltip={{ children: 'Addresses' }}>
+                            <Link href="/account?tab=addresses"><MapPin /><span>Addresses</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/account/payment-methods')} tooltip={{ children: 'Payment Methods' }}>
-                            <Link href="/account/payment-methods"><CreditCard /><span>Payment Methods</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('payment-methods', true)} tooltip={{ children: 'Payment Methods' }}>
+                            <Link href="/account?tab=payment-methods"><CreditCard /><span>Payment Methods</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/account/support')} tooltip={{ children: 'Support' }}>
-                            <Link href="/account/support"><LifeBuoy /><span>Support</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/account/settings')} tooltip={{ children: 'Profile Settings' }}>
-                            <Link href="/account/settings"><User /><span>Profile Settings</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('settings', true)} tooltip={{ children: 'Profile Settings' }}>
+                            <Link href="/account?tab=settings"><Settings /><span>Profile Settings</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/account/security')} tooltip={{ children: 'Security' }}>
                             <Link href="/account/security"><Shield /><span>Security</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/account/support')} tooltip={{ children: 'Support' }}>
+                            <Link href="/account/support"><LifeBuoy /><span>Support</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>

@@ -14,7 +14,7 @@ export default function AccountLayout({
     <SidebarProvider>
         <AccountSidebar />
         <SidebarInset>
-            <main className="flex-grow p-4 md:p-6 bg-muted/40 h-full overflow-y-auto">
+            <main className="flex-grow p-4 md:p-6 bg-muted/40 h-[calc(100vh-0px)] overflow-y-auto">
                 {children}
             </main>
         </SidebarInset>
