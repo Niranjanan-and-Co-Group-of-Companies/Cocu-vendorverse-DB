@@ -39,6 +39,7 @@ import {
   MessageSquare,
   Star,
   PackageCheck,
+  Percent,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
@@ -205,6 +206,14 @@ function AdminSidebar() {
                         <span>Marketing</span>
                         </Link>
                     </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive('/admin/promotion-engine')} tooltip={{ children: 'Promotion Engine' }}>
+                        <Link href="/admin/promotion-engine">
+                          <Percent />
+                          <span>Promotion Engine</span>
+                        </Link>
+                      </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={isActive('/admin/featured')} tooltip={{ children: 'Featured' }}>
