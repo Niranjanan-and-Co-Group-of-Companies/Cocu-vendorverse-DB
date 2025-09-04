@@ -255,14 +255,6 @@ function AdminSidebar() {
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/financials')} tooltip={{ children: 'Financials' }}>
-                        <Link href="/admin/financials">
-                        <DollarSign />
-                        <span>Financials</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
                      <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/support')} tooltip={{ children: 'Support' }}>
                         <Link href="/admin/support">
