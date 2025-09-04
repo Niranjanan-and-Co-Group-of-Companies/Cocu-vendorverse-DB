@@ -123,7 +123,8 @@ function AccountPageContent() {
                     <Skeleton className="h-5 w-1/2 mt-2" />
                  ) : (
                     <p className="text-muted-foreground mt-2">
-                        Welcome back, {user?.name || 'Valued Customer'}! Manage your orders, designs, and settings.
+                        {user ? 'Welcome back, ' : 'Welcome, '}
+                        {user?.name || 'Valued Customer'}! Manage your orders, designs, and settings.
                     </p>
                  )}
             </div>
