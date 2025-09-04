@@ -20,6 +20,8 @@ import { Heart, X } from 'lucide-react';
 import { useCorporateWishlist } from '@/hooks/use-corporate-wishlist';
 import { useToast } from '@/hooks/use-toast';
 
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+
 export function CorporateWishlistPreview() {
   const { items, removeItem } = useCorporateWishlist();
   const { toast } = useToast();
@@ -60,7 +62,16 @@ export function CorporateWishlistPreview() {
                                 <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
                                 <div className="flex-1 overflow-hidden">
                                     <p className="font-medium truncate">{item.name}</p>
-                                    <p className="text-sm font-semibold">{item.price}</p>
+                                    {item.displayPrice ? (
+                                        <div className="flex items-baseline gap-2">
+                                            <p className="text-sm font-semibold">{formatCurrency(item.displayPrice.finalPrice)}</p>
+                                            {item.displayPrice.hasDiscount && (
+                                                <p className="text-xs text-muted-foreground line-through">{formatCurrency(item.displayPrice.originalPrice)}</p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm font-semibold">{item.price}</p>
+                                    )}
                                 </div>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item.id)}>
                                     <X className="h-4 w-4" />

@@ -21,11 +21,13 @@ import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
 import { LoginDialog } from './login-dialog';
 
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+
 export function WishlistPreview() {
   const { items, removeItem } = useWishlist();
   const { toast } = useToast();
   // In a real app, this would come from an auth hook/context
-  const [isLoggedIn] = React.useState(false); 
+  const [isLoggedIn] = React.useState(true); 
   const [isLoginOpen, setIsLoginOpen] = React.useState(false);
 
 
@@ -76,7 +78,16 @@ export function WishlistPreview() {
                                 <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
                                 <div className="flex-1 overflow-hidden">
                                     <p className="font-medium truncate">{item.name}</p>
-                                    <p className="text-sm font-semibold">{item.price}</p>
+                                    {item.displayPrice ? (
+                                        <div className="flex items-baseline gap-2">
+                                            <p className="text-sm font-semibold">{formatCurrency(item.displayPrice.finalPrice)}</p>
+                                            {item.displayPrice.hasDiscount && (
+                                                <p className="text-xs text-muted-foreground line-through">{formatCurrency(item.displayPrice.originalPrice)}</p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm font-semibold">{item.price}</p>
+                                    )}
                                 </div>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item.id)}>
                                     <X className="h-4 w-4" />

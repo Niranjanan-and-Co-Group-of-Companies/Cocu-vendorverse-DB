@@ -4,10 +4,15 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+
+export interface WishlistItem extends Product {
+    displayPrice?: DisplayPrice;
+}
 
 interface WishlistState {
-  items: Product[];
-  addItem: (product: Product) => { success: boolean; message: string };
+  items: WishlistItem[];
+  addItem: (product: Product) => Promise<{ success: boolean; message: string }>;
   removeItem: (productId: number) => { success: boolean; message: string };
   isItemInWishlist: (productId: number) => boolean;
 }
@@ -16,7 +21,7 @@ export const useCorporateWishlist = create(
   persist<WishlistState>(
     (set, get) => ({
       items: [],
-      addItem: (product) => {
+      addItem: async (product) => {
         const currentItems = get().items;
         const existingItem = currentItems.find(item => item.id === product.id);
 
@@ -26,7 +31,8 @@ export const useCorporateWishlist = create(
           return { success: true, message: `"${product.name}" removed from your wishlist.` };
         } else {
           // Add item to wishlist
-          set({ items: [...currentItems, product] });
+          const displayPrice = await calculateDisplayPrice(product, 'corporate');
+          set({ items: [...currentItems, { ...product, displayPrice }] });
           return { success: true, message: `"${product.name}" added to your wishlist.` };
         }
       },
@@ -48,4 +54,3 @@ export const useCorporateWishlist = create(
     }
   )
 );
-

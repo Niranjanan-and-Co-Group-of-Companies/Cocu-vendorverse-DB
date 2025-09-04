@@ -4,12 +4,17 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+
+export interface ComparisonItem extends Product {
+    displayPrice?: DisplayPrice;
+}
 
 const MAX_COMPARE_ITEMS = 4;
 
 interface ComparisonState {
-  items: Product[];
-  addItem: (product: Product) => { success: boolean, message?: string, variant?: 'destructive' };
+  items: ComparisonItem[];
+  addItem: (product: Product) => Promise<{ success: boolean, message?: string, variant?: 'destructive' }>;
   removeItem: (productId: number) => { success: boolean, message?: string, variant?: 'destructive' };
   clearAll: () => void;
 }
@@ -18,7 +23,7 @@ export const useComparison = create(
   persist<ComparisonState>(
     (set, get) => ({
       items: [],
-      addItem: (product) => {
+      addItem: async (product) => {
         const currentItems = get().items;
 
         if (currentItems.length >= MAX_COMPARE_ITEMS) {
@@ -33,7 +38,9 @@ export const useComparison = create(
             return { success: false }; // Already in list, do nothing.
         }
 
-        set({ items: [...currentItems, product] });
+        const displayPrice = await calculateDisplayPrice(product, 'corporate');
+        set({ items: [...currentItems, { ...product, displayPrice }] });
+
         return {
             success: true,
             message: `"${product.name}" has been added to your comparison list.`
