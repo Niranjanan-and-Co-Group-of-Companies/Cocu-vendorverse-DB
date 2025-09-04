@@ -135,7 +135,7 @@ export default function PromotionEnginePage() {
                                 <TableCell>{promo.usageCount}{promo.usageLimit ? ` / ${promo.usageLimit}` : ''}</TableCell>
                                 <TableCell>{formatDate(promo.expiresAt)}</TableCell>
                                 <TableCell className="text-right">
-                                    <PromotionActions promotion={promo} onEdit={handleEdit} />
+                                    <PromotionActions promotion={promo} onEdit={() => handleEdit(promo)} />
                                 </TableCell>
                             </TableRow>
                         ))}
