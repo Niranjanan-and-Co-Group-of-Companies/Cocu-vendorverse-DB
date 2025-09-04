@@ -12,6 +12,7 @@ import { ProductInteractions } from '@/components/product/product-interactions';
 import { ProductDetailsAccordion } from '@/components/product/product-details-accordion';
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AvailableOffers } from '@/components/product/available-offers';
 
 function ProductPageContent({ params }: { params: { id: string } }) {
     const [product, setProduct] = React.useState<Product | null>(null);
@@ -72,6 +73,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                 />
                 <div className="flex flex-col gap-6">
                     <ProductInfo product={product} displayPrice={product.price} />
+                    <AvailableOffers category={product.category} productId={product.id} />
                     <ProductInteractions product={product} />
                 </div>
             </div>

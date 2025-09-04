@@ -22,6 +22,8 @@ import { savePromotion, type Promotion, type PromotionPlatform, type PromotionTy
 import { Calendar as CalendarIcon, Loader2, RefreshCw } from 'lucide-react';
 import { format, toDate } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 
 interface PromotionDialogProps {
   open: boolean;
@@ -46,6 +48,7 @@ const getInitialFormData = (promotion: Promotion | null): Partial<Promotion> => 
         usageLimit: null,
         expiresAt: undefined,
         maxDiscount: null,
+        isPublic: false,
     };
 };
 
@@ -180,6 +183,18 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                     <Label htmlFor="usageLimit">Usage Limit</Label>
                     <Input id="usageLimit" type="number" value={formData.usageLimit || ''} onChange={e => handleChange('usageLimit', e.target.value ? parseInt(e.target.value, 10) : null)} placeholder="Unlimited" />
                 </div>
+            </div>
+            <Separator />
+             <div className="flex items-center justify-between">
+                <div>
+                    <Label htmlFor="is-public" className="font-semibold">Publish Coupon Publicly</Label>
+                    <p className="text-xs text-muted-foreground">If enabled, this coupon will be visible on relevant product pages.</p>
+                </div>
+                <Switch
+                    id="is-public"
+                    checked={formData.isPublic}
+                    onCheckedChange={(checked) => handleChange('isPublic', checked)}
+                />
             </div>
         </div>
         <DialogFooter>
