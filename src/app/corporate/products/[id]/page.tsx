@@ -10,6 +10,7 @@ import { ProductDetailsAccordion } from '@/components/product/product-details-ac
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CorporateProductInteractions } from '@/components/corporate/corporate-product-interactions';
+import { AvailableOffers } from '@/components/product/available-offers';
 
 function ProductPageContent({ params }: { params: { id: string } }) {
     const [product, setProduct] = React.useState<Product | null>(null);
@@ -83,6 +84,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                         totalPrice={totalPrice}
                         quantity={quantity}
                     />
+                    <AvailableOffers category={product.category} productId={product.id} />
                     <CorporateProductInteractions 
                         product={product} 
                         onPriceChange={({unit, total, quantity}) => {
