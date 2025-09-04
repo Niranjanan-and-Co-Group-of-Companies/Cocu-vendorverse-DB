@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -24,11 +25,13 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import type { Bid } from '@/lib/bids-service';
+import type { Bid, VendorBid } from '@/lib/bids-service';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Flag, Trash2 } from 'lucide-react';
+import { Flag, Trash2, Loader2 } from 'lucide-react';
+import { calculateDisplayPriceFromQuote, type DisplayPrice } from '@/lib/pricing-service';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface BidDetailsDialogProps {
   open: boolean;
@@ -36,8 +39,33 @@ interface BidDetailsDialogProps {
   bid: Bid | null;
 }
 
+interface VendorResponseWithPrice extends VendorBid {
+    displayPrice?: DisplayPrice;
+}
+
+
 export function BidDetailsDialog({ open, onOpenChange, bid }: BidDetailsDialogProps) {
-  
+  const [vendorResponses, setVendorResponses] = React.useState<VendorResponseWithPrice[]>([]);
+  const [loadingPrices, setLoadingPrices] = React.useState(true);
+
+  React.useEffect(() => {
+    if (bid?.vendorResponses && bid.products.length > 0) {
+        setLoadingPrices(true);
+        const productInfo = { id: bid.products[0].id, category: bid.products[0].category };
+        
+        Promise.all(bid.vendorResponses.map(async (response) => {
+            const displayPrice = await calculateDisplayPriceFromQuote(response.pricePerUnit, productInfo);
+            return { ...response, displayPrice };
+        })).then(responsesWithPrices => {
+            setVendorResponses(responsesWithPrices);
+            setLoadingPrices(false);
+        });
+    } else {
+        setVendorResponses([]);
+        setLoadingPrices(false);
+    }
+  }, [bid]);
+
   if (!bid) return null;
 
   const formatDate = (dateString: string) => {
@@ -104,15 +132,34 @@ export function BidDetailsDialog({ open, onOpenChange, bid }: BidDetailsDialogPr
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Vendor</TableHead>
-                                    <TableHead>Price/Unit</TableHead>
+                                    <TableHead>Customer Price/Unit</TableHead>
                                     <TableHead>Delivery</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {bid.vendorResponses.length > 0 ? bid.vendorResponses.map(vr => (
+                                {loadingPrices ? (
+                                    Array.from({length: 3}).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : vendorResponses.length > 0 ? vendorResponses.map(vr => (
                                     <TableRow key={vr.vendorId}>
                                         <TableCell className="font-medium">{vr.vendorName}</TableCell>
-                                        <TableCell>{formatCurrency(vr.pricePerUnit)}</TableCell>
+                                        <TableCell>
+                                            {vr.displayPrice ? (
+                                                <div className="flex flex-col">
+                                                    <span className="font-semibold">{formatCurrency(vr.displayPrice.finalPrice)}</span>
+                                                    {vr.displayPrice.hasDiscount && (
+                                                        <span className="text-xs text-muted-foreground line-through">{formatCurrency(vr.displayPrice.originalPrice)}</span>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            )}
+                                        </TableCell>
                                         <TableCell>{vr.estimatedDeliveryDays} days</TableCell>
                                     </TableRow>
                                 )) : (

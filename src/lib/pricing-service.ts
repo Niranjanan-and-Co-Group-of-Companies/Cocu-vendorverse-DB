@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/firestore';
@@ -54,19 +55,21 @@ async function getActivePublicPromotions(): Promise<Promotion[]> {
     return activePromotionsCache;
 }
 
-
-export async function calculateDisplayPrice(product: Product, platform: 'personal' | 'corporate' = 'personal'): Promise<DisplayPrice> {
-    const basePrice = parseFloat(String(product.price).replace('$', ''));
-    if (isNaN(basePrice)) {
+async function calculateFinalPrice(
+    basePrice: number,
+    platform: 'personal' | 'corporate',
+    category: string | undefined,
+    productId: number | undefined
+): Promise<DisplayPrice> {
+     if (isNaN(basePrice)) {
          return { finalPrice: 0, originalPrice: 0, hasDiscount: false };
     }
 
     const rules = await getCommissionRules();
     const promotions = await getActivePublicPromotions();
     
-    // 1. Find the correct commission rule and calculate buffer
     const ruleType = platform === 'personal' ? 'personalized-retail' : 'corporate-bulk';
-    const rule = rules.find(r => r.categoryName === product.category && r.type === ruleType);
+    const rule = rules.find(r => r.categoryName === category && r.type === ruleType);
     
     let buffer = 0;
     if (rule) {
@@ -74,19 +77,18 @@ export async function calculateDisplayPrice(product: Product, platform: 'persona
     }
     const originalPrice = basePrice + buffer;
     
-    // 2. Find the best applicable promotion
     let bestDiscount = 0;
     let bestDiscountText = '';
     let appliedPromotionId: string | undefined = undefined;
 
+    const platformName = platform === 'personal' ? 'Personalized' : 'Corporate';
     const applicablePromotions = promotions.filter(promo => {
-        const platformName = platform === 'personal' ? 'Personalized' : 'Corporate';
-        if (!promo.platform || (promo.platform !== 'Both' && promo.platform !== platformName)) {
+        if (promo.platform !== 'Both' && promo.platform !== platformName) {
             return false;
         }
         if (promo.scope === 'All Products') return true;
-        if (promo.scope === 'Specific Categories' && promo.applicableCategoryIds?.includes(product.category || '')) return true;
-        if (promo.scope === 'Specific Products' && promo.applicableProductIds?.includes(String(product.id))) return true;
+        if (promo.scope === 'Specific Categories' && promo.applicableCategoryIds?.includes(category || '')) return true;
+        if (promo.scope === 'Specific Products' && productId && promo.applicableProductIds?.includes(String(productId))) return true;
         return false;
     });
 
@@ -112,10 +114,24 @@ export async function calculateDisplayPrice(product: Product, platform: 'persona
     const hasDiscount = bestDiscount > 0;
 
     return {
-        finalPrice: Math.max(0, finalPrice), // Ensure price doesn't go below zero
+        finalPrice: Math.max(0, finalPrice),
         originalPrice,
         hasDiscount,
         discountText: bestDiscountText,
         appliedPromotionId,
     };
+}
+
+
+export async function calculateDisplayPrice(product: Product, platform: 'personal' | 'corporate' = 'personal'): Promise<DisplayPrice> {
+    const basePrice = parseFloat(String(product.price).replace('$', ''));
+    return calculateFinalPrice(basePrice, platform, product.category, product.id);
+}
+
+export async function calculateDisplayPriceFromQuote(
+    quotedPrice: number,
+    product: Pick<Product, 'id' | 'category'>,
+    platform: 'personal' | 'corporate' = 'corporate'
+): Promise<DisplayPrice> {
+    return calculateFinalPrice(quotedPrice, platform, product.category, product.id);
 }

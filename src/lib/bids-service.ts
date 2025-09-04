@@ -20,7 +20,7 @@ export interface VendorBid {
 export interface Bid {
     id: string;
     customerId: string;
-    products: Pick<Product, 'id' | 'name' | 'image' | 'vendor' | 'vendorId'>[];
+    products: (Pick<Product, 'id' | 'name' | 'image' | 'vendor' | 'vendorId'> & { category?: string })[];
     quantity: number;
     status: BidStatus;
     dateCreated: any;
@@ -36,8 +36,8 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
     {
         customerId: 'corp-123',
         products: [
-            { id: 6, name: 'Custom Engraved Pen', image: 'https://picsum.photos/600/400?random=6', vendor: 'Signature Gifts', vendorId: 'vendor006' },
-            { id: 3, name: 'Handcrafted Leather Wallet', image: 'https://picsum.photos/600/400?random=3', vendor: 'Heritage Wares', vendorId: 'vendor003' },
+            { id: 6, name: 'Custom Engraved Pen', image: 'https://picsum.photos/600/400?random=6', vendor: 'Signature Gifts', vendorId: 'vendor006', category: "Office & Corporate" },
+            { id: 3, name: 'Handcrafted Leather Wallet', image: 'https://picsum.photos/600/400?random=3', vendor: 'Heritage Wares', vendorId: 'vendor003', category: "Fashion & Accessories" },
         ],
         quantity: 250,
         status: 'Active',
@@ -51,7 +51,7 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
     {
         customerId: 'corp-456',
         products: [
-            { id: 7, name: 'Smart Water Bottle', image: 'https://picsum.photos/600/400?random=7', vendor: 'Techie Gifts', vendorId: 'vendor007' },
+            { id: 7, name: 'Smart Water Bottle', image: 'https://picsum.photos/600/400?random=7', vendor: 'Techie Gifts', vendorId: 'vendor007', category: "Tech" },
         ],
         quantity: 500,
         status: 'Awarded',
@@ -66,7 +66,7 @@ const MOCK_BIDS: Omit<Bid, 'id'>[] = [
     {
         customerId: 'corp-789',
         products: [
-            { id: 4, name: 'Gourmet Coffee Collection', image: 'https://picsum.photos/600/400?random=4', vendor: 'The Daily Grind', vendorId: 'vendor004' },
+            { id: 4, name: 'Gourmet Coffee Collection', image: 'https://picsum.photos/600/400?random=4', vendor: 'The Daily Grind', vendorId: 'vendor004', category: "Food & Drink" },
         ],
         quantity: 100,
         status: 'Expired',
@@ -115,7 +115,7 @@ export function onBidsUpdate(callback: (bids: Bid[]) => void): () => void {
 
 // Create a new bid
 export async function createBid(data: {
-    products: Pick<Product, 'id' | 'name' | 'image' | 'vendor' | 'vendorId'>[];
+    products: (Pick<Product, 'id' | 'name' | 'image' | 'vendor' | 'vendorId'> & { category?: string })[];
     quantity: number;
     pincode: string;
     deliveryTimeline: string;

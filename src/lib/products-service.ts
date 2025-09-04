@@ -32,7 +32,7 @@ const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId'>[] = [
     creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.",
     category: "Food & Drink",
     customizationSides: { front: { image: 'https://picsum.photos/600/400?random=1', areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } },
-    allowedCustomizations: ['Text'],
+    allowedCustomizations: ['Text', 'Image Upload'],
     weight: 1,
     dimensions: { l: 8, w: 6, h: 2 },
     inventoryBuffer: 5,
