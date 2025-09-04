@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { getMockUser, type User } from '@/lib/user-service';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Component for Orders Tab
 function OrdersTab() {
@@ -103,14 +105,27 @@ function SettingsTab() {
 function AccountPageContent() {
     const searchParams = useSearchParams();
     const defaultTab = searchParams.get('tab') || 'dashboard';
+    const [user, setUser] = React.useState<User | null>(null);
+    const [loading, setLoading] = React.useState(true);
+    
+    React.useEffect(() => {
+        getMockUser().then(userData => {
+            setUser(userData);
+            setLoading(false);
+        });
+    }, []);
 
     return (
         <div className="flex flex-col gap-8">
              <div>
                 <h1 className="text-3xl font-bold font-headline">My Account</h1>
-                <p className="text-muted-foreground mt-2">
-                    Welcome back, Alex! Manage your orders, designs, and settings.
-                </p>
+                 {loading ? (
+                    <Skeleton className="h-5 w-1/2 mt-2" />
+                 ) : (
+                    <p className="text-muted-foreground mt-2">
+                        Welcome back, {user?.name || 'Valued Customer'}! Manage your orders, designs, and settings.
+                    </p>
+                 )}
             </div>
             <Tabs defaultValue={defaultTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-5">
