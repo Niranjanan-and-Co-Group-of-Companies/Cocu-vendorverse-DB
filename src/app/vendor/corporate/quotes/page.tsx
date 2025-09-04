@@ -24,8 +24,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { SubmitQuoteDialog } from '@/components/vendor/corporate/quotes/submit-quote-dialog';
+import { getProductById, type Product } from '@/lib/products-service';
 
 const VENDOR_ID = 'vendor001'; // In a real app, this comes from an auth context.
+
+type QuoteRequestWithProduct = QuoteRequest & { product?: Pick<Product, 'id' | 'category'>};
 
 function QuoteTable({ requests, isLoading, onSelectRequest }: { requests: QuoteRequest[], isLoading: boolean, onSelectRequest: (req: QuoteRequest) => void }) {
     return (
@@ -87,7 +90,7 @@ function QuoteTable({ requests, isLoading, onSelectRequest }: { requests: QuoteR
 export default function VendorQuotesPage() {
     const [quoteRequests, setQuoteRequests] = React.useState<QuoteRequest[]>([]);
     const [loading, setLoading] = React.useState(true);
-    const [selectedRequest, setSelectedRequest] = React.useState<QuoteRequest | null>(null);
+    const [selectedRequest, setSelectedRequest] = React.useState<QuoteRequestWithProduct | null>(null);
     const { toast } = useToast();
 
     React.useEffect(() => {
@@ -98,7 +101,16 @@ export default function VendorQuotesPage() {
         return () => unsubscribe();
     }, []);
 
-    const handleQuoteSubmit = async (quoteData: { finalPrice: number, estimatedCompletionDate: Date, vendorNotes: string }) => {
+    const handleSelectRequest = async (request: QuoteRequest) => {
+        const product = await getProductById(request.productId);
+        if(product) {
+            setSelectedRequest({ ...request, product: { id: product.id, category: product.category } });
+        } else {
+            toast({title: "Error", description: "Could not find the associated product.", variant: 'destructive'});
+        }
+    }
+
+    const handleQuoteSubmit = async (quoteData: { finalPrice: number, estimatedCompletionDate: Date, vendorNotes: string, product: Pick<Product, 'id' | 'category'> }) => {
         if (!selectedRequest) return;
         try {
             await submitVendorQuote(selectedRequest.id, quoteData);
@@ -125,10 +137,10 @@ export default function VendorQuotesPage() {
                     <TabsTrigger value="past">Past Quotes</TabsTrigger>
                 </TabsList>
                 <TabsContent value="active" className="mt-4">
-                    <QuoteTable requests={activeRequests} isLoading={loading} onSelectRequest={setSelectedRequest} />
+                    <QuoteTable requests={activeRequests} isLoading={loading} onSelectRequest={handleSelectRequest} />
                 </TabsContent>
                 <TabsContent value="past" className="mt-4">
-                     <QuoteTable requests={pastRequests} isLoading={loading} onSelectRequest={setSelectedRequest} />
+                     <QuoteTable requests={pastRequests} isLoading={loading} onSelectRequest={handleSelectRequest} />
                 </TabsContent>
             </Tabs>
             

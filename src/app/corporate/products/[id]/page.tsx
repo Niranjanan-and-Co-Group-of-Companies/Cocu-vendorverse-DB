@@ -11,9 +11,13 @@ import { RelatedProductsCarousel } from '@/components/product/related-products-c
 import { Skeleton } from '@/components/ui/skeleton';
 import { CorporateProductInteractions } from '@/components/corporate/corporate-product-interactions';
 import { AvailableOffers } from '@/components/product/available-offers';
+import { use } from 'react';
+import { getCategoryByName } from '@/lib/categories-service';
 
-function ProductPageContent({ params }: { params: { id: string } }) {
+function ProductPageContent({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const [product, setProduct] = React.useState<Product | null>(null);
+    const [category, setCategory] = React.useState<any>(null);
     const [loading, setLoading] = React.useState(true);
     const [quantity, setQuantity] = React.useState(1);
     const [totalPrice, setTotalPrice] = React.useState<number | null>(null);
@@ -21,11 +25,13 @@ function ProductPageContent({ params }: { params: { id: string } }) {
 
 
     React.useEffect(() => {
-        if (params.id) {
+        if (id) {
             setLoading(true);
-            const unsubscribe = onProductUpdate(params.id, (productData) => {
+            const unsubscribe = onProductUpdate(id, async (productData) => {
                 setProduct(productData);
                 if (productData) {
+                    const categoryData = await getCategoryByName(productData.category);
+                    setCategory(categoryData);
                     setQuantity(productData.moq || 1);
                     setUnitPrice(productData.price);
                 }
@@ -33,7 +39,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
             });
             return () => unsubscribe();
         }
-    }, [params.id]);
+    }, [id]);
 
     if (loading) {
         return (
@@ -84,7 +90,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                         totalPrice={totalPrice}
                         quantity={quantity}
                     />
-                    <AvailableOffers categoryName={product.category} productId={product.id} />
+                    <AvailableOffers categoryId={category?.id} productId={product.id} />
                     <CorporateProductInteractions 
                         product={product} 
                         onPriceChange={({unit, total, quantity}) => {
@@ -114,7 +120,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
 }
 
 
-export default function CorporateProductPage({ params }: { params: { id: string } }) {
+export default function CorporateProductPage({ params }: { params: Promise<{ id: string }> }) {
     return (
         <main className="flex-grow">
             <ProductPageContent params={params} />

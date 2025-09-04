@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { Flag, Trash2, Loader2 } from 'lucide-react';
 import { calculateDisplayPriceFromQuote, type DisplayPrice } from '@/lib/pricing-service';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getCategoryByName } from '@/lib/categories-service';
 
 interface BidDetailsDialogProps {
   open: boolean;
@@ -53,12 +54,14 @@ export function BidDetailsDialog({ open, onOpenChange, bid }: BidDetailsDialogPr
         setLoadingPrices(true);
         const productInfo = { id: bid.products[0].id, category: bid.products[0].category };
         
-        Promise.all(bid.vendorResponses.map(async (response) => {
-            const displayPrice = await calculateDisplayPriceFromQuote(response.pricePerUnit, productInfo);
-            return { ...response, displayPrice };
-        })).then(responsesWithPrices => {
-            setVendorResponses(responsesWithPrices);
-            setLoadingPrices(false);
+        getCategoryByName(productInfo.category).then(category => {
+            Promise.all(bid.vendorResponses.map(async (response) => {
+                const displayPrice = await calculateDisplayPriceFromQuote(response.pricePerUnit, productInfo, category ?? undefined);
+                return { ...response, displayPrice };
+            })).then(responsesWithPrices => {
+                setVendorResponses(responsesWithPrices);
+                setLoadingPrices(false);
+            });
         });
     } else {
         setVendorResponses([]);

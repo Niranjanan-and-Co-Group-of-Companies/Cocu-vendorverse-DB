@@ -7,8 +7,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { use } from 'react';
 
-function BidDetailsPageContent({ params }: { params: { id: string } }) {
+function BidDetailsPageContent({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     
     return (
         <div className="flex flex-col gap-6">
@@ -16,13 +18,13 @@ function BidDetailsPageContent({ params }: { params: { id: string } }) {
                 <ArrowLeft className="mr-2" />
                 Back to All Bids
             </Link>
-            <BidDetailsView bidId={params.id} />
+            <BidDetailsView bidId={id} />
         </div>
     );
 }
 
 
-export default function BidDetailsPage({ params }: { params: { id: string } }) {
+export default function BidDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     return (
         <React.Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
             <BidDetailsPageContent params={params} />

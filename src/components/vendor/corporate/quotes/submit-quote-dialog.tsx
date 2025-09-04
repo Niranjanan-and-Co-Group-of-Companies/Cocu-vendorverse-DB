@@ -20,12 +20,13 @@ import type { QuoteRequest, VendorQuote } from '@/lib/quotes-service';
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
+import type { Product } from '@/lib/products';
 
 interface SubmitQuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  quoteRequest: QuoteRequest | null;
-  onSubmit: (data: { finalPrice: number, estimatedCompletionDate: Date, vendorNotes: string }) => void;
+  quoteRequest: (QuoteRequest & { product?: Pick<Product, 'id'| 'category'> }) | null;
+  onSubmit: (data: { finalPrice: number, estimatedCompletionDate: Date, vendorNotes: string, product: Pick<Product, 'id'| 'category'> }) => void;
 }
 
 export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: SubmitQuoteDialogProps) {
@@ -55,9 +56,9 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!estimatedCompletionDate || finalPrice <= 0) return;
+    if (!estimatedCompletionDate || finalPrice <= 0 || !quoteRequest.product) return;
     setIsSubmitting(true);
-    await onSubmit({ finalPrice, estimatedCompletionDate, vendorNotes });
+    await onSubmit({ finalPrice, estimatedCompletionDate, vendorNotes, product: quoteRequest.product });
     setIsSubmitting(false);
   };
   

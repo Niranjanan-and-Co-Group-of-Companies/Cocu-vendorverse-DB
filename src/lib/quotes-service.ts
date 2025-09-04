@@ -4,6 +4,7 @@
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product } from './products';
+import type { DisplayPrice } from './pricing-service';
 
 // --- Data Types ---
 
@@ -30,6 +31,7 @@ export interface VendorQuote {
     estimatedCompletionDate: any; // Firestore Timestamp
     vendorNotes: string;
     respondedAt: any; // Firestore Timestamp
+    customerDisplayPrice: DisplayPrice;
 }
 
 
@@ -75,6 +77,11 @@ async function seedQuoteRequests() {
                 estimatedCompletionDate: serverTimestamp(),
                 vendorNotes: 'Volume discount applied. We will need a CSV with the dates and locations.',
                 respondedAt: serverTimestamp(),
+                customerDisplayPrice: {
+                    finalPrice: 5040, // Mock calculated price
+                    originalPrice: 5040,
+                    hasDiscount: false,
+                }
             }
         }
     ];

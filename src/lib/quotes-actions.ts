@@ -9,7 +9,7 @@ import { getCategoryByName } from './categories-service';
 import { calculateDisplayPriceFromQuote } from './pricing-service';
 
 
-export async function submitVendorQuote(requestId: string, quoteData: Omit<VendorQuote, 'respondedAt'> & { product: Pick<Product, 'id' | 'category'>}) {
+export async function submitVendorQuote(requestId: string, quoteData: Omit<VendorQuote, 'respondedAt' | 'customerDisplayPrice'> & { product: Pick<Product, 'id' | 'category'>}) {
     const requestRef = doc(db, 'quoteRequests', requestId);
 
     const category = await getCategoryByName(quoteData.product.category);
