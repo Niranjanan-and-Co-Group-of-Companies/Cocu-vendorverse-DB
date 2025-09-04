@@ -16,6 +16,7 @@ export interface Promotion {
     status: PromotionStatus;
     usageCount: number;
     usageLimit?: number | null;
+    startDate?: any; // Firestore Timestamp
     expiresAt?: any; // Firestore Timestamp
     createdAt: any; // Firestore Timestamp
     maxDiscount?: number | null;
@@ -26,10 +27,10 @@ export interface Promotion {
 }
 
 const MOCK_PROMOTIONS: Omit<Promotion, 'id' | 'createdAt'>[] = [
-    { code: 'SUMMER24', type: 'Percentage', value: 15, platform: 'Personalized', status: 'Active', usageCount: 152, expiresAt: new Date(2024, 7, 31), scope: 'All Products', isPublic: true },
-    { code: 'CORPWELCOME', type: 'Fixed Amount', value: 100, platform: 'Corporate', status: 'Active', usageCount: 890, usageLimit: 1000, scope: 'All Products', isPublic: false },
-    { code: 'FLASHFRIDAY', type: 'Percentage', value: 25, platform: 'Both', status: 'Expired', usageCount: 50, expiresAt: new Date(2024, 4, 17), scope: 'All Products', isPublic: true },
-    { code: 'LAUNCHGIFT', type: 'Fixed Amount', value: 200, platform: 'Both', status: 'Inactive', usageCount: 0, scope: 'Specific Categories', applicableCategoryIds: ['food-drink'], isPublic: false },
+    { code: 'SUMMER24', type: 'Percentage', value: 15, platform: 'Personalized', status: 'Active', usageCount: 152, startDate: new Date(2024, 5, 1), expiresAt: new Date(2024, 7, 31), scope: 'All Products', isPublic: true },
+    { code: 'CORPWELCOME', type: 'Fixed Amount', value: 100, platform: 'Corporate', status: 'Active', usageCount: 890, usageLimit: 1000, startDate: new Date(2024, 0, 1), scope: 'All Products', isPublic: false },
+    { code: 'FLASHFRIDAY', type: 'Percentage', value: 25, platform: 'Both', status: 'Expired', usageCount: 50, startDate: new Date(2024, 4, 17), expiresAt: new Date(2024, 4, 17), scope: 'All Products', isPublic: true },
+    { code: 'LAUNCHGIFT', type: 'Fixed Amount', value: 200, platform: 'Both', status: 'Inactive', usageCount: 0, startDate: new Date(2024, 6, 1), scope: 'Specific Categories', applicableCategoryIds: ['food-drink'], isPublic: false },
 ];
 
 async function seedPromotions() {
@@ -98,23 +99,23 @@ export async function getAvailableOffers(category?: string, productId?: number):
     if (!category && !productId) return [];
 
     const promotionsRef = collection(db, 'promotions');
-    const now = Timestamp.now();
+    const now = new Date();
 
-    // Base query for active, public promotions
     const q = query(
         promotionsRef,
         where('status', '==', 'Active'),
         where('isPublic', '==', true),
-        where('platform', 'in', ['Both', 'Personalized']),
-        // Note: Firestore does not support 'OR' queries on different fields.
-        // We will fetch all public promotions and filter client-side.
-        // For a large-scale app, this would be handled server-side or with a more complex data structure.
+        where('platform', 'in', ['Both', 'Personalized'])
     );
 
     const snapshot = await getDocs(q);
     const allPublicPromos = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() } as Promotion))
-        .filter(promo => !promo.expiresAt || promo.expiresAt.toDate() > new Date());
+        .filter(promo => {
+            const hasStarted = !promo.startDate || promo.startDate.toDate() <= now;
+            const hasNotExpired = !promo.expiresAt || promo.expiresAt.toDate() >= now;
+            return hasStarted && hasNotExpired;
+        });
         
     // Client-side filtering
     const applicablePromos = allPublicPromos.filter(promo => {

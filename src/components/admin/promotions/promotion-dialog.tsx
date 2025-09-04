@@ -40,6 +40,7 @@ const getInitialFormData = (promotion: Promotion | null): Partial<Promotion> => 
     if (promotion) {
         return {
             ...promotion,
+            startDate: promotion.startDate?.toDate ? promotion.startDate.toDate() : undefined,
             expiresAt: promotion.expiresAt?.toDate ? promotion.expiresAt.toDate() : undefined,
         };
     }
@@ -51,6 +52,7 @@ const getInitialFormData = (promotion: Promotion | null): Partial<Promotion> => 
         status: 'Active',
         scope: 'All Products',
         usageLimit: null,
+        startDate: new Date(),
         expiresAt: undefined,
         maxDiscount: null,
         isPublic: false,
@@ -115,6 +117,9 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
     const dataToSave: Partial<Promotion> = { ...formData };
     if (dataToSave.usageLimit === undefined || dataToSave.usageLimit === null || dataToSave.usageLimit === '') dataToSave.usageLimit = null;
     if (dataToSave.maxDiscount === undefined || dataToSave.maxDiscount === null || dataToSave.maxDiscount === '') dataToSave.maxDiscount = null;
+    if (dataToSave.startDate) {
+        dataToSave.startDate = Timestamp.fromDate(new Date(dataToSave.startDate as any));
+    }
     if (dataToSave.expiresAt) {
         dataToSave.expiresAt = Timestamp.fromDate(new Date(dataToSave.expiresAt as any));
     }
@@ -280,6 +285,18 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
+                        <Label htmlFor="startDate">Start Date</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                    <CalendarIcon className="mr-2" />
+                                    {formData.startDate ? format(toDate(formData.startDate as any), "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.startDate ? toDate(formData.startDate as any) : undefined} onSelect={(date) => handleChange('startDate', date)} initialFocus /></PopoverContent>
+                        </Popover>
+                    </div>
+                    <div className="space-y-2">
                         <Label htmlFor="expiresAt">Expiry Date (Optional)</Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -291,10 +308,10 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                             <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.expiresAt ? toDate(formData.expiresAt as any) : undefined} onSelect={(date) => handleChange('expiresAt', date)} initialFocus /></PopoverContent>
                         </Popover>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="usageLimit">Usage Limit</Label>
-                        <Input id="usageLimit" type="number" value={formData.usageLimit || ''} onChange={e => handleChange('usageLimit', e.target.value ? parseInt(e.target.value, 10) : null)} placeholder="Unlimited" />
-                    </div>
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="usageLimit">Usage Limit</Label>
+                    <Input id="usageLimit" type="number" value={formData.usageLimit || ''} onChange={e => handleChange('usageLimit', e.target.value ? parseInt(e.target.value, 10) : null)} placeholder="Unlimited" />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
