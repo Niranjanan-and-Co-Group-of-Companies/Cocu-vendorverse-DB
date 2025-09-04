@@ -27,7 +27,8 @@ export function OrderSummary() {
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
-      return total + parseFloat(item.price.replace('$', '')) * item.quantity;
+      const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
+      return total + price * item.quantity;
     }, 0);
   }, [items]);
 
@@ -45,16 +46,18 @@ export function OrderSummary() {
       <CardContent className="space-y-4">
         <ScrollArea className="h-48 pr-4">
             <div className="space-y-4">
-                {items.map(item => (
+                {items.map(item => {
+                  const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
+                  return (
                     <div key={item.id} className="flex items-center gap-4">
                         <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
                         <div className="flex-grow">
                             <p className="font-semibold">{item.name}</p>
                             <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                         </div>
-                        <p className="font-medium">{formatCurrency(parseFloat(item.price.replace('$', '')) * item.quantity)}</p>
+                        <p className="font-medium">{formatCurrency(price * item.quantity)}</p>
                     </div>
-                ))}
+                )})}
             </div>
         </ScrollArea>
         <Separator />

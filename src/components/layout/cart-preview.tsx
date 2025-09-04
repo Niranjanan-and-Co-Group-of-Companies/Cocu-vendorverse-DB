@@ -38,7 +38,8 @@ export function CartPreview() {
   }
 
   const subtotal = items.reduce((acc, item) => {
-    return acc + (parseFloat(item.price.replace('$', '')) * item.quantity);
+    const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
+    return acc + (price * item.quantity);
   }, 0);
 
   const formatCurrency = (value: number) => {
@@ -75,21 +76,24 @@ export function CartPreview() {
             <>
                 <ScrollArea className="h-64">
                     <div className="pr-2">
-                    {items.map(item => (
-                        <DropdownMenuItem key={item.id} asChild className="focus:bg-transparent">
-                            <Link href={`/products/${item.id}`} className="flex gap-3 w-full">
-                                <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
-                                <div className="flex-1 overflow-hidden">
-                                    <p className="font-medium truncate">{item.name}</p>
-                                    <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                                    <p className="text-sm font-semibold">{formatCurrency(parseFloat(item.price.replace('$', '')) * item.quantity)}</p>
-                                </div>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item.id, item.name)}>
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </DropdownMenuItem>
-                    ))}
+                    {items.map(item => {
+                        const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
+                        return (
+                            <DropdownMenuItem key={item.id} asChild className="focus:bg-transparent">
+                                <Link href={`/products/${item.id}`} className="flex gap-3 w-full">
+                                    <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
+                                    <div className="flex-1 overflow-hidden">
+                                        <p className="font-medium truncate">{item.name}</p>
+                                        <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                                        <p className="text-sm font-semibold">{formatCurrency(price * item.quantity)}</p>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item.id, item.name)}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                            </DropdownMenuItem>
+                        )
+                    })}
                     </div>
                 </ScrollArea>
                 <DropdownMenuSeparator />
@@ -101,7 +105,7 @@ export function CartPreview() {
                 </DropdownMenuItem>
                  <DropdownMenuFooter>
                     <Button asChild className="w-full">
-                        <Link href="/cart">View Cart & Checkout</Link>
+                        <Link href="/checkout">View Cart & Checkout</Link>
                     </Button>
                 </DropdownMenuFooter>
             </>

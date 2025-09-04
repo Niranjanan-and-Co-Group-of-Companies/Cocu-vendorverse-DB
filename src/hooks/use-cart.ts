@@ -4,14 +4,16 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 
 export interface CartItem extends Product {
   quantity: number;
+  displayPrice?: DisplayPrice;
 }
 
 interface CartState {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number) => { success: boolean; message: string };
+  addItem: (product: Product, quantity?: number) => Promise<{ success: boolean; message: string }>;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
@@ -21,7 +23,8 @@ export const useCart = create(
   persist<CartState>(
     (set, get) => ({
       items: [],
-      addItem: (product, quantity = 1) => {
+      addItem: async (product, quantity = 1) => {
+        const displayPrice = await calculateDisplayPrice(product, 'personal');
         const currentItems = get().items;
         const existingItem = currentItems.find(item => item.id === product.id);
 
@@ -29,12 +32,12 @@ export const useCart = create(
           const newQuantity = existingItem.quantity + quantity;
           set({
             items: currentItems.map(item =>
-              item.id === product.id ? { ...item, quantity: newQuantity } : item
+              item.id === product.id ? { ...item, quantity: newQuantity, displayPrice } : item
             ),
           });
           return { success: true, message: `Added ${quantity} more of "${product.name}" to your cart.` };
         } else {
-          set({ items: [...currentItems, { ...product, quantity: quantity }] });
+          set({ items: [...currentItems, { ...product, quantity: quantity, displayPrice }] });
           return { success: true, message: `"${product.name}" (x${quantity}) added to cart.` };
         }
       },

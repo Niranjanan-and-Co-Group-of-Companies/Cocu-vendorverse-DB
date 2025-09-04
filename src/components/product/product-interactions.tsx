@@ -48,17 +48,17 @@ export function ProductInteractions({ product }: ProductInteractionsProps) {
     }
   };
 
-  const handleAddToCart = () => {
-    addItem(product, quantity);
+  const handleAddToCart = async () => {
+    const result = await addItem(product, quantity);
     toast({
       title: 'Added to Cart',
-      description: `${quantity} x "${product.name}" added to your cart.`
+      description: result.message
     });
   };
 
-  const handleBuyNow = () => {
-    addItem(product, quantity);
-    router.push('/cart'); // Navigate to cart after adding
+  const handleBuyNow = async () => {
+    await addItem(product, quantity);
+    router.push('/checkout');
   };
 
   const handleWishlistToggle = () => {

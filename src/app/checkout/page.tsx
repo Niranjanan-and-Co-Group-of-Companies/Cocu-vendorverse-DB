@@ -13,7 +13,7 @@ import { ShippingAddress } from '@/components/checkout/shipping-address';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { PhoneVerificationDialog } from '@/components/checkout/phone-verification-dialog';
 
-// Mock user data, in a real app this would come from an auth context
+// In a real app this would come from an auth context
 const MOCK_USER = {
     isPhoneVerified: false,
 };
@@ -24,6 +24,8 @@ function CheckoutPageContent() {
     const [isVerificationOpen, setIsVerificationOpen] = React.useState(false);
 
     React.useEffect(() => {
+        // In a real app, you would check if the user is authenticated first.
+        // If not authenticated, you might redirect to login or show the login dialog.
         if (!isPhoneVerified) {
             setIsVerificationOpen(true);
         }
