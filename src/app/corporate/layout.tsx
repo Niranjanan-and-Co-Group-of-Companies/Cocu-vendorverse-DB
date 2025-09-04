@@ -18,10 +18,13 @@ export default function CorporateLayout({
     <SidebarProvider>
         <CorporateSidebar />
         <SidebarInset>
+          <div className="flex flex-col h-screen">
             <CorporateHeader />
-            <main className="flex-grow p-4 md:p-6 bg-muted/40 h-[calc(100vh-3.5rem)] overflow-y-auto">
+            <main className="flex-grow p-4 md:p-6 bg-muted/40 overflow-y-auto">
                 {children}
             </main>
+            <Footer />
+          </div>
         </SidebarInset>
         <GstVerificationDialog />
         <ChatSafetyDialog />
