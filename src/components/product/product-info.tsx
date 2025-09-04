@@ -6,6 +6,9 @@ import type { Product } from '@/lib/products';
 import { Star } from 'lucide-react';
 import Link from 'next/link';
 import { VendorInfoDialog } from './vendor-info-dialog';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { Skeleton } from '../ui/skeleton';
+import { Badge } from '../ui/badge';
 
 interface ProductInfoProps {
   product: Product;
@@ -14,8 +17,17 @@ interface ProductInfoProps {
   quantity?: number;
 }
 
-export function ProductInfo({ product, displayPrice, totalPrice, quantity }: ProductInfoProps) {
+export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps) {
   const [isVendorInfoOpen, setIsVendorInfoOpen] = React.useState(false);
+  const [priceInfo, setPriceInfo] = React.useState<DisplayPrice | null>(null);
+  const [loadingPrice, setLoadingPrice] = React.useState(true);
+  
+  React.useEffect(() => {
+    calculateDisplayPrice(product).then(info => {
+        setPriceInfo(info);
+        setLoadingPrice(false);
+    });
+  }, [product]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
@@ -53,10 +65,22 @@ export function ProductInfo({ product, displayPrice, totalPrice, quantity }: Pro
         </div>
         
         <div className="flex flex-col gap-2 rounded-lg border bg-muted/50 p-4">
-            <div className="flex items-baseline gap-3">
-                <span className="text-3xl font-bold text-primary">{displayPrice}</span>
-                <span className="text-muted-foreground">/ unit</span>
-            </div>
+            {loadingPrice ? (
+                <Skeleton className="h-10 w-1/2" />
+            ) : priceInfo ? (
+                <>
+                    <div className="flex items-baseline gap-3">
+                        <span className="text-3xl font-bold text-primary">{formatCurrency(priceInfo.finalPrice)}</span>
+                        {priceInfo.hasDiscount && (
+                            <span className="text-xl text-muted-foreground line-through">{formatCurrency(priceInfo.originalPrice)}</span>
+                        )}
+                         <span className="text-muted-foreground">/ unit</span>
+                    </div>
+                    {priceInfo.hasDiscount && (
+                        <Badge variant="destructive">{priceInfo.discountText}</Badge>
+                    )}
+                </>
+            ) : null }
              {showTotals && (
                 <div className="text-lg">
                     Estimated Total for {quantity} units: <span className="font-bold">{formatCurrency(totalPrice)}</span>

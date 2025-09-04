@@ -12,29 +12,47 @@ import { ShoppingCart } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { Badge } from '../ui/badge';
 
 interface RelatedProductsCarouselProps {
   category?: string;
   currentProductId?: number;
 }
 
+interface ProductWithPrice extends Product {
+    displayPrice: DisplayPrice;
+}
+
 export function RelatedProductsCarousel({ category, currentProductId }: RelatedProductsCarouselProps) {
-  const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
+  const [relatedProducts, setRelatedProducts] = React.useState<ProductWithPrice[]>([]);
   const [loading, setLoading] = React.useState(true);
   const pathname = usePathname();
 
   const basePath = pathname.includes('/corporate') ? '/corporate' : '';
 
   React.useEffect(() => {
-    if (category && currentProductId) {
-      getRelatedProducts(category, currentProductId).then(products => {
-        setRelatedProducts(products);
-        setLoading(false);
-      });
-    } else {
+    async function fetchAndPriceProducts() {
+        if (!category || currentProductId === undefined) {
+            setLoading(false);
+            return;
+        }
+
+        const products = await getRelatedProducts(category, currentProductId);
+        const pricedProducts = await Promise.all(
+            products.map(async (p) => ({
+                ...p,
+                displayPrice: await calculateDisplayPrice(p),
+            }))
+        );
+        setRelatedProducts(pricedProducts);
         setLoading(false);
     }
+    fetchAndPriceProducts();
   }, [category, currentProductId]);
+  
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+
 
   if (loading) {
     return (
@@ -70,6 +88,9 @@ export function RelatedProductsCarousel({ category, currentProductId }: RelatedP
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                         data-ai-hint="gift product"
                     />
+                    {product.displayPrice.hasDiscount && (
+                        <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>
+                    )}
                     </div>
                 </CardHeader>
                 <CardContent className="p-4 flex flex-col flex-grow">
@@ -77,10 +98,15 @@ export function RelatedProductsCarousel({ category, currentProductId }: RelatedP
                     <p className="text-sm text-muted-foreground">{product.vendor}</p>
                     <div className="flex-grow"></div>
                     <div className="flex items-end justify-between mt-4">
-                    <p className="text-xl font-bold">{product.price}</p>
-                    <Button size="icon" variant="secondary">
-                        <ShoppingCart className="h-5 w-5" />
-                    </Button>
+                        <div className="flex flex-col">
+                            <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
+                            {product.displayPrice.hasDiscount && (
+                                <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
+                            )}
+                        </div>
+                        <Button size="icon" variant="secondary">
+                            <ShoppingCart className="h-5 w-5" />
+                        </Button>
                     </div>
                 </CardContent>
                 </Card>
