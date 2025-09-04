@@ -15,11 +15,11 @@ import { useBidRequest } from '@/hooks/use-bid-request';
 import { useComparison } from '@/hooks/use-comparison';
 import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useRouter } from 'next/navigation';
-import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { type DisplayPrice } from '@/lib/pricing-service';
 import { Skeleton } from '../ui/skeleton';
 
 interface CorporateProductCardProps {
-  product: Product;
+  product: Product & { displayPrice: DisplayPrice };
   onAction: (actionName: string, productName: string) => void;
 }
 
@@ -29,16 +29,6 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   const { items: compareItems, addItem: addCompareItem, removeItem: removeCompareItem } = useComparison();
   const { items: cartItems, addItem: addCartItem } = useCorporateCart();
   const router = useRouter();
-  const [priceInfo, setPriceInfo] = React.useState<DisplayPrice | null>(null);
-  const [loadingPrice, setLoadingPrice] = React.useState(true);
-
-  React.useEffect(() => {
-    setLoadingPrice(true);
-    calculateDisplayPrice(product, 'corporate').then(info => {
-      setPriceInfo(info);
-      setLoadingPrice(false);
-    });
-  }, [product]);
 
   const isAddedToBid = bidItems.some((item) => item.id === product.id);
   const isInCompare = compareItems.some((item) => item.id === product.id);
@@ -65,8 +55,8 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
     }
   };
 
-  const handleToggleCompare = () => {
-    const result = isInCompare ? removeCompareItem(product.id) : addCompareItem(product);
+  const handleToggleCompare = async () => {
+    const result = isInCompare ? removeCompareItem(product.id) : await addCompareItem(product);
     if (result.message) {
       toast({
         title: result.success ? (isInCompare ? 'Removed from Compare' : 'Added to Compare') : 'Could Not Update Compare',
@@ -89,7 +79,6 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
-
   const primaryAction = product.customizable ? (
     <Button asChild className="w-full">
       <Link href={`/corporate/customize/${product.id}`}>
@@ -111,7 +100,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
       <div className="relative">
         <Link href={`/corporate/products/${product.id}`} className="block">
           <div className="overflow-hidden aspect-[4/3] bg-muted">
-            {priceInfo?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{priceInfo.discountText}</Badge>}
+            {product.displayPrice?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>}
             <Image
               src={product.image}
               alt={product.name}
@@ -136,11 +125,11 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
           </Link>
         </div>
 
-        {loadingPrice ? <Skeleton className="h-6 w-1/2" /> : priceInfo ? (
+        {product.displayPrice ? (
             <div className="flex flex-col">
-                <span className="text-xl font-bold">{formatCurrency(priceInfo.finalPrice)}</span>
-                {priceInfo.hasDiscount && (
-                    <span className="text-sm text-muted-foreground line-through">{formatCurrency(priceInfo.originalPrice)}</span>
+                <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
+                {product.displayPrice.hasDiscount && (
+                    <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
                 )}
             </div>
         ) : (

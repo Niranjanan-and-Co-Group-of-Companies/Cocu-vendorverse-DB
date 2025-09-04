@@ -8,10 +8,15 @@ import { CorporateProductCard } from '@/components/corporate/corporate-product-c
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+
+interface ProductWithPrice extends Product {
+    displayPrice: DisplayPrice;
+}
 
 export default function CorporateProductsPage() {
-  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = React.useState<Product[]>([]);
+  const [allProducts, setAllProducts] = React.useState<ProductWithPrice[]>([]);
+  const [filteredProducts, setFilteredProducts] = React.useState<ProductWithPrice[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [sortOption, setSortOption] = React.useState('rating-desc');
   const { toast } = useToast();
@@ -20,10 +25,17 @@ export default function CorporateProductsPage() {
     const fetchData = async () => {
       setLoading(true);
       const products = await getAllProducts();
-      // B2B products are defined as those having a Minimum Order Quantity (MOQ)
       const b2bProducts = products.filter(p => p.moq && p.moq > 0);
-      setAllProducts(b2bProducts);
-      setFilteredProducts(b2bProducts);
+
+      const pricedProducts = await Promise.all(
+        b2bProducts.map(async (p) => ({
+          ...p,
+          displayPrice: await calculateDisplayPrice(p, 'corporate'),
+        }))
+      );
+      
+      setAllProducts(pricedProducts);
+      setFilteredProducts(pricedProducts);
       setLoading(false);
     };
     fetchData();
@@ -38,10 +50,10 @@ export default function CorporateProductsPage() {
         results.sort((a, b) => b.rating - a.rating);
         break;
       case 'price-asc':
-        results.sort((a, b) => parseFloat(a.price.replace('$', '')) - parseFloat(b.price.replace('$', '')));
+        results.sort((a, b) => a.displayPrice.finalPrice - b.displayPrice.finalPrice);
         break;
       case 'price-desc':
-        results.sort((a, b) => parseFloat(b.price.replace('$', '')) - parseFloat(a.price.replace('$', '')));
+        results.sort((a, b) => b.displayPrice.finalPrice - a.displayPrice.finalPrice);
         break;
     }
 
