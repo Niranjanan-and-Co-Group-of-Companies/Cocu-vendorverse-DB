@@ -18,9 +18,9 @@ export default function CorporateLayout({
     <SidebarProvider>
         <CorporateSidebar />
         <SidebarInset>
-          <div className="flex flex-col h-screen">
+          <div className="flex flex-col min-h-screen">
             <CorporateHeader />
-            <main className="flex-grow p-4 md:p-6 bg-muted/40 overflow-y-auto">
+            <main className="flex-grow p-4 md:p-6 bg-muted/40">
                 {children}
             </main>
             <Footer />
