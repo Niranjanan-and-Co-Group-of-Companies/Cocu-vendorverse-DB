@@ -24,6 +24,9 @@ import { format, toDate } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { getCategories, type Category } from '@/lib/categories-service';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface PromotionDialogProps {
   open: boolean;
@@ -49,6 +52,8 @@ const getInitialFormData = (promotion: Promotion | null): Partial<Promotion> => 
         expiresAt: undefined,
         maxDiscount: null,
         isPublic: false,
+        applicableCategoryIds: [],
+        applicableProductIds: [],
     };
 };
 
@@ -56,16 +61,27 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
   const [formData, setFormData] = React.useState<Partial<Promotion>>(getInitialFormData(promotion));
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
+  const [allCategories, setAllCategories] = React.useState<Category[]>([]);
 
   React.useEffect(() => {
     if (open) {
       setFormData(getInitialFormData(promotion));
+      getCategories().then(setAllCategories);
     }
   }, [promotion, open]);
 
   const handleChange = (field: keyof Promotion, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+  
+  const handleCategorySelection = (categoryId: string, isSelected: boolean) => {
+    const currentIds = formData.applicableCategoryIds || [];
+    if (isSelected) {
+        handleChange('applicableCategoryIds', [...currentIds, categoryId]);
+    } else {
+        handleChange('applicableCategoryIds', currentIds.filter(id => id !== categoryId));
+    }
+  }
 
   const handleGenerateCode = () => {
     const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -83,7 +99,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
     if (dataToSave.usageLimit === '') dataToSave.usageLimit = null;
     if (dataToSave.maxDiscount === '') dataToSave.maxDiscount = null;
     if (dataToSave.expiresAt) {
-        dataToSave.expiresAt = Timestamp.fromDate(new Date(dataToSave.expiresAt));
+        dataToSave.expiresAt = Timestamp.fromDate(new Date(dataToSave.expiresAt as any));
     }
 
 
@@ -165,6 +181,27 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                     </Label>
                 </RadioGroup>
             </div>
+
+            {formData.scope === 'Specific Categories' && (
+                <div className="space-y-2 p-3 border rounded-md">
+                    <Label>Applicable Categories</Label>
+                    <ScrollArea className="h-32">
+                        <div className="space-y-2">
+                        {allCategories.map(cat => (
+                            <div key={cat.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                    id={`cat-${cat.id}`}
+                                    checked={formData.applicableCategoryIds?.includes(cat.id)}
+                                    onCheckedChange={(checked) => handleCategorySelection(cat.id, !!checked)}
+                                />
+                                <Label htmlFor={`cat-${cat.id}`} className="font-normal">{cat.name}</Label>
+                            </div>
+                        ))}
+                        </div>
+                    </ScrollArea>
+                </div>
+            )}
+
 
              <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
