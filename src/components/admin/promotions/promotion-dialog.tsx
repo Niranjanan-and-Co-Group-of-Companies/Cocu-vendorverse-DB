@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { savePromotion, type Promotion, type PromotionPlatform, type PromotionType, type PromotionScope } from '@/lib/promotions-service';
-import { Calendar as CalendarIcon, Loader2, RefreshCw } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, RefreshCw, X } from 'lucide-react';
 import { format, toDate } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import { Switch } from '@/components/ui/switch';
@@ -27,6 +27,8 @@ import { Separator } from '@/components/ui/separator';
 import { getCategories, type Category } from '@/lib/categories-service';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getAllProducts, type Product } from '@/lib/products-service';
+import Image from 'next/image';
 
 interface PromotionDialogProps {
   open: boolean;
@@ -62,11 +64,14 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
   const [allCategories, setAllCategories] = React.useState<Category[]>([]);
+  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+  const [productSearch, setProductSearch] = React.useState('');
 
   React.useEffect(() => {
     if (open) {
       setFormData(getInitialFormData(promotion));
       getCategories().then(setAllCategories);
+      getAllProducts().then(setAllProducts);
     }
   }, [promotion, open]);
 
@@ -82,6 +87,18 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
         handleChange('applicableCategoryIds', currentIds.filter(id => id !== categoryId));
     }
   }
+
+  const handleProductSelection = (product: Product) => {
+      const currentIds = formData.applicableProductIds || [];
+      handleChange('applicableProductIds', [...currentIds, String(product.id)]);
+      setProductSearch('');
+  };
+
+  const handleRemoveProduct = (productId: string) => {
+      const currentIds = formData.applicableProductIds || [];
+      handleChange('applicableProductIds', currentIds.filter(id => id !== productId));
+  };
+
 
   const handleGenerateCode = () => {
     const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -114,6 +131,21 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
         setIsSaving(false);
     }
   };
+
+    const productSearchResults = React.useMemo(() => {
+        if (!productSearch) return [];
+        const lowerCaseQuery = productSearch.toLowerCase();
+        const selectedIds = new Set(formData.applicableProductIds || []);
+        return allProducts
+            .filter(p => !selectedIds.has(String(p.id)) && p.name.toLowerCase().includes(lowerCaseQuery))
+            .slice(0, 5);
+    }, [productSearch, allProducts, formData.applicableProductIds]);
+
+    const selectedProductsForDisplay = React.useMemo(() => {
+      if (!formData.applicableProductIds) return [];
+      return allProducts.filter(p => formData.applicableProductIds?.includes(String(p.id)));
+    }, [formData.applicableProductIds, allProducts]);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -195,6 +227,48 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                                     onCheckedChange={(checked) => handleCategorySelection(cat.id, !!checked)}
                                 />
                                 <Label htmlFor={`cat-${cat.id}`} className="font-normal">{cat.name}</Label>
+                            </div>
+                        ))}
+                        </div>
+                    </ScrollArea>
+                </div>
+            )}
+            
+            {formData.scope === 'Specific Products' && (
+                <div className="space-y-2 p-3 border rounded-md">
+                    <Label>Applicable Products</Label>
+                    <div className="relative">
+                         <Input 
+                            placeholder="Search for products..."
+                            value={productSearch}
+                            onChange={e => setProductSearch(e.target.value)}
+                         />
+                         {productSearchResults.length > 0 && (
+                            <div className="absolute top-full mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md z-10">
+                                {productSearchResults.map(item => (
+                                    <div 
+                                        key={item.id} 
+                                        className="px-3 py-2 text-sm cursor-pointer hover:bg-accent flex items-center gap-2"
+                                        onClick={() => handleProductSelection(item)}
+                                    >
+                                        <Image src={item.image} alt={item.name} width={24} height={24} className="rounded-sm" />
+                                        <span>{item.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <ScrollArea className="h-32 mt-2">
+                        <div className="space-y-2">
+                         {selectedProductsForDisplay.map(product => (
+                            <div key={product.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <Image src={product.image} alt={product.name} width={24} height={24} className="rounded-sm" />
+                                    <p className="text-sm font-medium truncate">{product.name}</p>
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveProduct(String(product.id))}>
+                                    <X className="h-4 w-4 text-destructive"/>
+                                </Button>
                             </div>
                         ))}
                         </div>
