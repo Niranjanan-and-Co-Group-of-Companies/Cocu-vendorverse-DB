@@ -5,6 +5,7 @@ import { db } from './firebase';
 export type PromotionType = 'Percentage' | 'Fixed Amount';
 export type PromotionStatus = 'Active' | 'Inactive' | 'Expired';
 export type PromotionPlatform = 'Personalized' | 'Corporate' | 'Both';
+export type PromotionScope = 'All Products' | 'Specific Categories' | 'Specific Products';
 
 export interface Promotion {
     id: string;
@@ -17,13 +18,17 @@ export interface Promotion {
     usageLimit?: number | null;
     expiresAt?: any; // Firestore Timestamp
     createdAt: any; // Firestore Timestamp
+    maxDiscount?: number | null;
+    scope: PromotionScope;
+    applicableCategoryIds?: string[];
+    applicableProductIds?: string[];
 }
 
 const MOCK_PROMOTIONS: Omit<Promotion, 'id' | 'createdAt'>[] = [
-    { code: 'SUMMER24', type: 'Percentage', value: 15, platform: 'Personalized', status: 'Active', usageCount: 152, expiresAt: new Date(2024, 7, 31) },
-    { code: 'CORPWELCOME', type: 'Fixed Amount', value: 100, platform: 'Corporate', status: 'Active', usageCount: 890, usageLimit: 1000 },
-    { code: 'FLASHFRIDAY', type: 'Percentage', value: 25, platform: 'Both', status: 'Expired', usageCount: 50, expiresAt: new Date(2024, 4, 17) },
-    { code: 'LAUNCHGIFT', type: 'Fixed Amount', value: 200, platform: 'Both', status: 'Inactive', usageCount: 0 },
+    { code: 'SUMMER24', type: 'Percentage', value: 15, platform: 'Personalized', status: 'Active', usageCount: 152, expiresAt: new Date(2024, 7, 31), scope: 'All Products' },
+    { code: 'CORPWELCOME', type: 'Fixed Amount', value: 100, platform: 'Corporate', status: 'Active', usageCount: 890, usageLimit: 1000, scope: 'All Products' },
+    { code: 'FLASHFRIDAY', type: 'Percentage', value: 25, platform: 'Both', status: 'Expired', usageCount: 50, expiresAt: new Date(2024, 4, 17), scope: 'All Products' },
+    { code: 'LAUNCHGIFT', type: 'Fixed Amount', value: 200, platform: 'Both', status: 'Inactive', usageCount: 0, scope: 'Specific Categories', applicableCategoryIds: ['food-drink'] },
 ];
 
 async function seedPromotions() {
