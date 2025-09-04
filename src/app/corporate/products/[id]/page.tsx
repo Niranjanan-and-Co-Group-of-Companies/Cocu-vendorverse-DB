@@ -84,7 +84,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                         totalPrice={totalPrice}
                         quantity={quantity}
                     />
-                    <AvailableOffers category={product.category} productId={product.id} />
+                    <AvailableOffers categoryName={product.category} productId={product.id} />
                     <CorporateProductInteractions 
                         product={product} 
                         onPriceChange={({unit, total, quantity}) => {
@@ -99,7 +99,7 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                 <ProductDetailsAccordion
                     description={product.description || ''}
                     creatorStory={product.creatorStory || ''}
-                    category={product.category}
+                    categoryName={product.category}
                     platform='corporate'
                 />
             </div>

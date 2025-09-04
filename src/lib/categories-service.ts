@@ -105,6 +105,18 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
     return { id: docData.id, ...docData.data() } as Category;
 }
 
+export async function getCategoryByName(name?: string): Promise<Category | null> {
+    if (!name) return null;
+    const q = query(collection(db, 'categories'), where('name', '==', name));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return null;
+    }
+    const docData = snapshot.docs[0];
+    return { id: docData.id, ...docData.data() } as Category;
+}
+
+
 export async function getProductsByCategory(slug: string): Promise<Product[]> {
     const category = await getCategoryBySlug(slug);
     if (!category) {

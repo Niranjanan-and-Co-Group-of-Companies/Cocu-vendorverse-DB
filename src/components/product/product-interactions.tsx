@@ -15,9 +15,10 @@ import Link from 'next/link';
 
 interface ProductInteractionsProps {
   product: Product;
+  categoryName?: string;
 }
 
-export function ProductInteractions({ product }: ProductInteractionsProps) {
+export function ProductInteractions({ product, categoryName }: ProductInteractionsProps) {
   const [pincode, setPincode] = React.useState('');
   const [deliveryInfo, setDeliveryInfo] = React.useState('');
   const [checking, setChecking] = React.useState(false);

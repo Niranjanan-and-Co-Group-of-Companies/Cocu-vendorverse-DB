@@ -12,12 +12,12 @@ import {
 interface ProductDetailsAccordionProps {
   description: string;
   creatorStory: string;
-  category?: string;
+  categoryName?: string;
   platform: 'personal' | 'corporate';
 }
 
-export function ProductDetailsAccordion({ description, creatorStory, category, platform }: ProductDetailsAccordionProps) {
-  const showCreatorStory = creatorStory && platform === 'personal' && category === 'Made by Sunshine';
+export function ProductDetailsAccordion({ description, creatorStory, categoryName, platform }: ProductDetailsAccordionProps) {
+  const showCreatorStory = creatorStory && platform === 'personal' && categoryName === 'Made by Sunshine';
   
   return (
     <Accordion type="single" collapsible defaultValue="description" className="w-full">

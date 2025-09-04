@@ -72,16 +72,16 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                     videoUrl={product.videoUrl}
                 />
                 <div className="flex flex-col gap-6">
-                    <ProductInfo product={product} displayPrice={product.price} />
-                    <AvailableOffers category={product.category} productId={product.id} />
-                    <ProductInteractions product={product} />
+                    <ProductInfo product={product} />
+                    <AvailableOffers categoryName={product.category} productId={product.id} />
+                    <ProductInteractions product={product} categoryName={product.category} />
                 </div>
             </div>
             <div className="mt-12 lg:mt-20">
                 <ProductDetailsAccordion
                     description={product.description || ''}
                     creatorStory={product.creatorStory || ''}
-                    category={product.category}
+                    categoryName={product.category}
                     platform='personal'
                 />
             </div>

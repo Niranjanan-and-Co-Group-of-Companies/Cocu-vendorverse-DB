@@ -19,17 +19,19 @@ import { Calendar } from '@/components/ui/calendar';
 import type { QuoteRequest, VendorQuote } from '@/lib/quotes-service';
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
 
 interface SubmitQuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
   quoteRequest: QuoteRequest | null;
-  onSubmit: (data: { finalPrice: number, estimatedCompletionDate: Date }) => void;
+  onSubmit: (data: { finalPrice: number, estimatedCompletionDate: Date, vendorNotes: string }) => void;
 }
 
 export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: SubmitQuoteDialogProps) {
   const [finalPrice, setFinalPrice] = React.useState(0);
   const [estimatedCompletionDate, setEstimatedCompletionDate] = React.useState<Date | undefined>();
+  const [vendorNotes, setVendorNotes] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
@@ -42,6 +44,11 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
         setFinalPrice(0);
         setEstimatedCompletionDate(undefined);
     }
+    if (quoteRequest?.vendorQuote?.vendorNotes) {
+        setVendorNotes(quoteRequest.vendorQuote.vendorNotes);
+    } else {
+        setVendorNotes('');
+    }
   }, [quoteRequest]);
   
   if (!quoteRequest) return null;
@@ -50,7 +57,7 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
     e.preventDefault();
     if (!estimatedCompletionDate || finalPrice <= 0) return;
     setIsSubmitting(true);
-    await onSubmit({ finalPrice, estimatedCompletionDate });
+    await onSubmit({ finalPrice, estimatedCompletionDate, vendorNotes });
     setIsSubmitting(false);
   };
   
@@ -121,6 +128,10 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
                                 <Calendar mode="single" selected={estimatedCompletionDate} onSelect={setEstimatedCompletionDate} disabled={(date) => date < new Date() || isReadOnly} initialFocus />
                                 </PopoverContent>
                             </Popover>
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="vendor-notes">Notes for Customer (Optional)</Label>
+                            <Textarea id="vendor-notes" value={vendorNotes} onChange={e => setVendorNotes(e.target.value)} readOnly={isReadOnly} rows={3}/>
                         </div>
                     </div>
                      <div className="flex-grow" />

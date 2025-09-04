@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/firestore';
@@ -7,6 +6,7 @@ import { db } from './firebase';
 import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
 import type { Promotion } from './promotions-service';
+import type { Category } from './categories-service';
 
 export interface DisplayPrice {
     finalPrice: number;
@@ -58,7 +58,7 @@ async function getActivePublicPromotions(): Promise<Promotion[]> {
 async function calculateFinalPrice(
     basePrice: number,
     platform: 'personal' | 'corporate',
-    category: string | undefined,
+    category: Category | undefined,
     productId: number | undefined
 ): Promise<DisplayPrice> {
      if (isNaN(basePrice)) {
@@ -69,7 +69,7 @@ async function calculateFinalPrice(
     const promotions = await getActivePublicPromotions();
     
     const ruleType = platform === 'personal' ? 'personalized-retail' : 'corporate-bulk';
-    const rule = rules.find(r => r.categoryName === category && r.type === ruleType);
+    const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
     
     let buffer = 0;
     if (rule) {
@@ -87,7 +87,7 @@ async function calculateFinalPrice(
             return false;
         }
         if (promo.scope === 'All Products') return true;
-        if (promo.scope === 'Specific Categories' && promo.applicableCategoryIds?.includes(category || '')) return true;
+        if (promo.scope === 'Specific Categories' && category && promo.applicableCategoryIds?.includes(category.id)) return true;
         if (promo.scope === 'Specific Products' && productId && promo.applicableProductIds?.includes(String(productId))) return true;
         return false;
     });
@@ -123,15 +123,16 @@ async function calculateFinalPrice(
 }
 
 
-export async function calculateDisplayPrice(product: Product, platform: 'personal' | 'corporate' = 'personal'): Promise<DisplayPrice> {
+export async function calculateDisplayPrice(product: Product, platform: 'personal' | 'corporate' = 'personal', category?: Category): Promise<DisplayPrice> {
     const basePrice = parseFloat(String(product.price).replace('$', ''));
-    return calculateFinalPrice(basePrice, platform, product.category, product.id);
+    return calculateFinalPrice(basePrice, platform, category, product.id);
 }
 
 export async function calculateDisplayPriceFromQuote(
     quotedPrice: number,
     product: Pick<Product, 'id' | 'category'>,
+    category?: Category,
     platform: 'personal' | 'corporate' = 'corporate'
 ): Promise<DisplayPrice> {
-    return calculateFinalPrice(quotedPrice, platform, product.category, product.id);
+    return calculateFinalPrice(quotedPrice, platform, category, product.id);
 }

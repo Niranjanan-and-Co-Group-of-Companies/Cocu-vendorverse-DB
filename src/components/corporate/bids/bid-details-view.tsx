@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Award, FileText, Download } from 'lucide-react';
 import { calculateDisplayPriceFromQuote, type DisplayPrice } from '@/lib/pricing-service';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getCategoryByName } from '@/lib/categories-service';
+import type { Category } from '@/lib/categories-service';
 
 interface BidDetailsViewProps {
     bidId: string;
@@ -45,9 +47,11 @@ export function BidDetailsView({ bidId }: BidDetailsViewProps) {
 
                 if (bidData.vendorResponses && bidData.products.length > 0) {
                     const productInfo = { id: bidData.products[0].id, category: bidData.products[0].category };
+                    const category = await getCategoryByName(productInfo.category);
+                    
                     const responsesWithPrices = await Promise.all(
                         bidData.vendorResponses.map(async (response) => {
-                            const displayPrice = await calculateDisplayPriceFromQuote(response.pricePerUnit, productInfo);
+                            const displayPrice = await calculateDisplayPriceFromQuote(response.pricePerUnit, productInfo, category ?? undefined);
                             return { ...response, displayPrice };
                         })
                     );

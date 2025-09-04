@@ -7,6 +7,8 @@ import { Star } from 'lucide-react';
 import Link from 'next/link';
 import { VendorInfoDialog } from './vendor-info-dialog';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { getCategoryByName } from '@/lib/categories-service';
+import type { Category } from '@/lib/categories-service';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
 import { usePathname } from 'next/navigation';
@@ -27,11 +29,14 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
   const platform = pathname.includes('/corporate') ? 'corporate' : 'personal';
 
   React.useEffect(() => {
-    setLoadingPrice(true);
-    calculateDisplayPrice(product, platform).then(info => {
+    async function fetchPrice() {
+        setLoadingPrice(true);
+        const categoryData = await getCategoryByName(product.category);
+        const info = await calculateDisplayPrice(product, platform, categoryData ?? undefined);
         setPriceInfo(info);
         setLoadingPrice(false);
-    });
+    }
+    fetchPrice();
   }, [product, platform]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);

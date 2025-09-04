@@ -8,13 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
+import { getCategoryByName } from '@/lib/categories-service';
+import type { Category } from '@/lib/categories-service';
 
 interface AvailableOffersProps {
-    category?: string;
+    categoryName?: string;
     productId?: number;
 }
 
-export function AvailableOffers({ category, productId }: AvailableOffersProps) {
+export function AvailableOffers({ categoryName, productId }: AvailableOffersProps) {
     const [offers, setOffers] = React.useState<Promotion[]>([]);
     const [loading, setLoading] = React.useState(true);
     const { toast } = useToast();
@@ -22,12 +24,13 @@ export function AvailableOffers({ category, productId }: AvailableOffersProps) {
     React.useEffect(() => {
         async function fetchOffers() {
             setLoading(true);
-            const availableOffers = await getAvailableOffers(category, productId);
+            const category = await getCategoryByName(categoryName);
+            const availableOffers = await getAvailableOffers(category?.id, productId);
             setOffers(availableOffers);
             setLoading(false);
         }
         fetchOffers();
-    }, [category, productId]);
+    }, [categoryName, productId]);
 
     const handleCopyCode = (code: string) => {
         navigator.clipboard.writeText(code);
@@ -81,4 +84,3 @@ export function AvailableOffers({ category, productId }: AvailableOffersProps) {
         </div>
     );
 }
-
