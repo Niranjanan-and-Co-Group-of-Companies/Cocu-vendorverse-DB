@@ -5,110 +5,116 @@ import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/fi
 import { db } from './firebase';
 import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
-import type { Campaign } from './marketing-service';
+import type { Campaign, Promotion } from './marketing-service';
 
 export interface DisplayPrice {
     finalPrice: number;
     originalPrice: number;
     hasDiscount: boolean;
     discountText?: string;
-    appliedCampaignId?: string;
+    appliedPromotionId?: string;
 }
 
-// --- Cached Data ---
 // In a real high-traffic app, this would be a proper cache (e.g., Redis, Memcached)
 let commissionRulesCache: CommissionRule[] | null = null;
-let activeCampaignsCache: Campaign[] | null = null;
+let activePromotionsCache: Promotion[] | null = null;
 let cacheTimestamp: number | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 async function getCommissionRules(): Promise<CommissionRule[]> {
-    if (commissionRulesCache && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATION) {
+    const now = Date.now();
+    if (commissionRulesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION) {
         return commissionRulesCache;
     }
     const snapshot = await getDocs(collection(db, 'commissions'));
     commissionRulesCache = snapshot.docs.map(doc => doc.data() as CommissionRule);
-    cacheTimestamp = Date.now();
+    cacheTimestamp = now;
     return commissionRulesCache;
 }
 
-async function getActiveCampaigns(): Promise<Campaign[]> {
-     if (activeCampaignsCache && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATION) {
-        return activeCampaignsCache;
+async function getActivePublicPromotions(): Promise<Promotion[]> {
+    const now = Date.now();
+    if (activePromotionsCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION) {
+        return activePromotionsCache;
     }
-    const campaignsRef = collection(db, 'marketingCampaigns');
-    const now = Timestamp.now();
+    const promotionsRef = collection(db, 'promotions');
     const q = query(
-        campaignsRef,
+        promotionsRef,
         where('status', '==', 'Active'),
-        where('startDate', '<=', now)
+        where('isPublic', '==', true)
     );
 
     const snapshot = await getDocs(q);
-    const campaigns = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign))
-        .filter(c => !c.endDate || c.endDate.toDate() > new Date()); // Further filter by end date
+    const promotions = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as Promotion))
+        .filter(p => !p.expiresAt || p.expiresAt.toDate().getTime() > now);
         
-    activeCampaignsCache = campaigns;
-    cacheTimestamp = Date.now();
-    return activeCampaignsCache;
+    activePromotionsCache = promotions;
+    cacheTimestamp = now;
+    return activePromotionsCache;
 }
 
 
 export async function calculateDisplayPrice(product: Product, platform: 'personal' | 'corporate' = 'personal'): Promise<DisplayPrice> {
-    const basePrice = parseFloat(product.price.replace('$', ''));
+    const basePrice = parseFloat(String(product.price).replace('$', ''));
     if (isNaN(basePrice)) {
          return { finalPrice: 0, originalPrice: 0, hasDiscount: false };
     }
 
     const rules = await getCommissionRules();
-    const campaigns = await getActiveCampaigns();
+    const promotions = await getActivePublicPromotions();
     
-    // 1. Find the correct commission rule
+    // 1. Find the correct commission rule and calculate buffer
     const ruleType = platform === 'personal' ? 'personalized-retail' : 'corporate-bulk';
     const rule = rules.find(r => r.categoryName === product.category && r.type === ruleType);
-
-    // 2. Calculate the buffer
+    
     let buffer = 0;
     if (rule) {
-        if (rule.bufferType === 'fixed') {
-            buffer = rule.bufferValue;
-        } else {
-            buffer = basePrice * (rule.bufferValue / 100);
+        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : basePrice * (rule.bufferValue / 100);
+    }
+    const originalPrice = basePrice + buffer;
+    
+    // 2. Find the best applicable promotion
+    let bestDiscount = 0;
+    let bestDiscountText = '';
+    let appliedPromotionId: string | undefined = undefined;
+
+    const applicablePromotions = promotions.filter(promo => {
+        if (!promo.platform || (promo.platform !== 'Both' && promo.platform !== platform)) {
+            return false;
+        }
+        if (promo.scope === 'All Products') return true;
+        if (promo.scope === 'Specific Categories' && promo.applicableCategoryIds?.includes(product.category || '')) return true;
+        if (promo.scope === 'Specific Products' && promo.applicableProductIds?.includes(String(product.id))) return true;
+        return false;
+    });
+
+    for (const promo of applicablePromotions) {
+        let currentDiscount = 0;
+        if (promo.type === 'Percentage') {
+            currentDiscount = originalPrice * (promo.value / 100);
+            if(promo.maxDiscount && currentDiscount > promo.maxDiscount) {
+                currentDiscount = promo.maxDiscount;
+            }
+        } else if (promo.type === 'Fixed Amount') {
+            currentDiscount = promo.value;
+        }
+
+        if (currentDiscount > bestDiscount) {
+            bestDiscount = currentDiscount;
+            bestDiscountText = promo.type === 'Percentage' ? `${promo.value}% OFF` : `$${promo.value} OFF`;
+            appliedPromotionId = promo.id;
         }
     }
 
-    const originalPrice = basePrice + buffer;
-    let finalPrice = originalPrice;
-    let discountText = '';
-    let hasDiscount = false;
-    let appliedCampaignId: string | undefined = undefined;
-
-    // 3. Check for applicable campaigns
-    // This logic is simplified. A real app would have more complex discount rules.
-    const productCampaign = campaigns.find(c => 
-        c.type.toLowerCase().includes('sale') && // Only consider 'Sale' or 'Flash Sale'
-        (c as any).associatedProducts?.includes(product.id) // Fictional field for demo
-    );
-    
-    // Let's assume a mock discount for demo purposes
-    if (productCampaign) {
-        hasDiscount = true;
-        appliedCampaignId = productCampaign.id;
-        // Mock 10% discount for demo
-        finalPrice = originalPrice * 0.90;
-        discountText = '10% OFF';
-    } else if (product.featured) { // Example: Apply 15% discount to all featured items
-         hasDiscount = true;
-         finalPrice = originalPrice * 0.85;
-         discountText = 'SAVE 15%';
-    }
-
+    const finalPrice = originalPrice - bestDiscount;
+    const hasDiscount = bestDiscount > 0;
 
     return {
-        finalPrice,
+        finalPrice: Math.max(0, finalPrice), // Ensure price doesn't go below zero
         originalPrice,
         hasDiscount,
-        discountText,
-        appliedCampaignId,
+        discountText: bestDiscountText,
+        appliedPromotionId,
     };
 }

@@ -1,3 +1,4 @@
+
 import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp, updateDoc, query, where, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
@@ -20,6 +21,9 @@ export interface Campaign {
   placement: Placement;
   creatives: Omit<CampaignCreative, 'imageFile'>[];
 }
+
+// Re-export from promotions-service to avoid circular dependencies
+export type { Promotion } from './promotions-service';
 
 // --- Image Upload ---
 async function uploadFile(file: File): Promise<string> {

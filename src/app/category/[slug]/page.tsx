@@ -15,10 +15,15 @@ import Link from 'next/link';
 import { getCategoryBySlug, getProductsByCategory } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 import React from 'react';
+import { calculateDisplayPrice, DisplayPrice } from '@/lib/pricing-service';
+
+interface ProductWithPrice extends Product {
+    displayPrice?: DisplayPrice;
+}
 
 function CategoryPageContent({ params }: { params: { slug: string } }) {
   const { slug } = params;
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithPrice[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,13 +34,23 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
         getCategoryBySlug(slug),
         getProductsByCategory(slug)
       ]);
+      
+      const pricedProducts = await Promise.all(
+          productData.map(async p => ({
+              ...p,
+              displayPrice: await calculateDisplayPrice(p, 'personal'),
+          }))
+      );
+
       setCategory(categoryData);
-      setProducts(productData);
+      setProducts(pricedProducts);
       setLoading(false);
     };
 
     fetchData();
   }, [slug]);
+  
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
   if (loading) {
     return (
@@ -80,7 +95,7 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
                     <CardHeader className="p-0 relative">
                         <Link href={`/products/${product.id}`} className="block w-full h-full">
                             <div className="overflow-hidden aspect-[4/3]">
-                                {product.featured && <Badge className="absolute top-2 left-2 z-10">Featured</Badge>}
+                                {product.displayPrice?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>}
                                 <Image
                                 src={product.image}
                                 alt={product.name}
@@ -110,7 +125,16 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
                     </div>
                     <div className="flex-grow"></div>
                     <div className="flex items-end justify-between mt-4">
-                        <p className="text-xl font-bold">{product.price}</p>
+                        {product.displayPrice ? (
+                            <div className="flex flex-col">
+                                <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
+                                {product.displayPrice.hasDiscount && (
+                                    <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
+                                )}
+                            </div>
+                        ) : (
+                            <p className="text-xl font-bold">{product.price}</p>
+                        )}
                     </div>
                     <div className="mt-4 flex flex-col gap-2">
                         <div className="flex gap-2">

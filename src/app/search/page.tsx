@@ -14,23 +14,35 @@ import { Suspense, useEffect, useState } from 'react';
 import { getAllProducts } from '@/lib/products-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { calculateDisplayPrice, DisplayPrice } from '@/lib/pricing-service';
+
+interface ProductWithPrice extends Product {
+    displayPrice?: DisplayPrice;
+}
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
-  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [searchResults, setSearchResults] = useState<ProductWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       const allProducts = await getAllProducts();
-      const results = allProducts.filter(product =>
+      const filteredProducts = allProducts.filter(product =>
         product.name.toLowerCase().includes(query.toLowerCase()) ||
         product.vendor.toLowerCase().includes(query.toLowerCase()) ||
         product.description?.toLowerCase().includes(query.toLowerCase())
       );
-      setSearchResults(results);
+      
+      const pricedProducts = await Promise.all(
+          filteredProducts.map(async p => ({
+              ...p,
+              displayPrice: await calculateDisplayPrice(p, 'personal'),
+          }))
+      );
+      setSearchResults(pricedProducts);
       setLoading(false);
     }
     if (query) {
@@ -40,6 +52,8 @@ function SearchResultsContent() {
         setSearchResults([]);
     }
   }, [query]);
+
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
   if (loading) {
     return (
@@ -84,7 +98,7 @@ function SearchResultsContent() {
                 <CardHeader className="p-0 relative">
                     <Link href={`/products/${product.id}`} className="block w-full h-full">
                         <div className="overflow-hidden aspect-[4/3]">
-                            {product.featured && <Badge className="absolute top-2 left-2 z-10">Featured</Badge>}
+                            {product.displayPrice?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>}
                             <Image
                             src={product.image}
                             alt={product.name}
@@ -114,7 +128,16 @@ function SearchResultsContent() {
                   </div>
                   <div className="flex-grow"></div>
                   <div className="flex items-end justify-between mt-4">
-                    <p className="text-xl font-bold">{product.price}</p>
+                    {product.displayPrice ? (
+                        <div className="flex flex-col">
+                            <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
+                            {product.displayPrice.hasDiscount && (
+                                <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-xl font-bold">{product.price}</p>
+                    )}
                   </div>
                   <div className="mt-4 flex flex-col gap-2">
                     <div className="flex gap-2">
