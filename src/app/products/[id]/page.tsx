@@ -13,21 +13,23 @@ import { ProductDetailsAccordion } from '@/components/product/product-details-ac
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AvailableOffers } from '@/components/product/available-offers';
+import { use } from 'react';
 
 function ProductPageContent({ params }: { params: { id: string } }) {
+    const { id } = params;
     const [product, setProduct] = React.useState<Product | null>(null);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        if (params.id) {
+        if (id) {
             setLoading(true);
-            const unsubscribe = onProductUpdate(params.id, (productData) => {
+            const unsubscribe = onProductUpdate(id, (productData) => {
                 setProduct(productData);
                 setLoading(false);
             });
             return () => unsubscribe();
         }
-    }, [params.id]);
+    }, [id]);
 
     if (loading) {
         return (
@@ -97,11 +99,12 @@ function ProductPageContent({ params }: { params: { id: string } }) {
 
 
 export default function ProductPage({ params }: { params: { id: string } }) {
+    const resolvedParams = use(params);
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-grow">
-                <ProductPageContent params={params} />
+                <ProductPageContent params={resolvedParams} />
             </main>
             <Footer />
         </div>

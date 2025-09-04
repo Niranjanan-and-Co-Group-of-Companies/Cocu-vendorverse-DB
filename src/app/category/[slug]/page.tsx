@@ -9,7 +9,7 @@ import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, use } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { getCategoryBySlug, getProductsByCategory } from '@/lib/categories-service';
@@ -30,20 +30,20 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const [categoryData, productData] = await Promise.all([
-        getCategoryBySlug(slug),
-        getProductsByCategory(slug)
-      ]);
-      
-      const pricedProducts = await Promise.all(
-          productData.map(async p => ({
-              ...p,
-              displayPrice: await calculateDisplayPrice(p, 'personal'),
-          }))
-      );
+      const categoryData = await getCategoryBySlug(slug);
 
+      if (categoryData) {
+        const productData = await getProductsByCategory(slug);
+        const pricedProducts = await Promise.all(
+            productData.map(async p => ({
+                ...p,
+                displayPrice: await calculateDisplayPrice(p, 'personal', categoryData),
+            }))
+        );
+        setProducts(pricedProducts);
+      }
+      
       setCategory(categoryData);
-      setProducts(pricedProducts);
       setLoading(false);
     };
 
@@ -86,7 +86,7 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
         {category ? (
             <>
             <h1 className="text-3xl font-bold font-headline mb-2">{category.name}</h1>
-            <p className="text-muted-foreground mb-8">{category.productCount} products</p>
+            <p className="text-muted-foreground mb-8">{products.length} products</p>
             
             {products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -173,11 +173,12 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
 
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
+  const resolvedParams = use(params);
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
        <Suspense fallback={<div>Loading...</div>}>
-         <CategoryPageContent params={params} />
+         <CategoryPageContent params={resolvedParams} />
        </Suspense>
       <Footer />
     </div>
