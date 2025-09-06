@@ -78,7 +78,7 @@ export default function VendorOrdersPage() {
         setSelectedOrder(order);
     };
 
-    const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+    const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
     
     const getStatusVariant = (status: OrderStatus) => {
         switch (status) {
@@ -109,6 +109,7 @@ export default function VendorOrdersPage() {
                         <TableRow>
                             <TableHead>Order ID</TableHead>
                             <TableHead>Product</TableHead>
+                            <TableHead>Quantity</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead>Your Total</TableHead>
                             <TableHead>Status</TableHead>
@@ -120,6 +121,7 @@ export default function VendorOrdersPage() {
                             <TableRow key={i}>
                                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                 <TableCell><div className="flex items-center gap-2"><Skeleton className="h-10 w-10 rounded-md" /><Skeleton className="h-4 w-32" /></div></TableCell>
+                                <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                 <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
@@ -128,6 +130,7 @@ export default function VendorOrdersPage() {
                         )) : orders.map(order => {
                              const vendorItems = order.items.filter(item => item.vendor === VENDOR_NAME);
                              const primaryItem = vendorItems[0];
+                             const totalQuantity = vendorItems.reduce((sum, item) => sum + item.quantity, 0);
                             return (
                                 <TableRow key={order.id}>
                                     <TableCell className="font-mono text-xs">#{order.id.slice(0, 8)}...</TableCell>
@@ -142,6 +145,7 @@ export default function VendorOrdersPage() {
                                             </div>
                                         </div>
                                     </TableCell>
+                                    <TableCell>x{totalQuantity}</TableCell>
                                     <TableCell>{formatDate(order.date)}</TableCell>
                                     <TableCell>{formatCurrency(order.vendorTotal)}</TableCell>
                                     <TableCell>
