@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, UploadCloud, Send } from 'lucide-react';
+import { Calendar as CalendarIcon, UploadCloud, Send, X, Paperclip } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -31,8 +31,32 @@ export interface SourcingRequestData {
 export default function WriteToAdminPage() {
     const { toast } = useToast();
     const [date, setDate] = React.useState<Date>();
+    const [files, setFiles] = React.useState<File[]>([]);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [formData, setFormData] = React.useState<SourcingRequestData | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newFiles = Array.from(e.target.files || []);
+        if (files.length + newFiles.length > 3) {
+            toast({
+                title: 'Upload limit reached',
+                description: 'You can upload a maximum of 3 files.',
+                variant: 'destructive',
+            });
+            return;
+        }
+        setFiles(prev => [...prev, ...newFiles]);
+    };
+
+    const handleRemoveFile = (fileToRemove: File) => {
+        setFiles(prev => prev.filter(file => file !== fileToRemove));
+        // Reset the file input so the same file can be re-added if needed
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -43,7 +67,6 @@ export default function WriteToAdminPage() {
             'additional-notes': { value: string };
             'contact-name': { value: string };
             'contact-phone': { value: string };
-            'reference-files': { files: FileList | null };
         };
         
         const contactPhone = formElements['contact-phone'].value;
@@ -63,7 +86,7 @@ export default function WriteToAdminPage() {
             notes: formElements['additional-notes'].value,
             contactName: formElements['contact-name'].value,
             contactPhone,
-            files: Array.from(formElements['reference-files'].files || []),
+            files: files,
             requiredBy: date
         });
 
@@ -77,7 +100,9 @@ export default function WriteToAdminPage() {
         });
         setIsSubmitting(false);
         setFormData(null);
-        // Consider resetting the form fields here if needed
+        setFiles([]);
+        setDate(undefined);
+        // Reset form fields manually if needed, for now we let the browser handle it on full page success/redirect
     }
 
     return (
@@ -158,12 +183,39 @@ export default function WriteToAdminPage() {
                                 <Textarea id="additional-notes" placeholder="e.g., Need our company logo printed on one side in white. Pantone color: #FFFFFF." rows={3} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="reference-files">Reference Files (Optional)</Label>
-                                <div className="relative border-2 border-dashed border-muted rounded-lg p-6 text-center">
+                                <Label htmlFor="reference-files">Reference Files (Optional, Max 3)</Label>
+                                <div
+                                    className="relative border-2 border-dashed border-muted rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
                                     <UploadCloud className="mx-auto h-10 w-10 text-muted-foreground" />
                                     <p className="mt-2 text-sm text-muted-foreground">Drag & drop or click to upload</p>
-                                    <Input id="reference-files" type="file" multiple className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                    <Input
+                                        id="reference-files"
+                                        type="file"
+                                        multiple
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        disabled={files.length >= 3}
+                                    />
                                 </div>
+                                {files.length > 0 && (
+                                    <div className="mt-2 space-y-2">
+                                        <p className="text-sm font-medium">Selected files:</p>
+                                        {files.map((file, index) => (
+                                            <div key={index} className="flex items-center justify-between p-2 text-sm rounded-md bg-muted">
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <Paperclip className="h-4 w-4 flex-shrink-0" />
+                                                    <span className="truncate">{file.name}</span>
+                                                </div>
+                                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => handleRemoveFile(file)}>
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             <Button type="submit" size="lg" className="w-full">
                                 <Send className="mr-2" />
