@@ -70,7 +70,7 @@ export function CorporateComparePreview() {
                                             )}
                                         </div>
                                     ) : (
-                                        <p className="text-sm font-semibold">{item.price}</p>
+                                        <p className="text-sm font-semibold">{formatCurrency(parseFloat(item.price.replace('$', '').replace('₹', '')))}</p>
                                     )}
                                 </div>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item.id)}>
