@@ -28,7 +28,7 @@ import type { Order } from '@/lib/orders-service';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { View } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
 
 interface OrderDetailsDialogProps {
   open: boolean;
@@ -96,19 +96,33 @@ export function OrderDetailsDialog({ open, onOpenChange, order }: OrderDetailsDi
                                                 <Image src={item.image} alt={item.name} width={40} height={40} className="rounded-md object-cover" />
                                                 <div>
                                                     <p className="font-medium">{item.name}</p>
-                                                    <div className="text-xs text-muted-foreground flex items-center gap-2">
+                                                    <div className="text-xs text-muted-foreground">
                                                         <span>{formatCurrency(parseFloat(item.price.replace('₹', '').replace('$', '')))}</span>
-                                                        {item.customizationDetails?.imageUrl && (
-                                                            <a href={item.customizationDetails.imageUrl} target="_blank" rel="noopener noreferrer">
-                                                                <Badge variant="secondary" className="cursor-pointer hover:bg-muted">
-                                                                    <View className="mr-1 h-3 w-3"/>
-                                                                    Customization
-                                                                </Badge>
-                                                            </a>
-                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
+                                             {item.customizations && item.customizations.length > 0 && (
+                                                <Card className="mt-2">
+                                                    <CardHeader className="p-2">
+                                                        <CardTitle className="text-xs">Customizations</CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="p-2 text-xs space-y-2">
+                                                        {item.customizations.map((cust, i) => (
+                                                            <div key={i} className="flex items-center justify-between">
+                                                                <span className="capitalize">{cust.side} Side</span>
+                                                                <div className="flex gap-2">
+                                                                     <a href={cust.proofUrl} target="_blank" rel="noopener noreferrer">
+                                                                        <Button size="sm" variant="outline"><FileText className="mr-2 h-3 w-3"/>Proof</Button>
+                                                                    </a>
+                                                                    <a href={cust.printUrl} target="_blank" rel="noopener noreferrer">
+                                                                        <Button size="sm" variant="secondary"><Download className="mr-2 h-3 w-3"/>Print File</Button>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </CardContent>
+                                                </Card>
+                                            )}
                                         </TableCell>
                                         <TableCell>x{item.quantity}</TableCell>
                                         <TableCell className="text-right font-medium">{formatCurrency(parseFloat(item.price.replace('₹', '').replace('$', '')) * item.quantity)}</TableCell>

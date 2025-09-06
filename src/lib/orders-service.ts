@@ -2,18 +2,21 @@
 
 import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Product } from './products';
+import type { Product, CustomizationSide } from './products';
 import type { VendorOrder } from '@/app/vendor/personalized/orders/page';
 import { createNotification } from './notifications-service';
 
 export interface CustomizationDetails {
-    imageUrl: string;
-    // In a real app, this could also include text fields, fonts, colors, etc.
+    // This now represents the assets for a single customized side
+    side: CustomizationSide;
+    proofUrl: string; // URL to the image with product background (for visual proof)
+    printUrl: string; // URL to the image with transparent background (for production)
 }
 
 export interface OrderItem extends Product {
     quantity: number;
-    customizationDetails?: CustomizationDetails;
+    // An order item can have multiple customized sides
+    customizations?: CustomizationDetails[];
 }
 
 export type OrderStatus = 'Pending' | 'Preparing' | 'Packaging' | 'Dispatched' | 'Shipped' | 'Delivered' | 'Cancelled';
@@ -87,7 +90,11 @@ const MOCK_ORDERS: Omit<Order, 'id'>[] = [
             shippingAddress: '1 Paradise Island, Themyscira, 12345'
         },
         items: [
-            { id: 8, name: 'Personalized Star Map', vendor: 'Gourmet Delights', price: '₹50.00', image: 'https://picsum.photos/600/400?random=8', rating: 4.9, customizable: true, quantity: 1, category: 'Home & Decor', featured: false, vendorId: 'vendor001', status: 'Live', customizationSides: { front: { image: 'https://picsum.photos/600/400?random=8', areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } }, allowedCustomizations: ['Text'], weight: 2, dimensions: { l: 24, w: 18, h: 0.1 }, inventoryBuffer: 10, tags: ['stars', 'map', 'personalized', 'astronomy'], preparationTime: { min: 3, max: 4 }, preparationTimeUnit: 'days', moq: 1, tieredPricing: [], customizationDetails: { imageUrl: "https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png" } },
+            { id: 8, name: 'Personalized Star Map', vendor: 'Gourmet Delights', price: '₹50.00', image: 'https://picsum.photos/600/400?random=8', rating: 4.9, customizable: true, quantity: 1, category: 'Home & Decor', featured: false, vendorId: 'vendor001', status: 'Live', customizationSides: { front: { image: 'https://picsum.photos/600/400?random=8', areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } }, allowedCustomizations: ['Text'], weight: 2, dimensions: { l: 24, w: 18, h: 0.1 }, inventoryBuffer: 10, tags: ['stars', 'map', 'personalized', 'astronomy'], preparationTime: { min: 3, max: 4 }, preparationTimeUnit: 'days', moq: 1, tieredPricing: [], 
+              customizations: [
+                { side: 'front', proofUrl: "https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png", printUrl: "https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png" }
+              ] 
+            },
         ],
         status: 'Pending',
         date: Timestamp.fromDate(new Date(2023, 10, 16)),
