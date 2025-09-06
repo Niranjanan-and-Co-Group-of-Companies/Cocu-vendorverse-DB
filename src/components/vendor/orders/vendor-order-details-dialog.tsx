@@ -25,9 +25,12 @@ import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileText, Download, ImageIcon, FileType, File } from 'lucide-react';
+import { Loader2, FileText, Download, ImageIcon, FileType, File, UploadCloud } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface VendorOrderDetailsDialogProps {
   open: boolean;
@@ -42,6 +45,8 @@ const VENDOR_UPDATABLE_STATUSES: OrderStatus[] = ['Pending', 'Preparing', 'Packa
 export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName, onStatusChange }: VendorOrderDetailsDialogProps) {
   const [selectedStatus, setSelectedStatus] = React.useState<OrderStatus | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [invoiceFile, setInvoiceFile] = React.useState<File | null>(null);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     if (order) {
@@ -50,6 +55,7 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
         setSelectedStatus(null);
     }
     setIsSaving(false); // Reset saving state when dialog opens or order changes
+    setInvoiceFile(null); // Reset file input
   }, [order, open]);
   
   if (!order) return null;
@@ -77,6 +83,20 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
             setIsSaving(false);
         }
     }
+  }
+
+  const handleInvoiceUpload = () => {
+    if (!invoiceFile) {
+        toast({ title: 'No file selected', description: 'Please choose an invoice file to upload.', variant: 'destructive' });
+        return;
+    }
+    // Simulate upload
+    setIsSaving(true);
+    setTimeout(() => {
+        toast({ title: 'Invoice Uploaded', description: `Successfully uploaded ${invoiceFile.name}.` });
+        setInvoiceFile(null);
+        setIsSaving(false);
+    }, 1500);
   }
 
   const getStatusVariant = (status: OrderStatus) => {
@@ -202,6 +222,24 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
                     <address className="not-italic text-sm text-muted-foreground border p-3 rounded-md">
                         {order.customer.shippingAddress.split(', ').map(line => <span key={line} className="block">{line}</span>)}
                     </address>
+                </div>
+                <div>
+                     <h3 className="font-semibold mb-2">Upload GST Invoice</h3>
+                     <div className="space-y-2">
+                        <Label htmlFor="gst-invoice" className="sr-only">GST Invoice</Label>
+                        <Input 
+                            id="gst-invoice" 
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)}
+                            className="text-sm"
+                        />
+                         <Button onClick={handleInvoiceUpload} disabled={!invoiceFile || isSaving} className="w-full">
+                            {isSaving && <Loader2 className="mr-2 animate-spin" />}
+                            <UploadCloud className="mr-2" />
+                            {invoiceFile ? `Upload ${invoiceFile.name}` : 'Upload Invoice'}
+                        </Button>
+                     </div>
                 </div>
             </div>
         </div>
