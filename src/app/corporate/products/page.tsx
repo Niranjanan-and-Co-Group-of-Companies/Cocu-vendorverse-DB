@@ -3,7 +3,8 @@
 
 import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getAllProducts, getProductsByCategory } from '@/lib/products-service';
+import { getAllProducts } from '@/lib/products-service';
+import { getProductsByCategory } from '@/lib/categories-service';
 import type { Product } from '@/lib/products';
 import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
