@@ -36,7 +36,7 @@ export function SourcingRequestDetailsDialog({ open, onOpenChange, request, onSt
     }
   };
   
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

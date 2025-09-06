@@ -62,7 +62,7 @@ export function CartItem({ item }: CartItemProps) {
                 </div>
                  <div className="flex flex-col items-end gap-2">
                     <p className="font-semibold">
-                        ${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}
+                        ₹{(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}
                     </p>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={handleRemove}>
                         <Trash2 className="h-4 w-4" />

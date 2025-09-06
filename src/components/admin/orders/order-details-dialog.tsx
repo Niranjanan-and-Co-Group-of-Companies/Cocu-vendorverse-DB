@@ -45,7 +45,7 @@ export function OrderDetailsDialog({ open, onOpenChange, order }: OrderDetailsDi
     return 'N/A';
   }
   
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
   const getStatusVariant = (status: Order['status']) => {
     switch (status) {
@@ -93,12 +93,12 @@ export function OrderDetailsDialog({ open, onOpenChange, order }: OrderDetailsDi
                                                 <Image src={item.image} alt={item.name} width={40} height={40} className="rounded-md object-cover" />
                                                 <div>
                                                     <p className="font-medium">{item.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{item.price}</p>
+                                                    <p className="text-xs text-muted-foreground">{formatCurrency(parseFloat(item.price.replace('₹', '').replace('$', '')))}</p>
                                                 </div>
                                             </div>
                                         </TableCell>
                                         <TableCell>x{item.quantity}</TableCell>
-                                        <TableCell className="text-right font-medium">{formatCurrency(parseFloat(item.price.replace('$', '')) * item.quantity)}</TableCell>
+                                        <TableCell className="text-right font-medium">{formatCurrency(parseFloat(item.price.replace('₹', '').replace('$', '')) * item.quantity)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -142,5 +142,3 @@ export function OrderDetailsDialog({ open, onOpenChange, order }: OrderDetailsDi
     </Dialog>
   );
 }
-
-    

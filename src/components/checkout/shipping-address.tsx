@@ -64,7 +64,7 @@ export function ShippingAddress() {
                             <Input placeholder="State" />
                          </div>
                          <div className="grid grid-cols-2 gap-4">
-                            <Input placeholder="ZIP / Postal Code" />
+                            <Input placeholder="PIN Code" />
                             <Input placeholder="Country" />
                          </div>
                         <Input placeholder="Phone Number (e.g. +91 98765 43210)" />

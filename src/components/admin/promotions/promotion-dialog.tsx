@@ -187,7 +187,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                             <SelectTrigger id="type"><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Percentage">Percentage (%)</SelectItem>
-                                <SelectItem value="Fixed Amount">Fixed Amount ($)</SelectItem>
+                                <SelectItem value="Fixed Amount">Fixed Amount (₹)</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -199,7 +199,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
 
                 <div className="space-y-2">
                     <Label htmlFor="maxDiscount">Max Discount (Optional)</Label>
-                    <Input id="maxDiscount" type="number" value={formData.maxDiscount || ''} onChange={e => handleChange('maxDiscount', e.target.value ? parseInt(e.target.value, 10) : null)} placeholder="e.g. 100" />
+                    <Input id="maxDiscount" type="number" value={formData.maxDiscount || ''} onChange={e => handleChange('maxDiscount', e.target.value ? parseInt(e.target.value, 10) : null)} placeholder="e.g. 5000" />
                 </div>
 
                 <div className="space-y-2">
