@@ -38,7 +38,18 @@ export default function WriteToAdminPage() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newFiles = Array.from(e.target.files || []);
-        if (files.length + newFiles.length > 3) {
+        
+        const existingFileNames = new Set(files.map(f => f.name));
+        const uniqueNewFiles = newFiles.filter(f => !existingFileNames.has(f.name));
+
+        if (uniqueNewFiles.length < newFiles.length) {
+            toast({
+                title: 'Duplicate file ignored',
+                description: 'One or more of the selected files were already added.',
+            });
+        }
+
+        if (files.length + uniqueNewFiles.length > 3) {
             toast({
                 title: 'Upload limit reached',
                 description: 'You can upload a maximum of 3 files.',
@@ -46,7 +57,7 @@ export default function WriteToAdminPage() {
             });
             return;
         }
-        setFiles(prev => [...prev, ...newFiles]);
+        setFiles(prev => [...prev, ...uniqueNewFiles]);
     };
 
     const handleRemoveFile = (fileToRemove: File) => {
@@ -183,7 +194,7 @@ export default function WriteToAdminPage() {
                                 <Textarea id="additional-notes" placeholder="e.g., Need our company logo printed on one side in white. Pantone color: #FFFFFF." rows={3} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="reference-files">Reference Files (Optional, Max 3)</Label>
+                                <Label>Reference Files (Optional, Max 3)</Label>
                                 <Label
                                     htmlFor="reference-files"
                                     className="relative block border-2 border-dashed border-muted rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
