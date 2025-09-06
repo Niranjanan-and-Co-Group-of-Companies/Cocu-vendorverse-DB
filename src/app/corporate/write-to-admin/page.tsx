@@ -184,9 +184,9 @@ export default function WriteToAdminPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="reference-files">Reference Files (Optional, Max 3)</Label>
-                                <div
-                                    className="relative border-2 border-dashed border-muted rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
-                                    onClick={() => fileInputRef.current?.click()}
+                                <Label
+                                    htmlFor="reference-files"
+                                    className="relative block border-2 border-dashed border-muted rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
                                 >
                                     <UploadCloud className="mx-auto h-10 w-10 text-muted-foreground" />
                                     <p className="mt-2 text-sm text-muted-foreground">Drag & drop or click to upload</p>
@@ -199,7 +199,7 @@ export default function WriteToAdminPage() {
                                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                         disabled={files.length >= 3}
                                     />
-                                </div>
+                                </Label>
                                 {files.length > 0 && (
                                     <div className="mt-2 space-y-2">
                                         <p className="text-sm font-medium">Selected files:</p>
