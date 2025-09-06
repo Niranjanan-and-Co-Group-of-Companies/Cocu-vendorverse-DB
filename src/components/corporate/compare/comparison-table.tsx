@@ -10,7 +10,8 @@ import { ComparisonTableActions } from './comparison-table-actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '../ui/skeleton';
+import Link from 'next/link';
 
 interface ComparisonTableProps {
   products: Product[];
@@ -40,7 +41,14 @@ const featureRows = [
     )},
     { label: "Min. Order Qty (MOQ)", getValue: (p: Product) => p.moq || '1' },
     { label: "Customizable", getValue: (p: Product) => p.customizable ? <Check className="text-green-600"/> : <XIcon className="text-destructive"/> },
-    { label: "Category", getValue: (p: Product) => p.category },
+    { 
+        label: "Category", 
+        getValue: (p: Product) => p.category ? (
+            <Link href={`/corporate/products?category=${p.category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="hover:underline text-primary">
+                {p.category}
+            </Link>
+        ) : 'N/A'
+    },
     { label: "Vendor", getValue: (p: Product) => p.vendor },
 ];
 
