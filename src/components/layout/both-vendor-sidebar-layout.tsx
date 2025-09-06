@@ -43,6 +43,7 @@ import { Badge } from '../ui/badge';
 import { VendorNotificationDropdown } from './vendor-notification-dropdown';
 import { onVendorConversationsUpdate } from '@/lib/vendor/messages-service';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 
 // In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor001";
@@ -269,6 +270,7 @@ export function BothVendorSidebarLayout({ children }: { children: React.ReactNod
                 <VerificationFlowHandler isVerified={isVerified}>
                     {children}
                 </VerificationFlowHandler>
+                 <TermsUpdateDialog userType="vendor" />
             </main>
         </SidebarInset>
     </SidebarProvider>
