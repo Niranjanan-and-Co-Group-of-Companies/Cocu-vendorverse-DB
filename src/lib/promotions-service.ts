@@ -28,6 +28,7 @@ export interface Promotion {
 }
 
 const MOCK_PROMOTIONS: Omit<Promotion, 'id' | 'createdAt'>[] = [
+    { code: 'WELCOME10', type: 'Percentage', value: 10, platform: 'Both', status: 'Active', usageCount: 42, usageLimit: 2000, startDate: new Date(2024, 0, 1), scope: 'All Products', isPublic: true },
     { code: 'SUMMER24', type: 'Percentage', value: 15, platform: 'Personalized', status: 'Active', usageCount: 152, startDate: new Date(2024, 5, 1), expiresAt: new Date(2024, 7, 31), scope: 'All Products', isPublic: true },
     { code: 'CORPWELCOME', type: 'Fixed Amount', value: 100, platform: 'Corporate', status: 'Active', usageCount: 890, usageLimit: 1000, startDate: new Date(2024, 0, 1), scope: 'All Products', isPublic: false },
     { code: 'FLASHFRIDAY', type: 'Percentage', value: 25, platform: 'Both', status: 'Expired', usageCount: 50, startDate: new Date(2024, 4, 17), expiresAt: new Date(2024, 4, 17), scope: 'All Products', isPublic: true },
