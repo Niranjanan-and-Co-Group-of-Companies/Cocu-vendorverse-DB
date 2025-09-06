@@ -10,7 +10,7 @@ import { ComparisonTableActions } from './comparison-table-actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
-import { Skeleton } from '../ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 
 interface ComparisonTableProps {
