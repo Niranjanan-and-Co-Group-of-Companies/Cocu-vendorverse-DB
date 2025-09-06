@@ -31,7 +31,6 @@ import {
   PenSquare
 } from 'lucide-react';
 import { useCorporateCart } from '@/hooks/use-corporate-cart';
-import { useCorporateWishlist } from '@/hooks/use-corporate-wishlist';
 import { useComparison } from '@/hooks/use-comparison';
 import { useCorporateChat } from '@/hooks/use-corporate-chat-store';
 
@@ -39,7 +38,6 @@ import { useCorporateChat } from '@/hooks/use-corporate-chat-store';
 export function CorporateSidebar() {
     const pathname = usePathname();
     const { items: cartItems } = useCorporateCart();
-    const { items: wishlistItems } = useCorporateWishlist();
     const { items: compareItems } = useComparison();
     const { conversations } = useCorporateChat();
     const { open, setOpen } = useSidebar();
@@ -102,12 +100,6 @@ export function CorporateSidebar() {
                             <Link href="/corporate/cart"><ShoppingCart /><span>Cart</span></Link>
                         </SidebarMenuButton>
                         {cartItems.length > 0 && <SidebarMenuBadge>{cartItems.length}</SidebarMenuBadge>}
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/corporate/wishlist')} tooltip={{ children: 'Wishlist' }}>
-                            <Link href="/corporate/wishlist"><Heart /><span>Wishlist</span></Link>
-                        </SidebarMenuButton>
-                         {wishlistItems.length > 0 && <SidebarMenuBadge>{wishlistItems.length}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/corporate/compare')} tooltip={{ children: 'Compare' }}>
