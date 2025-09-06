@@ -261,7 +261,7 @@ function AdminSidebar() {
                     <SidebarMenuButton asChild isActive={isActive('/admin/terms')} tooltip={{ children: 'Terms & Conditions' }}>
                         <Link href="/admin/terms">
                         <BookCopy />
-                        <span>Terms</span>
+                        <span>Terms & Conditions</span>
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
