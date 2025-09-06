@@ -39,19 +39,20 @@ export function RelatedProductsCarousel({ category, currentProductId }: RelatedP
         }
 
         const products = await getRelatedProducts(category, currentProductId);
+        const platform = pathname.includes('/corporate') ? 'corporate' : 'personal';
         const pricedProducts = await Promise.all(
             products.map(async (p) => ({
                 ...p,
-                displayPrice: await calculateDisplayPrice(p),
+                displayPrice: await calculateDisplayPrice(p, platform),
             }))
         );
         setRelatedProducts(pricedProducts);
         setLoading(false);
     }
     fetchAndPriceProducts();
-  }, [category, currentProductId]);
+  }, [category, currentProductId, pathname]);
   
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
 
   if (loading) {

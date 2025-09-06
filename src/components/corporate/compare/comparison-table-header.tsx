@@ -39,7 +39,7 @@ export function ComparisonTableHeader({ product }: ComparisonTableHeaderProps) {
         >
             <X className="h-4 w-4" />
         </Button>
-      <Link href={`/products/${product.id}`} className="block aspect-square rounded-lg overflow-hidden bg-muted relative">
+      <Link href={`/corporate/products/${product.id}`} className="block aspect-square rounded-lg overflow-hidden bg-muted relative">
         <Image
           src={product.image}
           alt={product.name}
@@ -48,7 +48,7 @@ export function ComparisonTableHeader({ product }: ComparisonTableHeaderProps) {
         />
       </Link>
       <h3 className="font-bold text-base h-12 line-clamp-2">
-        <Link href={`/products/${product.id}`} className="hover:underline">
+        <Link href={`/corporate/products/${product.id}`} className="hover:underline">
             {product.name}
         </Link>
       </h3>
