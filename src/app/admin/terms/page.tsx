@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { getTerms, saveTerms } from '@/lib/legal-service';
@@ -13,8 +13,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function TermsPage() {
     const [customerTerms, setCustomerTerms] = React.useState('');
     const [vendorTerms, setVendorTerms] = React.useState('');
+    const [originalCustomerTerms, setOriginalCustomerTerms] = React.useState('');
+    const [originalVendorTerms, setOriginalVendorTerms] = React.useState('');
+    
     const [loading, setLoading] = React.useState(true);
-    const [saving, setSaving] = React.useState(false);
+    const [savingCustomer, setSavingCustomer] = React.useState(false);
+    const [savingVendor, setSavingVendor] = React.useState(false);
+    
     const { toast } = useToast();
 
     React.useEffect(() => {
@@ -23,7 +28,9 @@ export default function TermsPage() {
             try {
                 const { customer, vendor } = await getTerms();
                 setCustomerTerms(customer);
+                setOriginalCustomerTerms(customer);
                 setVendorTerms(vendor);
+                setOriginalVendorTerms(vendor);
             } catch (error) {
                  toast({
                     title: 'Error Fetching Terms',
@@ -36,26 +43,51 @@ export default function TermsPage() {
         };
         fetchTerms();
     }, [toast]);
-
-    const handleSave = async () => {
-        setSaving(true);
+    
+    const handleSaveCustomer = async () => {
+        setSavingCustomer(true);
         try {
-            await saveTerms({ customer: customerTerms, vendor: vendorTerms });
+            await saveTerms({ customer: customerTerms, vendor: originalVendorTerms });
+             setOriginalCustomerTerms(customerTerms);
             toast({
-                title: 'Terms Updated',
-                description: 'The terms and conditions have been successfully saved.',
+                title: 'Customer Terms Updated',
+                description: 'The customer terms and conditions have been successfully saved.',
             });
         } catch (error) {
             toast({
                 title: 'Error Saving Terms',
-                description: 'An unexpected error occurred. Please try again.',
+                description: 'An unexpected error occurred.',
                 variant: 'destructive',
             });
             console.error(error);
         } finally {
-            setSaving(false);
+            setSavingCustomer(false);
         }
     };
+    
+    const handleSaveVendor = async () => {
+        setSavingVendor(true);
+        try {
+            await saveTerms({ customer: originalCustomerTerms, vendor: vendorTerms });
+            setOriginalVendorTerms(vendorTerms);
+            toast({
+                title: 'Vendor Terms Updated',
+                description: 'The vendor terms and conditions have been successfully saved.',
+            });
+        } catch (error) {
+            toast({
+                title: 'Error Saving Terms',
+                description: 'An unexpected error occurred.',
+                variant: 'destructive',
+            });
+            console.error(error);
+        } finally {
+            setSavingVendor(false);
+        }
+    };
+
+    const isCustomerChanged = customerTerms !== originalCustomerTerms;
+    const isVendorChanged = vendorTerms !== originalVendorTerms;
 
     return (
         <div className="flex flex-col gap-6">
@@ -64,13 +96,9 @@ export default function TermsPage() {
                     <h1 className="text-2xl font-bold">Terms & Conditions</h1>
                     <p className="text-muted-foreground">Manage the legal terms for customers and vendors.</p>
                 </div>
-                 <Button onClick={handleSave} disabled={saving || loading}>
-                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Changes
-                </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
                 <Card>
                     <CardHeader>
                         <CardTitle>Customer Terms & Conditions</CardTitle>
@@ -85,10 +113,18 @@ export default function TermsPage() {
                                 onChange={(e) => setCustomerTerms(e.target.value)}
                                 rows={20}
                                 placeholder="Enter customer terms and conditions here..."
-                                disabled={saving}
+                                disabled={savingCustomer || savingVendor}
                             />
                         )}
                     </CardContent>
+                     {isCustomerChanged && (
+                        <CardFooter>
+                            <Button onClick={handleSaveCustomer} disabled={savingCustomer} className="ml-auto">
+                                {savingCustomer && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Update Customer Terms
+                            </Button>
+                        </CardFooter>
+                    )}
                 </Card>
                  <Card>
                     <CardHeader>
@@ -104,10 +140,18 @@ export default function TermsPage() {
                                 onChange={(e) => setVendorTerms(e.target.value)}
                                 rows={20}
                                 placeholder="Enter vendor terms and conditions here..."
-                                disabled={saving}
+                                disabled={savingCustomer || savingVendor}
                             />
                         )}
                     </CardContent>
+                     {isVendorChanged && (
+                        <CardFooter>
+                            <Button onClick={handleSaveVendor} disabled={savingVendor} className="ml-auto">
+                                {savingVendor && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Update Vendor Terms
+                            </Button>
+                        </CardFooter>
+                    )}
                 </Card>
             </div>
         </div>
