@@ -34,11 +34,11 @@ export function CorporateCartPreview() {
   }
 
   const subtotal = items.reduce((acc, item) => {
-    return acc + (parseFloat(item.price.replace('$', '')) * item.quantity);
+    return acc + (parseFloat(item.price.replace('$', '').replace('₹', '')) * item.quantity);
   }, 0);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
   }
 
   return (
@@ -67,7 +67,7 @@ export function CorporateCartPreview() {
                                 <div className="flex-1 overflow-hidden">
                                     <p className="font-medium truncate">{item.name}</p>
                                     <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                                    <p className="text-sm font-semibold">{formatCurrency(parseFloat(item.price.replace('$', '')) * item.quantity)}</p>
+                                    <p className="text-sm font-semibold">{formatCurrency(parseFloat(item.price.replace('$', '').replace('₹', '')) * item.quantity)}</p>
                                 </div>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item.id, item.name)}>
                                     <X className="h-4 w-4" />

@@ -20,7 +20,7 @@ import { Scale, X } from 'lucide-react';
 import { useComparison } from '@/hooks/use-comparison';
 import { useToast } from '@/hooks/use-toast';
 
-const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
 export function CorporateComparePreview() {
   const { items, removeItem } = useComparison();

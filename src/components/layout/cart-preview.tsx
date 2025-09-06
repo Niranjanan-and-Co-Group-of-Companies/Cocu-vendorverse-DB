@@ -38,12 +38,12 @@ export function CartPreview() {
   }
 
   const subtotal = items.reduce((acc, item) => {
-    const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
+    const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', '').replace('₹', ''));
     return acc + (price * item.quantity);
   }, 0);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
   }
   
   if (!isLoggedIn) {
@@ -77,7 +77,7 @@ export function CartPreview() {
                 <ScrollArea className="h-64">
                     <div className="pr-2">
                     {items.map(item => {
-                        const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
+                        const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', '').replace('₹', ''));
                         return (
                             <DropdownMenuItem key={item.id} asChild className="focus:bg-transparent">
                                 <Link href={`/products/${item.id}`} className="flex gap-3 w-full">

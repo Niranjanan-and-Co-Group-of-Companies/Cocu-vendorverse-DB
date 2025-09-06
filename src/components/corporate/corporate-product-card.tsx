@@ -77,7 +77,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
     }
   };
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
   const primaryAction = product.customizable ? (
     <Button asChild className="w-full">

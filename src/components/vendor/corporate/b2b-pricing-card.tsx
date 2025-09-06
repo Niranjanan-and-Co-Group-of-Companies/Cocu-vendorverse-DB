@@ -45,7 +45,7 @@ export function B2BPricingCard({ product, onFieldChange }: B2BPricingCardProps) 
             <div className="space-y-2">
                 <Label htmlFor="price">Base Price (for a single item)</Label>
                 <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
                     <Input id="price" type="number" value={product.price} onChange={e => onFieldChange('price', e.target.value)} className="pl-7"/>
                 </div>
             </div>
@@ -61,7 +61,7 @@ export function B2BPricingCard({ product, onFieldChange }: B2BPricingCardProps) 
                     <div key={index} className="flex items-center gap-2">
                         <Input type="number" placeholder="Quantity" value={tier.quantity} onChange={(e) => handleTierChange(index, 'quantity', parseInt(e.target.value, 10) || 0)} />
                         <div className="relative flex-grow">
-                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
                              <Input type="text" placeholder="Price per item" value={tier.price} onChange={(e) => handleTierChange(index, 'price', e.target.value)} className="pl-7"/>
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => removeTier(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>

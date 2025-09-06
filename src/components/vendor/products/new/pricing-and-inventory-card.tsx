@@ -24,7 +24,7 @@ export function PricingAndInventoryCard({ price, stock, maxQuantityPerOrder, onF
         <div className="space-y-2">
           <Label htmlFor="price">Price</Label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
             <Input 
               id="price" 
               type="number" 

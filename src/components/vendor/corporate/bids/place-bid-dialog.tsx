@@ -73,7 +73,7 @@ export function PlaceBidDialog({ open, onOpenChange, bid, onBidPlaced, vendorId 
     // The isSubmitting state will be reset when dialog re-opens/unmounts
   }
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
   const otherBids = bid.vendorResponses.filter(vr => vr.vendorId !== vendorId);
 
   return (
@@ -95,7 +95,7 @@ export function PlaceBidDialog({ open, onOpenChange, bid, onBidPlaced, vendorId 
                         <div className="space-y-2">
                             <Label htmlFor="price">Your Price per Unit</Label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
                                 <Input id="price" type="number" step="0.01" value={pricePerUnit} onChange={e => setPricePerUnit(e.target.value)} required className="pl-7"/>
                             </div>
                         </div>

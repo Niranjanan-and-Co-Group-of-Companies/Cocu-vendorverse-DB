@@ -58,7 +58,7 @@ export function AvailableOffers({ categoryId, productId }: AvailableOffersProps)
         if (type === 'Percentage') {
             return `${value}% OFF`;
         }
-        return `$${value} OFF`;
+        return `₹${value} OFF`;
     }
 
     return (
