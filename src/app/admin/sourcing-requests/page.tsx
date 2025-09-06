@@ -27,7 +27,10 @@ import { useToast } from '@/hooks/use-toast';
 const MOCK_REQUESTS = [
     { 
         id: 'SR001', 
-        customer: { name: 'Globex Corporation', contact: 'john.doe@globex.com' }, 
+        customer: { 
+            name: 'Globex Corporation', 
+            contact: { name: 'John Doe', email: 'john.doe@globex.com', phone: '555-123-4567' } 
+        }, 
         date: '2023-10-27', 
         product: 'Matte black ceramic mugs with custom logo', 
         quantity: 500, 
@@ -39,7 +42,10 @@ const MOCK_REQUESTS = [
     },
     { 
         id: 'SR002', 
-        customer: { name: 'Stark Industries', contact: 'p.potts@stark-industries.net' }, 
+        customer: { 
+            name: 'Stark Industries', 
+            contact: { name: 'Pepper Potts', email: 'p.potts@stark-industries.net', phone: '555-987-6543' } 
+        }, 
         date: '2023-10-26', 
         product: 'Leather notebooks with custom debossed logo', 
         quantity: 250, 
@@ -51,7 +57,10 @@ const MOCK_REQUESTS = [
     },
     { 
         id: 'SR003', 
-        customer: { name: 'Wayne Enterprises', contact: 'l.fox@wayne-enterprises.com' }, 
+        customer: { 
+            name: 'Wayne Enterprises', 
+            contact: { name: 'Lucius Fox', email: 'l.fox@wayne-enterprises.com', phone: '555-222-3333' } 
+        }, 
         date: '2023-10-24', 
         product: 'Eco-friendly tote bags with screen print', 
         quantity: 1000, 
@@ -63,7 +72,10 @@ const MOCK_REQUESTS = [
     },
     { 
         id: 'SR004', 
-        customer: { name: 'Cyberdyne Systems', contact: 'm.dyson@cyberdyne.io' }, 
+        customer: { 
+            name: 'Cyberdyne Systems', 
+            contact: { name: 'Miles Dyson', email: 'm.dyson@cyberdyne.io', phone: '555-444-5555' } 
+        }, 
         date: '2023-10-22', 
         product: 'Custom USB flash drives (16GB)', 
         quantity: 300, 

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, Mail } from 'lucide-react';
+import { Download, Mail, Phone, User } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SourcingRequestDetailsDialogProps {
@@ -47,7 +47,7 @@ export function SourcingRequestDetailsDialog({ open, onOpenChange, request, onSt
             <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
           </DialogTitle>
           <DialogDescription>
-            From: {request.customer.name} ({request.customer.contact})
+            From: {request.customer.name}
           </DialogDescription>
         </DialogHeader>
         <div className="grid md:grid-cols-2 gap-6 py-4">
@@ -112,9 +112,23 @@ export function SourcingRequestDetailsDialog({ open, onOpenChange, request, onSt
                         </SelectContent>
                     </Select>
                 </div>
-                <Button className="w-full">
-                    <Mail className="mr-2"/> Contact Customer
-                </Button>
+                <div className="space-y-2 pt-2 border-t">
+                    <h4 className="font-semibold text-sm">Contact Details</h4>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                        <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            <span>{request.customer.contact.name}</span>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4" />
+                             <a href={`mailto:${request.customer.contact.email}`} className="text-primary hover:underline">{request.customer.contact.email}</a>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            <span>{request.customer.contact.phone}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
       </DialogContent>
