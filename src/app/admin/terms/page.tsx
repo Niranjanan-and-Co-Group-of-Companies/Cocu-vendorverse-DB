@@ -4,11 +4,11 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { getTerms, saveTerms } from '@/lib/legal-service';
 import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TermsPage() {
     const [customerTerms, setCustomerTerms] = React.useState('');
@@ -20,13 +20,22 @@ export default function TermsPage() {
     React.useEffect(() => {
         const fetchTerms = async () => {
             setLoading(true);
-            const { customer, vendor } = await getTerms();
-            setCustomerTerms(customer);
-            setVendorTerms(vendor);
-            setLoading(false);
+            try {
+                const { customer, vendor } = await getTerms();
+                setCustomerTerms(customer);
+                setVendorTerms(vendor);
+            } catch (error) {
+                 toast({
+                    title: 'Error Fetching Terms',
+                    description: 'Could not load existing terms and conditions.',
+                    variant: 'destructive',
+                });
+            } finally {
+                setLoading(false);
+            }
         };
         fetchTerms();
-    }, []);
+    }, [toast]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -48,10 +57,6 @@ export default function TermsPage() {
         }
     };
 
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
     return (
         <div className="flex flex-col gap-6">
              <div className="flex items-center justify-between">
@@ -59,8 +64,8 @@ export default function TermsPage() {
                     <h1 className="text-2xl font-bold">Terms & Conditions</h1>
                     <p className="text-muted-foreground">Manage the legal terms for customers and vendors.</p>
                 </div>
-                 <Button onClick={handleSave} disabled={saving}>
-                    {saving && <Loader2 className="mr-2 animate-spin" />}
+                 <Button onClick={handleSave} disabled={saving || loading}>
+                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Save Changes
                 </Button>
             </div>
@@ -72,12 +77,17 @@ export default function TermsPage() {
                         <CardDescription>These terms are shown to customers during signup and when updated.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Textarea 
-                            value={customerTerms}
-                            onChange={(e) => setCustomerTerms(e.target.value)}
-                            rows={20}
-                            placeholder="Enter customer terms and conditions here..."
-                        />
+                        {loading ? (
+                             <Skeleton className="h-96 w-full" />
+                        ) : (
+                             <Textarea 
+                                value={customerTerms}
+                                onChange={(e) => setCustomerTerms(e.target.value)}
+                                rows={20}
+                                placeholder="Enter customer terms and conditions here..."
+                                disabled={saving}
+                            />
+                        )}
                     </CardContent>
                 </Card>
                  <Card>
@@ -86,12 +96,17 @@ export default function TermsPage() {
                         <CardDescription>These terms are shown to vendors during onboarding and when updated.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                          <Textarea 
-                            value={vendorTerms}
-                            onChange={(e) => setVendorTerms(e.target.value)}
-                            rows={20}
-                            placeholder="Enter vendor terms and conditions here..."
-                        />
+                          {loading ? (
+                             <Skeleton className="h-96 w-full" />
+                        ) : (
+                             <Textarea 
+                                value={vendorTerms}
+                                onChange={(e) => setVendorTerms(e.target.value)}
+                                rows={20}
+                                placeholder="Enter vendor terms and conditions here..."
+                                disabled={saving}
+                            />
+                        )}
                     </CardContent>
                 </Card>
             </div>
