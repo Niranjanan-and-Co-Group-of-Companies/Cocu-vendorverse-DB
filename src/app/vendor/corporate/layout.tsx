@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -39,6 +40,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { VendorNotificationDropdown } from '@/components/layout/vendor-notification-dropdown';
+import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 
 // In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor001";
@@ -199,6 +201,7 @@ export default function CorporateVendorLayout({ children }: { children: React.Re
                  <VerificationFlowHandler isVerified={isVerified}>
                     {children}
                 </VerificationFlowHandler>
+                <TermsUpdateDialog userType="vendor" />
             </main>
         </SidebarInset>
     </SidebarProvider>

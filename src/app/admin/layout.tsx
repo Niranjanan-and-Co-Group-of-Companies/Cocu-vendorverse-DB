@@ -40,7 +40,8 @@ import {
   Star,
   PackageCheck,
   Percent,
-  PackageSearch
+  PackageSearch,
+  BookCopy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
@@ -253,6 +254,14 @@ function AdminSidebar() {
                         <Link href="/admin/corporate">
                         <Building />
                         <span>Corporate</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/terms')} tooltip={{ children: 'Terms & Conditions' }}>
+                        <Link href="/admin/terms">
+                        <BookCopy />
+                        <span>Terms</span>
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>

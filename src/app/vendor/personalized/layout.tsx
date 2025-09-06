@@ -1,6 +1,8 @@
 
+
 import * as React from 'react';
 import { VendorSidebarLayout } from '@/components/layout/vendor-sidebar-layout';
+import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 
 export default function PersonalizedVendorLayout({
   children,
@@ -10,6 +12,7 @@ export default function PersonalizedVendorLayout({
   return (
     <VendorSidebarLayout>
       {children}
+      <TermsUpdateDialog userType="vendor" />
     </VendorSidebarLayout>
   );
 }
