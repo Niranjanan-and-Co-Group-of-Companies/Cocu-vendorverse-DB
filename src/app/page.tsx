@@ -69,7 +69,7 @@ const HeroSection = () => {
               <Link href="/signup">Start Gifting</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="#">Explore Vendors</Link>
+              <Link href="/search?q=">Explore Products</Link>
             </Button>
           </div>
         </div>
