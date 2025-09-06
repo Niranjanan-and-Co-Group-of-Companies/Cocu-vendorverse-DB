@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -24,15 +23,16 @@ interface OtpVerificationDialogProps {
 }
 
 export function OtpVerificationDialog({ isOpen, onOpenChange, onVerified, termsType }: OtpVerificationDialogProps) {
-  const [otp, setOtp] = React.useState('');
+  const [emailOtp, setEmailOtp] = React.useState('');
+  const [phoneOtp, setPhoneOtp] = React.useState('');
   const [isVerifying, setIsVerifying] = React.useState(false);
   const { toast } = useToast();
 
   const handleVerify = async () => {
-    if (otp !== '123456') { // Mock OTP check
+    if (emailOtp !== '123456' || phoneOtp !== '123456') { // Mock OTP check
       toast({
         title: 'Invalid OTP',
-        description: 'The one-time password you entered is incorrect.',
+        description: 'One or both of the one-time passwords you entered are incorrect.',
         variant: 'destructive',
       });
       return;
@@ -52,8 +52,9 @@ export function OtpVerificationDialog({ isOpen, onOpenChange, onVerified, termsT
   
   React.useEffect(() => {
     if(!isOpen) {
-        // Reset OTP when dialog is closed
-        setOtp('');
+        // Reset OTPs when dialog is closed
+        setEmailOtp('');
+        setPhoneOtp('');
     }
   }, [isOpen]);
 
@@ -68,16 +69,26 @@ export function OtpVerificationDialog({ isOpen, onOpenChange, onVerified, termsT
           </div>
           <DialogTitle className="text-center">Admin Verification Required</DialogTitle>
           <DialogDescription className="text-center">
-            To update the {termsType} Terms, please enter the OTP sent to the admin's registered contact details. (Hint: it's 123456)
+            To update the {termsType} Terms, please enter the OTPs sent to the admin's registered email and phone. (Hint: they're both 123456)
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="otp">One-Time Password</Label>
+              <Label htmlFor="email-otp">Email OTP</Label>
               <Input 
-                id="otp" 
-                value={otp} 
-                onChange={(e) => setOtp(e.target.value)} 
+                id="email-otp" 
+                value={emailOtp} 
+                onChange={(e) => setEmailOtp(e.target.value)} 
+                placeholder="123456" 
+                autoComplete="one-time-code"
+              />
+            </div>
+             <div className="grid gap-2">
+              <Label htmlFor="phone-otp">Phone OTP</Label>
+              <Input 
+                id="phone-otp" 
+                value={phoneOtp} 
+                onChange={(e) => setPhoneOtp(e.target.value)} 
                 placeholder="123456" 
                 autoComplete="one-time-code"
               />
@@ -85,7 +96,7 @@ export function OtpVerificationDialog({ isOpen, onOpenChange, onVerified, termsT
         </div>
         <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isVerifying}>Cancel</Button>
-            <Button type="button" onClick={handleVerify} disabled={isVerifying || otp.length < 6}>
+            <Button type="button" onClick={handleVerify} disabled={isVerifying || emailOtp.length < 6 || phoneOtp.length < 6}>
                 {isVerifying && <Loader2 className="mr-2 animate-spin" />}
                 Verify & Update
             </Button>
