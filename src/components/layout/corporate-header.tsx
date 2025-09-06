@@ -31,7 +31,7 @@ export default function CorporateHeader() {
         
         <div className="hidden md:flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-sm font-medium ml-4">
              <Briefcase className="h-4 w-4" />
-             <span>Corporate Portal</span>
+             <Link href="/corporate/dashboard">Corporate Portal</Link>
         </div>
         
         <div className="flex-1 flex justify-center px-8">

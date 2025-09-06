@@ -2,29 +2,44 @@
 'use client';
 
 import * as React from 'react';
-import { getAllProducts } from '@/lib/products-service';
+import { useSearchParams } from 'next/navigation';
+import { getAllProducts, getProductsByCategory } from '@/lib/products-service';
 import type { Product } from '@/lib/products';
 import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { getCategoryBySlug } from '@/lib/categories-service';
 
 interface ProductWithPrice extends Product {
     displayPrice: DisplayPrice;
 }
 
-export default function CorporateProductsPage() {
+function CorporateProductsPageContent() {
+  const searchParams = useSearchParams();
+  const categorySlug = searchParams.get('category');
+  
   const [allProducts, setAllProducts] = React.useState<ProductWithPrice[]>([]);
   const [filteredProducts, setFilteredProducts] = React.useState<ProductWithPrice[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [sortOption, setSortOption] = React.useState('rating-desc');
+  const [title, setTitle] = React.useState('Corporate Product Catalog');
   const { toast } = useToast();
 
   React.useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const products = await getAllProducts();
+      let products;
+      if (categorySlug) {
+        const category = await getCategoryBySlug(categorySlug);
+        products = await getProductsByCategory(categorySlug);
+        setTitle(category?.name || 'Corporate Products');
+      } else {
+        products = await getAllProducts();
+        setTitle('Corporate Product Catalog');
+      }
+      
       const b2bProducts = products.filter(p => p.moq && p.moq > 0);
 
       const pricedProducts = await Promise.all(
@@ -35,11 +50,10 @@ export default function CorporateProductsPage() {
       );
       
       setAllProducts(pricedProducts);
-      setFilteredProducts(pricedProducts);
       setLoading(false);
     };
     fetchData();
-  }, []);
+  }, [categorySlug]);
 
   React.useEffect(() => {
     let results = [...allProducts];
@@ -70,7 +84,7 @@ export default function CorporateProductsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-3xl font-bold font-headline">Corporate Product Catalog</h1>
+        <h1 className="text-3xl font-bold font-headline">{title}</h1>
         <p className="text-muted-foreground mt-2">
           Browse all products available for bulk orders and customization.
         </p>
@@ -114,4 +128,12 @@ export default function CorporateProductsPage() {
       )}
     </div>
   );
+}
+
+export default function CorporateProductsPage() {
+    return (
+        <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
+            <CorporateProductsPageContent />
+        </React.Suspense>
+    )
 }

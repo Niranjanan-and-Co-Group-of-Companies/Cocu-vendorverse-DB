@@ -63,10 +63,10 @@ const HeroSection = () => {
           </p>
           <div className="mt-8 flex justify-center gap-4">
             <Button size="lg" asChild>
-              <Link href="#">Browse All Products</Link>
+              <Link href="/corporate/products">Browse All Products</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="#">Request a Bid</Link>
+              <Link href="/corporate/bids/new">Request a Bid</Link>
             </Button>
           </div>
         </div>
@@ -216,7 +216,7 @@ export default function CorporateDashboardPage() {
                   </Card>
               ))
             ) : (categories.map((category) => (
-              <Link key={category.slug} href={`/category/${category.slug}`} className="block group">
+              <Link key={category.slug} href={`/corporate/products?category=${category.slug}`} className="block group">
                 <Card className="overflow-hidden relative">
                   <div className="aspect-[4/3] bg-muted">
                      {category.image && <Image src={category.image} alt={category.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint="category" />}
