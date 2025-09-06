@@ -25,8 +25,9 @@ import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileText, Download } from 'lucide-react';
+import { Loader2, FileText, Download, ImageIcon, FileType, File } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface VendorOrderDetailsDialogProps {
   open: boolean;
@@ -138,9 +139,28 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
                                                                      <a href={cust.proofUrl} target="_blank" rel="noopener noreferrer">
                                                                         <Button size="sm" variant="outline"><FileText className="mr-2 h-3 w-3"/>Proof</Button>
                                                                     </a>
-                                                                    <a href={cust.printUrl} target="_blank" rel="noopener noreferrer">
-                                                                        <Button size="sm" variant="secondary"><Download className="mr-2 h-3 w-3"/>Print File</Button>
-                                                                    </a>
+                                                                    <DropdownMenu>
+                                                                        <DropdownMenuTrigger asChild>
+                                                                            <Button size="sm" variant="secondary"><Download className="mr-2 h-3 w-3"/>Print File</Button>
+                                                                        </DropdownMenuTrigger>
+                                                                        <DropdownMenuContent>
+                                                                            <DropdownMenuItem asChild>
+                                                                                <a href={cust.printUrl} download>
+                                                                                    <ImageIcon className="mr-2" /> Download as PNG
+                                                                                </a>
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem asChild>
+                                                                                <a href={cust.printUrl} download>
+                                                                                    <FileType className="mr-2" /> Download as SVG
+                                                                                </a>
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem asChild>
+                                                                                 <a href={cust.printUrl} download>
+                                                                                    <File className="mr-2" /> Download as PDF
+                                                                                </a>
+                                                                            </DropdownMenuItem>
+                                                                        </DropdownMenuContent>
+                                                                    </DropdownMenu>
                                                                 </div>
                                                             </div>
                                                         ))}
