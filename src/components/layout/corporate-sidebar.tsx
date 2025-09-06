@@ -27,7 +27,8 @@ import {
   ShoppingCart,
   Heart,
   Scale,
-  MessageSquare
+  MessageSquare,
+  PenSquare
 } from 'lucide-react';
 import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useCorporateWishlist } from '@/hooks/use-corporate-wishlist';
@@ -83,6 +84,11 @@ export function CorporateSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/corporate/bids')} tooltip={{ children: 'My Bids' }}>
                             <Link href="/corporate/bids"><Gavel /><span>My Bids</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/write-to-admin')} tooltip={{ children: 'Write to Admin' }}>
+                            <Link href="/corporate/write-to-admin"><PenSquare /><span>Write to Admin</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
