@@ -110,7 +110,7 @@ export default function WriteToAdminPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="contact-phone">Contact Phone</Label>
-                                    <Input id="contact-phone" type="tel" placeholder="e.g., (555) 123-4567" required />
+                                    <Input id="contact-phone" type="tel" placeholder="e.g., +91 98765 43210" required />
                                 </div>
                             </div>
                         </CardContent>

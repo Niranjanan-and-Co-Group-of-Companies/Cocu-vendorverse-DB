@@ -119,7 +119,7 @@ export function AddVendorDialog({ open, onOpenChange, onVendorAdded, children }:
                 <Label htmlFor="phone" className="text-right">
                   Phone
                 </Label>
-                <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="col-span-3" placeholder="+1 (555) 555-5555" />
+                <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="col-span-3" placeholder="+91 98765 43210" />
               </div>
             </div>
             <DialogFooter>

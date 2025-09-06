@@ -71,7 +71,7 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 555-5555" />
+              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" />
             </div>
             <Button onClick={handleSendOtp} disabled={isSending}>
               {isSending && <Loader2 className="mr-2 animate-spin" />}

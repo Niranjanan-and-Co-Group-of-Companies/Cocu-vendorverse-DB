@@ -67,7 +67,7 @@ export function ShippingAddress() {
                             <Input placeholder="ZIP / Postal Code" />
                             <Input placeholder="Country" />
                          </div>
-                        <Input placeholder="Phone Number" />
+                        <Input placeholder="Phone Number (e.g. +91 98765 43210)" />
                     </div>
                     <DialogFooter>
                          <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
