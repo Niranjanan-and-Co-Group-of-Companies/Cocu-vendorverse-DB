@@ -158,7 +158,6 @@ export default function SourcingRequestsPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => setSelectedRequest(request)}>View Details</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleStatusChange(request.id, 'In Progress')}>Mark as 'In Progress'</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => handleDownloadAttachments(request)}>Download Attachments</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
