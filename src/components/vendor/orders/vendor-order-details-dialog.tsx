@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -24,7 +25,7 @@ import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, View } from 'lucide-react';
 
 interface VendorOrderDetailsDialogProps {
   open: boolean;
@@ -121,7 +122,17 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Image src={item.image} alt={item.name} width={40} height={40} className="rounded-md object-cover" />
-                                            <p className="font-medium">{item.name}</p>
+                                            <div>
+                                              <p className="font-medium">{item.name}</p>
+                                              {item.customizationDetails?.imageUrl && (
+                                                  <a href={item.customizationDetails.imageUrl} target="_blank" rel="noopener noreferrer">
+                                                      <Badge variant="secondary" className="mt-1 cursor-pointer hover:bg-muted">
+                                                          <View className="mr-1 h-3 w-3"/>
+                                                          View Customization
+                                                      </Badge>
+                                                  </a>
+                                              )}
+                                            </div>
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-medium">x{item.quantity}</TableCell>

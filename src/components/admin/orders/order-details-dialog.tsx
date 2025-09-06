@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -26,6 +27,8 @@ import {
 import type { Order } from '@/lib/orders-service';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { View } from 'lucide-react';
 
 interface OrderDetailsDialogProps {
   open: boolean;
@@ -93,7 +96,17 @@ export function OrderDetailsDialog({ open, onOpenChange, order }: OrderDetailsDi
                                                 <Image src={item.image} alt={item.name} width={40} height={40} className="rounded-md object-cover" />
                                                 <div>
                                                     <p className="font-medium">{item.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{formatCurrency(parseFloat(item.price.replace('₹', '').replace('$', '')))}</p>
+                                                    <div className="text-xs text-muted-foreground flex items-center gap-2">
+                                                        <span>{formatCurrency(parseFloat(item.price.replace('₹', '').replace('$', '')))}</span>
+                                                        {item.customizationDetails?.imageUrl && (
+                                                            <a href={item.customizationDetails.imageUrl} target="_blank" rel="noopener noreferrer">
+                                                                <Badge variant="secondary" className="cursor-pointer hover:bg-muted">
+                                                                    <View className="mr-1 h-3 w-3"/>
+                                                                    Customization
+                                                                </Badge>
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </TableCell>
