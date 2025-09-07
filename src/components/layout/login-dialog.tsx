@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { cn } from '@/lib/utils';
 
 interface LoginDialogProps {
   open: boolean;
@@ -24,16 +25,17 @@ interface LoginDialogProps {
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
-  
+  const [portalType, setPortalType] = React.useState<'personalized' | 'corporate'>('personalized');
+
   // In a real app, these handlers would call an authentication service
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Logging in...');
+    console.log(`Logging in to ${portalType} portal...`);
     onOpenChange(false);
   };
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Signing up...');
+    console.log(`Signing up for ${portalType} portal...`);
     onOpenChange(false);
   };
 
@@ -46,6 +48,31 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             Log in or create an account to continue.
           </DialogDescription>
         </DialogHeader>
+        
+        <div className="pt-4">
+             <RadioGroup value={portalType} onValueChange={(value) => setPortalType(value as any)} className="grid grid-cols-2 gap-4">
+                <div>
+                    <RadioGroupItem value="personalized" id="personalized" className="peer sr-only" />
+                    <Label
+                    htmlFor="personalized"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    >
+                    Personalized Portal
+                    </Label>
+                </div>
+                <div>
+                    <RadioGroupItem value="corporate" id="corporate" className="peer sr-only" />
+                    <Label
+                    htmlFor="corporate"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    >
+                    Corporate Portal
+                    </Label>
+                </div>
+            </RadioGroup>
+        </div>
+
+
         <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>
