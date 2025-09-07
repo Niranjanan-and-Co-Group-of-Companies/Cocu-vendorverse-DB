@@ -18,12 +18,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { onPendingProductsUpdate, approveProduct, declineProduct, type ProductWithVendor } from '@/lib/products-service';
 import { useToast } from '@/hooks/use-toast';
 import { VendorContactDialog } from '@/components/admin/products/vendor-contact-dialog';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+type ProductView = 'all' | 'personalized' | 'corporate';
 
 export default function NewProductsPage() {
     const [pendingProducts, setPendingProducts] = React.useState<ProductWithVendor[]>([]);
+    const [filteredProducts, setFilteredProducts] = React.useState<ProductWithVendor[]>([]);
     const [loading, setLoading] = React.useState(true);
     const { toast } = useToast();
     const [contactingVendor, setContactingVendor] = React.useState<ProductWithVendor['vendor'] | null>(null);
+    const [view, setView] = React.useState<ProductView>('all');
+    const [title, setTitle] = React.useState('All Submissions');
 
     React.useEffect(() => {
         const unsubscribe = onPendingProductsUpdate((products) => {
@@ -32,6 +38,20 @@ export default function NewProductsPage() {
         });
         return () => unsubscribe();
     }, []);
+
+    React.useEffect(() => {
+        let productsToFilter = [...pendingProducts];
+        if (view === 'personalized') {
+            productsToFilter = productsToFilter.filter(p => !p.moq || p.moq <= 1);
+            setTitle('Personalized Submissions');
+        } else if (view === 'corporate') {
+            productsToFilter = productsToFilter.filter(p => p.moq && p.moq > 1);
+            setTitle('Corporate Submissions');
+        } else {
+            setTitle('All Submissions');
+        }
+        setFilteredProducts(productsToFilter);
+    }, [view, pendingProducts]);
 
     const handleApprove = async (productId: number) => {
         await approveProduct(productId);
@@ -45,9 +65,20 @@ export default function NewProductsPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div>
-                <h1 className="text-2xl font-bold">New Product Submissions</h1>
-                <p className="text-muted-foreground">Review and approve new products submitted by vendors.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold">New Product Submissions</h1>
+                    <p className="text-muted-foreground">
+                        {filteredProducts.length} {title.toLowerCase()} awaiting review.
+                    </p>
+                </div>
+                 <Tabs value={view} onValueChange={(value) => setView(value as ProductView)}>
+                    <TabsList>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="personalized">Personalized</TabsTrigger>
+                        <TabsTrigger value="corporate">Corporate</TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                 <Table>
@@ -73,15 +104,15 @@ export default function NewProductsPage() {
                                     <TableCell className="text-right"><Skeleton className="h-9 w-40 ml-auto" /></TableCell>
                                 </TableRow>
                             ))
-                        ) : pendingProducts.length === 0 ? (
+                        ) : filteredProducts.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="h-48 text-center">
                                     <PackageSearch className="mx-auto h-12 w-12 text-muted-foreground" />
-                                    <p className="mt-4 text-muted-foreground">No pending products for review.</p>
+                                    <p className="mt-4 text-muted-foreground">No pending products for review in this category.</p>
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            pendingProducts.map((product) => (
+                            filteredProducts.map((product) => (
                                 <TableRow key={product.id}>
                                     <TableCell>
                                         <Image
