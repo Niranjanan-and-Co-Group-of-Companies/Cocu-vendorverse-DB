@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Info } from 'lucide-react';
+import { Eye, EyeOff, Info, Mail, Phone } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Alert, AlertDescription } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -44,7 +44,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     setSignupStep(2);
      toast({
         title: "Verification Code Sent",
-        description: "A one-time code has been sent to your email address.",
+        description: "A one-time code has been sent to your email or phone.",
     });
   };
 
@@ -88,7 +88,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         </DialogHeader>
         
         <div className="pt-4">
-             <RadioGroup defaultValue="personalized" className="grid grid-cols-2 gap-4">
+             <RadioGroup defaultValue="personalized" onValueChange={(value) => setPortalType(value as any)} className="grid grid-cols-2 gap-4">
                 <div>
                     <RadioGroupItem value="personalized" id="personalized" className="peer sr-only" />
                     <Label
@@ -119,8 +119,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             <TabsContent value="login">
                 <form className="grid gap-4 py-4" onSubmit={handleLogin}>
                     <div className="grid gap-2">
-                        <Label htmlFor="email-login">Email</Label>
-                        <Input id="email-login" type="email" placeholder="m@example.com" required />
+                        <Label htmlFor="email-login">Email or Phone</Label>
+                        <Input id="email-login" type="text" placeholder="m@example.com or +91..." required />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="password-login">Password</Label>
@@ -147,7 +147,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         <Alert>
                           <Info className="h-4 w-4" />
                           <AlertDescription className="text-xs">
-                            An email can only be used for one account type (Personalized or Corporate).
+                            An email or phone can only be used for one account type (Personalized or Corporate).
                           </AlertDescription>
                         </Alert>
                         <div className="grid gap-2">
@@ -155,8 +155,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                             <Input id="name-signup" placeholder="John Doe" required />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="email-signup">Email</Label>
-                            <Input id="email-signup" type="email" placeholder="m@example.com" required />
+                            <Label htmlFor="email-signup">Email or Phone</Label>
+                            <Input id="email-signup" type="text" placeholder="m@example.com or +91..." required />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="password-signup">Password</Label>
@@ -183,7 +183,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                  {signupStep === 2 && (
                     <form className="grid gap-4 py-4" onSubmit={handleVerifyAndCreate}>
                         <DialogDescription className="text-center">
-                            We've sent a 6-digit code to your email. Please enter it below to verify your account. (Hint: 123456)
+                            We've sent a 6-digit code to your email/phone. Please enter it below to verify your account. (Hint: 123456)
                         </DialogDescription>
                         <div className="grid gap-2">
                             <Label htmlFor="otp-signup">Verification Code</Label>

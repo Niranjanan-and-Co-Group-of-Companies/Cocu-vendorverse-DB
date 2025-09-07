@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,11 +36,11 @@ export default function SignupPage() {
                 </div>
                 </div>
                 <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email or Phone</Label>
                 <Input
                     id="email"
-                    type="email"
-                    placeholder="m@example.com"
+                    type="text"
+                    placeholder="m@example.com or +91..."
                     required
                 />
                 </div>
@@ -48,7 +49,7 @@ export default function SignupPage() {
                 <Input id="password" type="password" required />
                 </div>
                 <Button type="submit" className="w-full">
-                Create account
+                Create Account
                 </Button>
                 <Button variant="outline" className="w-full">
                 Sign up with Google

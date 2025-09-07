@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,17 +20,17 @@ export default function LoginPage() {
             <CardHeader>
             <CardTitle className="text-2xl font-headline">Login or Create an Account</CardTitle>
             <CardDescription>
-                Enter your email to login or sign up.
+                Enter your email or phone to login or sign up.
             </CardDescription>
             </CardHeader>
             <CardContent>
             <form className="grid gap-4">
                 <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email or Phone</Label>
                 <Input
                     id="email"
-                    type="email"
-                    placeholder="m@example.com"
+                    type="text"
+                    placeholder="m@example.com or +91..."
                     required
                 />
                 </div>
