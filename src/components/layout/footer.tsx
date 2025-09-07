@@ -3,14 +3,44 @@
 
 import { Gift, Linkedin, Twitter, Facebook } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import * as React from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function Footer() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [targetHref, setTargetHref] = React.useState('');
+  const [platformName, setPlatformName] = React.useState('');
+
   const isCorporate = pathname.startsWith('/corporate');
   const homeHref = isCorporate ? '/corporate/dashboard' : '/';
 
+  const handlePlatformSwitch = (e: React.MouseEvent, href: string, name: string) => {
+      e.preventDefault();
+      setTargetHref(href);
+      setPlatformName(name);
+      setDialogOpen(true);
+  };
+  
+  const handleConfirmSwitch = () => {
+    // In a real app, this would trigger a logout function.
+    console.log(`Logging out and redirecting to ${targetHref}`);
+    router.push(targetHref);
+  }
+
   return (
+    <>
     <footer className="border-t bg-card">
       <div className="container py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
@@ -32,8 +62,24 @@ export default function Footer() {
           <div>
             <h4 className="font-headline font-semibold">Gifting</h4>
             <ul className="mt-4 space-y-2 text-sm">
-              <li><Link href="/category/corporate-gifts" className="text-muted-foreground hover:text-foreground">Corporate Gifting</Link></li>
-              <li><Link href="/category/personalized-gifts" className="text-muted-foreground hover:text-foreground">Personalized Gifting</Link></li>
+              <li>
+                <Link 
+                    href="/corporate/dashboard" 
+                    onClick={!isCorporate ? (e) => handlePlatformSwitch(e, '/corporate/dashboard', 'Corporate') : undefined}
+                    className="text-muted-foreground hover:text-foreground"
+                >
+                    Corporate Gifting
+                </Link>
+              </li>
+              <li>
+                 <Link 
+                    href="/" 
+                    onClick={isCorporate ? (e) => handlePlatformSwitch(e, '/', 'Personalized') : undefined}
+                    className="text-muted-foreground hover:text-foreground"
+                >
+                    Personalized Gifting
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -66,5 +112,20 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+     <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Switch to {platformName} Portal?</AlertDialogTitle>
+            <AlertDialogDescription>
+              To access the {platformName} portal, you will be logged out of your current session. Do you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay Here</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSwitch}>Logout & Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
