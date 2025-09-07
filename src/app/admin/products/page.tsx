@@ -163,7 +163,10 @@ function ProductsTable() {
                         </TableRow>
                     ))
                     ) : (
-                    filteredProducts.map((product) => (
+                    filteredProducts.map((product) => {
+                        const isB2B = product.moq && product.moq > 1;
+                        const livePath = isB2B ? `/corporate/products/${product.id}` : `/products/${product.id}`;
+                        return (
                         <TableRow key={product.id}>
                         <TableCell>
                             <Image
@@ -184,8 +187,8 @@ function ProductsTable() {
                          <TableCell>{product.vendor}</TableCell>
                         <TableCell>{formatCurrency(product.price)}</TableCell>
                         <TableCell>
-                           <Badge variant={product.moq && product.moq > 1 ? 'secondary' : 'outline'}>
-                                {product.moq && product.moq > 1 ? 'Corporate' : 'Personal'}
+                           <Badge variant={isB2B ? 'secondary' : 'outline'}>
+                                {isB2B ? 'Corporate' : 'Personal'}
                            </Badge>
                         </TableCell>
                         {isCorporateView && <TableCell>{product.moq}</TableCell>}
@@ -211,7 +214,7 @@ function ProductsTable() {
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
-                                    <Link href="#" target="_blank">
+                                    <Link href={livePath} target="_blank">
                                         <Globe className="mr-2 h-4 w-4" />
                                         View Live Page
                                     </Link>
@@ -220,7 +223,7 @@ function ProductsTable() {
                             </DropdownMenu>
                         </TableCell>
                         </TableRow>
-                    ))
+                    )})
                     )}
                 </TableBody>
                 </Table>
