@@ -144,6 +144,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         </div>
                     </div>
                     <Button type="submit" className="w-full">Create Account</Button>
+                    <Button variant="outline" className="w-full">Sign up with Google</Button>
                 </form>
             </TabsContent>
         </Tabs>
