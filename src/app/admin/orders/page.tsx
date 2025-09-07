@@ -75,7 +75,7 @@ export default function OrdersPage() {
         setSelectedOrder(order);
     };
 
-    const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+    const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
     const stats = React.useMemo(() => {
         const totalRevenue = allOrders
