@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -101,6 +102,12 @@ function ProductsTable() {
     };
     
     const isCorporateView = view === 'corporate';
+    
+    const formatCurrency = (value: string | number) => {
+        const numValue = typeof value === 'string' ? parseFloat(value.replace('$', '').replace('₹', '')) : value;
+        if(isNaN(numValue)) return value;
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(numValue);
+    }
 
     return (
         <div className="flex flex-col gap-6">
@@ -175,7 +182,7 @@ function ProductsTable() {
                             </Badge>
                         </TableCell>
                          <TableCell>{product.vendor}</TableCell>
-                        <TableCell>{product.price}</TableCell>
+                        <TableCell>{formatCurrency(product.price)}</TableCell>
                         <TableCell>
                            <Badge variant={product.moq && product.moq > 1 ? 'secondary' : 'outline'}>
                                 {product.moq && product.moq > 1 ? 'Corporate' : 'Personal'}
