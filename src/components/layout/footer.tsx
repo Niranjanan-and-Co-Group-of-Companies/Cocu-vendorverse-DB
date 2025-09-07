@@ -47,9 +47,9 @@ export default function Footer() {
         </div>
         <div className="mt-8 flex justify-center">
             <div className="flex gap-4">
-                <Link href="https://twitter.com/Firebase" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Twitter size={20}/></Link>
-                <Link href="https://www.linkedin.com/company/firebase" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Linkedin size={20}/></Link>
-                <Link href="https://www.facebook.com/Firebase" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Facebook size={20}/></Link>
+                <Link href="https://twitter.com/vendorverse" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Twitter size={20}/></Link>
+                <Link href="https://linkedin.com/company/vendorverse" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Linkedin size={20}/></Link>
+                <Link href="https://facebook.com/vendorverse" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Facebook size={20}/></Link>
             </div>
         </div>
         <div className="mt-8 border-t pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
