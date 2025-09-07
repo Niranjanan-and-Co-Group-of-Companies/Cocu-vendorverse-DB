@@ -45,7 +45,7 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-8 border-t pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-8 border-t pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <p className="text-sm text-muted-foreground">
              © {new Date().getFullYear()} VendorVerse. All rights reserved.
           </p>
