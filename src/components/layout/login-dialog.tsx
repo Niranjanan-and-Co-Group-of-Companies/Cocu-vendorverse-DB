@@ -28,6 +28,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [portalType, setPortalType] = React.useState<'personalized' | 'corporate'>('personalized');
   const [signupStep, setSignupStep] = React.useState(1);
+  const [signupMethod, setSignupMethod] = React.useState<'email' | 'phone'>('email');
   const [otp, setOtp] = React.useState('');
   const { toast } = useToast();
 
@@ -79,7 +80,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Welcome to VendorVerse</DialogTitle>
           <DialogDescription>
@@ -154,10 +155,37 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                             <Label htmlFor="name-signup">Name</Label>
                             <Input id="name-signup" placeholder="John Doe" required />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="email-signup">Email or Phone</Label>
-                            <Input id="email-signup" type="text" placeholder="m@example.com or +91..." required />
+
+                         <div className="space-y-2">
+                            <Label>Sign up with</Label>
+                            <RadioGroup value={signupMethod} onValueChange={(value) => setSignupMethod(value as any)} className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <RadioGroupItem value="email" id="email-radio" className="peer sr-only" />
+                                    <Label htmlFor="email-radio" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                        <Mail className="mr-2 h-4 w-4" /> Email
+                                    </Label>
+                                </div>
+                                <div>
+                                    <RadioGroupItem value="phone" id="phone-radio" className="peer sr-only" />
+                                    <Label htmlFor="phone-radio" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                        <Phone className="mr-2 h-4 w-4" /> Phone
+                                    </Label>
+                                </div>
+                            </RadioGroup>
                         </div>
+
+                        {signupMethod === 'email' ? (
+                             <div className="grid gap-2">
+                                <Label htmlFor="email-signup">Email</Label>
+                                <Input id="email-signup" type="email" placeholder="m@example.com" required />
+                            </div>
+                        ) : (
+                             <div className="grid gap-2">
+                                <Label htmlFor="phone-signup">Phone Number</Label>
+                                <Input id="phone-signup" type="tel" placeholder="+91 98765 43210" required />
+                            </div>
+                        )}
+                        
                         <div className="grid gap-2">
                             <Label htmlFor="password-signup">Password</Label>
                             <div className="relative">
