@@ -1,14 +1,21 @@
 
+'use client';
+
 import { Gift, Linkedin, Twitter, Facebook } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isCorporate = pathname.startsWith('/corporate');
+  const homeHref = isCorporate ? '/corporate/dashboard' : '/';
+
   return (
     <footer className="border-t bg-card">
       <div className="container py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
             <div className="col-span-2 md:col-span-4 lg:col-span-1">
-                 <Link href="/" className="flex items-center gap-2 font-bold text-lg mb-4">
+                 <Link href={homeHref} className="flex items-center gap-2 font-bold text-lg mb-4">
                     <Gift className="h-6 w-6 text-primary" />
                     <span className="font-headline">VendorVerse</span>
                 </Link>
