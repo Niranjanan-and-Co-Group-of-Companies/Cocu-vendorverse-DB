@@ -100,6 +100,7 @@ function ProductsTable() {
         }
     };
     
+    const isCorporateView = view === 'corporate';
 
     return (
         <div className="flex flex-col gap-6">
@@ -136,6 +137,7 @@ function ProductsTable() {
                     <TableHead>Vendor</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Type</TableHead>
+                    {isCorporateView && <TableHead>MOQ</TableHead>}
                     <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -149,6 +151,7 @@ function ProductsTable() {
                         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                        {isCorporateView && <TableCell><Skeleton className="h-5 w-12" /></TableCell>}
                         <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                         </TableRow>
                     ))
@@ -178,6 +181,7 @@ function ProductsTable() {
                                 {product.moq && product.moq > 1 ? 'Corporate' : 'Personal'}
                            </Badge>
                         </TableCell>
+                        {isCorporateView && <TableCell>{product.moq}</TableCell>}
                         <TableCell className="text-right">
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
