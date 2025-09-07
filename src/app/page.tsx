@@ -10,13 +10,13 @@ import Footer from '@/components/layout/footer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { getAllProducts } from '@/lib/products-service';
 import { getCategories, type Category } from '@/lib/categories-service';
 import { getActiveCampaignByPlacement, type Campaign } from '@/lib/marketing-service';
 import React, { useEffect, useState } from 'react';
 import type { Product } from '@/lib/products';
 import { Skeleton } from '@/components/ui/skeleton';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { getFeaturedPersonalProducts } from '@/lib/featured-service';
 
 interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
@@ -123,14 +123,13 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const [allProductsData, categoriesData] = await Promise.all([
-        getAllProducts(),
+      const [featuredData, categoriesData] = await Promise.all([
+        getFeaturedPersonalProducts(),
         getCategories(),
       ]);
 
-      const featuredRaw = allProductsData.filter(p => p.featured);
       const pricedFeaturedProducts = await Promise.all(
-          featuredRaw.map(async p => ({
+          featuredData.map(async p => ({
               ...p,
               displayPrice: await calculateDisplayPrice(p, 'personal'),
           }))

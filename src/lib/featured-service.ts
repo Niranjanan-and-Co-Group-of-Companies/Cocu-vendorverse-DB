@@ -65,6 +65,10 @@ export async function getFeaturedCorporateProducts(): Promise<FeaturedProduct[]>
     return getFeaturedProductsByPlatform('corporate');
 }
 
+export async function getFeaturedPersonalProducts(): Promise<FeaturedProduct[]> {
+    return getFeaturedProductsByPlatform('personal');
+}
+
 
 // Get all featured products with real-time updates and merged product data
 export function onFeaturedProductsUpdate(callback: (products: FeaturedProduct[]) => void): () => void {
