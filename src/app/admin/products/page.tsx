@@ -115,7 +115,7 @@ function ProductsTable() {
                 <div>
                     <h1 className="text-2xl font-bold">{title}</h1>
                     <p className="text-muted-foreground">
-                        Manage all products from all vendors in the marketplace.
+                        {filteredProducts.length} products found. Manage all products from all vendors in the marketplace.
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
