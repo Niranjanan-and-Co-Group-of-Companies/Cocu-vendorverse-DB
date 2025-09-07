@@ -27,7 +27,6 @@ export default function Footer() {
             <ul className="mt-4 space-y-2 text-sm">
               <li><Link href="/category/corporate-gifts" className="text-muted-foreground hover:text-foreground">Corporate Gifting</Link></li>
               <li><Link href="/category/personalized-gifts" className="text-muted-foreground hover:text-foreground">Personalized Gifting</Link></li>
-              <li><Link href="/search" className="text-muted-foreground hover:text-foreground">Browse All Gifts</Link></li>
             </ul>
           </div>
           <div>
