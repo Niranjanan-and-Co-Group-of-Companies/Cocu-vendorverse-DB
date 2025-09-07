@@ -222,4 +222,3 @@ export async function approveProduct(productId: number) {
 export async function declineProduct(productId: number) {
     await updateProductStatus(productId, 'Declined');
 }
-

@@ -19,7 +19,7 @@ import { MoreHorizontal, PlusCircle, Edit, Globe, EyeOff } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Product } from '@/lib/products';
+import type { Product, ProductStatus } from '@/lib/products';
 import Link from 'next/link';
 import {
     DropdownMenu,
@@ -32,7 +32,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
-type ProductWithStatus = Product & { status: 'Live' | 'Needs Review' | 'Draft' };
+type ProductWithStatus = Product & { status: ProductStatus };
 type ProductView = 'all' | 'personal' | 'corporate';
 
 function ProductsTable() {
@@ -59,13 +59,7 @@ function ProductsTable() {
         }
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const productsData = snapshot.docs.map(doc => {
-                const data = doc.data() as Product;
-                // Add a mock status for demonstration purposes
-                const mockStatuses: ProductWithStatus['status'][] = ['Live', 'Needs Review', 'Draft'];
-                const status = mockStatuses[data.id % 3];
-                return { ...data, status };
-            });
+            const productsData = snapshot.docs.map(doc => doc.data() as ProductWithStatus);
             setAllProducts(productsData);
             setLoading(false);
         }, (error) => {
@@ -90,14 +84,18 @@ function ProductsTable() {
         setFilteredProducts(productsToFilter);
     }, [view, allProducts]);
 
-    const getStatusVariant = (status: ProductWithStatus['status']) => {
+    const getStatusVariant = (status: ProductStatus) => {
         switch (status) {
             case 'Live':
                 return 'default';
-            case 'Needs Review':
-                return 'destructive';
+            case 'Pending Review':
+                return 'secondary';
             case 'Draft':
                 return 'secondary';
+            case 'Declined':
+                return 'destructive';
+            default:
+                return 'outline';
         }
     };
     
