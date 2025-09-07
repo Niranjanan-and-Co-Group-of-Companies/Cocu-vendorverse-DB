@@ -28,16 +28,20 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 type ProductWithStatus = Product & { status: 'Live' | 'Needs Review' | 'Draft' };
+type ProductView = 'all' | 'personal' | 'corporate';
 
 function ProductsTable() {
     const searchParams = useSearchParams();
     const categoryFilter = searchParams.get('category');
-    const [products, setProducts] = React.useState<ProductWithStatus[]>([]);
+    const [allProducts, setAllProducts] = React.useState<ProductWithStatus[]>([]);
+    const [filteredProducts, setFilteredProducts] = React.useState<ProductWithStatus[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [title, setTitle] = React.useState('All Products');
+    const [view, setView] = React.useState<ProductView>('all');
 
     React.useEffect(() => {
         setLoading(true);
@@ -61,7 +65,7 @@ function ProductsTable() {
                 const status = mockStatuses[data.id % 3];
                 return { ...data, status };
             });
-            setProducts(productsData);
+            setAllProducts(productsData);
             setLoading(false);
         }, (error) => {
             console.error("Error fetching products: ", error);
@@ -70,6 +74,20 @@ function ProductsTable() {
 
         return () => unsubscribe();
     }, [categoryFilter]);
+
+    React.useEffect(() => {
+        let productsToFilter = [...allProducts];
+        if (view === 'personal') {
+            productsToFilter = productsToFilter.filter(p => !p.moq || p.moq <= 1);
+            setTitle('Personalized Retail Products');
+        } else if (view === 'corporate') {
+            productsToFilter = productsToFilter.filter(p => p.moq && p.moq > 1);
+            setTitle('Corporate & Bulk Products');
+        } else {
+            setTitle('All Products');
+        }
+        setFilteredProducts(productsToFilter);
+    }, [view, allProducts]);
 
     const getStatusVariant = (status: ProductWithStatus['status']) => {
         switch (status) {
@@ -92,12 +110,21 @@ function ProductsTable() {
                         Manage all products from all vendors in the marketplace.
                     </p>
                 </div>
-                <Button asChild>
-                    <Link href="/admin/products/new">
-                        <PlusCircle className="mr-2" />
-                        Add Product
-                    </Link>
-                </Button>
+                <div className="flex items-center gap-4">
+                    <Tabs value={view} onValueChange={(value) => setView(value as ProductView)}>
+                        <TabsList>
+                            <TabsTrigger value="all">All</TabsTrigger>
+                            <TabsTrigger value="personal">Personalized</TabsTrigger>
+                            <TabsTrigger value="corporate">Corporate</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                    <Button asChild>
+                        <Link href="/admin/products/new">
+                            <PlusCircle className="mr-2" />
+                            Add Product
+                        </Link>
+                    </Button>
+                </div>
             </div>
              <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                 <Table>
@@ -108,23 +135,25 @@ function ProductsTable() {
                     <TableHead>Status</TableHead>
                     <TableHead>Vendor</TableHead>
                     <TableHead>Price</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {loading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
+                    Array.from({ length: 10 }).map((_, i) => (
                         <TableRow key={i}>
                         <TableCell><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                         <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                         </TableRow>
                     ))
                     ) : (
-                    products.map((product) => (
+                    filteredProducts.map((product) => (
                         <TableRow key={product.id}>
                         <TableCell>
                             <Image
@@ -144,6 +173,11 @@ function ProductsTable() {
                         </TableCell>
                          <TableCell>{product.vendor}</TableCell>
                         <TableCell>{product.price}</TableCell>
+                        <TableCell>
+                           <Badge variant={product.moq && product.moq > 1 ? 'secondary' : 'outline'}>
+                                {product.moq && product.moq > 1 ? 'Corporate' : 'Personal'}
+                           </Badge>
+                        </TableCell>
                         <TableCell className="text-right">
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -191,4 +225,3 @@ export default function ProductsPage() {
         </React.Suspense>
     );
 }
-
