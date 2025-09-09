@@ -11,6 +11,36 @@ export interface Category {
   productCount?: number; // Make optional as it will be calculated separately
 }
 
+async function seedCategories() {
+    const categoriesRef = collection(db, "categories");
+    const snapshot = await getDocs(categoriesRef);
+    if (snapshot.empty) {
+        console.log("Seeding categories...");
+        const batch = writeBatch(db);
+        const mockCategories = [
+            { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300" },
+            { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300" },
+            { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300" },
+            { name: "Office & Corporate", image: "https://picsum.photos/seed/office/400/300" },
+            { name: "Tech", image: "https://picsum.photos/seed/tech/400/300" },
+            { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300" },
+            { name: "Made by Sunshine", image: "https://picsum.photos/seed/sunshine/400/300" },
+            { name: "Other", image: "https://picsum.photos/seed/other/400/300" },
+        ];
+        mockCategories.forEach(cat => {
+            const docRef = doc(categoriesRef);
+            batch.set(docRef, { 
+                name: cat.name, 
+                image: cat.image,
+                slug: cat.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')
+            });
+        });
+        await batch.commit();
+    }
+}
+seedCategories();
+
+
 // Get product count for a single category
 export function getProductCountForCategory(categoryName: string, callback: (count: number) => void): Unsubscribe {
   const productsRef = collection(db, 'products');
@@ -50,7 +80,7 @@ export function onCategoriesUpdate(callback: (categories: Category[]) => void): 
 }
 
 // Add a new category
-export async function addCategory(categoryData: { name: string, imageFile?: File }) {
+export async function addCategory(categoryData: { name: string, imageFile?: File | null }) {
     const { name, imageFile } = categoryData;
     let imageUrl = `https://picsum.photos/seed/${name}/400/300`; // Default image
 
@@ -66,7 +96,7 @@ export async function addCategory(categoryData: { name: string, imageFile?: File
 }
 
 // Update an existing category
-export async function updateCategory(categoryId: string, categoryData: { name: string, imageFile?: File }) {
+export async function updateCategory(categoryId: string, categoryData: { name: string, imageFile?: File | null }) {
     const { name, imageFile } = categoryData;
     const docRef = doc(db, 'categories', categoryId);
     

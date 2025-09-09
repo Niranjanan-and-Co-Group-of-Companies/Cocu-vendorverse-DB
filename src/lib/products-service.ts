@@ -51,7 +51,7 @@ async function uploadFile(path: string, file: File): Promise<string> {
 }
 
 export async function saveProduct(
-    productData: Product, 
+    productData: Partial<Product>, 
     sideImageFiles: Record<CustomizationSide, File | null>,
     galleryImageFiles: File[]
 ) {
@@ -68,24 +68,32 @@ export async function saveProduct(
 
     const finalProductData = { ...productData, id: productId };
 
+    // Initialize customizationSides if it's missing
+    if (!finalProductData.customizationSides) {
+        finalProductData.customizationSides = { front: { image: null, areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } };
+    }
+
     // Upload side images and update URLs
     for (const [side, file] of Object.entries(sideImageFiles)) {
         if (file) {
             const imageUrl = await uploadFile(`products/${productId}/side_${side}_${file.name}`, file);
-            finalProductData.customizationSides[side as CustomizationSide].image = imageUrl;
+            finalProductData.customizationSides[side as CustomizationSide] = {
+                ...(finalProductData.customizationSides[side as CustomizationSide] || { areas: [] }),
+                image: imageUrl
+            };
         }
     }
     
     // Upload gallery images
     const galleryImageUrls = await Promise.all(
-        galleryImageFiles.map(file => uploadFile(`products/${productId}/gallery_${file.name}`, file))
+        galleryImageFiles.map(file => uploadFile(`products/${productId}/gallery_${Date.now()}_${file.name}`, file))
     );
 
     // Combine existing URLs (if any) with new ones
     finalProductData.galleryImages = [...(finalProductData.galleryImages || []), ...galleryImageUrls];
     
     // The main 'image' field for the product should be the 'front' image
-    finalProductData.image = finalProductData.customizationSides.front.image || finalProductData.galleryImages[0] || 'https://placehold.co/600x400';
+    finalProductData.image = finalProductData.customizationSides.front?.image || finalProductData.galleryImages[0] || 'https://placehold.co/600x400';
 
     const docRef = doc(db, 'products', String(productId));
     await setDoc(docRef, finalProductData, { merge: true });
@@ -120,12 +128,14 @@ export async function getRelatedProducts(category?: string, currentProductId?: n
     const q = query(
         productsCollection, 
         where('category', '==', category),
-        where('id', '!=', currentProductId), // Exclude the current product
-        limit(4)
+        limit(5) // Get a few more to filter out the current one
     );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data() as Product);
+    return snapshot.docs
+        .map(doc => doc.data() as Product)
+        .filter(p => p.id !== currentProductId)
+        .slice(0, 4);
 }
 
 
