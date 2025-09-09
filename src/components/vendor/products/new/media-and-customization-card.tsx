@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -105,18 +104,30 @@ export function MediaAndCustomizationCard({
                      <h4 className="font-semibold text-lg">Editing: {activeVariant.colorName}</h4>
 
                     {isCustomizable ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {SIDES.map(side => (
-                                <div key={side} className="space-y-2">
-                                    <Label className="capitalize">{side} Side Image</Label>
-                                    <ImageUpload 
-                                        imageUrl={activeVariant.customizationSides[side]?.image || undefined}
-                                        onFileSelect={(file) => onImageChange(activeVariantId, side, file)}
-                                        className="aspect-square"
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                         <>
+                            <p className="text-sm text-muted-foreground">Upload an image for each side you want customers to be able to customize.</p>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {SIDES.map(side => (
+                                    <div key={side} className="space-y-2">
+                                        <Label className="capitalize">{side} Side Image</Label>
+                                        <ImageUpload 
+                                            imageUrl={activeVariant.customizationSides[side]?.image || undefined}
+                                            onFileSelect={(file) => onImageChange(activeVariantId, side, file)}
+                                            className="aspect-square"
+                                        />
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full"
+                                            disabled={!activeVariant.customizationSides[side]?.image}
+                                            onClick={() => handleDefineArea(side)}
+                                        >
+                                            Define Area
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     ) : (
                         <div className="space-y-2">
                             <Label>Product Image for {activeVariant.colorName}</Label>
@@ -152,6 +163,15 @@ export function MediaAndCustomizationCard({
             </div>
         </CardContent>
         </Card>
+        {isCustomizable && activeVariant && (
+            <CustomizationAreaEditor
+                isOpen={!!editingSide}
+                onClose={() => setEditingSide(null)}
+                onSave={handleEditorSave}
+                imageUrl={editingSide ? activeVariant.customizationSides[editingSide]?.image || '' : ''}
+                initialAreas={editingSide ? product.customizationAreas?.[editingSide] || [] : []}
+            />
+        )}
     </>
   );
 }
