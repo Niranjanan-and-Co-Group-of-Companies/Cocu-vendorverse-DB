@@ -43,7 +43,8 @@ import {
   Percent,
   PackageSearch,
   BookCopy,
-  Webhook
+  Webhook,
+  Inbox
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
@@ -274,6 +275,14 @@ function AdminSidebar() {
                         <span>Content</span>
                         </Link>
                     </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/admin/inquiries')} tooltip={{ children: 'Inquiries' }}>
+                            <Link href="/admin/inquiries">
+                            <Inbox />
+                            <span>Inquiries</span>
+                            </Link>
+                        </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/support')} tooltip={{ children: 'Support' }}>

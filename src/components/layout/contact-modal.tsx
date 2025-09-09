@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface ContactModalProps {
   open: boolean;
@@ -18,19 +20,43 @@ interface ContactModalProps {
 export function ContactModal({ open, onOpenChange }: ContactModalProps) {
   const { toast } = useToast();
   const [isSending, setIsSending] = React.useState(false);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formRef.current) return;
+
+    const formData = new FormData(formRef.current);
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const message = formData.get('message') as string;
+
+    if (!name || !email || !message) {
+        toast({ title: 'All fields are required', variant: 'destructive'});
+        return;
+    }
+
     setIsSending(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+        await addDoc(collection(db, 'contactSubmissions'), {
+            name,
+            email,
+            message,
+            createdAt: serverTimestamp(),
+            status: 'New',
+        });
         setIsSending(false);
         onOpenChange(false);
+        formRef.current.reset();
         toast({
             title: "Message Sent!",
             description: "Thanks for reaching out. We'll get back to you shortly.",
         });
-    }, 1500);
+    } catch (error) {
+        console.error("Failed to submit contact form:", error);
+        setIsSending(false);
+        toast({ title: 'Error', description: 'Could not send your message. Please try again.', variant: 'destructive'});
+    }
   }
 
   return (
@@ -42,19 +68,19 @@ export function ContactModal({ open, onOpenChange }: ContactModalProps) {
             Have a question or feedback? Fill out the form below to get in touch with our team.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} ref={formRef}>
             <div className="grid gap-4 py-4">
             <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Your Name" required />
+                <Input id="name" name="name" placeholder="Your Name" required />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="you@example.com" required />
+                <Input id="email" name="email" type="email" placeholder="you@example.com" required />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="message">Message</Label>
-                <Textarea id="message" placeholder="How can we help?" required />
+                <Textarea id="message" name="message" placeholder="How can we help?" required />
             </div>
             </div>
             <DialogFooter>
