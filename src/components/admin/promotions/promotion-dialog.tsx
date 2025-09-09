@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -17,7 +18,7 @@ import { savePromotion, type Promotion, type PromotionType, type PromotionStatus
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Loader2, X } from 'lucide-react';
+import { CalendarIcon, Loader2, X, Sparkles } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -114,6 +115,11 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
       setPromoData(prev => ({ ...prev, appliesTo: { ...(prev.appliesTo || { products: [], categories: [], vendors: [] }), [type]: value } }));
   };
 
+  const handleGenerateCode = () => {
+    const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    handleFieldChange('code', newCode);
+  };
+
   const handleSave = async () => {
     if (!promoData.code || !promoData.type) {
         toast({ title: "Code and Type are required.", variant: 'destructive' });
@@ -142,22 +148,25 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
         </DialogHeader>
         <ScrollArea className="pr-6 -mr-6">
         <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="code">Coupon Code</Label>
-                    <Input id="code" value={promoData.code || ''} onChange={e => handleFieldChange('code', e.target.value.toUpperCase())} />
+            <div className="space-y-2">
+                <Label htmlFor="code">Coupon Code</Label>
+                <div className="flex items-center gap-2">
+                    <Input id="code" value={promoData.code || ''} onChange={e => handleFieldChange('code', e.target.value.toUpperCase())} className="flex-grow font-mono" />
+                    <Button type="button" variant="outline" onClick={handleGenerateCode}>
+                        <Sparkles className="mr-2 h-4 w-4" /> Generate
+                    </Button>
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="type">Type</Label>
-                    <Select value={promoData.type} onValueChange={(value: PromotionType) => handleFieldChange('type', value)}>
-                        <SelectTrigger id="type"><SelectValue/></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Percentage">Percentage</SelectItem>
-                            <SelectItem value="Fixed Amount">Fixed Amount</SelectItem>
-                            <SelectItem value="Free Shipping">Free Shipping</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="type">Type</Label>
+                <Select value={promoData.type} onValueChange={(value: PromotionType) => handleFieldChange('type', value)}>
+                    <SelectTrigger id="type"><SelectValue/></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Percentage">Percentage</SelectItem>
+                        <SelectItem value="Fixed Amount">Fixed Amount</SelectItem>
+                        <SelectItem value="Free Shipping">Free Shipping</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="value">Value</Label>
