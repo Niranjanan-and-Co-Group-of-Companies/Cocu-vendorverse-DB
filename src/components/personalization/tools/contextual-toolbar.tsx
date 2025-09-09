@@ -25,15 +25,15 @@ export function ContextualToolbar() {
     };
 
     return (
-        <div className="absolute top-0 left-0 right-0 z-20 flex justify-center">
+        <div className="absolute top-[3.75rem] left-0 right-0 z-20 flex justify-center pointer-events-none">
             <AnimatePresence>
                 {selectedElement && (
                     <motion.div
-                        initial={{ y: -100, opacity: 0 }}
+                        initial={{ y: -50, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -100, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        className="mt-2"
+                        exit={{ y: -50, opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+                        className="pointer-events-auto"
                     >
                         <div className="bg-card p-2 rounded-lg border shadow-lg flex items-center gap-2">
                              {toolbarContent()}
