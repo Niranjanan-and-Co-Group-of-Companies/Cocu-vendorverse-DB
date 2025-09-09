@@ -4,6 +4,7 @@ export type ProductStatus = 'Live' | 'Draft' | 'Archived' | 'Pending Review' | '
 
 export type CustomizationSide = 'front' | 'back' | 'left' | 'right' | 'top' | 'bottom';
 export type AllowedCustomizationType = 'Text' | 'AI Image' | 'Image Upload' | 'QR Code' | 'Clipart';
+export type Platform = 'Personalized' | 'Corporate' | 'Both';
 
 export interface TieredPrice {
   quantity: number;
@@ -57,6 +58,7 @@ export type Product = {
   tags: string[];
   preparationTime: { min: number, max: number };
   preparationTimeUnit: 'days' | 'hours';
+  platform: Platform;
 };
 
     

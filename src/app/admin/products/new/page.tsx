@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -14,9 +15,10 @@ import { PricingAndInventoryCard } from '@/components/vendor/products/new/pricin
 import { PackageAndShippingCard } from '@/components/vendor/products/new/package-and-shipping-card';
 import { OrganizeCard } from '@/components/vendor/products/new/organize-card';
 import { AllowedCustomizationsCard } from '@/components/vendor/products/new/allowed-customizations-card';
-import type { CustomizationSide, AllowedCustomizationType, CustomizationArea } from '@/lib/products';
+import type { CustomizationSide, AllowedCustomizationType, CustomizationArea, Platform } from '@/lib/products';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getVendors, type Vendor } from '@/lib/vendors-service';
+import { B2BPricingCard } from '@/components/vendor/corporate/b2b-pricing-card';
 
 const createDefaultProduct = (): Partial<Product> => ({
   name: '',
@@ -26,6 +28,7 @@ const createDefaultProduct = (): Partial<Product> => ({
   vendorId: 'admin',
   vendor: 'VendorVerse',
   status: 'Draft',
+  platform: 'Personalized',
   customizable: false,
   customizationSides: {
     front: { image: null, areas: [] },
@@ -45,6 +48,8 @@ const createDefaultProduct = (): Partial<Product> => ({
   allowedCustomizations: [],
   preparationTime: { min: 3, max: 4 }, // Default preparation time
   preparationTimeUnit: 'days',
+  moq: 1,
+  tieredPricing: [],
 });
 
 function ProductEditorContent() {
@@ -155,6 +160,7 @@ function ProductEditorContent() {
         }
     };
 
+    const isCorporate = product.platform === 'Corporate' || product.platform === 'Both';
 
     if (loading) {
         return (
@@ -208,6 +214,16 @@ function ProductEditorContent() {
                         description={product.description || ''}
                         onFieldChange={handleFieldChange}
                     />
+                    {isCorporate ? (
+                        <B2BPricingCard product={product as Product} onFieldChange={handleFieldChange} />
+                    ) : (
+                        <PricingAndInventoryCard 
+                            price={product.price || ''}
+                            stock={product.stock || 0}
+                            maxQuantityPerOrder={product.maxQuantityPerOrder}
+                            onFieldChange={handleFieldChange}
+                        />
+                    )}
                     <MediaAndCustomizationCard 
                         product={product as Product}
                         onFieldChange={handleFieldChange}
@@ -219,12 +235,12 @@ function ProductEditorContent() {
                 </div>
                 {/* Right Sidebar */}
                 <div className="lg:col-span-1 space-y-6 lg:sticky top-20">
-                    <PricingAndInventoryCard 
-                        price={product.price || ''}
-                        stock={product.stock || 0}
-                        maxQuantityPerOrder={product.maxQuantityPerOrder}
+                     <OrganizeCard 
+                        product={product as Product}
                         onFieldChange={handleFieldChange}
-                    />
+                        isAdmin={true}
+                        vendors={vendors}
+                     />
                      <PackageAndShippingCard
                         weight={product.weight || 0}
                         dimensions={product.dimensions || { l: 0, w: 0, h: 0 }}
@@ -233,12 +249,6 @@ function ProductEditorContent() {
                         preparationTimeUnit={product.preparationTimeUnit || 'days'}
                         onFieldChange={handleFieldChange}
                     />
-                     <OrganizeCard 
-                        product={product as Product}
-                        onFieldChange={handleFieldChange}
-                        isAdmin={true}
-                        vendors={vendors}
-                     />
                      {product.customizable && (
                         <AllowedCustomizationsCard 
                             allowedTypes={product.allowedCustomizations || []}

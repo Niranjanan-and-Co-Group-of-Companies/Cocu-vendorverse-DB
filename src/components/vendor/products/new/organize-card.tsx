@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -8,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import type { Product, ProductStatus } from '@/lib/products';
+import type { Product, ProductStatus, Platform } from '@/lib/products';
 import { getCategories, type Category, type CategoryPlatform } from '@/lib/categories-service';
 import type { Vendor } from '@/lib/vendors-service';
 
@@ -24,12 +25,14 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
   const [tagInput, setTagInput] = React.useState('');
   const pathname = usePathname();
   
-  const isCorporateFlow = pathname.includes('corporate');
-  const platform: CategoryPlatform = isCorporateFlow ? 'Corporate' : 'Personalized';
+  const isVendorCorporateFlow = pathname.includes('corporate');
+  const vendorPlatform: CategoryPlatform = isVendorCorporateFlow ? 'Corporate' : 'Personalized';
+  const effectivePlatform = isAdmin ? product.platform : vendorPlatform;
 
   React.useEffect(() => {
-    getCategories(platform).then(setCategories);
-  }, [platform]);
+    // Admins see categories based on the product's platform, vendors see it based on their portal.
+    getCategories(effectivePlatform).then(setCategories);
+  }, [effectivePlatform]);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
@@ -65,25 +68,43 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
       </CardHeader>
       <CardContent className="space-y-4">
         {isAdmin && (
-           <div className="space-y-2">
-            <Label htmlFor="vendor">Vendor</Label>
-             <Select 
-                value={product.vendorId}
-                onValueChange={handleVendorChange}
-              >
-              <SelectTrigger id="vendor">
-                <SelectValue placeholder="Select a vendor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">VendorVerse (Platform Inventory)</SelectItem>
-                {vendors.map(v => (
-                  <SelectItem key={v.id} value={v.id}>
-                      {v.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+           <>
+             <div className="space-y-2">
+              <Label htmlFor="platform">Platform</Label>
+               <Select 
+                  value={product.platform}
+                  onValueChange={(value: Platform) => onFieldChange('platform', value)}
+                >
+                <SelectTrigger id="platform">
+                  <SelectValue placeholder="Select a platform" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Personalized">Personalized Retail</SelectItem>
+                  <SelectItem value="Corporate">Corporate & Bulk</SelectItem>
+                  <SelectItem value="Both">Both</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vendor">Vendor</Label>
+               <Select 
+                  value={product.vendorId}
+                  onValueChange={handleVendorChange}
+                >
+                <SelectTrigger id="vendor">
+                  <SelectValue placeholder="Select a vendor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">VendorVerse (Platform Inventory)</SelectItem>
+                  {vendors.map(v => (
+                    <SelectItem key={v.id} value={v.id}>
+                        {v.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+           </>
         )}
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
