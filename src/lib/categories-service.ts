@@ -73,9 +73,6 @@ async function uploadCategoryImage(file: File): Promise<string> {
 // Get all categories with real-time updates
 export function onCategoriesUpdate(callback: (categories: Category[]) => void): Unsubscribe {
     const categoriesRef = collection(db, 'categories');
-    
-    // Seed data if the collection is empty.
-    seedCategories();
 
     const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
         const categoriesData = snapshot.docs.map(doc => ({
