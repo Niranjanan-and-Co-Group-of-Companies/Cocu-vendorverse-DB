@@ -74,8 +74,7 @@ export function ProductActions({ product, isCorporate = false, isHybrid = false 
   }
 
   const editPath = `${basePath}/new?id=${product.id}`;
-  const livePath = isCorporate ? '/corporate/products' : '/products';
-
+  
   return (
     <>
       <DropdownMenu>
@@ -93,14 +92,6 @@ export function ProductActions({ product, isCorporate = false, isHybrid = false 
                 Edit
             </Link>
           </DropdownMenuItem>
-          {product.status === 'Live' && (
-            <DropdownMenuItem asChild>
-                <Link href={`${livePath}/${product.id}`} target="_blank">
-                    <Eye className="mr-2 h-4 w-4" />
-                    View Live Page
-                </Link>
-            </DropdownMenuItem>
-          )}
           <DropdownMenuSeparator />
           
           {product.status === 'Draft' && (
