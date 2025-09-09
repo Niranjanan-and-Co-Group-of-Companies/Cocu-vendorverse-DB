@@ -20,27 +20,30 @@ import type { Category, CategoryPlatform } from '@/lib/categories-service';
 import { CategoryDialog } from '@/components/admin/categories/category-dialog';
 import { CategoryActions } from '@/components/admin/categories/category-actions';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 interface CategoryWithCount extends Category {
     productCount: number;
 }
 
 export default function CategoriesPage() {
-    const [categories, setCategories] = React.useState<CategoryWithCount[]>([]);
+    const [allCategories, setAllCategories] = React.useState<CategoryWithCount[]>([]);
+    const [filteredCategories, setFilteredCategories] = React.useState<CategoryWithCount[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
+    const [activeTab, setActiveTab] = React.useState<CategoryPlatform>('Personalized');
 
     React.useEffect(() => {
         const unsubscribe = onCategoriesUpdate((fetchedCategories) => {
             const categoriesWithCounts: CategoryWithCount[] = fetchedCategories.map(c => ({...c, productCount: 0}));
-            setCategories(categoriesWithCounts);
+            setAllCategories(categoriesWithCounts);
             setLoading(false);
 
-            // For each category, set up a listener for its product count
             fetchedCategories.forEach(category => {
                 getProductCountForCategory(category.name, (count) => {
-                    setCategories(prev => 
+                    setAllCategories(prev => 
                         prev.map(c => c.id === category.id ? { ...c, productCount: count } : c)
                     );
                 });
@@ -54,6 +57,11 @@ export default function CategoriesPage() {
         };
     }, []);
 
+    React.useEffect(() => {
+        const filtered = allCategories.filter(category => category.platform === activeTab);
+        setFilteredCategories(filtered);
+    }, [allCategories, activeTab]);
+
     const handleCreate = () => {
         setEditingCategory(null);
         setIsDialogOpen(true);
@@ -63,16 +71,6 @@ export default function CategoriesPage() {
         setEditingCategory(category);
         setIsDialogOpen(true);
     };
-
-    const getPlatformVariant = (platform: CategoryPlatform): 'default' | 'secondary' | 'outline' => {
-        switch(platform) {
-            case 'Corporate': return 'secondary';
-            case 'Personalized': return 'outline';
-            case 'Both': return 'default';
-            default: return 'outline';
-        }
-    };
-
 
     return (
         <div className="flex flex-col gap-6">
@@ -86,55 +84,60 @@ export default function CategoriesPage() {
                     Create Category
                 </Button>
             </div>
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[80px]">Image</TableHead>
-                            <TableHead>Category Name</TableHead>
-                            <TableHead>Platform</TableHead>
-                            <TableHead>Products</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? (
-                            Array.from({ length: 5 }).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+            
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as CategoryPlatform)}>
+                <TabsList>
+                    <TabsTrigger value="Personalized">Personalized</TabsTrigger>
+                    <TabsTrigger value="Corporate">Corporate</TabsTrigger>
+                </TabsList>
+                <TabsContent value={activeTab} className="mt-4">
+                     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[80px]">Image</TableHead>
+                                    <TableHead>Category Name</TableHead>
+                                    <TableHead>Products</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
-                            ))
-                        ) : (
-                            categories.map((category) => (
-                                <TableRow key={category.id}>
-                                    <TableCell>
-                                        <Image
-                                            src={category.image || 'https://placehold.co/64'}
-                                            alt={category.name}
-                                            width={64}
-                                            height={64}
-                                            className="rounded-md object-cover"
-                                            data-ai-hint="category image"
-                                        />
-                                    </TableCell>
-                                    <TableCell className="font-medium">{category.name}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={getPlatformVariant(category.platform)}>{category.platform}</Badge>
-                                    </TableCell>
-                                    <TableCell>{category.productCount}</TableCell>
-                                    <TableCell className="text-right">
-                                        <CategoryActions category={category} onEdit={handleEdit} />
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                            </TableHeader>
+                            <TableBody>
+                                {loading ? (
+                                    Array.from({ length: 5 }).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                            <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    filteredCategories.map((category) => (
+                                        <TableRow key={category.id}>
+                                            <TableCell>
+                                                <Image
+                                                    src={category.image || 'https://placehold.co/64'}
+                                                    alt={category.name}
+                                                    width={64}
+                                                    height={64}
+                                                    className="rounded-md object-cover"
+                                                    data-ai-hint="category image"
+                                                />
+                                            </TableCell>
+                                            <TableCell className="font-medium">{category.name}</TableCell>
+                                            <TableCell>{category.productCount}</TableCell>
+                                            <TableCell className="text-right">
+                                                <CategoryActions category={category} onEdit={handleEdit} />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </TabsContent>
+            </Tabs>
+           
 
             <CategoryDialog
                 open={isDialogOpen}

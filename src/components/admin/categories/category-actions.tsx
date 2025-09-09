@@ -78,7 +78,7 @@ export function CategoryActions({ category, onEdit }: CategoryActionsProps) {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+            className="text-destructive focus:text-destructive"
             onClick={() => setIsDeleteDialogOpen(true)}
           >
             <Trash2 className="mr-2 h-4 w-4" />
