@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -15,7 +16,9 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { onVendorProductsUpdate, type ProductWithStatus, ProductStatus } from '@/lib/products-service';
+import { onVendorProductsUpdate } from '@/lib/products-client-service';
+import type { ProductWithStatus } from '@/lib/products-client-service';
+import { type ProductStatus } from '@/lib/products';
 import Link from 'next/link';
 import { ProductActions } from '@/components/vendor/products/product-actions';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -99,7 +102,8 @@ export default function VendorProductsPage() {
         const VENDOR_ID = 'vendor001'; 
         
         const unsubscribe = onVendorProductsUpdate(VENDOR_ID, (products) => {
-            setAllProducts(products);
+            const retailProducts = products.filter(p => !p.moq || p.moq <= 1);
+            setAllProducts(retailProducts);
             setLoading(false);
         });
 

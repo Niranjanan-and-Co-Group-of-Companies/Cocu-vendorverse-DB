@@ -48,7 +48,7 @@ import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
 import React from 'react';
-import { getPendingProductCount } from '@/lib/products-service';
+import { getPendingProductCount } from '@/lib/products-client-service';
 import { getOpenTicketCount } from '@/lib/admin/support-service';
 import { AdminNotificationDropdown } from '@/components/admin/layout/admin-notification-dropdown';
 

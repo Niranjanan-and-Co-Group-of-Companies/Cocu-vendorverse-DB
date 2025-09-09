@@ -125,10 +125,20 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                     platform='personal'
                 />
             </div>
+            <div className="mt-12 lg:mt-20">
+                <RelatedProductsCarousel
+                    type="category"
+                    value={product.category}
+                    currentProductId={product.id}
+                    title="Similar Products"
+                />
+            </div>
              <div className="mt-12 lg:mt-20">
                 <RelatedProductsCarousel
-                    category={product.category}
+                    type="vendor"
+                    value={product.vendorId}
                     currentProductId={product.id}
+                    title={`More from ${product.vendor}`}
                 />
             </div>
         </div>

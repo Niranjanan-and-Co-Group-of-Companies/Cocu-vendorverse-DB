@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -16,15 +17,17 @@ import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service'
 import { Badge } from '../ui/badge';
 
 interface RelatedProductsCarouselProps {
-  category?: string;
+  type: 'category' | 'vendor';
+  value?: string;
   currentProductId?: number;
+  title: string;
 }
 
 interface ProductWithPrice extends Product {
     displayPrice: DisplayPrice;
 }
 
-export function RelatedProductsCarousel({ category, currentProductId }: RelatedProductsCarouselProps) {
+export function RelatedProductsCarousel({ type, value, currentProductId, title }: RelatedProductsCarouselProps) {
   const [relatedProducts, setRelatedProducts] = React.useState<ProductWithPrice[]>([]);
   const [loading, setLoading] = React.useState(true);
   const pathname = usePathname();
@@ -33,12 +36,12 @@ export function RelatedProductsCarousel({ category, currentProductId }: RelatedP
 
   React.useEffect(() => {
     async function fetchAndPriceProducts() {
-        if (!category || currentProductId === undefined) {
+        if (!value || currentProductId === undefined) {
             setLoading(false);
             return;
         }
 
-        const products = await getRelatedProducts(category, currentProductId);
+        const products = await getRelatedProducts(type, value, currentProductId);
         const platform = pathname.includes('/corporate') ? 'corporate' : 'personal';
         const pricedProducts = await Promise.all(
             products.map(async (p) => ({
@@ -50,7 +53,7 @@ export function RelatedProductsCarousel({ category, currentProductId }: RelatedP
         setLoading(false);
     }
     fetchAndPriceProducts();
-  }, [category, currentProductId, pathname]);
+  }, [type, value, currentProductId, pathname]);
   
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
@@ -58,8 +61,8 @@ export function RelatedProductsCarousel({ category, currentProductId }: RelatedP
   if (loading) {
     return (
         <div>
-            <h2 className="text-2xl font-bold font-headline mb-6">Similar Products</h2>
-            <div className="grid grid-cols-4 gap-6">
+            <h2 className="text-2xl font-bold font-headline mb-6">{title}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 <Skeleton className="h-80 w-full" />
                 <Skeleton className="h-80 w-full" />
                 <Skeleton className="h-80 w-full" />
@@ -73,8 +76,8 @@ export function RelatedProductsCarousel({ category, currentProductId }: RelatedP
 
   return (
     <div>
-        <h2 className="text-2xl font-bold font-headline mb-6">Similar Products</h2>
-        <Carousel opts={{ align: "start", loop: true }} className="w-full">
+        <h2 className="text-2xl font-bold font-headline mb-6">{title}</h2>
+        <Carousel opts={{ align: "start" }} className="w-full">
         <CarouselContent>
             {relatedProducts.map((product) => (
             <CarouselItem key={product.id} className="md:basis-1/3 lg:basis-1/4">
@@ -115,8 +118,8 @@ export function RelatedProductsCarousel({ category, currentProductId }: RelatedP
             </CarouselItem>
             ))}
         </CarouselContent>
-        <CarouselPrevious className="ml-14" />
-        <CarouselNext className="mr-14" />
+        <CarouselPrevious className="-left-4" />
+        <CarouselNext className="-right-4" />
         </Carousel>
     </div>
   );

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -80,7 +81,8 @@ function ProductPageContent({ params }: { params: { id: string } }) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
                 <ProductMediaGallery
                     name={product.name}
-                    mainImage={product.image}
+                    variants={product.variants}
+                    selectedVariant={product.variants?.[0] || null}
                     galleryImages={product.galleryImages}
                     videoUrl={product.videoUrl}
                 />
@@ -110,10 +112,20 @@ function ProductPageContent({ params }: { params: { id: string } }) {
                     platform='corporate'
                 />
             </div>
+            <div className="mt-12 lg:mt-20">
+                <RelatedProductsCarousel
+                    type="category"
+                    value={product.category}
+                    currentProductId={product.id}
+                    title="Similar Products"
+                />
+            </div>
              <div className="mt-12 lg:mt-20">
                 <RelatedProductsCarousel
-                    category={product.category}
+                    type="vendor"
+                    value={product.vendorId}
                     currentProductId={product.id}
+                    title={`More from ${product.vendor}`}
                 />
             </div>
         </div>

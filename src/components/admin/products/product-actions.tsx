@@ -24,7 +24,8 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Edit, Trash2, Eye, Archive, UploadCloud, ArchiveRestore, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { ProductWithStatus, updateProductStatus } from '@/lib/products-service';
+import { updateProductStatus } from '@/lib/products-service';
+import { type ProductWithStatus } from '@/lib/products-client-service';
 
 interface AdminProductActionsProps {
   product: ProductWithStatus;
