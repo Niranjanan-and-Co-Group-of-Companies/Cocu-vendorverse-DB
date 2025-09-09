@@ -1,4 +1,6 @@
 
+'use client';
+
 import * as React from 'react';
 import { onProductUpdate } from '@/lib/products-client-service';
 import type { Product, ProductVariant } from '@/lib/products';
@@ -14,8 +16,6 @@ import { Button } from '@/components/ui/button';
 
 // This component now contains all client-side logic
 function ProductPageContent({ id }: { id: string }) {
-    'use client';
-
     const [product, setProduct] = React.useState<Product | null>(null);
     const [category, setCategory] = React.useState<Category | null>(null);
     const [loading, setLoading] = React.useState(true);
