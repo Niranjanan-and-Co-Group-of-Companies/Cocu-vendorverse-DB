@@ -148,7 +148,9 @@ export function onCategoriesWithCommissionsUpdate(platform: CategoryPlatform | '
     seedCategories(); // Ensure categories exist
 
     const categoriesRef = collection(db, 'categories');
-    const categoriesQuery = query(categoriesRef, where('platform', 'in', ['Both', platform]));
+    // FIX: The query now correctly includes 'Both' along with the specific platform.
+    const platformFilter = platform === 'Both' ? ['Personalized', 'Corporate', 'Both'] : ['Both', platform];
+    const categoriesQuery = query(categoriesRef, where('platform', 'in', platformFilter));
     
     const commissionsRef = collection(db, 'commissions');
 
