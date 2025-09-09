@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Check, X, MessageSquare, PackageSearch } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { onPendingProductsUpdate, approveProduct, declineProduct } from '@/lib/products-client-service';
+import { onPendingProductsUpdate, approveProduct, declineProduct } from '@/lib/products-service';
 import type { ProductWithVendor } from '@/lib/products-client-service';
 import { useToast } from '@/hooks/use-toast';
 import { VendorContactDialog } from '@/components/admin/products/vendor-contact-dialog';

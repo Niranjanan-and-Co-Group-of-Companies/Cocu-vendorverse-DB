@@ -13,7 +13,7 @@ import { Loader2, Plus, Trash2, Upload, GripVertical } from 'lucide-react';
 import { ImageUpload } from '@/components/common/image-upload';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function NewPostPage() {
+function NewPostPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const postId = searchParams.get('id');
@@ -165,5 +165,13 @@ export default function NewPostPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function NewPostPage() {
+    return (
+        <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
+            <NewPostPageContent />
+        </React.Suspense>
     );
 }

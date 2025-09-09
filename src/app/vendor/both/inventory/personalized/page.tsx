@@ -13,7 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
-import { onVendorProductsUpdate, type ProductWithStatus, updateProductInventory } from '@/lib/products-service';
+import { onVendorProductsUpdate, updateProductInventory, type ProductWithStatus } from '@/lib/products-client-service';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { Product } from '@/lib/products';
