@@ -9,13 +9,12 @@ import { ProductPageContent } from '@/components/product/product-page-content';
 
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-    const { id } = params;
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-grow">
                  <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
-                    <ProductPageContent id={id} />
+                    <ProductPageContent id={params.id} />
                 </React.Suspense>
             </main>
             <Footer />
