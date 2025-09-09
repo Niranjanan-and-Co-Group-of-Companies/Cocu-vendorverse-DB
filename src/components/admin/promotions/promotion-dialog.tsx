@@ -176,15 +176,9 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
       });
   };
 
-  const handleSelect = async (type: 'product' | 'category' | 'vendor', item: TargetableItem) => {
+  const handleSelect = async (type: 'product', item: TargetableItem) => {
     if (type === 'product') {
         addProductsToSelection([item]);
-    } else if (type === 'category') {
-        const products = await getProductsByCategory(item.name);
-        addProductsToSelection(products.map(p => ({ id: p.id, name: p.name, image: p.image })));
-    } else if (type === 'vendor') {
-        const products = await getProductsByVendor(item.id);
-        addProductsToSelection(products.map(p => ({ id: p.id, name: p.name, image: p.image })));
     }
   };
   
@@ -304,17 +298,13 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                 </div>
                 <div className="space-y-4 rounded-lg border p-4">
                     <h4 className="font-medium">Targeting (Optional)</h4>
-                    <p className="text-sm text-muted-foreground">Search for products, categories, or vendors to apply this promotion to. If no targets are selected, it applies to the entire cart.</p>
+                    <p className="text-sm text-muted-foreground">Search for products to apply this promotion to. If no products are selected, it applies to the entire cart.</p>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <SearchAndSelect title="Products" items={targetableItems.products} onSelect={(item) => handleSelect('product', item)} />
-                        <SearchAndSelect title="Categories" items={targetableItems.categories} onSelect={(item) => handleSelect('category', item)} />
-                        <SearchAndSelect title="Vendors" items={targetableItems.vendors} onSelect={(item) => handleSelect('vendor', item)} />
-                    </div>
+                    <SearchAndSelect title="Products" items={targetableItems.products} onSelect={(item) => handleSelect('product', item)} />
                     
                     <div>
                     <Label>Applied to Products</Label>
-                    <ScrollArea className="h-48 border rounded-md p-2 mt-2">
+                    <div className="h-48 border rounded-md p-2 mt-2 overflow-y-auto">
                         {(promoData.appliesTo?.products || []).length > 0 ? (
                         <div className="space-y-2">
                             {(promoData.appliesTo?.products || []).map(p => (
@@ -338,7 +328,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                             <p className="text-sm text-muted-foreground">Applies to all products by default.</p>
                         </div>
                         )}
-                    </ScrollArea>
+                    </div>
                     </div>
                 </div>
             </div>
