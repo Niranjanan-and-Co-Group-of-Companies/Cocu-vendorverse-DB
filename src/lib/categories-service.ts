@@ -149,13 +149,16 @@ export async function getCategories(platform?: CategoryPlatform): Promise<Catego
 
     // 2. Fetch all commission rules
     const commissionType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
-    const commissionsQuery = query(collection(db, 'commissions'), where('type', '==', commissionType));
+    const commissionsRef = collection(db, 'commissions');
+    const commissionsQuery = query(commissionsRef, where('type', '==', commissionType));
     const commissionsSnapshot = await getDocs(commissionsQuery);
     const commissionRulesMap = new Map<string, number>();
-    commissionsSnapshot.forEach(doc => {
-        const rule = doc.data() as CommissionRule;
-        commissionRulesMap.set(rule.categoryName, rule.commissionRate);
-    });
+    if (!commissionsSnapshot.empty) {
+        commissionsSnapshot.forEach(doc => {
+            const rule = doc.data() as CommissionRule;
+            commissionRulesMap.set(rule.categoryName, rule.commissionRate);
+        });
+    }
 
     // 3. Merge commission rates into categories
     const categoriesWithCommissions = categories.map(category => ({
@@ -185,7 +188,17 @@ export async function getCategoryByName(name?: string): Promise<Category | null>
         return null;
     }
     const docData = snapshot.docs[0];
-    return { id: docData.id, ...docData.data() } as Category;
+    const commissionType = (docData.data().platform === 'Corporate' || docData.data().platform === 'Both') ? 'corporate-bulk' : 'personalized-retail';
+    
+    const commissionsQuery = query(collection(db, 'commissions'), where('categoryName', '==', name), where('type', '==', commissionType));
+    const commissionsSnapshot = await getDocs(commissionsQuery);
+
+    let commissionRate = 0;
+    if (!commissionsSnapshot.empty) {
+        commissionRate = (commissionsSnapshot.docs[0].data() as CommissionRule).commissionRate;
+    }
+    
+    return { id: docData.id, ...docData.data(), commissionRate } as Category;
 }
 
 
