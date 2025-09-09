@@ -1,11 +1,12 @@
 
+
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
 
-export type CategoryPlatform = 'Personalized' | 'Corporate';
+export type CategoryPlatform = 'Personalized' | 'Corporate' | 'Both';
 
 export interface Category {
   id: string;
@@ -22,21 +23,22 @@ const MOCK_CATEGORIES = [
     { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300", platform: 'Personalized' },
     { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300", platform: 'Personalized' },
     { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300", platform: 'Personalized' },
-    { name: "Tech Gadgets", image: "https://picsum.photos/seed/tech/400/300", platform: 'Personalized' },
-    { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Personalized' },
     { name: "Made by Sunshine", image: "https://picsum.photos/seed/sunshine/400/300", platform: 'Personalized' },
-    { name: "Other Personal Gifts", image: "https://picsum.photos/seed/other/400/300", platform: 'Personalized' },
     // Corporate Categories
     { name: "Office & Corporate", image: "https://picsum.photos/seed/office/400/300", platform: 'Corporate' },
     { name: "Bulk Apparel", image: "https://picsum.photos/seed/apparel/400/300", platform: 'Corporate' },
     { name: "Promotional Tech", image: "https://picsum.photos/seed/promotech/400/300", platform: 'Corporate' },
+    // Both
+    { name: "Tech Gadgets", image: "https://picsum.photos/seed/tech/400/300", platform: 'Both' },
+    { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Both' },
+    { name: "Other", image: "https://picsum.photos/seed/other/400/300", platform: 'Both' },
 ];
 
 
 async function seedCategories() {
     // This function will perform a one-time "hard reset" of categories.
-    const resetFlag = 'categoriesResetCompleted';
-    if (sessionStorage.getItem(resetFlag)) {
+    const resetFlag = 'categoriesResetCompleted_v3';
+    if (typeof window !== 'undefined' && sessionStorage.getItem(resetFlag)) {
         return;
     }
 
@@ -64,8 +66,9 @@ async function seedCategories() {
     await batch.commit();
     console.log("Category database reset and seeding complete.");
     
-    // Set a flag in session storage to prevent this from running again in this session
-    sessionStorage.setItem(resetFlag, 'true');
+    if (typeof window !== 'undefined') {
+        sessionStorage.setItem(resetFlag, 'true');
+    }
 }
 
 
@@ -154,11 +157,13 @@ export async function deleteCategory(categoryId: string) {
 
 // --- Real-time Combined Fetching ---
 
-export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Corporate', callback: (categories: Category[]) => void): Unsubscribe {
+export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Corporate' | 'Both', callback: (categories: Category[]) => void): Unsubscribe {
     seedCategories(); // Ensure categories exist
 
     const categoriesRef = collection(db, 'categories');
-    const categoriesQuery = query(categoriesRef, where('platform', '==', platform));
+    const categoriesQuery = platform === 'Both' 
+        ? query(categoriesRef)
+        : query(categoriesRef, where('platform', 'in', [platform, 'Both']));
     
     const commissionsRef = collection(db, 'commissions');
 
@@ -208,8 +213,8 @@ export async function getCategories(platform?: CategoryPlatform): Promise<Catego
     const categoriesRef = collection(db, 'categories');
     let categoriesQuery;
 
-    if (platform) {
-        categoriesQuery = query(categoriesRef, where('platform', '==', platform));
+    if (platform && platform !== 'Both') {
+        categoriesQuery = query(categoriesRef, where('platform', 'in', [platform, 'Both']));
     } else {
         categoriesQuery = query(categoriesRef);
     }
@@ -241,7 +246,8 @@ export async function getCategoryByName(name?: string): Promise<Category | null>
         return null;
     }
     const docData = snapshot.docs[0];
-    const commissionType = (docData.data().platform === 'Corporate') ? 'corporate-bulk' : 'personalized-retail';
+    const platform = docData.data().platform === 'Corporate' ? 'Corporate' : 'Personalized';
+    const commissionType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
     
     const commissionsQuery = query(collection(db, 'commissions'), where('categoryName', '==', name), where('type', '==', commissionType));
     const commissionsSnapshot = await getDocs(commissionsQuery);

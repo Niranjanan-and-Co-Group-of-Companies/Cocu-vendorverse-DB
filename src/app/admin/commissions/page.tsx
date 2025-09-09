@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -70,49 +71,51 @@ export default function CommissionsPage() {
         return `${rule.bufferValue}%`;
     }
 
-    const CommissionTable = ({ rules }: { rules: CommissionRule[] }) => (
-        <Card>
-            <CardContent className="p-0">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Category Name</TableHead>
-                            <TableHead>Commission Rate</TableHead>
-                            <TableHead>Buffer</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? Array.from({length: 5}).map((_, i) => (
-                            <TableRow key={i}>
-                                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                                <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+    const CommissionTable = ({ rules, type }: { rules: CommissionRule[], type: 'personalized-retail' | 'corporate-bulk' }) => {
+        const filteredRules = rules.filter(r => r.type === type);
+        
+        return (
+            <Card>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Category Name</TableHead>
+                                <TableHead>Commission Rate</TableHead>
+                                <TableHead>Buffer</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
-                        )) : rules.map(rule => {
-                             const isSunshine = rule.categoryName === 'Made by Sunshine';
-                            return (
-                            <TableRow key={rule.id}>
-                                <TableCell className="font-medium">{rule.categoryName}</TableCell>
-                                <TableCell>{isSunshine ? <span className="text-muted-foreground">N/A</span> : `${rule.commissionRate}%`}</TableCell>
-                                <TableCell>{formatBuffer(rule)}</TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(rule, 'category')}>
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        )}
-                        )}
-                    </TableBody>
-                </Table>
-            </CardContent>
-        </Card>
-    );
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? Array.from({length: 5}).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                </TableRow>
+                            )) : filteredRules.map(rule => {
+                                const isSunshine = rule.categoryName === 'Made by Sunshine';
+                                return (
+                                <TableRow key={rule.id}>
+                                    <TableCell className="font-medium">{rule.categoryName}</TableCell>
+                                    <TableCell>{isSunshine ? <span className="text-muted-foreground">N/A</span> : `${rule.commissionRate}%`}</TableCell>
+                                    <TableCell>{formatBuffer(rule)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(rule, 'category')}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        )
+    };
 
-    const retailRules = allRules.filter(d => d.type === 'personalized-retail');
-    const corporateRules = allRules.filter(d => d.type === 'corporate-bulk');
 
     return (
         <div className="flex flex-col gap-6">
@@ -134,10 +137,10 @@ export default function CommissionsPage() {
                             <TabsTrigger value="corporate">Corporate & Bulk</TabsTrigger>
                         </TabsList>
                         <TabsContent value="retail">
-                           <CommissionTable rules={retailRules} />
+                           <CommissionTable rules={allRules} type="personalized-retail" />
                         </TabsContent>
                         <TabsContent value="corporate">
-                           <CommissionTable rules={corporateRules} />
+                           <CommissionTable rules={allRules} type="corporate-bulk" />
                         </TabsContent>
                     </Tabs>
                 </div>

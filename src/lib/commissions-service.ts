@@ -2,7 +2,7 @@
 'use server';
 import { collection, getDocs, writeBatch, doc, updateDoc, addDoc, deleteDoc, query, Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Category } from './categories-service';
+import { getCategories, type Category } from './categories-service';
 
 export interface CommissionRule {
     id: string;
@@ -31,7 +31,7 @@ export interface CommissionableItem {
 
 // --- Seeding Logic ---
 async function seedCommissionRules() {
-    const resetFlag = 'commissionsResetCompleted_v2';
+    const resetFlag = 'commissionsResetCompleted_v3';
     if (typeof window !== 'undefined' && sessionStorage.getItem(resetFlag)) {
         return;
     }
@@ -39,14 +39,13 @@ async function seedCommissionRules() {
     console.log("Performing one-time commissions database reset...");
     
     const commissionsRef = collection(db, "commissions");
-    const categoriesRef = collection(db, "categories");
     
-    const [commissionsSnapshot, categoriesSnapshot] = await Promise.all([
+    const [commissionsSnapshot, categories] = await Promise.all([
         getDocs(commissionsRef),
-        getDocs(categoriesRef)
+        getCategories() // Fetch clean categories
     ]);
     
-    if (categoriesSnapshot.empty) {
+    if (categories.length === 0) {
         console.log("Categories not found, seeding commissions will be skipped. It will retry on next load.");
         return;
     }
@@ -59,23 +58,24 @@ async function seedCommissionRules() {
     });
     
     // 2. Add the correct, clean list of commissions based on categories
-    const categories: Category[] = categoriesSnapshot.docs.map(d => ({id: d.id, ...d.data()} as Category));
     categories.forEach(category => {
         const isSunshine = category.name === 'Made by Sunshine';
-
-        // Personalized Retail Rule
-        const retailRef = doc(commissionsRef);
-        batch.set(retailRef, {
-            categoryId: category.id,
-            categoryName: category.name,
-            type: 'personalized-retail',
-            commissionRate: isSunshine ? 0 : 15,
-            bufferType: 'fixed',
-            bufferValue: isSunshine ? 0 : 1.50
-        });
-
-        // Corporate & Bulk Rule
-        if(category.platform === 'Corporate') {
+        
+        // Create rule for personalized if applicable
+        if (category.platform === 'Personalized' || category.platform === 'Both') {
+            const retailRef = doc(commissionsRef);
+            batch.set(retailRef, {
+                categoryId: category.id,
+                categoryName: category.name,
+                type: 'personalized-retail',
+                commissionRate: isSunshine ? 0 : 15,
+                bufferType: 'fixed',
+                bufferValue: isSunshine ? 0 : 1.50
+            });
+        }
+        
+        // Create rule for corporate if applicable
+        if(category.platform === 'Corporate' || category.platform === 'Both') {
             const corporateRef = doc(commissionsRef);
             batch.set(corporateRef, {
                 categoryId: category.id,
