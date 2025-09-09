@@ -60,18 +60,22 @@ function CustomizePageContent({ id }: { id: string }) {
 }
 
 
-export default function CustomizePage({ params }: { params: { id: string } }) {
+function CustomizePageWrapper({ id }: { id: string }) {
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-grow">
                 <React.Suspense fallback={<p>Loading...</p>}>
                     <CustomizationProvider>
-                        <CustomizePageContent id={params.id} />
+                        <CustomizePageContent id={id} />
                     </CustomizationProvider>
                 </React.Suspense>
             </main>
             <Footer />
         </div>
     );
+}
+
+export default function CustomizePage({ params }: { params: { id: string } }) {
+    return <CustomizePageWrapper id={params.id} />
 }
