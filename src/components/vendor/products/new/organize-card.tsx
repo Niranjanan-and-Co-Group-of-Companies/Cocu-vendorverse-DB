@@ -128,7 +128,7 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
             <SelectContent>
               {categories.map(cat => (
                 <SelectItem key={cat.id} value={cat.name}>
-                    {cat.name}
+                    {cat.name} ({cat.commissionRate}%)
                 </SelectItem>
               ))}
             </SelectContent>

@@ -4,6 +4,7 @@ import { collection, getDocs, doc, onSnapshot, query, where, writeBatch, Unsubsc
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Product } from './products';
+import type { CommissionRule } from './commissions-service';
 
 export type CategoryPlatform = 'Personalized' | 'Corporate' | 'Both';
 
@@ -12,8 +13,9 @@ export interface Category {
   name: string;
   slug: string;
   image?: string;
-  productCount?: number; // Make optional as it will be calculated separately
+  productCount?: number;
   platform: CategoryPlatform;
+  commissionRate?: number; // Added to hold the relevant commission rate
 }
 
 async function seedCategories() {
@@ -72,6 +74,9 @@ async function uploadCategoryImage(file: File): Promise<string> {
 // Get all categories with real-time updates
 export function onCategoriesUpdate(callback: (categories: Category[]) => void): Unsubscribe {
     const categoriesRef = collection(db, 'categories');
+    
+    // Call seeding here to ensure data exists when the listener is first set up.
+    seedCategories();
 
     const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
         const categoriesData = snapshot.docs.map(doc => ({
@@ -83,6 +88,7 @@ export function onCategoriesUpdate(callback: (categories: Category[]) => void): 
 
     return unsubscribe;
 }
+
 
 // Add a new category
 export async function addCategory(categoryData: { name: string, platform: CategoryPlatform, imageFile?: File | null }) {
@@ -128,21 +134,38 @@ export async function deleteCategory(categoryId: string) {
 // --- Functions from previous implementation, kept for compatibility ---
 
 export async function getCategories(platform?: CategoryPlatform): Promise<Category[]> {
-  await seedCategories();
-  const categoriesRef = collection(db, 'categories');
-  let q;
+    await seedCategories();
 
-  if (platform && platform !== 'Both') {
-      // If platform is 'Personalized' or 'Corporate', fetch categories for that platform AND 'Both'
-      q = query(categoriesRef, where('platform', 'in', ['Both', platform]));
-  } else {
-      // If platform is 'Both' or undefined, fetch all categories
-      q = query(categoriesRef);
-  }
-  
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+    // 1. Fetch all categories that are relevant
+    const categoriesRef = collection(db, 'categories');
+    let categoriesQuery;
+    if (platform && platform !== 'Both') {
+        categoriesQuery = query(categoriesRef, where('platform', 'in', ['Both', platform]));
+    } else {
+        categoriesQuery = query(categoriesRef);
+    }
+    const categoriesSnapshot = await getDocs(categoriesQuery);
+    const categories: Category[] = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+
+    // 2. Fetch all commission rules
+    const commissionType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
+    const commissionsQuery = query(collection(db, 'commissions'), where('type', '==', commissionType));
+    const commissionsSnapshot = await getDocs(commissionsQuery);
+    const commissionRulesMap = new Map<string, number>();
+    commissionsSnapshot.forEach(doc => {
+        const rule = doc.data() as CommissionRule;
+        commissionRulesMap.set(rule.categoryName, rule.commissionRate);
+    });
+
+    // 3. Merge commission rates into categories
+    const categoriesWithCommissions = categories.map(category => ({
+        ...category,
+        commissionRate: commissionRulesMap.get(category.name) ?? 0 // Default to 0 if no rule found
+    }));
+
+    return categoriesWithCommissions;
 }
+
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
     const q = query(collection(db, 'categories'), where('slug', '==', slug));
