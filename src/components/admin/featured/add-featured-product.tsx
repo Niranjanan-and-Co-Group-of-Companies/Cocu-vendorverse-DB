@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { addFeatured } from '@/lib/featured-service';
 import type { Product } from '@/lib/products';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, where, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 interface AddFeaturedProductProps {
@@ -20,34 +20,37 @@ interface AddFeaturedProductProps {
 
 export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [searchResults, setSearchResults] = React.useState<Product[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const { toast } = useToast();
 
   React.useEffect(() => {
-    // Fetch all products once for client-side filtering
-    const q = query(collection(db, 'products'), orderBy('name_lowercase'));
+    if (searchQuery.trim() === '') {
+        setSearchResults([]);
+        return;
+    }
+
+    setLoading(true);
+    const productsRef = collection(db, 'products');
+    const q = query(
+        productsRef, 
+        where('name_lowercase', '>=', searchQuery.toLowerCase()),
+        where('name_lowercase', '<=', searchQuery.toLowerCase() + '\uf8ff'),
+        limit(10)
+    );
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const products = snapshot.docs.map(doc => doc.data() as Product);
-        setAllProducts(products);
+        setSearchResults(products);
         setLoading(false);
     }, (error) => {
-        console.error("Error fetching all products:", error);
+        console.error("Error searching products:", error);
         setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [searchQuery]);
   
-  const searchResults = React.useMemo(() => {
-      if (!searchQuery.trim()) {
-          return [];
-      }
-      const lowerCaseQuery = searchQuery.toLowerCase();
-      return allProducts.filter(p => p.name_lowercase?.includes(lowerCaseQuery));
-  }, [searchQuery, allProducts]);
-
-
   const handleAdd = async (productId: string, productName: string) => {
     try {
         await addFeatured(productId);
@@ -65,7 +68,7 @@ export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductPro
     <Card>
       <CardHeader>
         <CardTitle>Add Products to Feature</CardTitle>
-        <CardDescription>Search for products or vendors to add them to the featured list.</CardDescription>
+        <CardDescription>Search for products to add them to the featured list.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="relative">
@@ -99,7 +102,7 @@ export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductPro
             ) : (
                 <div className="h-full flex items-center justify-center">
                     <p className="text-sm text-muted-foreground">
-                        {loading ? 'Loading products...' : (searchQuery.length > 0 ? 'No results found.' : 'Start typing to find products.')}
+                        {loading ? 'Searching...' : (searchQuery.length > 0 ? 'No results found.' : 'Start typing to find products.')}
                     </p>
                 </div>
             )}
