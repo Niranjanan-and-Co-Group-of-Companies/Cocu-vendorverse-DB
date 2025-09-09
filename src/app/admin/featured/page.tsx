@@ -6,13 +6,10 @@ import { onFeaturedProductsUpdate, type FeaturedProduct } from '@/lib/featured-s
 import { FeaturedProductList } from '@/components/admin/featured/featured-product-list';
 import { AddFeaturedProduct } from '@/components/admin/featured/add-featured-product';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function FeaturedPage() {
     const [allFeaturedProducts, setAllFeaturedProducts] = React.useState<FeaturedProduct[]>([]);
-    const [filteredProducts, setFilteredProducts] = React.useState<FeaturedProduct[]>([]);
     const [loading, setLoading] = React.useState(true);
-    const [activeTab, setActiveTab] = React.useState<'personal' | 'corporate'>('personal');
 
     React.useEffect(() => {
         const unsubscribe = onFeaturedProductsUpdate((products) => {
@@ -23,15 +20,6 @@ export default function FeaturedPage() {
         return () => unsubscribe();
     }, []);
 
-    React.useEffect(() => {
-        const filtered = allFeaturedProducts.filter(p => {
-            if (activeTab === 'personal') return p.featuredOnPersonal;
-            if (activeTab === 'corporate') return p.featuredOnCorporate;
-            return false;
-        });
-        setFilteredProducts(filtered);
-    }, [allFeaturedProducts, activeTab]);
-
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
@@ -41,12 +29,6 @@ export default function FeaturedPage() {
                         Curate which products are featured on the Personal and Corporate platforms.
                     </p>
                 </div>
-                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-                    <TabsList>
-                        <TabsTrigger value="personal">Personalized</TabsTrigger>
-                        <TabsTrigger value="corporate">Corporate</TabsTrigger>
-                    </TabsList>
-                </Tabs>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2">
@@ -74,7 +56,7 @@ export default function FeaturedPage() {
                             </div>
                         </div>
                     ) : (
-                        <FeaturedProductList products={filteredProducts} />
+                        <FeaturedProductList products={allFeaturedProducts} />
                     )}
                 </div>
                 <div className="lg:sticky top-20">
