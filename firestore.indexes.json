@@ -1,3 +1,4 @@
+
 {
   "indexes": [
     {
@@ -10,6 +11,10 @@
         },
         {
           "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "audience",
           "order": "ASCENDING"
         },
         {
@@ -31,12 +36,22 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "audience",
+          "fieldPath": "startDate",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "forAdmin",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "startDate",
-          "order": "ASCENDING"
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
         }
       ]
     }
