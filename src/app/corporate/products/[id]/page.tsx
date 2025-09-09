@@ -31,8 +31,10 @@ function ProductPageContent({ id }: { id: string }) {
                 setProduct(productData);
                 if (productData) {
                     setSelectedVariant(productData.variants?.[0] || null);
-                    const categoryData = await getCategoryByName(productData.category);
-                    setCategory(categoryData);
+                    if (productData.category) {
+                         const categoryData = await getCategoryByName(productData.category);
+                         setCategory(categoryData);
+                    }
                     setQuantity(productData.moq || 1);
                     setUnitPrice(productData.price);
                 }
@@ -151,7 +153,7 @@ function ProductPageContent({ id }: { id: string }) {
     );
 }
 
-
+// The main page component is now a Server Component
 export default function CorporateProductPage({ params }: { params: { id: string } }) {
     return (
         <main className="flex-grow">
