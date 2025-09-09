@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -10,14 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import type { Product, ProductStatus } from '@/lib/products';
-import { getCategories, type Category, type CategoryPlatform } from '@/lib/categories-service'; // Assuming a service to get categories
+import { getCategories, type Category, type CategoryPlatform } from '@/lib/categories-service';
+import type { Vendor } from '@/lib/vendors-service';
 
 interface OrganizeCardProps {
   product: Product;
   onFieldChange: (field: keyof Product, value: any) => void;
+  isAdmin?: boolean;
+  vendors?: Vendor[];
 }
 
-export function OrganizeCard({ product, onFieldChange }: OrganizeCardProps) {
+export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors = [] }: OrganizeCardProps) {
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [tagInput, setTagInput] = React.useState('');
   const pathname = usePathname();
@@ -41,7 +43,19 @@ export function OrganizeCard({ product, onFieldChange }: OrganizeCardProps) {
     onFieldChange('tags', (product.tags || []).filter(tag => tag !== tagToRemove));
   };
   
-  // In a real app, this would come from the user's auth context
+  const handleVendorChange = (vendorId: string) => {
+    if (vendorId === 'admin') {
+      onFieldChange('vendorId', 'admin');
+      onFieldChange('vendor', 'VendorVerse');
+    } else {
+      const selectedVendor = vendors.find(v => v.id === vendorId);
+      if (selectedVendor) {
+        onFieldChange('vendorId', selectedVendor.id);
+        onFieldChange('vendor', selectedVendor.name);
+      }
+    }
+  };
+  
   const isVerified = false; 
 
   return (
@@ -50,6 +64,27 @@ export function OrganizeCard({ product, onFieldChange }: OrganizeCardProps) {
         <CardTitle>Organize</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isAdmin && (
+           <div className="space-y-2">
+            <Label htmlFor="vendor">Vendor</Label>
+             <Select 
+                value={product.vendorId}
+                onValueChange={handleVendorChange}
+              >
+              <SelectTrigger id="vendor">
+                <SelectValue placeholder="Select a vendor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">VendorVerse (Platform Inventory)</SelectItem>
+                {vendors.map(v => (
+                  <SelectItem key={v.id} value={v.id}>
+                      {v.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
           <Select 
@@ -92,15 +127,13 @@ export function OrganizeCard({ product, onFieldChange }: OrganizeCardProps) {
                 id="product-status" 
                 checked={product.status === 'Live'}
                 onCheckedChange={(checked) => onFieldChange('status', checked ? 'Live' : 'Draft')}
-                disabled={!isVerified && product.status !== 'Live'}
+                disabled={!isVerified && product.status !== 'Live' && !isAdmin}
             />
         </div>
-         {!isVerified && (
+         {!isVerified && !isAdmin && (
             <p className="text-xs text-muted-foreground">Product status is locked to 'Draft' until your vendor account is verified.</p>
          )}
       </CardContent>
     </Card>
   );
 }
-
-    

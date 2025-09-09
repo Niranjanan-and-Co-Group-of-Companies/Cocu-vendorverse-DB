@@ -16,14 +16,15 @@ import { OrganizeCard } from '@/components/vendor/products/new/organize-card';
 import { AllowedCustomizationsCard } from '@/components/vendor/products/new/allowed-customizations-card';
 import type { CustomizationSide, AllowedCustomizationType, CustomizationArea } from '@/lib/products';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getVendors, type Vendor } from '@/lib/vendors-service';
 
 const createDefaultProduct = (): Partial<Product> => ({
   name: '',
   description: '',
   price: '0.00',
   stock: 0,
-  vendorId: 'admin', // Default to admin
-  vendor: 'VendorVerse', // Default to admin
+  vendorId: 'admin',
+  vendor: 'VendorVerse',
   status: 'Draft',
   customizable: false,
   customizationSides: {
@@ -60,6 +61,11 @@ function ProductEditorContent() {
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    const [vendors, setVendors] = React.useState<Vendor[]>([]);
+
+    React.useEffect(() => {
+        getVendors().then(setVendors);
+    }, []);
 
     React.useEffect(() => {
         if (productId) {
@@ -230,6 +236,8 @@ function ProductEditorContent() {
                      <OrganizeCard 
                         product={product as Product}
                         onFieldChange={handleFieldChange}
+                        isAdmin={true}
+                        vendors={vendors}
                      />
                      {product.customizable && (
                         <AllowedCustomizationsCard 
