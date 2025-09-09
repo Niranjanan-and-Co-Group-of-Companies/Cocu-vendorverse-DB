@@ -77,5 +77,6 @@ function CustomizePageWrapper({ id }: { id: string }) {
 }
 
 export default function CustomizePage({ params }: { params: { id: string } }) {
-    return <CustomizePageWrapper id={params.id} />
+    const { id } = React.use(params);
+    return <CustomizePageWrapper id={id} />
 }
