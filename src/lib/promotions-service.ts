@@ -1,3 +1,4 @@
+
 'use server';
 
 import { 
@@ -10,7 +11,9 @@ import {
     query,
     orderBy,
     getDocs,
-    writeBatch
+    writeBatch,
+    where,
+    Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -102,4 +105,40 @@ export async function getTargetableItems(): Promise<{ products: TargetableItem[]
         categories: categoriesSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name })),
         vendors: vendorsSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name })),
     };
+}
+
+export async function getActivePromotionsForProduct(productId: string, categoryName: string, vendorId: string): Promise<Promotion[]> {
+    const now = Timestamp.now();
+    const promotions: Record<string, Promotion> = {};
+
+    const queries = [
+        // Promotions for this specific product
+        query(promotionsCollection, where('appliesTo.products', 'array-contains', { id: productId, name: '' })), // Name is just a placeholder here
+        // Promotions for this category
+        query(promotionsCollection, where('appliesTo.categories', 'array-contains', { id: categoryName, name: '' })),
+        // Promotions for this vendor
+        query(promotionsCollection, where('appliesTo.vendors', 'array-contains', { id: vendorId, name: '' })),
+        // Sitewide promotions
+        query(promotionsCollection, where('appliesTo.products', '==', []), where('appliesTo.categories', '==', []), where('appliesTo.vendors', '==', []))
+    ];
+
+    for (const q of queries) {
+        const baseQuery = query(
+            q,
+            where('status', '==', 'Active'),
+            where('visibleOnPlatform', '==', true),
+        );
+        const snapshot = await getDocs(baseQuery);
+        snapshot.forEach(doc => {
+            const promo = { id: doc.id, ...doc.data() } as Promotion;
+            // Check expiry date
+            if (!promo.expiresAt || promo.expiresAt.toDate() > now.toDate()) {
+                 if (!promotions[promo.id]) {
+                    promotions[promo.id] = promo;
+                }
+            }
+        });
+    }
+
+    return Object.values(promotions);
 }
