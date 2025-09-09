@@ -26,13 +26,19 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
   const pathname = usePathname();
   
   const isVendorCorporateFlow = pathname.includes('corporate');
-  const vendorPlatform: CategoryPlatform = isVendorCorporateFlow ? 'Corporate' : 'Personalized';
-  const effectivePlatform = isAdmin ? product.platform : vendorPlatform;
+  
+  // Determine the effective platform for fetching categories
+  const platformForCategoryFetch: CategoryPlatform = React.useMemo(() => {
+    if (isAdmin) {
+      return product.platform || 'Personalized';
+    }
+    return isVendorCorporateFlow ? 'Corporate' : 'Personalized';
+  }, [isAdmin, product.platform, isVendorCorporateFlow]);
 
   React.useEffect(() => {
     // Admins see categories based on the product's platform, vendors see it based on their portal.
-    getCategories(effectivePlatform).then(setCategories);
-  }, [effectivePlatform]);
+    getCategories(platformForCategoryFetch).then(setCategories);
+  }, [platformForCategoryFetch]);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
