@@ -6,11 +6,21 @@
 cat > cors-config.json << EOL
 [
   {
-    "origin": ["*"],
-    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "origin": [
+      "https://6000-firebase-studio-1756796276779.cluster-3gc7bglotjgwuxlqpiut7yyqt4.cloudworkstations.dev",
+      "https://vendorverse-rhu2g.web.app"
+    ],
+    "method": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "OPTIONS"
+    ],
     "responseHeader": [
       "Content-Type",
-      "Access-Control-Allow-Origin"
+      "Authorization",
+      "x-goog-resumable"
     ],
     "maxAgeSeconds": 3600
   }
