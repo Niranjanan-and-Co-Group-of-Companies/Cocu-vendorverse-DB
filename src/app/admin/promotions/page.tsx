@@ -72,6 +72,9 @@ export default function PromotionEnginePage() {
         if (type === 'Percentage') {
             return `${value}%`;
         }
+        if (type === 'Free Shipping') {
+            return 'Free';
+        }
         return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
     }
     
@@ -103,6 +106,7 @@ export default function PromotionEnginePage() {
                             <TableHead>Platform</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Usage</TableHead>
+                            <TableHead>Starts</TableHead>
                             <TableHead>Expires</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -117,6 +121,7 @@ export default function PromotionEnginePage() {
                                     <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                                     <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                                     <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                 </TableRow>
@@ -133,6 +138,7 @@ export default function PromotionEnginePage() {
                                     <Badge variant={getStatusVariant(promo.status)}>{promo.status}</Badge>
                                 </TableCell>
                                 <TableCell>{promo.usageCount}{promo.usageLimit ? ` / ${promo.usageLimit}` : ''}</TableCell>
+                                <TableCell>{formatDate(promo.startDate)}</TableCell>
                                 <TableCell>{formatDate(promo.expiresAt)}</TableCell>
                                 <TableCell className="text-right">
                                     <PromotionActions promotion={promo} onEdit={() => handleEdit(promo)} />

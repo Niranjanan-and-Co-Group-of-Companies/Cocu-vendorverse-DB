@@ -37,6 +37,7 @@ export interface Promotion {
   platform: PromotionPlatform;
   usageLimit: number;
   usageCount: number;
+  startDate?: any; // Firestore Timestamp
   expiresAt?: any; // Firestore Timestamp
   visibleOnPlatform: boolean;
   appliesTo: {

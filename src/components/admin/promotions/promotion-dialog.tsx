@@ -83,6 +83,48 @@ function MultiSelect({ title, items, selectedItems, onSelectionChange }: { title
     );
 }
 
+const DateTimePicker = ({ date, onDateChange }: { date?: Date, onDateChange: (date?: Date) => void }) => {
+    const handleDateSelect = (selectedDate?: Date) => {
+        if (!selectedDate) {
+            onDateChange(undefined);
+            return;
+        }
+        const newDate = new Date(date || new Date());
+        newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+        onDateChange(newDate);
+    };
+
+    const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const [hours, minutes] = e.target.value.split(':').map(Number);
+        const newDate = new Date(date || new Date());
+        if (!isNaN(hours)) newDate.setHours(hours);
+        if (!isNaN(minutes)) newDate.setMinutes(minutes);
+        onDateChange(newDate);
+    };
+    
+    return (
+        <div className="flex gap-2">
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-2/3 justify-start text-left font-normal", !date && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                    <Calendar mode="single" selected={date} onSelect={handleDateSelect} initialFocus />
+                </PopoverContent>
+            </Popover>
+            <Input
+                type="time"
+                value={date ? format(date, "HH:mm") : ''}
+                onChange={handleTimeChange}
+                className="w-1/3"
+            />
+        </div>
+    )
+}
+
 export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDialogProps) {
   const [promoData, setPromoData] = React.useState<Partial<Promotion>>(createDefaultPromotion());
   const [isSaving, setIsSaving] = React.useState(false);
@@ -99,6 +141,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
             setPromoData({
                 ...createDefaultPromotion(),
                 ...promotion,
+                startDate: promotion.startDate?.toDate ? promotion.startDate.toDate() : undefined,
                 expiresAt: promotion.expiresAt?.toDate ? promotion.expiresAt.toDate() : undefined,
             });
         } else {
@@ -201,23 +244,17 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
             </div>
              <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
-                    <Label htmlFor="usageLimit">Usage Limit</Label>
-                    <Input id="usageLimit" type="number" value={promoData.usageLimit || 0} onChange={e => handleFieldChange('usageLimit', parseInt(e.target.value, 10))} />
+                    <Label htmlFor="startDate">Start Date & Time (Optional)</Label>
+                    <DateTimePicker date={promoData.startDate} onDateChange={(date) => handleFieldChange('startDate', date)} />
                 </div>
                 <div className="space-y-2">
-                    <Label>Expiry Date (Optional)</Label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !promoData.expiresAt && "text-muted-foreground")}>
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {promoData.expiresAt ? format(new Date(promoData.expiresAt), "PPP") : <span>Pick a date</span>}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar mode="single" selected={promoData.expiresAt ? new Date(promoData.expiresAt) : undefined} onSelect={date => handleFieldChange('expiresAt', date)} initialFocus />
-                        </PopoverContent>
-                    </Popover>
+                    <Label htmlFor="expiresAt">Expiry Date & Time (Optional)</Label>
+                    <DateTimePicker date={promoData.expiresAt} onDateChange={(date) => handleFieldChange('expiresAt', date)} />
                 </div>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="usageLimit">Usage Limit (0 for unlimited)</Label>
+                <Input id="usageLimit" type="number" value={promoData.usageLimit || 0} onChange={e => handleFieldChange('usageLimit', parseInt(e.target.value, 10))} />
             </div>
             <div className="space-y-4 rounded-lg border p-4">
                 <div className="flex items-center justify-between">
