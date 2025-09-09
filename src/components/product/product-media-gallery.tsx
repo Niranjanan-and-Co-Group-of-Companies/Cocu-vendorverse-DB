@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -26,6 +25,7 @@ export function ProductMediaGallery({ name, galleryImages = [], videoUrl, varian
     const [activeMedia, setActiveMedia] = React.useState<MediaItem | null>(null);
 
     const media: MediaItem[] = React.useMemo(() => {
+        if (!variants || variants.length === 0) return []; // Guard against undefined or empty variants
         const currentVariant = selectedVariant || variants[0];
         if (!currentVariant) return [];
         
