@@ -81,9 +81,9 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
         <CarouselContent>
             {relatedProducts.map((product) => (
             <CarouselItem key={product.id} className="md:basis-1/3 lg:basis-1/4">
-                <Link href={`${basePath}/products/${product.id}`} className="block">
                 <Card className="overflow-hidden group h-full flex flex-col">
                 <CardHeader className="p-0 relative">
+                  <Link href={`${basePath}/products/${product.id}`} className="block">
                     <div className="overflow-hidden aspect-[4/3]">
                     <Image
                         src={product.image}
@@ -96,9 +96,12 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                         <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>
                     )}
                     </div>
+                  </Link>
                 </CardHeader>
                 <CardContent className="p-4 flex flex-col flex-grow">
-                    <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+                    <Link href={`${basePath}/products/${product.id}`} className="block">
+                      <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+                    </Link>
                     <p className="text-sm text-muted-foreground">{product.vendor}</p>
                     <div className="flex-grow"></div>
                     <div className="flex items-end justify-between mt-4">
@@ -108,13 +111,23 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                                 <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
                             )}
                         </div>
-                        <Button size="icon" variant="secondary">
-                            <ShoppingCart className="h-5 w-5" />
-                        </Button>
+                    </div>
+                     <div className="mt-4 flex flex-col gap-2">
+                        <div className="flex gap-2">
+                            <Button size="sm" className="w-full">Buy Now</Button>
+                            <Button size="sm" variant="secondary" className="w-full">
+                            <ShoppingCart className="mr-2 h-4 w-4" />
+                            Add to Cart
+                            </Button>
+                        </div>
+                        {product.customizable && (
+                            <Button asChild size="sm" variant="outline" className="w-full">
+                               <Link href={`${basePath}/customize/${product.id}`}>Customise Now</Link>
+                            </Button>
+                        )}
                     </div>
                 </CardContent>
                 </Card>
-                </Link>
             </CarouselItem>
             ))}
         </CarouselContent>
