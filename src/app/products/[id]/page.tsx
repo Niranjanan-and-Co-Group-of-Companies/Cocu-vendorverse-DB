@@ -137,12 +137,13 @@ function ProductPageContent({ params }: { params: { id: string } }) {
 
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-    const resolvedParams = use(params);
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-grow">
-                <ProductPageContent params={resolvedParams} />
+                 <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
+                    <ProductPageContent params={use(params)} />
+                </React.Suspense>
             </main>
             <Footer />
         </div>
