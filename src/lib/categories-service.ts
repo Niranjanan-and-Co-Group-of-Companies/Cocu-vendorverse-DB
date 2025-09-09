@@ -144,12 +144,11 @@ export async function deleteCategory(categoryId: string) {
 
 // --- Real-time Combined Fetching ---
 
-export function onCategoriesWithCommissionsUpdate(platform: CategoryPlatform | 'Personalized' | 'Corporate' | 'Both', callback: (categories: Category[]) => void): Unsubscribe {
+export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Corporate', callback: (categories: Category[]) => void): Unsubscribe {
     seedCategories(); // Ensure categories exist
 
     const categoriesRef = collection(db, 'categories');
-    // FIX: The query now correctly includes 'Both' along with the specific platform.
-    const platformFilter = platform === 'Both' ? ['Personalized', 'Corporate', 'Both'] : ['Both', platform];
+    const platformFilter = ['Both', platform];
     const categoriesQuery = query(categoriesRef, where('platform', 'in', platformFilter));
     
     const commissionsRef = collection(db, 'commissions');
