@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { onProductUpdate } from '@/lib/products-client-service';
-import type { Product } from '@/lib/products';
+import type { Product, ProductVariant } from '@/lib/products';
 import { ProductMediaGallery } from '@/components/product/product-media-gallery';
 import { ProductInfo } from '@/components/product/product-info';
 import { ProductDetailsAccordion } from '@/components/product/product-details-accordion';
@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CorporateProductInteractions } from '@/components/corporate/corporate-product-interactions';
 import { getCategoryByName } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
+import { Button } from '@/components/ui/button';
 
 function ProductPageContent({ id }: { id: string }) {
     const [product, setProduct] = React.useState<Product | null>(null);
@@ -20,6 +21,7 @@ function ProductPageContent({ id }: { id: string }) {
     const [quantity, setQuantity] = React.useState(1);
     const [totalPrice, setTotalPrice] = React.useState<number | null>(null);
     const [unitPrice, setUnitPrice] = React.useState<string | null>(null);
+    const [selectedVariant, setSelectedVariant] = React.useState<ProductVariant | null>(null);
 
 
     React.useEffect(() => {
@@ -28,6 +30,7 @@ function ProductPageContent({ id }: { id: string }) {
             const unsubscribe = onProductUpdate(id, async (productData) => {
                 setProduct(productData);
                 if (productData) {
+                    setSelectedVariant(productData.variants?.[0] || null);
                     const categoryData = await getCategoryByName(productData.category);
                     setCategory(categoryData);
                     setQuantity(productData.moq || 1);
@@ -38,6 +41,10 @@ function ProductPageContent({ id }: { id: string }) {
             return () => unsubscribe();
         }
     }, [id]);
+
+    const handleVariantSelect = (variant: ProductVariant) => {
+        setSelectedVariant(variant);
+    }
 
     if (loading) {
         return (
@@ -78,17 +85,34 @@ function ProductPageContent({ id }: { id: string }) {
                 <ProductMediaGallery
                     name={product.name}
                     variants={product.variants}
-                    selectedVariant={product.variants?.[0] || null}
+                    selectedVariant={selectedVariant}
                     galleryImages={product.galleryImages}
                     videoUrl={product.videoUrl}
                 />
                 <div className="flex flex-col gap-6">
                     <ProductInfo
                         product={product}
-                        displayPrice={unitPrice}
                         totalPrice={totalPrice}
                         quantity={quantity}
                     />
+                     {product.variants && product.variants.length > 1 && (
+                        <div>
+                            <h3 className="font-semibold text-lg mb-2">Color: <span className="text-muted-foreground">{selectedVariant?.colorName}</span></h3>
+                            <div className="flex gap-2">
+                                {product.variants.map(variant => (
+                                    <Button
+                                        key={variant.id}
+                                        variant="outline"
+                                        size="icon"
+                                        className={`h-10 w-10 rounded-full ${selectedVariant?.id === variant.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                                        style={{ backgroundColor: variant.colorHex }}
+                                        onClick={() => handleVariantSelect(variant)}
+                                        aria-label={`Select color ${variant.colorName}`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     <CorporateProductInteractions 
                         product={product} 
                         onPriceChange={({unit, total, quantity}) => {
