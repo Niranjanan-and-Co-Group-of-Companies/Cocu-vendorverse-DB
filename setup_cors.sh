@@ -7,7 +7,9 @@ cat > cors-config.json << EOL
 [
   {
     "origin": [
-      "https://6000--firebase-studio-1756796276779.cluster-3gc7bglotjgwuxlqpiut7yyqt4.cloudworkstations.dev",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "https://studio--vendorverse-rhu2g.us-central1.hosted.app",
       "https://vendorverse-rhu2g.web.app"
     ],
     "method": [
