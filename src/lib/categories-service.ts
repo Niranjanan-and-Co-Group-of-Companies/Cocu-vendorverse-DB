@@ -22,11 +22,15 @@ let categoriesSeeded = false;
 
 async function seedCategories() {
     if (categoriesSeeded) return;
+
     const categoriesRef = collection(db, "categories");
     const snapshot = await getDocs(categoriesRef);
+
+    // Set the flag to true immediately to prevent re-runs, even if seeding is needed.
+    categoriesSeeded = true; 
+
     if (snapshot.empty) {
         console.log("Seeding categories...");
-        categoriesSeeded = true; // Set flag before seeding
         const batch = writeBatch(db);
         const mockCategories = [
             { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300", platform: 'Both' },
@@ -48,8 +52,6 @@ async function seedCategories() {
             });
         });
         await batch.commit();
-    } else {
-        categoriesSeeded = true;
     }
 }
 
@@ -138,16 +140,11 @@ export async function deleteCategory(categoryId: string) {
 
 // --- Real-time Combined Fetching ---
 
-export function onCategoriesWithCommissionsUpdate(platform: CategoryPlatform | 'Both' | 'Personalized' | 'Corporate', callback: (categories: Category[]) => void): Unsubscribe {
+export function onCategoriesWithCommissionsUpdate(platform: CategoryPlatform | 'Personalized' | 'Corporate', callback: (categories: Category[]) => void): Unsubscribe {
     seedCategories(); // Ensure categories exist
 
     const categoriesRef = collection(db, 'categories');
-    let categoriesQuery;
-    if (platform && platform !== 'Both') {
-        categoriesQuery = query(categoriesRef, where('platform', 'in', ['Both', platform]));
-    } else {
-        categoriesQuery = query(categoriesRef);
-    }
+    const categoriesQuery = query(categoriesRef, where('platform', 'in', ['Both', platform]));
     
     const commissionsRef = collection(db, 'commissions');
 
@@ -194,37 +191,17 @@ export function onCategoriesWithCommissionsUpdate(platform: CategoryPlatform | '
 export async function getCategories(platform?: CategoryPlatform): Promise<Category[]> {
     await seedCategories();
 
-    // 1. Fetch all categories that are relevant
     const categoriesRef = collection(db, 'categories');
     let categoriesQuery;
-    if (platform && platform !== 'Both') {
+    if (platform) {
         categoriesQuery = query(categoriesRef, where('platform', 'in', ['Both', platform]));
     } else {
         categoriesQuery = query(categoriesRef);
     }
     const categoriesSnapshot = await getDocs(categoriesQuery);
     const categories: Category[] = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
-
-    // 2. Fetch all commission rules
-    const commissionType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
-    const commissionsRef = collection(db, 'commissions');
-    const commissionsQuery = query(commissionsRef, where('type', '==', commissionType));
-    const commissionsSnapshot = await getDocs(commissionsQuery);
-    const commissionRulesMap = new Map<string, number>();
-    if (!commissionsSnapshot.empty) {
-        commissionsSnapshot.forEach(doc => {
-            const rule = doc.data() as CommissionRule;
-            commissionRulesMap.set(rule.categoryName, rule.commissionRate);
-        });
-    }
-
-    // 3. Merge commission rates into categories
-    const categoriesWithCommissions = categories.map(category => ({
-        ...category,
-        commissionRate: commissionRulesMap.get(category.name) ?? 0 // Default to 0 if no rule found
-    }));
-
-    return categoriesWithCommissions;
+    
+    return categories;
 }
 
 
