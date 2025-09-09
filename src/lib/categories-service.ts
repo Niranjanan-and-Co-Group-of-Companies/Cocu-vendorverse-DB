@@ -1,5 +1,4 @@
 
-
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
@@ -19,13 +18,14 @@ export interface Category {
 }
 
 const MOCK_CATEGORIES = [
+    // Personalized Categories
     { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300", platform: 'Personalized' },
     { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300", platform: 'Personalized' },
     { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300", platform: 'Personalized' },
-    { name: "Tech", image: "https://picsum.photos/seed/tech/400/300", platform: 'Personalized' },
+    { name: "Tech Gadgets", image: "https://picsum.photos/seed/tech/400/300", platform: 'Personalized' },
     { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Personalized' },
     { name: "Made by Sunshine", image: "https://picsum.photos/seed/sunshine/400/300", platform: 'Personalized' },
-    { name: "Other", image: "https://picsum.photos/seed/other/400/300", platform: 'Personalized' },
+    { name: "Other Personal Gifts", image: "https://picsum.photos/seed/other/400/300", platform: 'Personalized' },
     // Corporate Categories
     { name: "Office & Corporate", image: "https://picsum.photos/seed/office/400/300", platform: 'Corporate' },
     { name: "Bulk Apparel", image: "https://picsum.photos/seed/apparel/400/300", platform: 'Corporate' },
@@ -34,37 +34,38 @@ const MOCK_CATEGORIES = [
 
 
 async function seedCategories() {
-    // This function will now ensure the database matches the mock data definition.
-    if (sessionStorage.getItem('categoriesSeeded')) {
+    // This function will perform a one-time "hard reset" of categories.
+    const resetFlag = 'categoriesResetCompleted';
+    if (sessionStorage.getItem(resetFlag)) {
         return;
     }
-    
+
+    console.log("Performing one-time category database reset...");
+
     const categoriesRef = collection(db, "categories");
     const snapshot = await getDocs(categoriesRef);
-
-    const existingCategories = new Map(snapshot.docs.map(doc => [doc.data().name, doc.id]));
     const batch = writeBatch(db);
-    let changesMade = false;
 
-    // Add missing categories
-    for (const cat of MOCK_CATEGORIES) {
-        if (!existingCategories.has(cat.name)) {
-            const docRef = doc(categoriesRef);
-            batch.set(docRef, {
-                ...cat,
-                slug: cat.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')
-            });
-            changesMade = true;
-            console.log(`Seeding new category: ${cat.name}`);
-        }
-    }
+    // 1. Delete all existing documents in the 'categories' collection
+    snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+
+    // 2. Add the correct, clean list of categories
+    MOCK_CATEGORIES.forEach(cat => {
+        const docRef = doc(categoriesRef); // Let Firestore generate a new ID
+        batch.set(docRef, {
+            ...cat,
+            slug: cat.name.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-')
+        });
+    });
     
-    if (changesMade) {
-        await batch.commit();
-        console.log("Category seeding complete.");
-    }
+    // Commit the batch of deletions and additions
+    await batch.commit();
+    console.log("Category database reset and seeding complete.");
     
-    sessionStorage.setItem('categoriesSeeded', 'true');
+    // Set a flag in session storage to prevent this from running again in this session
+    sessionStorage.setItem(resetFlag, 'true');
 }
 
 
@@ -121,7 +122,7 @@ export async function addCategory(categoryData: { name: string, platform: Catego
     
     await addDoc(collection(db, 'categories'), {
         name,
-        slug: name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-'),
+        slug: name.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-'),
         platform,
         image: imageUrl,
     });
@@ -135,7 +136,7 @@ export async function updateCategory(categoryId: string, categoryData: { name: s
     const updateData: Partial<Category> = {
         name,
         platform,
-        slug: name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-'),
+        slug: name.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-'),
     };
 
     if (imageFile) {
