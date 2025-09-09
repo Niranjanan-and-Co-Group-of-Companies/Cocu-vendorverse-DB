@@ -127,14 +127,15 @@ export async function getRelatedProducts(category?: string, currentProductId?: n
     const q = query(
         productsCollection, 
         where('category', '==', category),
+        where('id', '!=', currentProductId), // Ensure we don't show the current product
         limit(5) 
     );
 
     const snapshot = await getDocs(q);
+    // No need to filter again, the query now handles excluding the current product.
     return snapshot.docs
         .map(doc => doc.data() as Product)
-        .filter(p => p.id !== currentProductId)
-        .slice(0, 4);
+        .slice(0, 4); // Still slice to ensure a max of 4 results
 }
 
 
