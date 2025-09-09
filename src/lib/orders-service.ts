@@ -1,5 +1,4 @@
 
-
 import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product, CustomizationSide } from './products';
@@ -20,6 +19,7 @@ export interface OrderItem extends Product {
 }
 
 export type OrderStatus = 'Pending' | 'Preparing' | 'Packaging' | 'Dispatched' | 'Shipped' | 'Delivered' | 'Cancelled';
+export type PaymentStatus = 'Pending' | 'Paid' | 'Failed';
 
 export interface Order {
     id: string;
@@ -39,7 +39,16 @@ export interface Order {
     total: number;
     payment: {
         method: string;
+        status: PaymentStatus;
         transactionId: string;
+        razorpayPaymentId?: string;
+        razorpayOrderId?: string;
+    };
+    shippingDetails?: {
+        shipmentId: string;
+        trackingNumber: string;
+        courierName: string;
+        awb: string;
     };
 }
 
@@ -63,7 +72,7 @@ const MOCK_ORDERS: Omit<Order, 'id'>[] = [
         subtotal: 130.00,
         shipping: 10.00,
         total: 140.00,
-        payment: { method: 'Visa **** 4242', transactionId: 'txn_1' }
+        payment: { method: 'Visa **** 4242', transactionId: 'txn_1', status: 'Paid' }
     },
 ];
 

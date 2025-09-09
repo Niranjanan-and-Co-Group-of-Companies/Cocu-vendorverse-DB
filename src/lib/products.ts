@@ -1,5 +1,4 @@
 
-
 export type ProductStatus = 'Live' | 'Draft' | 'Archived' | 'Pending Review' | 'Declined';
 
 export type CustomizationSide = 'front' | 'back' | 'left' | 'right' | 'top' | 'bottom';

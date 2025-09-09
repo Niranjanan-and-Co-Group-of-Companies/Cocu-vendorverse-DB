@@ -11,6 +11,8 @@ export interface CorporateClient {
   status: 'Active' | 'Inactive' | 'Pending';
   createdAt: any; // Firestore Timestamp
   totalSpent: number;
+  gstin?: string;
+  gstStatus?: 'Verified' | 'Pending' | 'Failed' | 'Not Provided';
 }
 
 const MOCK_CLIENTS: Omit<CorporateClient, 'id' | 'createdAt'>[] = [
@@ -20,7 +22,9 @@ const MOCK_CLIENTS: Omit<CorporateClient, 'id' | 'createdAt'>[] = [
         phone: '555-0101',
         contactPerson: 'John Smith',
         status: 'Active',
-        totalSpent: 12500.50
+        totalSpent: 12500.50,
+        gstin: '29ABCDE1234F1Z5',
+        gstStatus: 'Verified',
     },
     {
         name: 'Stark Industries',
@@ -28,7 +32,8 @@ const MOCK_CLIENTS: Omit<CorporateClient, 'id' | 'createdAt'>[] = [
         phone: '555-0102',
         contactPerson: 'Pepper Potts',
         status: 'Active',
-        totalSpent: 89000.00
+        totalSpent: 89000.00,
+        gstStatus: 'Not Provided',
     },
      {
         name: 'Wayne Enterprises',
@@ -36,7 +41,8 @@ const MOCK_CLIENTS: Omit<CorporateClient, 'id' | 'createdAt'>[] = [
         phone: '555-0103',
         contactPerson: 'Lucius Fox',
         status: 'Inactive',
-        totalSpent: 4500.00
+        totalSpent: 4500.00,
+        gstStatus: 'Verified',
     },
      {
         name: 'Cyberdyne Systems',
@@ -44,7 +50,9 @@ const MOCK_CLIENTS: Omit<CorporateClient, 'id' | 'createdAt'>[] = [
         phone: '555-0104',
         contactPerson: 'Miles Dyson',
         status: 'Pending',
-        totalSpent: 0
+        totalSpent: 0,
+        gstin: '27AAAAA0000A1Z5',
+        gstStatus: 'Pending',
     }
 ];
 
@@ -83,6 +91,7 @@ export async function addCorporateClient(client: Omit<CorporateClient, 'id' | 'c
         ...client,
         status: 'Active',
         totalSpent: 0,
+        gstStatus: client.gstin ? 'Pending' : 'Not Provided',
         createdAt: serverTimestamp()
     });
 }
