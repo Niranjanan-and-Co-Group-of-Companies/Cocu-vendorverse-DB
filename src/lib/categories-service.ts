@@ -1,6 +1,6 @@
 
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc, orderBy, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc, orderBy, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Product } from './products';
