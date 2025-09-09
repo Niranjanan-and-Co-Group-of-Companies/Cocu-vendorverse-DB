@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from '@/components/ui/skeleton';
-import type { CommissionRule, CommissionableItem, Override } from '@/lib/commissions-service';
+import type { CommissionRule, Override } from '@/lib/commissions-service';
 import { getCommissionableItems } from '@/lib/commissions-service';
 import { onCommissionRulesUpdate, onOverridesUpdate } from '@/lib/commissions-client-service';
 import { CommissionDialog } from '@/components/admin/commissions/commission-dialog';

@@ -32,7 +32,8 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
 
-  const isSunshineCategory = type === 'category' && (rule as CommissionRule)?.categoryName === 'Made by Sunshine';
+  const isSunshineCategory = type === 'category' && 'categoryName' in (rule || {}) && (rule as CommissionRule).categoryName === 'Made by Sunshine';
+
 
   React.useEffect(() => {
     if (rule) {
@@ -98,7 +99,7 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
                 </div>
                  {isSunshineCategory && (
                     <p className="col-span-3 text-xs text-muted-foreground text-center">
-                        Commission for "Made by Sunshine" is locked at 0% to support creators.
+                        Commission for "Made by Sunshine" is locked at 0%.
                     </p>
                 )}
             </div>

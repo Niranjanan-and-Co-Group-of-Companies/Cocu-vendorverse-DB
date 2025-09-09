@@ -31,31 +31,38 @@ export interface CommissionableItem {
 
 // --- Seeding Logic ---
 async function seedCommissionRules() {
-    const commissionsRef = collection(db, "commissions");
-    const snapshot = await getDocs(commissionsRef);
-    
-    // This seeding is now dependent on categories being seeded correctly first.
-    // If commissions exist, we assume they are correct and do nothing.
-    if (!snapshot.empty) {
+    const resetFlag = 'commissionsResetCompleted_v2';
+    if (typeof window !== 'undefined' && sessionStorage.getItem(resetFlag)) {
         return;
     }
 
-    console.log("Commissions not found, attempting to seed...");
-
+    console.log("Performing one-time commissions database reset...");
+    
+    const commissionsRef = collection(db, "commissions");
     const categoriesRef = collection(db, "categories");
-    const categoriesSnapshot = await getDocs(categoriesRef);
+    
+    const [commissionsSnapshot, categoriesSnapshot] = await Promise.all([
+        getDocs(commissionsRef),
+        getDocs(categoriesRef)
+    ]);
     
     if (categoriesSnapshot.empty) {
         console.log("Categories not found, seeding commissions will be skipped. It will retry on next load.");
         return;
     }
-    
-    const categories: Category[] = categoriesSnapshot.docs.map(d => ({id: d.id, ...d.data()} as Category));
 
     const batch = writeBatch(db);
 
+    // 1. Delete all existing documents in the 'commissions' collection
+    commissionsSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+    
+    // 2. Add the correct, clean list of commissions based on categories
+    const categories: Category[] = categoriesSnapshot.docs.map(d => ({id: d.id, ...d.data()} as Category));
     categories.forEach(category => {
         const isSunshine = category.name === 'Made by Sunshine';
+
         // Personalized Retail Rule
         const retailRef = doc(commissionsRef);
         batch.set(retailRef, {
@@ -68,22 +75,28 @@ async function seedCommissionRules() {
         });
 
         // Corporate & Bulk Rule
-        const corporateRef = doc(commissionsRef);
-        batch.set(corporateRef, {
-            categoryId: category.id,
-            categoryName: category.name,
-            type: 'corporate-bulk',
-            commissionRate: isSunshine ? 0 : 12,
-            bufferType: 'percentage',
-            bufferValue: isSunshine ? 0 : 5
-        });
+        if(category.platform === 'Corporate') {
+            const corporateRef = doc(commissionsRef);
+            batch.set(corporateRef, {
+                categoryId: category.id,
+                categoryName: category.name,
+                type: 'corporate-bulk',
+                commissionRate: isSunshine ? 0 : 12,
+                bufferType: 'percentage',
+                bufferValue: isSunshine ? 0 : 5
+            });
+        }
     });
 
     await batch.commit();
-    console.log("Commissions seeded successfully based on existing categories.");
+    console.log("Commissions database reset and seeding complete.");
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(resetFlag, 'true');
+    }
 }
 
-// Seed data on server startup
+// Seed data on server startup - this will now perform the hard reset once per session if needed
 seedCommissionRules();
 
 
@@ -101,7 +114,7 @@ export async function getCommissionableItems(type: 'vendor' | 'product'): Promis
 
 // --- Data Mutation ---
 
-export async function updateCommissionRule(type: 'category' | 'vendor' | 'product', id: string, data: Partial<Omit<CommissionRule, 'id'>>) {
+export async function updateCommissionRule(type: 'category' | 'vendor' | 'product', id: string, data: Partial<Omit<CommissionRule, 'id' | 'categoryName' | 'categoryId' | 'type'>>) {
     let docRef;
     if (type === 'category') {
         docRef = doc(db, 'commissions', id);
@@ -110,6 +123,7 @@ export async function updateCommissionRule(type: 'category' | 'vendor' | 'produc
     }
     await updateDoc(docRef, data);
 }
+
 
 export async function addOverride(type: 'vendor' | 'product', itemId: string, name: string) {
     const collectionRef = collection(db, `${type}CommissionOverrides`);
