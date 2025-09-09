@@ -15,7 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { onPostsUpdate, type BlogPost, updatePostStatus } from '@/lib/blog-service';
+import { onPostsUpdate } from '@/lib/blog-client-service';
+import { updatePostStatus, type BlogPost } from '@/lib/blog-service';
 import { BlogActions } from '@/components/admin/blog/blog-actions';
 import { useToast } from '@/hooks/use-toast';
 
