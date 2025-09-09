@@ -19,15 +19,10 @@ import { TermsUpdateDialog } from '../common/terms-update-dialog';
 export default function Header() {
   const [isLoginOpen, setIsLoginOpen] = React.useState(false);
   const [user, setUser] = React.useState<UserType | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
 
-  React.useEffect(() => {
-    getMockUser().then(userData => {
-        setUser(userData);
-        setLoading(false);
-    });
-  }, []);
-
+  // In a real app, you would fetch user status from an auth context.
+  // For now, we start with no user logged in.
   
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
