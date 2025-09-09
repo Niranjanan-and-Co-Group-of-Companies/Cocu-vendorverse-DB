@@ -30,7 +30,7 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
         </div>
       </div>
 
-      {/* Mobile View: Unified layout */}
+      {/* Mobile View: Unified layout with contextual top toolbar and bottom action bar */}
       <div className="md:hidden h-full flex flex-col">
          <ContextualToolbar />
          <div className="flex-grow flex items-center justify-center p-2 relative overflow-hidden">

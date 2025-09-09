@@ -71,6 +71,24 @@ export function TextTool() {
             updateElement(selectedElementId, { content: e.target.value });
         }
     }
+    
+    const handleUpdate = (prop: keyof TextElement, value: any) => {
+        if (selectedElementId) {
+            updateElement(selectedElementId, { [prop]: value });
+        }
+    };
+    
+    const handleFontStyleToggle = (style: 'bold' | 'italic') => {
+        if (!selectedElement) return;
+        if (style === 'bold') {
+            const newWeight = selectedElement.fontWeight === 700 ? 400 : 700;
+            handleUpdate('fontWeight', newWeight);
+        }
+        if (style === 'italic') {
+            const newStyle = selectedElement.fontStyle === 'italic' ? 'normal' : 'italic';
+            handleUpdate('fontStyle', newStyle);
+        }
+    };
 
     return (
         <div className="p-4 space-y-4">
@@ -78,7 +96,7 @@ export function TextTool() {
                 <PlusCircle className="mr-2" /> Add Text
             </Button>
 
-            {selectedElement && (
+            {selectedElement ? (
                 <div className="space-y-4 pt-4 border-t">
                     <div>
                         <Label htmlFor="text-content">Text Content</Label>
@@ -89,6 +107,51 @@ export function TextTool() {
                             rows={3}
                         />
                     </div>
+                     <div className="space-y-2">
+                        <Label>Font</Label>
+                        <Select value={selectedElement.fontFamily} onValueChange={(value) => handleUpdate('fontFamily', value)}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                {FONT_OPTIONS.map(font => (
+                                    <SelectItem key={font.value} value={font.value} style={{fontFamily: font.value}}>{font.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Font Size</Label>
+                            <Input type="number" value={selectedElement.fontSize} onChange={e => handleUpdate('fontSize', parseInt(e.target.value, 10))} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Color</Label>
+                            <Input type="color" value={selectedElement.color} onChange={e => handleUpdate('color', e.target.value)} className="p-1 h-10" />
+                        </div>
+                     </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Style</Label>
+                             <ToggleGroup type="multiple" defaultValue={[selectedElement.fontWeight === 700 ? 'bold' : '', selectedElement.fontStyle]}>
+                                <ToggleGroupItem value="bold" aria-label="Toggle bold" onClick={() => handleFontStyleToggle('bold')}><Bold className="h-4 w-4" /></ToggleGroupItem>
+                                <ToggleGroupItem value="italic" aria-label="Toggle italic" onClick={() => handleFontStyleToggle('italic')}><Italic className="h-4 w-4" /></ToggleGroupItem>
+                            </ToggleGroup>
+                        </div>
+                     </div>
+                      <div className="space-y-2">
+                        <Label>Outline</Label>
+                        <div className="flex gap-2">
+                            <Input type="color" value={selectedElement.outlineColor} onChange={e => handleUpdate('outlineColor', e.target.value)} className="p-1 h-10 w-16" />
+                            <Slider value={[selectedElement.outlineWidth || 0]} onValueChange={(val) => handleUpdate('outlineWidth', val[0])} max={10} step={0.5} />
+                        </div>
+                     </div>
+                      <div className="space-y-2">
+                        <Label>Curve</Label>
+                        <Slider value={[selectedElement.curve || 0]} onValueChange={(val) => handleUpdate('curve', val[0])} min={-100} max={100} step={1} />
+                     </div>
+                </div>
+            ) : (
+                 <div className="text-center text-muted-foreground pt-4 border-t">
+                    <p>Select a text layer to edit its properties.</p>
                 </div>
             )}
         </div>

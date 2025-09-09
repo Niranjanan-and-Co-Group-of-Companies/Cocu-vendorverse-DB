@@ -4,7 +4,7 @@
 import * as React from 'react';
 import type { Product } from '@/lib/products';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Text, ImageIcon, Upload, QrCode, Smile, Type, Palette, Effects, Layers } from 'lucide-react';
+import { Text, ImageIcon, Upload, QrCode, Smile } from 'lucide-react';
 import { TextTool } from './tools/text-tool';
 import { LayersPanel } from './layers-panel';
 import { ScrollArea } from '../ui/scroll-area';
@@ -13,18 +13,12 @@ import { UploadTool } from './tools/upload-tool';
 import { QrCodeTool } from './tools/qr-code-tool';
 import { ClipartTool } from './tools/clipart-tool';
 import { cn } from '@/lib/utils';
-import { useCustomization } from '@/hooks/use-customization';
-import { TextToolbar } from './tools/text-toolbar';
-
 
 interface StudioRightPanelProps {
   product: Product;
 }
 
 export function StudioRightPanel({ product }: StudioRightPanelProps) {
-  const { selectedElementId, elements } = useCustomization();
-  const selectedElement = elements.find(el => el.id === selectedElementId);
-
   const availableTools = [
     { type: 'Text', icon: <Text />, content: <TextTool /> },
     { type: 'AI Image', icon: <ImageIcon />, content: <AiImageTool /> },
@@ -35,10 +29,6 @@ export function StudioRightPanel({ product }: StudioRightPanelProps) {
 
   const gridCols = `grid-cols-${availableTools.length}`;
   const defaultTab = availableTools.length > 0 ? availableTools[0].type.toLowerCase().replace(' ', '-') : '';
-  
-  if (selectedElement?.type === 'text') {
-    return <TextToolbar />;
-  }
 
   return (
     <div className="h-full flex flex-col">
