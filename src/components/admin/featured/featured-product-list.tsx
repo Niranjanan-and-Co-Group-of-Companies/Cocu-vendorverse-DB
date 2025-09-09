@@ -29,7 +29,7 @@ export function FeaturedProductList({ products }: FeaturedProductListProps) {
   const [productToRemove, setProductToRemove] = React.useState<FeaturedProduct | null>(null);
   const { toast } = useToast();
 
-  const handleToggle = async (productId: number, platform: 'personal' | 'corporate') => {
+  const handleToggle = async (productId: string, platform: 'personal' | 'corporate') => {
     try {
       await toggleFeaturedPlatform(productId, platform);
       toast({
@@ -92,6 +92,7 @@ export function FeaturedProductList({ products }: FeaturedProductListProps) {
                       id={`personal-${product.id}`}
                       checked={product.featuredOnPersonal}
                       onCheckedChange={() => handleToggle(product.id, 'personal')}
+                      disabled={product.platform === 'Corporate'}
                     />
                     <Label htmlFor={`personal-${product.id}`} className="text-sm">Personal</Label>
                   </div>
@@ -100,7 +101,7 @@ export function FeaturedProductList({ products }: FeaturedProductListProps) {
                       id={`corporate-${product.id}`}
                       checked={product.featuredOnCorporate}
                       onCheckedChange={() => handleToggle(product.id, 'corporate')}
-                      disabled={!product.b2bEnabled}
+                      disabled={product.platform === 'Personalized'}
                     />
                     <Label htmlFor={`corporate-${product.id}`} className="text-sm">Corporate</Label>
                   </div>

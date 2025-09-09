@@ -7,7 +7,6 @@ import type { Product } from './products';
 export interface FeaturedProduct extends Product {
   featuredOnPersonal: boolean;
   featuredOnCorporate: boolean;
-  b2bEnabled: boolean; // To know if the corporate toggle should be enabled
 }
 
 const featuredCollection = collection(db, 'featured');
@@ -46,7 +45,6 @@ async function getFeaturedProductsByPlatform(platform: 'personal' | 'corporate')
                     ...productData,
                     featuredOnPersonal: featureData.featuredOnPersonal || false,
                     featuredOnCorporate: featureData.featuredOnCorporate || false,
-                    b2bEnabled: !!productData.customizable,
                 });
             }
         });
@@ -97,7 +95,6 @@ export function onFeaturedProductsUpdate(callback: (products: FeaturedProduct[])
                     ...productData,
                     featuredOnPersonal: featureData.featuredOnPersonal || false,
                     featuredOnCorporate: featureData.featuredOnCorporate || false,
-                    b2bEnabled: !!productData.customizable, // Mock logic for b2b-enabled
                 });
             }
         });
@@ -136,13 +133,4 @@ export async function addFeatured(productId: string) {
 export async function removeFeatured(productId: string) {
   const docRef = doc(featuredCollection, String(productId));
   await deleteDoc(docRef);
-}
-
-
-// Ensure the `b2bEnabled` property is added to the Product interface for this page to work correctly
-// This is a temporary measure until a proper B2B flag is added to the product data model.
-declare module './products' {
-  interface Product {
-    b2bEnabled?: boolean;
-  }
 }
