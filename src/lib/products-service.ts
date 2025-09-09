@@ -11,6 +11,19 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const productsCollection = collection(db, 'products');
 
+export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export async function serializeProduct(product: Product): Promise<PlainProduct> {
+  return {
+    ...product,
+    createdAt: product.createdAt?.toDate?.().toISOString() || null,
+    updatedAt: product.updatedAt?.toDate?.().toISOString() || null,
+  };
+}
+
 async function seedProductsIfEmpty() {
     const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v2');
     const seedFlagSnap = await getDoc(seedFlagRef);

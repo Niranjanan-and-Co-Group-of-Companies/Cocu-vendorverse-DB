@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import * as React from 'react';
-import { onProductUpdate } from '@/lib/products-client-service';
+import { getProductById, type PlainProduct, serializeProduct } from '@/lib/products-service';
 import type { Product, ProductVariant } from '@/lib/products';
 import { ProductMediaGallery } from '@/components/product/product-media-gallery';
 import { ProductInfo } from '@/components/product/product-info';
@@ -10,31 +11,24 @@ import { ProductInteractions } from '@/components/product/product-interactions';
 import { ProductDetailsAccordion } from '@/components/product/product-details-accordion';
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getCategoryByName } from '@/lib/categories-service';
-import type { Category } from '@/lib/categories-service';
 import { Button } from '@/components/ui/button';
 
 export function ProductPageContent({ id }: { id: string }) {
-    const [product, setProduct] = React.useState<Product | null>(null);
-    const [category, setCategory] = React.useState<Category | null>(null);
+    const [product, setProduct] = React.useState<PlainProduct | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [selectedVariant, setSelectedVariant] = React.useState<ProductVariant | null>(null);
 
     React.useEffect(() => {
         if (id) {
             setLoading(true);
-            const unsubscribe = onProductUpdate(id, async (productData) => {
-                setProduct(productData);
+            getProductById(id).then(async productData => {
                 if (productData) {
-                    setSelectedVariant(productData.variants?.[0] || null);
-                    if (productData.category) {
-                        const categoryData = await getCategoryByName(productData.category);
-                        setCategory(categoryData);
-                    }
+                    const plainProduct = await serializeProduct(productData);
+                    setProduct(plainProduct);
+                    setSelectedVariant(plainProduct.variants?.[0] || null);
                 }
                 setLoading(false);
             });
-            return () => unsubscribe();
         }
     }, [id]);
 
@@ -86,7 +80,7 @@ export function ProductPageContent({ id }: { id: string }) {
                     videoUrl={product.videoUrl}
                 />
                 <div className="flex flex-col gap-6">
-                    <ProductInfo product={product} />
+                    <ProductInfo product={product as Product} />
                     
                     {product.variants && product.variants.length > 1 && (
                         <div>
@@ -107,7 +101,7 @@ export function ProductPageContent({ id }: { id: string }) {
                         </div>
                     )}
 
-                    <ProductInteractions product={product} categoryName={product.category} />
+                    <ProductInteractions product={product as Product} categoryName={product.category} />
                 </div>
             </div>
             <div className="mt-12 lg:mt-20">
