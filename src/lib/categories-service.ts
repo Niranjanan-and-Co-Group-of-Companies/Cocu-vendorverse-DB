@@ -1,3 +1,4 @@
+
 import { collection, getDocs, doc, onSnapshot, query, where, writeBatch, Unsubscribe, addDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
@@ -38,7 +39,7 @@ async function seedCategories() {
         await batch.commit();
     }
 }
-seedCategories();
+// This is now called from onCategoriesUpdate to ensure it runs when needed.
 
 
 // Get product count for a single category
@@ -68,6 +69,9 @@ async function uploadCategoryImage(file: File): Promise<string> {
 export function onCategoriesUpdate(callback: (categories: Category[]) => void): Unsubscribe {
     const categoriesRef = collection(db, 'categories');
     
+    // Seed data if the collection is empty.
+    seedCategories();
+
     const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
         const categoriesData = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -82,7 +86,7 @@ export function onCategoriesUpdate(callback: (categories: Category[]) => void): 
 // Add a new category
 export async function addCategory(categoryData: { name: string, imageFile?: File | null }) {
     const { name, imageFile } = categoryData;
-    let imageUrl = `https://picsum.photos/seed/${name}/400/300`; // Default image
+    let imageUrl = `https://picsum.photos/seed/${name.toLowerCase()}/400/300`; // Default image
 
     if (imageFile) {
         imageUrl = await uploadCategoryImage(imageFile);
@@ -121,6 +125,7 @@ export async function deleteCategory(categoryId: string) {
 // --- Functions from previous implementation, kept for compatibility ---
 
 export async function getCategories(): Promise<Category[]> {
+  await seedCategories();
   const snapshot = await getDocs(collection(db, 'categories'));
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
 }
