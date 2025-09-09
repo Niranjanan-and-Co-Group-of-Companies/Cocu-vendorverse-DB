@@ -44,7 +44,6 @@ async function seedCategories() {
         await batch.commit();
     }
 }
-// This is now called from onCategoriesUpdate to ensure it runs when needed.
 
 
 // Get product count for a single category
@@ -131,13 +130,14 @@ export async function deleteCategory(categoryId: string) {
 export async function getCategories(platform?: CategoryPlatform): Promise<Category[]> {
   await seedCategories();
   const categoriesRef = collection(db, 'categories');
-  let q = query(categoriesRef);
+  let q;
 
   if (platform && platform !== 'Both') {
+      // If platform is 'Personalized' or 'Corporate', fetch categories for that platform AND 'Both'
       q = query(categoriesRef, where('platform', 'in', ['Both', platform]));
-  } else if (!platform) {
-      // Default to personal if no platform specified on general pages
-       q = query(categoriesRef, where('platform', 'in', ['Both', 'Personalized']));
+  } else {
+      // If platform is 'Both' or undefined, fetch all categories
+      q = query(categoriesRef);
   }
   
   const snapshot = await getDocs(q);

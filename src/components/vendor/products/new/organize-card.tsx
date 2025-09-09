@@ -79,7 +79,11 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
               <Label htmlFor="platform">Platform</Label>
                <Select 
                   value={product.platform}
-                  onValueChange={(value: Platform) => onFieldChange('platform', value)}
+                  onValueChange={(value: Platform) => {
+                      onFieldChange('platform', value);
+                      // Reset category if it's not valid for the new platform
+                      onFieldChange('category', '');
+                  }}
                 >
                 <SelectTrigger id="platform">
                   <SelectValue placeholder="Select a platform" />
