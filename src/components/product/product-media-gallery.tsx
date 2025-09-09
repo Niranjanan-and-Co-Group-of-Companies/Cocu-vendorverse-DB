@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -6,27 +7,62 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { PlayCircle } from 'lucide-react';
+import type { ProductVariant } from '@/lib/products';
+
+type MediaItem = {
+    type: 'image' | 'video';
+    url: string;
+};
 
 interface ProductMediaGalleryProps {
   name: string;
-  mainImage: string;
   galleryImages?: string[];
   videoUrl?: string;
+  variants: ProductVariant[];
+  selectedVariant: ProductVariant | null;
 }
 
-export function ProductMediaGallery({ name, mainImage, galleryImages = [], videoUrl }: ProductMediaGalleryProps) {
-    const media = [
-        { type: 'image', url: mainImage },
-        ...galleryImages.map(url => ({ type: 'image' as const, url })),
-        ...(videoUrl ? [{ type: 'video' as const, url: videoUrl }] : []),
-    ];
+export function ProductMediaGallery({ name, galleryImages = [], videoUrl, variants, selectedVariant }: ProductMediaGalleryProps) {
+    const [activeMedia, setActiveMedia] = React.useState<MediaItem | null>(null);
 
-    const [activeMedia, setActiveMedia] = React.useState(media[0]);
+    const media: MediaItem[] = React.useMemo(() => {
+        const currentVariant = selectedVariant || variants[0];
+        if (!currentVariant) return [];
+        
+        const variantImages = [
+            currentVariant.image,
+            ...Object.values(currentVariant.customizationSides).map(s => s.image)
+        ].filter(Boolean) as string[];
+
+        const allImages = [...new Set([...variantImages, ...galleryImages])];
+
+        const mediaItems = allImages.map(url => ({ type: 'image' as const, url }));
+        if (videoUrl) {
+            mediaItems.push({ type: 'video' as const, url: videoUrl });
+        }
+        return mediaItems;
+    }, [selectedVariant, variants, galleryImages, videoUrl]);
+    
+    React.useEffect(() => {
+        if (media.length > 0) {
+            setActiveMedia(media[0]);
+        }
+    }, [media]);
 
     const getYouTubeThumbnail = (url: string) => {
         const videoId = url.split('v=')[1]?.split('&')[0];
         return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
     };
+
+    if (!activeMedia) {
+        return (
+            <Card className="overflow-hidden">
+                <div className="aspect-square bg-muted flex items-center justify-center">
+                    <p className="text-muted-foreground">No media available</p>
+                </div>
+            </Card>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-4">

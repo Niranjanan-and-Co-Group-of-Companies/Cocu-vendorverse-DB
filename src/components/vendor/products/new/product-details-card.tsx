@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +20,7 @@ export function ProductDetailsCard({ name, description, onFieldChange }: Product
     <Card>
       <CardHeader>
         <CardTitle>Product Details</CardTitle>
+        <CardDescription>Enter the name and description for your product. This will be the same for all variants.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -33,5 +35,4 @@ export function ProductDetailsCard({ name, description, onFieldChange }: Product
     </Card>
   );
 }
-
     

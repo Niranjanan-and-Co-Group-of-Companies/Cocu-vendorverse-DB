@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import * as React from 'react';
 import { onProductUpdate } from '@/lib/products-service';
-import type { Product } from '@/lib/products';
+import type { Product, ProductVariant } from '@/lib/products';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { ProductMediaGallery } from '@/components/product/product-media-gallery';
@@ -16,21 +17,26 @@ import { AvailableOffers } from '@/components/product/available-offers';
 import { use } from 'react';
 import { getCategoryByName } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
+import { Button } from '@/components/ui/button';
 
 function ProductPageContent({ params }: { params: { id: string } }) {
     const { id } = params;
     const [product, setProduct] = React.useState<Product | null>(null);
     const [category, setCategory] = React.useState<Category | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const [selectedVariant, setSelectedVariant] = React.useState<ProductVariant | null>(null);
 
     React.useEffect(() => {
         if (id) {
             setLoading(true);
             const unsubscribe = onProductUpdate(id, async (productData) => {
                 setProduct(productData);
-                 if (productData?.category) {
-                    const categoryData = await getCategoryByName(productData.category);
-                    setCategory(categoryData);
+                if (productData) {
+                    setSelectedVariant(productData.variants?.[0] || null);
+                    if (productData.category) {
+                        const categoryData = await getCategoryByName(productData.category);
+                        setCategory(categoryData);
+                    }
                 }
                 setLoading(false);
             });
@@ -71,17 +77,42 @@ function ProductPageContent({ params }: { params: { id: string } }) {
         );
     }
 
+    const handleVariantSelect = (variant: ProductVariant) => {
+        setSelectedVariant(variant);
+    }
+
     return (
         <div className="container py-8 md:py-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
                 <ProductMediaGallery
                     name={product.name}
-                    mainImage={product.image}
+                    variants={product.variants}
+                    selectedVariant={selectedVariant}
                     galleryImages={product.galleryImages}
                     videoUrl={product.videoUrl}
                 />
                 <div className="flex flex-col gap-6">
                     <ProductInfo product={product} />
+                    
+                    {product.variants && product.variants.length > 1 && (
+                        <div>
+                            <h3 className="font-semibold text-lg mb-2">Color: <span className="text-muted-foreground">{selectedVariant?.colorName}</span></h3>
+                            <div className="flex gap-2">
+                                {product.variants.map(variant => (
+                                    <Button
+                                        key={variant.id}
+                                        variant="outline"
+                                        size="icon"
+                                        className={`h-10 w-10 rounded-full ${selectedVariant?.id === variant.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                                        style={{ backgroundColor: variant.colorHex }}
+                                        onClick={() => handleVariantSelect(variant)}
+                                        aria-label={`Select color ${variant.colorName}`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <AvailableOffers categoryId={category?.id} productId={product.id} />
                     <ProductInteractions product={product} categoryName={product.category} />
                 </div>

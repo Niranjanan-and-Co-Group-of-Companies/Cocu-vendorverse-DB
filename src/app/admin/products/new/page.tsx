@@ -15,10 +15,11 @@ import { PricingAndInventoryCard } from '@/components/vendor/products/new/pricin
 import { PackageAndShippingCard } from '@/components/vendor/products/new/package-and-shipping-card';
 import { OrganizeCard } from '@/components/vendor/products/new/organize-card';
 import { AllowedCustomizationsCard } from '@/components/vendor/products/new/allowed-customizations-card';
-import type { CustomizationSide, AllowedCustomizationType, CustomizationArea, Platform } from '@/lib/products';
+import type { CustomizationSide, AllowedCustomizationType, CustomizationArea, ProductVariant } from '@/lib/products';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getVendors, type Vendor } from '@/lib/vendors-service';
 import { B2BPricingCard } from '@/components/vendor/corporate/b2b-pricing-card';
+import { ProductVariantsCard } from '@/components/vendor/products/new/product-variants-card';
 
 const createDefaultProduct = (): Partial<Product> => ({
   name: '',
@@ -30,13 +31,19 @@ const createDefaultProduct = (): Partial<Product> => ({
   status: 'Draft',
   platform: 'Personalized',
   customizable: false,
-  customizationSides: {
-    front: { image: null, areas: [] },
-    back: { image: null, areas: [] },
-    left: { image: null, areas: [] },
-    right: { image: null, areas: [] },
-    top: { image: null, areas: [] },
-    bottom: { image: null, areas: [] },
+  variants: [
+    {
+        id: 'variant_default',
+        colorName: 'Default',
+        colorHex: '#ffffff',
+        image: null,
+        customizationSides: {
+            front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null }
+        }
+    }
+  ],
+  customizationAreas: {
+    front: [], back: [], left: [], right: [], top: [], bottom: []
   },
   galleryImages: [],
   videoUrl: '',
@@ -59,9 +66,7 @@ function ProductEditorContent() {
     const { toast } = useToast();
 
     const [product, setProduct] = React.useState<Partial<Product>>(createDefaultProduct());
-    const [imageFiles, setImageFiles] = React.useState<Record<CustomizationSide, File | null>>({
-        front: null, back: null, left: null, right: null, top: null, bottom: null
-    });
+    const [imageFiles, setImageFiles] = React.useState<Record<string, Record<CustomizationSide, File | null>>>({});
     const [galleryImageFiles, setGalleryImageFiles] = React.useState<File[]>([]);
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
@@ -87,16 +92,12 @@ function ProductEditorContent() {
         setProduct(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleImageChange = (side: CustomizationSide, file: File | null) => {
-        setImageFiles(prev => ({ ...prev, [side]: file }));
-        setProduct(prev => ({
+    const handleImageChange = (variantId: string, side: CustomizationSide, file: File | null) => {
+        setImageFiles(prev => ({
             ...prev,
-            customizationSides: {
-                ...prev.customizationSides!,
-                [side]: {
-                    ...prev.customizationSides![side],
-                    image: file ? URL.createObjectURL(file) : null
-                }
+            [variantId]: {
+                ...(prev[variantId] || {}),
+                [side]: file
             }
         }));
     };
@@ -104,12 +105,9 @@ function ProductEditorContent() {
     const handleCustomizationAreaChange = (side: CustomizationSide, areas: CustomizationArea[]) => {
         setProduct(prev => ({
             ...prev,
-            customizationSides: {
-                ...prev.customizationSides!,
-                [side]: {
-                    ...prev.customizationSides![side],
-                    areas: areas
-                }
+            customizationAreas: {
+                ...prev.customizationAreas!,
+                [side]: areas
             }
         }));
     };
@@ -120,10 +118,9 @@ function ProductEditorContent() {
 
     const validateProduct = (): boolean => {
         if (product.customizable) {
-            const uploadedImageCount = Object.values(product.customizationSides || {}).filter(side => side.image).length;
-            const hasVideo = !!product.videoUrl;
-            if (uploadedImageCount + (hasVideo ? 1 : 0) < 2) {
-                setError('A minimum of 2 images (or 1 image and 1 video) is required for customizable products.');
+            const hasAtLeastOneImage = product.variants?.some(v => v.image || Object.values(v.customizationSides).some(s => s.image));
+             if (!hasAtLeastOneImage) {
+                setError('Each variant must have at least one image (main or side) for customizable products.');
                 window.scrollTo(0, 0);
                 return false;
             }
@@ -224,6 +221,10 @@ function ProductEditorContent() {
                             onFieldChange={handleFieldChange}
                         />
                     )}
+                     <ProductVariantsCard 
+                        variants={product.variants || []}
+                        onFieldChange={handleFieldChange}
+                     />
                     <MediaAndCustomizationCard 
                         product={product as Product}
                         onFieldChange={handleFieldChange}

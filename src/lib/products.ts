@@ -26,7 +26,15 @@ export interface CustomizationArea {
 
 export interface ProductSide {
   image: string | null;
-  areas: CustomizationArea[];
+  // Areas are now defined at the top level
+}
+
+export interface ProductVariant {
+    id: string;
+    colorName: string;
+    colorHex: string;
+    image: string | null; // The main image for this variant
+    customizationSides: Record<CustomizationSide, ProductSide>;
 }
 
 
@@ -50,7 +58,9 @@ export type Product = {
   creatorStory?: string;
   category?: string;
   status: ProductStatus;
-  customizationSides: Record<CustomizationSide, ProductSide>;
+  // Shared customization area definitions
+  customizationAreas: Record<CustomizationSide, CustomizationArea[]>;
+  variants: ProductVariant[];
   allowedCustomizations: AllowedCustomizationType[];
   weight: number;
   dimensions: { l: number, w: number, h: number };
@@ -62,3 +72,4 @@ export type Product = {
 };
 
     
+
