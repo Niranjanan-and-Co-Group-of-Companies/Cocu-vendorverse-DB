@@ -88,24 +88,33 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
     const getDynamicHeight = (currentSize: { width: number, height: number }, curve?: number) => {
         const absCurve = Math.abs(curve || 0);
         if (absCurve === 0) return currentSize.height;
-        const sagitta = (currentSize.width / 2) * Math.tan(absCurve / 100 * Math.PI / 4);
-        return Math.max(currentSize.height, sagitta);
+
+        const w = currentSize.width;
+        // Map curve from -100..100 to an angle for more intuitive control
+        const angle = (absCurve / 100) * 90; // Max 90 degrees curve
+        const sagitta = (w / 2) * Math.tan(angle * Math.PI / 360);
+        
+        return Math.max(currentSize.height, sagitta * 2 + currentSize.height * 0.5);
     };
+
 
     const dynamicHeight = getDynamicHeight(size, element.curve);
 
     const getPathData = (curve: number) => {
         const w = size.width;
         const h = dynamicHeight;
-        const curveValue = curve / 100;
-
+        
         if (curve === 0) {
             return `M 0,${h / 2} L ${w},${h / 2}`;
         }
         
-        const isDownward = curveValue < 0;
-        const absCurveValue = Math.abs(curveValue);
-        const sagitta = (w / 2) * Math.tan(absCurveValue * Math.PI / 4);
+        const isDownward = curve < 0;
+        const absCurve = Math.abs(curve);
+        const angle = (absCurve / 100) * 90;
+        
+        const sagitta = (w / 2) * Math.tan(angle * Math.PI / 360);
+        if(sagitta === 0) return `M 0,${h / 2} L ${w},${h / 2}`;
+
         const radius = (sagitta / 2) + (w * w) / (8 * sagitta);
         
         if (!isFinite(radius)) {
@@ -113,9 +122,9 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
         }
         
         const sweepFlag = isDownward ? 0 : 1;
-        const yPos = isDownward ? h - sagitta : sagitta;
+        const yPos = h / 2 - sagitta;
         
-        return `M 0,${yPos} A ${Math.abs(radius)} ${Math.abs(radius)} 0 0 ${sweepFlag} ${w},${yPos}`;
+        return `M 0,${isDownward ? yPos : h - yPos} A ${Math.abs(radius)} ${Math.abs(radius)} 0 0 ${sweepFlag} ${w},${isDownward ? yPos : h - yPos}`;
     }
 
     const onResizeStop = (event: React.SyntheticEvent, { size: finalSize }: { size: { width: number, height: number }}) => {
@@ -193,7 +202,6 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
                             paintOrder="stroke"
                             stroke={element.outlineColor}
                             strokeWidth={element.outlineWidth}
-                            strokeLinejoin="round"
                         >
                             <textPath href={`#path-${element.id}`} startOffset="50%" textAnchor="middle">
                                 {element.content}
