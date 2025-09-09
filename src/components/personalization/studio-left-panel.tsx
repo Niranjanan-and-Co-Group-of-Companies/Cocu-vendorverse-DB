@@ -6,8 +6,7 @@ import type { Product } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Check, MessageSquare } from 'lucide-react';
-import Image from 'next/image';
+import { SideSelector } from './side-selector';
 
 interface StudioLeftPanelProps {
   product: Product;
@@ -24,23 +23,7 @@ export function StudioLeftPanel({ product }: StudioLeftPanelProps) {
             
              <Separator />
 
-            <div>
-                <h3 className="font-semibold mb-3">Product Sides</h3>
-                <div className="grid grid-cols-2 gap-2">
-                   {Object.entries(product.customizationSides).map(([side, data]) => {
-                       if (!data.image) return null;
-                       return (
-                           <button key={side} className="relative aspect-square rounded-md border-2 border-primary overflow-hidden">
-                               <Image src={data.image} alt={side} fill className="object-cover" />
-                               <div className="absolute inset-0 bg-primary/70 flex items-center justify-center text-primary-foreground">
-                                   <Check className="h-6 w-6"/>
-                               </div>
-                               <span className="absolute bottom-1 right-1 bg-background/80 text-foreground text-xs px-1.5 py-0.5 rounded-sm capitalize">{side}</span>
-                           </button>
-                       )
-                   })}
-                </div>
-            </div>
+            <SideSelector product={product} />
 
             <Separator />
 

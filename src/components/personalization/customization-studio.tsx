@@ -8,6 +8,7 @@ import { StudioLeftPanel } from './studio-left-panel';
 import { StudioRightPanel } from './studio-right-panel';
 import { ContextualToolbar } from './tools/contextual-toolbar';
 import { BottomToolbar } from './tools/bottom-toolbar';
+import { SideSelector } from './side-selector';
 
 interface CustomizationStudioProps {
   product: Product;
@@ -33,8 +34,9 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
       {/* Mobile View: Unified layout with contextual top toolbar and bottom action bar */}
       <div className="md:hidden h-full flex flex-col">
          <ContextualToolbar />
-         <div className="flex-grow flex items-center justify-center p-2 relative overflow-hidden">
+         <div className="flex-grow flex flex-col items-center justify-center p-2 relative overflow-hidden">
              <StudioCanvas product={product} />
+             <SideSelector product={product} />
          </div>
          <BottomToolbar product={product} />
       </div>
