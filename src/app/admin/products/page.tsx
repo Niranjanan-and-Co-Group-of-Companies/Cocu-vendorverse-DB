@@ -66,10 +66,10 @@ function ProductsTable() {
     React.useEffect(() => {
         let productsToFilter = [...allProducts];
         if (view === 'personal') {
-            productsToFilter = productsToFilter.filter(p => !p.moq || p.moq <= 1);
+            productsToFilter = productsToFilter.filter(p => p.platform === 'Personalized' || p.platform === 'Both');
             setTitle('Personalized Retail Products');
         } else if (view === 'corporate') {
-            productsToFilter = productsToFilter.filter(p => p.moq && p.moq > 1);
+            productsToFilter = productsToFilter.filter(p => p.platform === 'Corporate' || p.platform === 'Both');
             setTitle('Corporate & Bulk Products');
         } else {
             setTitle('All Products');
