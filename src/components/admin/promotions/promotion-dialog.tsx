@@ -161,21 +161,20 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
   
  const addProductsToSelection = (productsToAdd: TargetableItem[]) => {
       setPromoData(prev => {
-          const currentProducts = prev.appliesTo?.products || [];
-          const currentProductIds = new Set(currentProducts.map(p => p.id));
-          const newProducts = productsToAdd.filter(p => !currentProductIds.has(p.id));
-          const updatedProducts = [...currentProducts, ...newProducts];
+          const newState = JSON.parse(JSON.stringify(prev)); // Deep clone
+          const currentProducts = newState.appliesTo?.products || [];
+          const currentProductIds = new Set(currentProducts.map((p: TargetableItem) => p.id));
           
-          return {
-              ...prev,
-              appliesTo: {
-                  ...(prev.appliesTo || { products: [], categories: [], vendors: [] }),
-                  products: updatedProducts,
-              }
-          };
+          const newProducts = productsToAdd.filter(p => !currentProductIds.has(p.id));
+          
+          if (!newState.appliesTo) {
+              newState.appliesTo = { products: [], categories: [], vendors: [] };
+          }
+          newState.appliesTo.products = [...currentProducts, ...newProducts];
+          
+          return newState;
       });
   };
-
 
   const handleSelect = async (type: 'product' | 'category' | 'vendor', item: TargetableItem) => {
     if (type === 'product') {
@@ -191,14 +190,10 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
   
   const handleRemoveProduct = (productId: string) => {
     setPromoData(prev => {
-        const updatedProducts = (prev.appliesTo?.products || []).filter(p => p.id !== productId);
-        return {
-            ...prev,
-            appliesTo: {
-                ...(prev.appliesTo || { products: [], categories: [], vendors: [] }),
-                products: updatedProducts,
-            }
-        };
+        const newState = JSON.parse(JSON.stringify(prev));
+        const updatedProducts = (newState.appliesTo?.products || []).filter((p: TargetableItem) => p.id !== productId);
+        newState.appliesTo.products = updatedProducts;
+        return newState;
     });
   };
 
@@ -227,13 +222,13 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{promotion ? 'Edit Promotion' : 'Create New Promotion'}</DialogTitle>
           <DialogDescription>
             Fill in the details for the promotional coupon code.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="pr-6 -mr-6 flex-grow">
+        <ScrollArea className="flex-grow pr-6 -mr-6">
         <div className="grid gap-4 py-4">
             <div className="space-y-2">
                 <Label htmlFor="code">Coupon Code</Label>
@@ -319,7 +314,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                 
                 <div>
                   <Label>Applied to Products</Label>
-                  <div className="h-48 border rounded-md p-2 mt-2 overflow-y-auto">
+                   <ScrollArea className="h-48 border rounded-md p-2 mt-2">
                      {(promoData.appliesTo?.products || []).length > 0 ? (
                        <div className="space-y-2">
                          {(promoData.appliesTo?.products || []).map(p => (
@@ -343,12 +338,12 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                          <p className="text-sm text-muted-foreground">Applies to all products by default.</p>
                        </div>
                      )}
-                   </div>
+                   </ScrollArea>
                 </div>
             </div>
         </div>
         </ScrollArea>
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0 pt-4 border-t">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving ? <Loader2 className="mr-2 animate-spin" /> : null}
