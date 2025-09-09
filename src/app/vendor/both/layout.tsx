@@ -1,4 +1,6 @@
 
+'use client';
+
 import * as React from 'react';
 import { BothVendorSidebarLayout } from '@/components/layout/both-vendor-sidebar-layout';
 
