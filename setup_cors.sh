@@ -7,7 +7,7 @@ cat > cors-config.json << EOL
 [
   {
     "origin": [
-      "https://6000-firebase-studio-1756796276779.cluster-3gc7bglotjgwuxlqpiut7yyqt4.cloudworkstations.dev",
+      "https://6000--firebase-studio-1756796276779.cluster-3gc7bglotjgwuxlqpiut7yyqt4.cloudworkstations.dev",
       "https://vendorverse-rhu2g.web.app"
     ],
     "method": [
