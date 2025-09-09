@@ -37,11 +37,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Badge } from '../ui/badge';
-import { VendorNotificationDropdown } from './vendor-notification-dropdown';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { VendorNotificationDropdown } from '@/components/layout/vendor-notification-dropdown';
 import { onVendorConversationsUpdate } from '@/lib/vendor/messages-service';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 
 // In a real app, this would come from an auth context.
