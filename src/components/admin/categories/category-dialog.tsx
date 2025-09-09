@@ -100,7 +100,7 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
                     <SelectValue placeholder="Select platform visibility" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="Both">Personalized & Corporate</SelectItem>
+                    <SelectItem value="Both">Both Platforms</SelectItem>
                     <SelectItem value="Personalized">Personalized Only</SelectItem>
                     <SelectItem value="Corporate">Corporate Only</SelectItem>
                 </SelectContent>

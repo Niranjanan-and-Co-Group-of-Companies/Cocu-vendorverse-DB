@@ -64,12 +64,12 @@ export default function CategoriesPage() {
         setIsDialogOpen(true);
     };
 
-    const getPlatformVariant = (platform: CategoryPlatform) => {
+    const getPlatformVariant = (platform: CategoryPlatform): 'default' | 'secondary' | 'outline' => {
         switch(platform) {
             case 'Corporate': return 'secondary';
             case 'Personalized': return 'outline';
             case 'Both': return 'default';
-            default: return 'default';
+            default: return 'outline';
         }
     };
 

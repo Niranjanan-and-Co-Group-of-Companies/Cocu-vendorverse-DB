@@ -18,11 +18,15 @@ export interface Category {
   commissionRate?: number; // Added to hold the relevant commission rate
 }
 
+let categoriesSeeded = false;
+
 async function seedCategories() {
+    if (categoriesSeeded) return;
     const categoriesRef = collection(db, "categories");
     const snapshot = await getDocs(categoriesRef);
     if (snapshot.empty) {
         console.log("Seeding categories...");
+        categoriesSeeded = true; // Set flag before seeding
         const batch = writeBatch(db);
         const mockCategories = [
             { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300", platform: 'Both' },
@@ -44,6 +48,8 @@ async function seedCategories() {
             });
         });
         await batch.commit();
+    } else {
+        categoriesSeeded = true;
     }
 }
 
