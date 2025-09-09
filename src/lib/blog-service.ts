@@ -44,6 +44,7 @@ const postsCollection = collection(db, 'blogPosts');
 // --- Service Functions ---
 
 export function onPostsUpdate(callback: (posts: BlogPost[]) => void): () => void {
+    'use client';
     const q = query(postsCollection, orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogPost));
