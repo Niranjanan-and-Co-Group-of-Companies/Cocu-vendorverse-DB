@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -101,6 +102,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
         <Link href={`/corporate/products/${product.id}`} className="block">
           <div className="overflow-hidden aspect-[4/3] bg-muted">
             {product.displayPrice?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>}
+            {product.featured && <Badge className="absolute top-2 right-2 z-10">Featured</Badge>}
             <Image
               src={product.image}
               alt={product.name}
@@ -111,7 +113,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
           </div>
         </Link>
         {product.moq && (
-          <Badge className="absolute top-2 right-2 z-10" variant="secondary">
+          <Badge className="absolute bottom-2 right-2 z-10" variant="secondary">
             MOQ: {product.moq}
           </Badge>
         )}

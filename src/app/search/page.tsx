@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import { useSearchParams } from 'next/navigation';
@@ -114,6 +115,7 @@ function SearchResultsContent() {
                     <Link href={`/products/${product.id}`} className="block w-full h-full">
                         <div className="overflow-hidden aspect-[4/3]">
                             {product.displayPrice?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>}
+                            {product.featured && <Badge className="absolute top-2 right-2 z-10">Featured</Badge>}
                             <Image
                             src={product.image}
                             alt={product.name}

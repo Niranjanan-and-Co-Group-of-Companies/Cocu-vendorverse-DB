@@ -110,6 +110,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                     {product.displayPrice.hasDiscount && (
                         <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>
                     )}
+                    {product.featured && <Badge className="absolute top-2 right-2 z-10">Featured</Badge>}
                     </div>
                   </Link>
                 </CardHeader>
