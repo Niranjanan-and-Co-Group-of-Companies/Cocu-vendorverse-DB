@@ -11,7 +11,7 @@ import Footer from '@/components/layout/footer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { getCategories, type Category } from '@/lib/categories-service';
+import { onCategoriesUpdate, type Category } from '@/lib/categories-service';
 import { getActiveCampaignByPlacement, type Campaign } from '@/lib/marketing-service';
 import React, { useEffect, useState } from 'react';
 import type { Product } from '@/lib/products';
@@ -122,25 +122,31 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const [featuredData, categoriesData] = await Promise.all([
-        getFeaturedPersonalProducts(),
-        getCategories('Personalized'),
-      ]);
-
-      const pricedFeaturedProducts = await Promise.all(
-          featuredData.map(async p => ({
-              ...p,
-              displayPrice: await calculateDisplayPrice(p, 'personal'),
-          }))
-      );
-
-      setFeaturedProducts(pricedFeaturedProducts);
-      setCategories(categoriesData);
-      setLoading(false);
+    const fetchFeatured = async () => {
+        const featuredData = await getFeaturedPersonalProducts();
+        const pricedFeaturedProducts = await Promise.all(
+            featuredData.map(async p => ({
+                ...p,
+                displayPrice: await calculateDisplayPrice(p, 'personal'),
+            }))
+        );
+        setFeaturedProducts(pricedFeaturedProducts);
     };
-    fetchData();
+
+    const unsubCategories = onCategoriesUpdate((allCategories) => {
+        const personalCategories = allCategories.filter(
+            cat => cat.platform === 'Personalized' || cat.platform === 'Both'
+        );
+        setCategories(personalCategories);
+    });
+
+    Promise.all([fetchFeatured()]).then(() => {
+        setLoading(false);
+    });
+
+    return () => {
+        unsubCategories();
+    };
   }, []);
 
 

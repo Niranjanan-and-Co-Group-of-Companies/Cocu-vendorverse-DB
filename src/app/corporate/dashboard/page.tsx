@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import React, { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getFeaturedCorporateProducts, type FeaturedProduct } from '@/lib/featured-service';
-import { getCategories, type Category } from '@/lib/categories-service';
+import { onCategoriesUpdate, type Category } from '@/lib/categories-service';
 import { getActiveCorporateCampaignByPlacement, type Campaign } from '@/lib/marketing-service';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import type { Product } from '@/lib/products';
@@ -116,13 +116,8 @@ export default function CorporateDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const [featuredData, categoriesData] = await Promise.all([
-        getFeaturedCorporateProducts(),
-        getCategories('Corporate'),
-      ]);
-
+    const fetchFeatured = async () => {
+      const featuredData = await getFeaturedCorporateProducts();
       const pricedProducts = await Promise.all(
         featuredData.map(async (p) => ({
           ...p,
@@ -130,10 +125,22 @@ export default function CorporateDashboardPage() {
         }))
       );
       setFeaturedProducts(pricedProducts);
-      setCategories(categoriesData);
-      setLoading(false);
     };
-    fetchData();
+
+    const unsubCategories = onCategoriesUpdate((allCategories) => {
+        const corporateCategories = allCategories.filter(
+            cat => cat.platform === 'Corporate' || cat.platform === 'Both'
+        );
+        setCategories(corporateCategories);
+    });
+
+    Promise.all([fetchFeatured()]).then(() => {
+        setLoading(false);
+    });
+    
+    return () => {
+        unsubCategories();
+    };
   }, []);
 
 
