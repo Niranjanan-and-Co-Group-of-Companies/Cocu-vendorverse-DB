@@ -90,7 +90,7 @@ export default function CategoriesPage() {
                     <TabsTrigger value="Personalized">Personalized</TabsTrigger>
                     <TabsTrigger value="Corporate">Corporate</TabsTrigger>
                 </TabsList>
-                <TabsContent value={activeTab} className="mt-4">
+                <TabsContent value="Personalized">
                      <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                         <Table>
                             <TableHeader>
@@ -122,6 +122,51 @@ export default function CategoriesPage() {
                                                     height={64}
                                                     className="rounded-md object-cover"
                                                     data-ai-hint="category image"
+                                                />
+                                            </TableCell>
+                                            <TableCell className="font-medium">{category.name}</TableCell>
+                                            <TableCell>{category.productCount}</TableCell>
+                                            <TableCell className="text-right">
+                                                <CategoryActions category={category} onEdit={handleEdit} />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </TabsContent>
+                <TabsContent value="Corporate">
+                     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[80px]">Image</TableHead>
+                                    <TableHead>Category Name</TableHead>
+                                    <TableHead>Products</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {loading ? (
+                                    Array.from({ length: 3 }).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                            <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    filteredCategories.map((category) => (
+                                        <TableRow key={category.id}>
+                                            <TableCell>
+                                                <Image
+                                                    src={category.image || 'https://placehold.co/64'}
+                                                    alt={category.name}
+                                                    width={64}
+                                                    height={64}
+                                                    className="rounded-md object-cover"
                                                 />
                                             </TableCell>
                                             <TableCell className="font-medium">{category.name}</TableCell>

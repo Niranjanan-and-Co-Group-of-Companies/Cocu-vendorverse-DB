@@ -67,7 +67,7 @@ export function CategoryActions({ category, onEdit }: CategoryActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem asChild>
-             <Link href={`/admin/products?category=${encodeURIComponent(category.name)}`}>
+             <Link href={`/admin/products?category=${encodeURIComponent(category.slug)}`}>
                 <Box className="mr-2 h-4 w-4" />
                 View Products
             </Link>

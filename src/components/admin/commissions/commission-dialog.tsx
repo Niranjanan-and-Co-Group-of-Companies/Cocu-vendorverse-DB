@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -17,6 +18,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import type { CommissionRule, Override } from '@/lib/commissions-service';
 import { updateCommissionRule } from '@/lib/commissions-service';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface CommissionDialogProps {
   open: boolean;
@@ -97,12 +99,15 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
                 </div>
-                 {isSunshineCategory && (
-                    <p className="col-span-3 text-xs text-muted-foreground text-center">
-                        Commission for "Made by Sunshine" is locked at 0%.
-                    </p>
-                )}
             </div>
+
+            {isSunshineCategory && (
+                <Alert className="col-span-3">
+                    <AlertDescription>
+                        Commission for "Made by Sunshine" is locked at 0%. This is an in-house brand.
+                    </AlertDescription>
+                </Alert>
+            )}
 
             {/* Buffer */}
             <div className="grid grid-cols-3 items-start gap-4">

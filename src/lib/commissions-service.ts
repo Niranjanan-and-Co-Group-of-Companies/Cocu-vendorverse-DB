@@ -1,6 +1,7 @@
 
+
 'use server';
-import { collection, getDocs, writeBatch, doc, updateDoc, addDoc, deleteDoc, query, Unsubscribe } from 'firebase/firestore';
+import { collection, getDocs, writeBatch, doc, updateDoc, addDoc, deleteDoc, query, Unsubscribe, getDoc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { getCategories, type Category } from './categories-service';
 
@@ -31,18 +32,19 @@ export interface CommissionableItem {
 
 // --- Seeding Logic ---
 async function seedCommissionRules() {
-    const resetFlag = 'commissionsResetCompleted_v3';
-    if (typeof window !== 'undefined' && sessionStorage.getItem(resetFlag)) {
-        return;
+    const seedFlagRef = doc(db, 'internal_flags', 'commissionsSeeded_v4');
+    const seedFlagSnap = await getDoc(seedFlagRef);
+
+    if (seedFlagSnap.exists()) {
+        return; // Seeding already performed.
     }
 
-    console.log("Performing one-time commissions database reset...");
+    console.log("Performing one-time commissions database hard reset...");
     
     const commissionsRef = collection(db, "commissions");
-    
     const [commissionsSnapshot, categories] = await Promise.all([
         getDocs(commissionsRef),
-        getCategories() // Fetch clean categories
+        getCategories() // Fetch clean categories, which will also trigger their own seed/reset if needed
     ]);
     
     if (categories.length === 0) {
@@ -61,8 +63,8 @@ async function seedCommissionRules() {
     categories.forEach(category => {
         const isSunshine = category.name === 'Made by Sunshine';
         
-        // Create rule for personalized if applicable
-        if (category.platform === 'Personalized' || category.platform === 'Both') {
+        // Create rule for personalized retail
+        if (category.platform === 'Personalized') {
             const retailRef = doc(commissionsRef);
             batch.set(retailRef, {
                 categoryId: category.id,
@@ -74,16 +76,16 @@ async function seedCommissionRules() {
             });
         }
         
-        // Create rule for corporate if applicable
-        if(category.platform === 'Corporate' || category.platform === 'Both') {
+        // Create rule for corporate
+        if(category.platform === 'Corporate') {
             const corporateRef = doc(commissionsRef);
             batch.set(corporateRef, {
                 categoryId: category.id,
                 categoryName: category.name,
                 type: 'corporate-bulk',
-                commissionRate: isSunshine ? 0 : 12,
+                commissionRate: 12,
                 bufferType: 'percentage',
-                bufferValue: isSunshine ? 0 : 5
+                bufferValue: 5
             });
         }
     });
@@ -91,12 +93,11 @@ async function seedCommissionRules() {
     await batch.commit();
     console.log("Commissions database reset and seeding complete.");
 
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem(resetFlag, 'true');
-    }
+    // Set the flag to prevent this from running again
+    await setDoc(seedFlagRef, { completed: true });
 }
 
-// Seed data on server startup - this will now perform the hard reset once per session if needed
+// Seed data on server startup
 seedCommissionRules();
 
 

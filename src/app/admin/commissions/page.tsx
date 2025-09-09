@@ -131,15 +131,15 @@ export default function CommissionsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Content */}
                 <div className="lg:col-span-2">
-                     <Tabs defaultValue="retail">
+                     <Tabs defaultValue="personalized-retail">
                         <TabsList className="mb-4">
-                            <TabsTrigger value="retail">Personalized Retail</TabsTrigger>
-                            <TabsTrigger value="corporate">Corporate & Bulk</TabsTrigger>
+                            <TabsTrigger value="personalized-retail">Personalized Retail</TabsTrigger>
+                            <TabsTrigger value="corporate-bulk">Corporate & Bulk</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="retail">
+                        <TabsContent value="personalized-retail">
                            <CommissionTable rules={allRules} type="personalized-retail" />
                         </TabsContent>
-                        <TabsContent value="corporate">
+                        <TabsContent value="corporate-bulk">
                            <CommissionTable rules={allRules} type="corporate-bulk" />
                         </TabsContent>
                     </Tabs>

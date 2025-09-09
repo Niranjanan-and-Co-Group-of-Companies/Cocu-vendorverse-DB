@@ -1,12 +1,12 @@
 
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc, orderBy, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
 
-export type CategoryPlatform = 'Personalized' | 'Corporate' | 'Both';
+export type CategoryPlatform = 'Personalized' | 'Corporate';
 
 export interface Category {
   id: string;
@@ -24,38 +24,38 @@ const MOCK_CATEGORIES = [
     { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300", platform: 'Personalized' },
     { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300", platform: 'Personalized' },
     { name: "Made by Sunshine", image: "https://picsum.photos/seed/sunshine/400/300", platform: 'Personalized' },
+    { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Personalized' },
     // Corporate Categories
     { name: "Office & Corporate", image: "https://picsum.photos/seed/office/400/300", platform: 'Corporate' },
     { name: "Bulk Apparel", image: "https://picsum.photos/seed/apparel/400/300", platform: 'Corporate' },
     { name: "Promotional Tech", image: "https://picsum.photos/seed/promotech/400/300", platform: 'Corporate' },
-    // Both
-    { name: "Tech Gadgets", image: "https://picsum.photos/seed/tech/400/300", platform: 'Both' },
-    { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Both' },
-    { name: "Other", image: "https://picsum.photos/seed/other/400/300", platform: 'Both' },
+    // Shared Category
+    { name: "Tech Gadgets", image: "https://picsum.photos/seed/tech/400/300", platform: 'Personalized' },
 ];
 
 
 async function seedCategories() {
-    // This function will perform a one-time "hard reset" of categories.
-    const resetFlag = 'categoriesResetCompleted_v3';
-    if (typeof window !== 'undefined' && sessionStorage.getItem(resetFlag)) {
-        return;
+    const seedFlagRef = doc(db, 'internal_flags', 'categoriesSeeded_v4');
+    const seedFlagSnap = await getDoc(seedFlagRef);
+
+    if (seedFlagSnap.exists()) {
+        return; // Seeding already performed.
     }
 
-    console.log("Performing one-time category database reset...");
+    console.log("Performing one-time category database hard reset...");
 
     const categoriesRef = collection(db, "categories");
     const snapshot = await getDocs(categoriesRef);
     const batch = writeBatch(db);
 
-    // 1. Delete all existing documents in the 'categories' collection
+    // 1. Delete all existing documents
     snapshot.docs.forEach(doc => {
         batch.delete(doc.ref);
     });
 
     // 2. Add the correct, clean list of categories
     MOCK_CATEGORIES.forEach(cat => {
-        const docRef = doc(categoriesRef); // Let Firestore generate a new ID
+        const docRef = doc(categoriesRef);
         batch.set(docRef, {
             ...cat,
             slug: cat.name.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-')
@@ -65,10 +65,9 @@ async function seedCategories() {
     // Commit the batch of deletions and additions
     await batch.commit();
     console.log("Category database reset and seeding complete.");
-    
-    if (typeof window !== 'undefined') {
-        sessionStorage.setItem(resetFlag, 'true');
-    }
+
+    // Set the flag to prevent this from running again
+    await setDoc(seedFlagRef, { completed: true });
 }
 
 
@@ -157,13 +156,11 @@ export async function deleteCategory(categoryId: string) {
 
 // --- Real-time Combined Fetching ---
 
-export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Corporate' | 'Both', callback: (categories: Category[]) => void): Unsubscribe {
+export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Corporate', callback: (categories: Category[]) => void): Unsubscribe {
     seedCategories(); // Ensure categories exist
 
     const categoriesRef = collection(db, 'categories');
-    const categoriesQuery = platform === 'Both' 
-        ? query(categoriesRef)
-        : query(categoriesRef, where('platform', 'in', [platform, 'Both']));
+    const categoriesQuery = query(categoriesRef, where('platform', '==', platform));
     
     const commissionsRef = collection(db, 'commissions');
 
@@ -213,8 +210,8 @@ export async function getCategories(platform?: CategoryPlatform): Promise<Catego
     const categoriesRef = collection(db, 'categories');
     let categoriesQuery;
 
-    if (platform && platform !== 'Both') {
-        categoriesQuery = query(categoriesRef, where('platform', 'in', [platform, 'Both']));
+    if (platform) {
+        categoriesQuery = query(categoriesRef, where('platform', '==', platform));
     } else {
         categoriesQuery = query(categoriesRef);
     }
