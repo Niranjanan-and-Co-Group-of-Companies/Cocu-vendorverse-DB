@@ -18,44 +18,53 @@ export interface Category {
   commissionRate?: number; // Added to hold the relevant commission rate
 }
 
-let categoriesSeeded = false;
+const MOCK_CATEGORIES = [
+    { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300", platform: 'Personalized' },
+    { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300", platform: 'Personalized' },
+    { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300", platform: 'Personalized' },
+    { name: "Tech", image: "https://picsum.photos/seed/tech/400/300", platform: 'Personalized' },
+    { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Personalized' },
+    { name: "Made by Sunshine", image: "https://picsum.photos/seed/sunshine/400/300", platform: 'Personalized' },
+    { name: "Other", image: "https://picsum.photos/seed/other/400/300", platform: 'Personalized' },
+    // Corporate Categories
+    { name: "Office & Corporate", image: "https://picsum.photos/seed/office/400/300", platform: 'Corporate' },
+    { name: "Bulk Apparel", image: "https://picsum.photos/seed/apparel/400/300", platform: 'Corporate' },
+    { name: "Promotional Tech", image: "https://picsum.photos/seed/promotech/400/300", platform: 'Corporate' },
+];
+
 
 async function seedCategories() {
-    // Check if seeding has already been attempted in this session
+    // This function will now ensure the database matches the mock data definition.
     if (sessionStorage.getItem('categoriesSeeded')) {
         return;
     }
-
+    
     const categoriesRef = collection(db, "categories");
     const snapshot = await getDocs(categoriesRef);
 
-    // Set the flag to true immediately to prevent re-runs, even if seeding is needed.
-    sessionStorage.setItem('categoriesSeeded', 'true'); 
+    const existingCategories = new Map(snapshot.docs.map(doc => [doc.data().name, doc.id]));
+    const batch = writeBatch(db);
+    let changesMade = false;
 
-    if (snapshot.empty) {
-        console.log("Seeding categories...");
-        const batch = writeBatch(db);
-        const mockCategories = [
-            { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300", platform: 'Personalized' },
-            { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300", platform: 'Personalized' },
-            { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300", platform: 'Personalized' },
-            { name: "Office & Corporate", image: "https://picsum.photos/seed/office/400/300", platform: 'Corporate' },
-            { name: "Tech", image: "https://picsum.photos/seed/tech/400/300", platform: 'Personalized' },
-            { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Personalized' },
-            { name: "Made by Sunshine", image: "https://picsum.photos/seed/sunshine/400/300", platform: 'Personalized' },
-            { name: "Other", image: "https://picsum.photos/seed/other/400/300", platform: 'Personalized' },
-        ];
-        mockCategories.forEach(cat => {
+    // Add missing categories
+    for (const cat of MOCK_CATEGORIES) {
+        if (!existingCategories.has(cat.name)) {
             const docRef = doc(categoriesRef);
-            batch.set(docRef, { 
-                name: cat.name, 
-                image: cat.image,
-                platform: cat.platform,
+            batch.set(docRef, {
+                ...cat,
                 slug: cat.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')
             });
-        });
-        await batch.commit();
+            changesMade = true;
+            console.log(`Seeding new category: ${cat.name}`);
+        }
     }
+    
+    if (changesMade) {
+        await batch.commit();
+        console.log("Category seeding complete.");
+    }
+    
+    sessionStorage.setItem('categoriesSeeded', 'true');
 }
 
 
