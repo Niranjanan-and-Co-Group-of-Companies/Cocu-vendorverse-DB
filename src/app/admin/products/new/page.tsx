@@ -47,8 +47,7 @@ const createDefaultProduct = (): Partial<Product> => ({
   },
   galleryImages: [],
   videoUrl: '',
-  weight: 0,
-  dimensions: { l: 0, w: 0, h: 0 },
+  packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } },
   inventoryBuffer: 0,
   category: '',
   tags: [],
@@ -72,6 +71,14 @@ function ProductEditorContent() {
     const [isSaving, setIsSaving] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
     const [vendors, setVendors] = React.useState<Vendor[]>([]);
+    const [mainVariantId, setMainVariantId] = React.useState<string | null>(product.variants?.[0]?.id || null);
+
+    React.useEffect(() => {
+        if (product.variants && product.variants.length > 0) {
+            setMainVariantId(product.mainVariantId || product.variants[0].id);
+        }
+    }, [product.variants, product.mainVariantId]);
+
 
     React.useEffect(() => {
         getVendors().then(setVendors);
@@ -102,16 +109,6 @@ function ProductEditorContent() {
         }));
     };
 
-    const handleCustomizationAreaChange = (side: CustomizationSide, areas: CustomizationArea[]) => {
-        setProduct(prev => ({
-            ...prev,
-            customizationAreas: {
-                ...prev.customizationAreas!,
-                [side]: areas
-            }
-        }));
-    };
-
     const handleAllowedCustomizationChange = (types: AllowedCustomizationType[]) => {
         setProduct(prev => ({ ...prev, allowedCustomizations: types }));
     }
@@ -125,8 +122,8 @@ function ProductEditorContent() {
                 return false;
             }
         }
-        if (product.preparationTime && product.preparationTime.max !== product.preparationTime.min + 1) {
-             setError('The preparation time range is invalid. Max days must be one greater than min days.');
+        if (product.preparationTime && product.preparationTime.max <= product.preparationTime.min) {
+             setError('The preparation time range is invalid. Max days must be greater than min days.');
              window.scrollTo(0, 0);
              return false;
         }
@@ -140,7 +137,7 @@ function ProductEditorContent() {
         
         setIsSaving(true);
         const finalStatus = publish ? 'Live' : 'Draft';
-        const productToSave = { ...product, status: finalStatus } as Product;
+        const productToSave = { ...product, status: finalStatus, mainVariantId } as Product;
         
         try {
             await saveProduct(productToSave, imageFiles, galleryImageFiles);
@@ -157,7 +154,7 @@ function ProductEditorContent() {
         }
     };
 
-    const isCorporate = product.platform === 'Corporate' || product.platform === 'Both';
+    const isCorporate = product.platform === 'Corporate';
 
     if (loading) {
         return (
@@ -218,20 +215,24 @@ function ProductEditorContent() {
                             price={product.price || ''}
                             stock={product.stock || 0}
                             maxQuantityPerOrder={product.maxQuantityPerOrder}
+                            discountType={product.discountType}
+                            discountValue={product.discountValue}
                             onFieldChange={handleFieldChange}
                         />
                     )}
                      <ProductVariantsCard 
                         variants={product.variants || []}
                         onFieldChange={handleFieldChange}
+                        mainVariantId={mainVariantId}
+                        onMainVariantChange={setMainVariantId}
                      />
                     <MediaAndCustomizationCard 
                         product={product as Product}
                         onFieldChange={handleFieldChange}
                         onImageChange={handleImageChange}
-                        onCustomizationAreaChange={handleCustomizationAreaChange}
                         galleryImageFiles={galleryImageFiles}
                         onGalleryFilesChange={setGalleryImageFiles}
+                        mainVariantId={mainVariantId}
                     />
                 </div>
                 {/* Right Sidebar */}
@@ -243,10 +244,8 @@ function ProductEditorContent() {
                         vendors={vendors}
                      />
                      <PackageAndShippingCard
-                        weight={product.weight || 0}
-                        dimensions={product.dimensions || { l: 0, w: 0, h: 0 }}
-                        inventoryBuffer={product.inventoryBuffer || 0}
-                        preparationTime={product.preparationTime || { min: 0, max: 0 }}
+                        packaging={product.packaging || { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }}
+                        preparationTime={product.preparationTime || { min: 3, max: 4 }}
                         preparationTimeUnit={product.preparationTimeUnit || 'days'}
                         onFieldChange={handleFieldChange}
                     />

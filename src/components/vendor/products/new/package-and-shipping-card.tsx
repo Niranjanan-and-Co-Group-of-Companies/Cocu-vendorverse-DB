@@ -103,14 +103,14 @@ export function PackageAndShippingCard({
         </div>
         <div className="space-y-2">
           <Label htmlFor="weight">Package Weight (grams)</Label>
-          <Input id="weight" type="number" value={packaging.weight} onChange={e => handleWeightChange(e.target.value)} />
+          <Input id="weight" type="number" value={packaging?.weight || 0} onChange={e => handleWeightChange(e.target.value)} />
         </div>
         <div className="space-y-2">
             <Label>Package Dimensions (cm)</Label>
             <div className="grid grid-cols-3 gap-2">
-                <Input placeholder="L" type="number" value={packaging.dimensions.l} onChange={e => handleDimensionChange('l', e.target.value)} />
-                <Input placeholder="W" type="number" value={packaging.dimensions.w} onChange={e => handleDimensionChange('w', e.target.value)} />
-                <Input placeholder="H" type="number" value={packaging.dimensions.h} onChange={e => handleDimensionChange('h', e.target.value)} />
+                <Input placeholder="L" type="number" value={packaging?.dimensions?.l || 0} onChange={e => handleDimensionChange('l', e.target.value)} />
+                <Input placeholder="W" type="number" value={packaging?.dimensions?.w || 0} onChange={e => handleDimensionChange('w', e.target.value)} />
+                <Input placeholder="H" type="number" value={packaging?.dimensions?.h || 0} onChange={e => handleDimensionChange('h', e.target.value)} />
             </div>
         </div>
         <Alert>

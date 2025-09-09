@@ -28,17 +28,16 @@ const createDefaultProduct = (): Partial<Product> => ({
   status: 'Draft',
   customizable: false,
   customizationSides: {
-    front: { image: null, areas: [] },
-    back: { image: null, areas: [] },
-    left: { image: null, areas: [] },
-    right: { image: null, areas: [] },
-    top: { image: null, areas: [] },
-    bottom: { image: null, areas: [] },
+    front: { image: null },
+    back: { image: null },
+    left: { image: null },
+    right: { image: null },
+    top: { image: null },
+    bottom: { image: null },
   },
   galleryImages: [],
   videoUrl: '',
-  weight: 0,
-  dimensions: { l: 0, w: 0, h: 0 },
+  packaging: { weight: 0, dimensions: {l: 0, w: 0, h: 0 }},
   inventoryBuffer: 0,
   category: '',
   tags: [],
@@ -54,9 +53,7 @@ function ProductEditorContent() {
     const { toast } = useToast();
 
     const [product, setProduct] = React.useState<Partial<Product>>(createDefaultProduct());
-    const [imageFiles, setImageFiles] = React.useState<Record<CustomizationSide, File | null>>({
-        front: null, back: null, left: null, right: null, top: null, bottom: null
-    });
+    const [imageFiles, setImageFiles] = React.useState<Record<string, Record<CustomizationSide, File | null>>>({});
     const [galleryImageFiles, setGalleryImageFiles] = React.useState<File[]>([]);
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
@@ -80,29 +77,12 @@ function ProductEditorContent() {
         setProduct(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleImageChange = (side: CustomizationSide, file: File | null) => {
-        setImageFiles(prev => ({ ...prev, [side]: file }));
-        setProduct(prev => ({
+    const handleImageChange = (variantId: string, side: CustomizationSide, file: File | null) => {
+        setImageFiles(prev => ({
             ...prev,
-            customizationSides: {
-                ...prev.customizationSides!,
-                [side]: {
-                    ...prev.customizationSides![side],
-                    image: file ? URL.createObjectURL(file) : null
-                }
-            }
-        }));
-    };
-
-    const handleCustomizationAreaChange = (side: CustomizationSide, areas: CustomizationArea[]) => {
-        setProduct(prev => ({
-            ...prev,
-            customizationSides: {
-                ...prev.customizationSides!,
-                [side]: {
-                    ...prev.customizationSides![side],
-                    areas: areas
-                }
+            [variantId]: {
+                ...(prev[variantId] || {}),
+                [side]: file
             }
         }));
     };
@@ -121,8 +101,8 @@ function ProductEditorContent() {
                 return false;
             }
         }
-        if (product.preparationTime && product.preparationTime.max !== product.preparationTime.min + 1) {
-             setError('The preparation time range is invalid. Max days must be one greater than min days.');
+        if (product.preparationTime && product.preparationTime.max <= product.preparationTime.min) {
+             setError('The preparation time range is invalid. Max days must be greater than min days.');
              window.scrollTo(0, 0);
              return false;
         }
@@ -210,9 +190,9 @@ function ProductEditorContent() {
                         product={product as Product}
                         onFieldChange={handleFieldChange}
                         onImageChange={handleImageChange}
-                        onCustomizationAreaChange={handleCustomizationAreaChange}
                         galleryImageFiles={galleryImageFiles}
                         onGalleryFilesChange={setGalleryImageFiles}
+                        mainVariantId={product.mainVariantId || ''}
                     />
                 </div>
                 {/* Right Sidebar */}
@@ -224,10 +204,8 @@ function ProductEditorContent() {
                         onFieldChange={handleFieldChange}
                     />
                      <PackageAndShippingCard
-                        weight={product.weight || 0}
-                        dimensions={product.dimensions || { l: 0, w: 0, h: 0 }}
-                        inventoryBuffer={product.inventoryBuffer || 0}
-                        preparationTime={product.preparationTime || { min: 0, max: 0 }}
+                        packaging={product.packaging || { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }}
+                        preparationTime={product.preparationTime || { min: 3, max: 4 }}
                         preparationTimeUnit={product.preparationTimeUnit || 'days'}
                         onFieldChange={handleFieldChange}
                     />
