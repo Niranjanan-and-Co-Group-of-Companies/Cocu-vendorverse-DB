@@ -19,7 +19,7 @@ import { SubmissionDialog } from '@/components/corporate/write-to-admin/submissi
 export interface SourcingRequestData {
     productDescription: string;
     quantity: string;
-    budget: string;
+    budget: number;
     requiredBy?: Date;
     notes: string;
     contactName: string;
@@ -93,7 +93,7 @@ export default function WriteToAdminPage() {
         setFormData({
             productDescription: formElements['product-description'].value,
             quantity: formElements.quantity.value,
-            budget: formElements.budget.value,
+            budget: parseFloat(formElements.budget.value) || 0,
             notes: formElements['additional-notes'].value,
             contactName: formElements['contact-name'].value,
             contactPhone,
@@ -168,8 +168,8 @@ export default function WriteToAdminPage() {
                                     <Input id="quantity" type="number" placeholder="e.g., 500" required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="budget">Budget per Item (USD)</Label>
-                                    <Input id="budget" type="number" placeholder="e.g., 15" />
+                                    <Label htmlFor="budget">Budget per Item (INR)</Label>
+                                    <Input id="budget" type="number" placeholder="e.g., 1200" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="required-by">Required By Date</Label>
