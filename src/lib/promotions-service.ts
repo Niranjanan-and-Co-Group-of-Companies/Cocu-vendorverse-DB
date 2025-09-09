@@ -3,7 +3,6 @@
 
 import { 
     collection, 
-    onSnapshot,
     addDoc,
     updateDoc,
     deleteDoc,
@@ -15,7 +14,6 @@ import {
     writeBatch
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Unsubscribe } from 'firebase/firestore';
 
 export type PromotionType = 'Percentage' | 'Fixed Amount' | 'Free Shipping';
 export type PromotionStatus = 'Active' | 'Inactive' | 'Expired';
@@ -66,16 +64,6 @@ async function seedPromotions() {
 
 // Set up a one-time seed
 seedPromotions();
-
-// Get all promotions with real-time updates
-export function onPromotionsUpdate(callback: (promotions: Promotion[]) => void): Unsubscribe {
-    const q = query(promotionsCollection, orderBy('code'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        const promotions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Promotion));
-        callback(promotions);
-    });
-    return unsubscribe;
-}
 
 // Save or update a promotion
 export async function savePromotion(promotion: Partial<Promotion>): Promise<void> {

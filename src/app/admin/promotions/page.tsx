@@ -21,7 +21,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { Promotion } from '@/lib/promotions-service';
-import { onPromotionsUpdate } from '@/lib/promotions-service';
+import { onPromotionsUpdate } from '@/lib/promotions-client-service';
 import { PromotionDialog } from '@/components/admin/promotions/promotion-dialog';
 import { PromotionActions } from '@/components/admin/promotions/promotion-actions';
 import { Skeleton } from '@/components/ui/skeleton';
