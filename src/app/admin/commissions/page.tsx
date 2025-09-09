@@ -13,16 +13,14 @@ import {
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle,
-    CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from '@/components/ui/skeleton';
 import type { CommissionRule, CommissionableItem, Override } from '@/lib/commissions-service';
-import { onCommissionRulesUpdate, onOverridesUpdate, getCommissionableItems } from '@/lib/commissions-service';
+import { getCommissionableItems } from '@/lib/commissions-service';
+import { onCommissionRulesUpdate, onOverridesUpdate } from '@/lib/commissions-client-service';
 import { CommissionDialog } from '@/components/admin/commissions/commission-dialog';
 import { OverrideCard } from '@/components/admin/commissions/override-card';
 
@@ -92,10 +90,12 @@ export default function CommissionsPage() {
                                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                                 <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                             </TableRow>
-                        )) : rules.map(rule => (
+                        )) : rules.map(rule => {
+                             const isSunshine = rule.categoryName === 'Made by Sunshine';
+                            return (
                             <TableRow key={rule.id}>
                                 <TableCell className="font-medium">{rule.categoryName}</TableCell>
-                                <TableCell>{rule.commissionRate}%</TableCell>
+                                <TableCell>{isSunshine ? <span className="text-muted-foreground">N/A</span> : `${rule.commissionRate}%`}</TableCell>
                                 <TableCell>{formatBuffer(rule)}</TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon" onClick={() => handleEdit(rule, 'category')}>
@@ -103,7 +103,8 @@ export default function CommissionsPage() {
                                     </Button>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        )}
+                        )}
                     </TableBody>
                 </Table>
             </CardContent>

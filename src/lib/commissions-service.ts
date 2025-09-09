@@ -1,6 +1,6 @@
 
 'use server';
-import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, addDoc, deleteDoc, query } from 'firebase/firestore';
+import { collection, getDocs, writeBatch, doc, updateDoc, addDoc, deleteDoc, query, Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Category } from './categories-service';
 
@@ -51,15 +51,16 @@ async function seedCommissionRules() {
     const batch = writeBatch(db);
 
     categories.forEach(category => {
+        const isSunshine = category.name === 'Made by Sunshine';
         // Retail Rule
         const retailRef = doc(commissionsRef);
         batch.set(retailRef, {
             categoryId: category.id,
             categoryName: category.name,
             type: 'personalized-retail',
-            commissionRate: category.name === 'Made by Sunshine' ? 0 : 15,
+            commissionRate: isSunshine ? 0 : 15,
             bufferType: 'fixed',
-            bufferValue: 1.50
+            bufferValue: isSunshine ? 0 : 1.50
         });
 
         // Corporate Rule
@@ -78,32 +79,8 @@ async function seedCommissionRules() {
     console.log("Commissions seeded successfully.");
 }
 
-
-// --- Real-time Listeners ---
-
-export function onCommissionRulesUpdate(callback: (rules: CommissionRule[]) => void): () => void {
-    const commissionsRef = collection(db, 'commissions');
-    
-    seedCommissionRules();
-    
-    const unsubscribe = onSnapshot(commissionsRef, (snapshot) => {
-        const rules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommissionRule));
-        callback(rules);
-    });
-    
-    return unsubscribe;
-}
-
-export function onOverridesUpdate(type: 'vendor' | 'product', callback: (overrides: Override[]) => void): () => void {
-    const overridesRef = collection(db, `${type}CommissionOverrides`);
-    
-    const unsubscribe = onSnapshot(overridesRef, (snapshot) => {
-        const overrides = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Override));
-        callback(overrides);
-    });
-
-    return unsubscribe;
-}
+// Seed data on server startup
+seedCommissionRules();
 
 
 // --- Data Fetching ---
