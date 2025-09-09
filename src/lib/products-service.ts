@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, getDocs, writeBatch, doc, getDoc, query, where, limit, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -34,6 +35,7 @@ async function seedProductsIfEmpty() {
             const vendorInfo = VENDOR_MAP[product.vendor] || { id: 'unknown_vendor', pincode: '000000' };
             batch.set(docRef, { 
                 ...product, 
+                name_lowercase: product.name.toLowerCase(),
                 status: 'Live', 
                 vendorId: vendorInfo.id,
                 shipsFromPincode: vendorInfo.pincode,
@@ -80,6 +82,7 @@ export async function saveProduct(
     const finalProductData = { 
         ...productData, 
         id: productId, 
+        name_lowercase: productData.name?.toLowerCase(),
         shipsFromPincode,
         updatedAt: serverTimestamp(),
         ...(isNewProduct && { createdAt: serverTimestamp() })

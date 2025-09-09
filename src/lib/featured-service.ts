@@ -1,4 +1,5 @@
 
+
 import { collection, onSnapshot, getDocs, doc, setDoc, updateDoc, deleteDoc, writeBatch, query, where, documentId, getDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product } from './products';
@@ -150,31 +151,18 @@ export async function searchProductsAndVendors(searchQuery: string): Promise<Pro
     const lowerCaseQuery = searchQuery.toLowerCase();
     
     // In a real app with a proper search index (like Algolia or Elasticsearch), this would be a single API call.
-    // For now, we'll do two separate queries and merge. This is not efficient for large datasets.
-
-    // Product search
+    // For now, we'll do a simple "startsWith" query on the product name.
     const productQuery = query(
         productsCollection,
-        where('name', '>=', lowerCaseQuery),
-        where('name', '<=', lowerCaseQuery + '\uf8ff'),
-        limit(5)
-    );
-
-    // Vendor search (assuming vendors have their own collection)
-    const vendorsCollection = collection(db, 'vendors');
-     const vendorQuery = query(
-        vendorsCollection,
-        where('name', '>=', lowerCaseQuery),
-        where('name', '<=', lowerCaseQuery + '\uf8ff'),
-        limit(3)
+        where('name_lowercase', '>=', lowerCaseQuery),
+        where('name_lowercase', '<=', lowerCaseQuery + '\uf8ff'),
+        limit(10)
     );
     
-    const [productSnap, vendorSnap] = await Promise.all([getDocs(productQuery), getDocs(vendorsCollection)]);
+    const productSnap = await getDocs(productQuery);
 
-    const productResults: ProductSearchResult[] = productSnap.docs
-        .filter(doc => doc.data().name.toLowerCase().includes(lowerCaseQuery))
-        .map(doc => {
-            const data = doc.data() as Product;
+    const productResults: ProductSearchResult[] = productSnap.docs.map(doc => {
+            const data = doc.data() as Product & { name_lowercase?: string };
             return {
                 id: data.id,
                 name: data.name,
@@ -184,21 +172,9 @@ export async function searchProductsAndVendors(searchQuery: string): Promise<Pro
             };
     });
 
-    const vendorResults: ProductSearchResult[] = vendorSnap.docs
-        .filter(doc => doc.data().name.toLowerCase().includes(lowerCaseQuery))
-        .map(doc => {
-            const data = doc.data();
-            return {
-                id: data.id, // This is not a product id, might need adjustment
-                name: data.name,
-                type: 'vendor'
-            };
-    });
-
-    // In this simplified version, we'll just return product results
-    // A full implementation would handle selecting a vendor and then showing their products.
     return productResults;
 }
+
 
 // Ensure the `b2bEnabled` property is added to the Product interface for this page to work correctly
 // This is a temporary measure until a proper B2B flag is added to the product data model.
