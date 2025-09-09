@@ -14,9 +14,10 @@ import { MediaAndCustomizationCard } from '@/components/vendor/products/new/medi
 import { PackageAndShippingCard } from '@/components/vendor/products/new/package-and-shipping-card';
 import { OrganizeCard } from '@/components/vendor/products/new/organize-card';
 import { AllowedCustomizationsCard } from '@/components/vendor/products/new/allowed-customizations-card';
-import type { CustomizationSide, AllowedCustomizationType, CustomizationArea } from '@/lib/products';
+import type { CustomizationSide, AllowedCustomizationType, CustomizationArea, ProductVariant } from '@/lib/products';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { B2BPricingCard } from '@/components/vendor/corporate/b2b-pricing-card';
+import { ProductVariantsCard } from '@/components/vendor/products/new/product-variants-card';
 
 const createDefaultProduct = (): Partial<Product> => ({
   name: '',
@@ -26,12 +27,25 @@ const createDefaultProduct = (): Partial<Product> => ({
   vendorId: 'vendor001',
   vendor: 'Gourmet Delights',
   status: 'Draft',
+  platform: 'Corporate',
   customizable: false,
-  customizationSides: { front: { image: null, areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } },
+  variants: [
+    {
+        id: 'variant_default',
+        colorName: 'Default',
+        colorHex: '#ffffff',
+        image: null,
+        customizationSides: {
+            front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null }
+        }
+    }
+  ],
+  customizationAreas: {
+    front: [], back: [], left: [], right: [], top: [], bottom: []
+  },
   galleryImages: [],
   videoUrl: '',
-  weight: 0,
-  dimensions: { l: 0, w: 0, h: 0 },
+  packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } },
   inventoryBuffer: 0,
   category: '',
   tags: [],
@@ -49,18 +63,25 @@ function ProductEditorContent() {
     const { toast } = useToast();
 
     const [product, setProduct] = React.useState<Partial<Product>>(createDefaultProduct());
-    const [imageFiles, setImageFiles] = React.useState<Record<CustomizationSide, File | null>>({ front: null, back: null, left: null, right: null, top: null, bottom: null });
+    const [imageFiles, setImageFiles] = React.useState<Record<string, Record<CustomizationSide, File | null>>>({});
     const [galleryImageFiles, setGalleryImageFiles] = React.useState<File[]>([]);
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    const [mainVariantId, setMainVariantId] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         if (productId) {
             getProductById(String(productId)).then((data) => {
-                if (data) setProduct({ ...createDefaultProduct(), ...data });
+                if (data) {
+                    const initialProduct = { ...createDefaultProduct(), ...data };
+                    setProduct(initialProduct);
+                    setMainVariantId(initialProduct.mainVariantId || initialProduct.variants?.[0]?.id || null);
+                }
                 setLoading(false);
             });
+        } else {
+            setMainVariantId(createDefaultProduct().variants?.[0]?.id || null);
         }
     }, [productId]);
     
@@ -68,13 +89,14 @@ function ProductEditorContent() {
         setProduct(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleImageChange = (side: CustomizationSide, file: File | null) => {
-        setImageFiles(prev => ({ ...prev, [side]: file }));
-        setProduct(prev => ({ ...prev, customizationSides: { ...prev.customizationSides!, [side]: { ...prev.customizationSides![side], image: file ? URL.createObjectURL(file) : null } } }));
-    };
-
-    const handleCustomizationAreaChange = (side: CustomizationSide, areas: CustomizationArea[]) => {
-        setProduct(prev => ({ ...prev, customizationSides: { ...prev.customizationSides!, [side]: { ...prev.customizationSides![side], areas: areas } } }));
+    const handleImageChange = (variantId: string, side: CustomizationSide, file: File | null) => {
+        setImageFiles(prev => ({
+            ...prev,
+            [variantId]: {
+                ...(prev[variantId] || {}),
+                [side]: file
+            }
+        }));
     };
 
     const handleAllowedCustomizationChange = (types: AllowedCustomizationType[]) => {
@@ -82,8 +104,8 @@ function ProductEditorContent() {
     }
 
     const validateProduct = (): boolean => {
-        if (isPrepTimeInvalid) {
-             setError('The preparation time range is invalid. Max days must be one greater than min days.');
+        if (product.preparationTime && product.preparationTime.max <= product.preparationTime.min) {
+             setError('The preparation time range is invalid. Max days must be greater than min days.');
              window.scrollTo(0, 0);
              return false;
         }
@@ -96,7 +118,7 @@ function ProductEditorContent() {
         
         setIsSaving(true);
         const finalStatus = publish ? 'Pending Review' : 'Draft';
-        const productToSave = { ...product, status: finalStatus } as Product;
+        const productToSave = { ...product, status: finalStatus, mainVariantId } as Product;
         
         try {
             await saveProduct(productToSave, imageFiles, galleryImageFiles);
@@ -109,8 +131,6 @@ function ProductEditorContent() {
             setIsSaving(false);
         }
     };
-
-    const isPrepTimeInvalid = product.preparationTime && product.preparationTime.max !== product.preparationTime.min + 1;
 
     if (loading) {
         return (
@@ -130,7 +150,7 @@ function ProductEditorContent() {
                  </div>
                  <div className="flex gap-2">
                     <Button variant="outline" onClick={() => handleSave(false)} disabled={isSaving}><Save className="mr-2" />{isSaving ? 'Saving...' : 'Save Draft'}</Button>
-                    <Button onClick={() => handleSave(true)} disabled={isSaving}><UploadCloud className="mr-2" />{isSaving ? 'Publishing...' : 'Publish Product'}</Button>
+                    <Button onClick={() => handleSave(true)} disabled={isSaving}><UploadCloud className="mr-2" />{isSaving ? 'Publishing...' : 'Submit for Review'}</Button>
                  </div>
             </div>
             
@@ -138,12 +158,30 @@ function ProductEditorContent() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
-                    <ProductDetailsCard name={product.name || ''} description={product.description || ''} onFieldChange={handleFieldChange} />
+                    <ProductDetailsCard name={product.name || ''} description={product.description || ''} creatorStory={product.creatorStory} onFieldChange={handleFieldChange} />
                     <B2BPricingCard product={product as Product} onFieldChange={handleFieldChange} />
-                    <MediaAndCustomizationCard product={product as Product} onFieldChange={handleFieldChange} onImageChange={handleImageChange} onCustomizationAreaChange={handleCustomizationAreaChange} galleryImageFiles={galleryImageFiles} onGalleryFilesChange={setGalleryImageFiles} />
+                     <ProductVariantsCard 
+                        variants={product.variants || []}
+                        onFieldChange={handleFieldChange}
+                        mainVariantId={mainVariantId}
+                        onMainVariantChange={setMainVariantId}
+                     />
+                    <MediaAndCustomizationCard 
+                        product={product as Product} 
+                        onFieldChange={handleFieldChange} 
+                        onImageChange={handleImageChange} 
+                        galleryImageFiles={galleryImageFiles} 
+                        onGalleryFilesChange={setGalleryImageFiles}
+                        mainVariantId={mainVariantId}
+                    />
                 </div>
                 <div className="lg:col-span-1 space-y-6 lg:sticky top-20">
-                     <PackageAndShippingCard weight={product.weight || 0} dimensions={product.dimensions || { l: 0, w: 0, h: 0 }} inventoryBuffer={product.inventoryBuffer || 0} preparationTime={product.preparationTime || { min: 0, max: 0 }} preparationTimeUnit={product.preparationTimeUnit || 'days'} onFieldChange={handleFieldChange} />
+                     <PackageAndShippingCard 
+                        packaging={product.packaging || { weight: 0, dimensions: { l: 0, w: 0, h: 0 }}}
+                        preparationTime={product.preparationTime || { min: 3, max: 4 }} 
+                        preparationTimeUnit={product.preparationTimeUnit || 'days'}
+                        onFieldChange={handleFieldChange} 
+                     />
                      <OrganizeCard product={product as Product} onFieldChange={handleFieldChange} />
                      {product.customizable && <AllowedCustomizationsCard allowedTypes={product.allowedCustomizations || []} onAllowedCustomizationChange={handleAllowedCustomizationChange} />}
                 </div>
