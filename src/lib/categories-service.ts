@@ -1,6 +1,6 @@
 
 
-import { collection, getDocs, doc, onSnapshot, query, where, writeBatch, Unsubscribe, addDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Product } from './products';
@@ -75,7 +75,6 @@ async function uploadCategoryImage(file: File): Promise<string> {
 export function onCategoriesUpdate(callback: (categories: Category[]) => void): Unsubscribe {
     const categoriesRef = collection(db, 'categories');
     
-    // Call seeding here to ensure data exists when the listener is first set up.
     seedCategories();
 
     const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
@@ -130,6 +129,59 @@ export async function deleteCategory(categoryId: string) {
     const docRef = doc(db, 'categories', categoryId);
     await deleteDoc(docRef);
 }
+
+// --- Real-time Combined Fetching ---
+
+export function onCategoriesWithCommissionsUpdate(platform: CategoryPlatform | 'Both' | 'Personalized' | 'Corporate', callback: (categories: Category[]) => void): Unsubscribe {
+    seedCategories(); // Ensure categories exist
+
+    const categoriesRef = collection(db, 'categories');
+    let categoriesQuery;
+    if (platform && platform !== 'Both') {
+        categoriesQuery = query(categoriesRef, where('platform', 'in', ['Both', platform]));
+    } else {
+        categoriesQuery = query(categoriesRef);
+    }
+    
+    const commissionsRef = collection(db, 'commissions');
+
+    let cachedCategories: Category[] = [];
+    let cachedCommissions: CommissionRule[] = [];
+
+    const updateCombinedData = () => {
+        const commissionType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
+        const commissionRulesMap = new Map<string, number>();
+
+        cachedCommissions
+            .filter(rule => rule.type === commissionType)
+            .forEach(rule => {
+                commissionRulesMap.set(rule.categoryName, rule.commissionRate);
+            });
+
+        const combined = cachedCategories.map(category => ({
+            ...category,
+            commissionRate: commissionRulesMap.get(category.name) ?? 0,
+        }));
+        
+        callback(combined);
+    };
+
+    const unsubCategories = onSnapshot(categoriesQuery, (snapshot) => {
+        cachedCategories = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Category));
+        updateCombinedData();
+    });
+
+    const unsubCommissions = onSnapshot(commissionsRef, (snapshot) => {
+        cachedCommissions = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as CommissionRule));
+        updateCombinedData();
+    });
+
+    return () => {
+        unsubCategories();
+        unsubCommissions();
+    };
+}
+
 
 // --- Functions from previous implementation, kept for compatibility ---
 

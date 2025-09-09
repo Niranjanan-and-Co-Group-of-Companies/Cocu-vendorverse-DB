@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import type { Product, ProductStatus, Platform } from '@/lib/products';
-import { getCategories, type Category, type CategoryPlatform } from '@/lib/categories-service';
+import { onCategoriesWithCommissionsUpdate, type Category, type CategoryPlatform } from '@/lib/categories-service';
 import type { Vendor } from '@/lib/vendors-service';
 
 interface OrganizeCardProps {
@@ -36,8 +36,8 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
   }, [isAdmin, product.platform, isVendorCorporateFlow]);
 
   React.useEffect(() => {
-    // Admins see categories based on the product's platform, vendors see it based on their portal.
-    getCategories(platformForCategoryFetch).then(setCategories);
+    const unsubscribe = onCategoriesWithCommissionsUpdate(platformForCategoryFetch, setCategories);
+    return () => unsubscribe();
   }, [platformForCategoryFetch]);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {

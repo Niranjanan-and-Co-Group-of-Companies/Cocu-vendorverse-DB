@@ -8,7 +8,7 @@ import { Star } from 'lucide-react';
 import Link from 'next/link';
 import { VendorInfoDialog } from './vendor-info-dialog';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
-import { getCategoryByName } from '@/lib/categories-service';
+import { onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
@@ -30,14 +30,27 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
   const platform = pathname.includes('/corporate') ? 'corporate' : 'personal';
 
   React.useEffect(() => {
+    let unsubscribe: () => void;
+
     async function fetchPrice() {
         setLoadingPrice(true);
-        const categoryData = await getCategoryByName(product.category);
-        const info = await calculateDisplayPrice(product, platform, categoryData ?? undefined);
-        setPriceInfo(info);
-        setLoadingPrice(false);
+        // We need the category with commission to calculate the price accurately
+        unsubscribe = onCategoriesWithCommissionsUpdate(platform, (categories) => {
+            const category = categories.find(c => c.name === product.category);
+            calculateDisplayPrice(product, platform, category).then(info => {
+                setPriceInfo(info);
+                setLoadingPrice(false);
+            });
+        });
     }
+
     fetchPrice();
+    
+    return () => {
+        if(unsubscribe) {
+            unsubscribe();
+        }
+    };
   }, [product, platform]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
