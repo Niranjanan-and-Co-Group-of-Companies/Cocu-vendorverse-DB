@@ -15,21 +15,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { MoreHorizontal, PlusCircle, Edit, Globe, EyeOff } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Product, ProductStatus } from '@/lib/products';
 import Link from 'next/link';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AdminProductActions } from '@/components/admin/products/product-actions';
 
 
 type ProductWithStatus = Product & { status: ProductStatus };
@@ -163,7 +156,6 @@ function ProductsTable() {
                     ) : (
                     filteredProducts.map((product) => {
                         const isB2B = product.moq && product.moq > 1;
-                        const livePath = isB2B ? `/corporate/products/${product.id}` : `/products/${product.id}`;
                         return (
                         <TableRow key={product.id}>
                         <TableCell>
@@ -191,34 +183,7 @@ function ProductsTable() {
                         </TableCell>
                         {isCorporateView && <TableCell>{product.moq}</TableCell>}
                         <TableCell className="text-right">
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem asChild>
-                                    <Link href={`/admin/products/new?id=${product.id}`}>
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        Edit
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <EyeOff className="mr-2 h-4 w-4" />
-                                    Unpublish
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link href={livePath} target="_blank">
-                                        <Globe className="mr-2 h-4 w-4" />
-                                        View Live Page
-                                    </Link>
-                                </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                           <AdminProductActions product={product} />
                         </TableCell>
                         </TableRow>
                     )})
