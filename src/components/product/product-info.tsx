@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -11,7 +12,8 @@ import type { Category } from '@/lib/categories-service';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
 import { usePathname } from 'next/navigation';
-import { getActivePromotionsForProduct, type Promotion } from '@/lib/promotions-service';
+import { getPromotionsForProduct } from '@/lib/promotions-actions';
+import type { Promotion } from '@/lib/promotions-service';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface ProductInfoProps {
@@ -45,7 +47,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
     }
 
     async function fetchPromotions() {
-        const applicablePromos = await getActivePromotionsForProduct(product.id, product.category || '', product.vendorId);
+        const applicablePromos = await getPromotionsForProduct(product.id, product.category || '', product.vendorId);
         setPromotions(applicablePromos);
     }
 
