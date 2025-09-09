@@ -8,7 +8,6 @@ import { Separator } from '@/components/ui/separator';
 import { useCart, type CartItem } from '@/hooks/use-cart';
 import { ScrollArea } from '../ui/scroll-area';
 import Image from 'next/image';
-import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 
@@ -21,7 +20,6 @@ function formatCurrency(amount: number) {
 
 export function OrderSummary() {
   const { items } = useCart();
-  const [coupon, setCoupon] = React.useState('');
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
 
@@ -60,15 +58,6 @@ export function OrderSummary() {
                 )})}
             </div>
         </ScrollArea>
-        <Separator />
-        <div className="flex gap-2">
-            <Input 
-                placeholder="Discount code" 
-                value={coupon}
-                onChange={e => setCoupon(e.target.value)}
-            />
-            <Button variant="outline" disabled={!coupon}>Apply</Button>
-        </div>
         <Separator />
         <div className="space-y-2 text-sm">
             <div className="flex justify-between">

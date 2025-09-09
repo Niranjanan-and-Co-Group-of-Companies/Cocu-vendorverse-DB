@@ -46,6 +46,8 @@ export type Product = {
   vendorSP: number;
   platformBufferRate: number;
   vendorCommissionRate: number;
+  discountType?: 'Percentage' | 'Fixed Amount';
+  discountValue?: number;
   tieredPricing?: TieredPrice[];
   image: string; // Main display image for the product
   galleryImages: string[];
