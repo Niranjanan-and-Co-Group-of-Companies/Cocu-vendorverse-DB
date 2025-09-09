@@ -33,16 +33,20 @@ export interface CommissionableItem {
 async function seedCommissionRules() {
     const commissionsRef = collection(db, "commissions");
     const snapshot = await getDocs(commissionsRef);
+    
+    // This seeding is now dependent on categories being seeded correctly first.
+    // If commissions exist, we assume they are correct and do nothing.
     if (!snapshot.empty) {
         return;
     }
 
+    console.log("Commissions not found, attempting to seed...");
+
     const categoriesRef = collection(db, "categories");
     const categoriesSnapshot = await getDocs(categoriesRef);
-    // If categories are not seeded, wait a bit and retry.
+    
     if (categoriesSnapshot.empty) {
-        console.log("Categories not found, trying to seed commissions again in 2s...");
-        setTimeout(seedCommissionRules, 2000);
+        console.log("Categories not found, seeding commissions will be skipped. It will retry on next load.");
         return;
     }
     
@@ -52,7 +56,7 @@ async function seedCommissionRules() {
 
     categories.forEach(category => {
         const isSunshine = category.name === 'Made by Sunshine';
-        // Retail Rule
+        // Personalized Retail Rule
         const retailRef = doc(commissionsRef);
         batch.set(retailRef, {
             categoryId: category.id,
@@ -63,20 +67,20 @@ async function seedCommissionRules() {
             bufferValue: isSunshine ? 0 : 1.50
         });
 
-        // Corporate Rule
+        // Corporate & Bulk Rule
         const corporateRef = doc(commissionsRef);
         batch.set(corporateRef, {
             categoryId: category.id,
             categoryName: category.name,
             type: 'corporate-bulk',
-            commissionRate: 12,
+            commissionRate: isSunshine ? 0 : 12,
             bufferType: 'percentage',
-            bufferValue: 5
+            bufferValue: isSunshine ? 0 : 5
         });
     });
 
     await batch.commit();
-    console.log("Commissions seeded successfully.");
+    console.log("Commissions seeded successfully based on existing categories.");
 }
 
 // Seed data on server startup
