@@ -15,6 +15,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { LegalModal } from './legal-modal';
+import { ContactModal } from './contact-modal';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -22,6 +24,8 @@ export default function Footer() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [targetHref, setTargetHref] = React.useState('');
   const [platformName, setPlatformName] = React.useState('');
+  const [legalModalContent, setLegalModalContent] = React.useState<'terms' | 'privacy' | null>(null);
+  const [isContactModalOpen, setIsContactModalOpen] = React.useState(false);
 
   const isCorporate = pathname.startsWith('/corporate');
   const homeHref = isCorporate ? '/corporate/dashboard' : '/';
@@ -37,6 +41,16 @@ export default function Footer() {
     // In a real app, this would trigger a logout function.
     console.log(`Logging out and redirecting to ${targetHref}`);
     router.push(targetHref);
+  }
+
+  const openLegalModal = (e: React.MouseEvent, type: 'terms' | 'privacy') => {
+      e.preventDefault();
+      setLegalModalContent(type);
+  };
+
+  const openContactModal = (e: React.MouseEvent) => {
+      e.preventDefault();
+      setIsContactModalOpen(true);
   }
 
   return (
@@ -56,7 +70,7 @@ export default function Footer() {
             <ul className="mt-4 space-y-2 text-sm">
               <li><Link href="/about" className="text-muted-foreground hover:text-foreground">About Us</Link></li>
               <li><Link href="/careers" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
-              <li><Link href="/press" className="text-muted-foreground hover:text-foreground">Press</Link></li>
+              <li><span className="text-muted-foreground/60 cursor-not-allowed">Press</span></li>
             </ul>
           </div>
           <div>
@@ -87,14 +101,14 @@ export default function Footer() {
             <ul className="mt-4 space-y-2 text-sm">
               <li><Link href="/blog" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
               <li><Link href="/account/support" className="text-muted-foreground hover:text-foreground">Help Center</Link></li>
-              <li><Link href="/contact" className="text-muted-foreground hover:text-foreground">Contact Us</Link></li>
+              <li><a href="#" onClick={openContactModal} className="text-muted-foreground hover:text-foreground">Contact Us</a></li>
             </ul>
           </div>
            <div>
             <h4 className="font-headline font-semibold">Legal</h4>
             <ul className="mt-4 space-y-2 text-sm">
-              <li><Link href="/legal/terms" className="text-muted-foreground hover:text-foreground">Terms of Service</Link></li>
-              <li><Link href="/legal/privacy" className="text-muted-foreground hover:text-foreground">Privacy Policy</Link></li>
+              <li><a href="#" onClick={(e) => openLegalModal(e, 'terms')} className="text-muted-foreground hover:text-foreground">Terms of Service</a></li>
+              <li><a href="#" onClick={(e) => openLegalModal(e, 'privacy')} className="text-muted-foreground hover:text-foreground">Privacy Policy</a></li>
             </ul>
           </div>
         </div>
@@ -126,6 +140,8 @@ export default function Footer() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <LegalModal type={legalModalContent} onOpenChange={() => setLegalModalContent(null)} />
+      <ContactModal open={isContactModalOpen} onOpenChange={setIsContactModalOpen} />
     </>
   );
 }
