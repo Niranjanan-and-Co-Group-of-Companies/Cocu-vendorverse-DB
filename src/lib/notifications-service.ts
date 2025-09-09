@@ -1,7 +1,7 @@
 
-'use server';
+'use client';
 
-import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, limit, Unsubscribe } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, orderBy, limit, Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
 
 export type NotificationType = 'ORDER_STATUS_UPDATE' | 'NEW_MESSAGE' | 'NEW_BID_RESPONSE' | 'NEW_VENDOR_SUBMISSION' | 'USER_REPORT' | 'CONTENT_UPDATE' | 'NEW_SUPPORT_TICKET' | 'NEW_SOURCING_REQUEST';
@@ -15,18 +15,6 @@ export interface Notification {
     isRead: boolean;
     timestamp: any; // Firestore Server Timestamp
     link: string;
-}
-
-export async function createNotification(data: Omit<Notification, 'id' | 'isRead' | 'timestamp'>) {
-    try {
-        await addDoc(collection(db, 'notifications'), {
-            ...data,
-            isRead: false,
-            timestamp: serverTimestamp(),
-        });
-    } catch (error) {
-        console.error("Error creating notification: ", error);
-    }
 }
 
 export function onAdminNotificationsUpdate(callback: (notifications: Notification[]) => void): Unsubscribe {

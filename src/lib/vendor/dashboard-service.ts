@@ -1,9 +1,9 @@
 
-
 import { collection, onSnapshot, query, where, orderBy, limit, Timestamp, Unsubscribe } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Order, OrderItem, OrderStatus } from '../orders-service';
 import type { Product } from '../products';
+import { onUserNotificationsUpdate, type Notification } from '../notifications-service';
 
 
 // --- Data Types ---
@@ -18,20 +18,7 @@ export interface DashboardStats {
   draftListings: number;
 }
 
-export interface VendorNotification {
-  id: string;
-  vendorId: string;
-  type: 'NEW_ORDER' | 'NEW_MESSAGE' | 'STOCK_ALERT' | 'ACTION_REQUIRED';
-  text: string;
-  timestamp: Timestamp;
-  isRead: boolean;
-  link?: string;
-  actor?: {
-    name: string;
-    avatar?: string;
-  };
-  actionable?: boolean;
-}
+export interface VendorNotification extends Notification {}
 
 
 // --- Real-time Listeners ---
@@ -57,7 +44,6 @@ export function onDashboardStatsUpdate(vendorName: string, callback: (stats: Das
 
     const ordersRef = collection(db, 'orders');
     const productsRef = collection(db, 'products');
-    const notificationsRef = collection(db, 'notifications');
     
     const combinedCallback = () => {
         // Calculate revenue change based on a static monthly goal for simplicity
@@ -111,22 +97,15 @@ export function onDashboardStatsUpdate(vendorName: string, callback: (stats: Das
         combinedCallback();
     });
 
-    const messagesQuery = query(
-        notificationsRef, 
-        where('vendorId', '==', vendorName),
-        where('type', '==', 'NEW_MESSAGE'),
-        where('isRead', '==', false)
-    );
-    const unsubMessages = onSnapshot(messagesQuery, (snapshot) => {
-        stats.unreadMessages = snapshot.size;
-        combinedCallback();
-    });
+    // Mocking message stats for now
+    stats.unreadMessages = 3;
+    stats.actionableMessages = 1;
+    combinedCallback();
 
 
     return () => {
         unsubOrders();
         unsubProducts();
-        unsubMessages();
     };
 }
 
@@ -134,33 +113,7 @@ export function onDashboardStatsUpdate(vendorName: string, callback: (stats: Das
 /**
  * Subscribes to recent activity notifications for a vendor.
  */
-export function onRecentActivityUpdate(vendorName: string, callback: (notifications: VendorNotification[]) => void): Unsubscribe {
-  const notificationsRef = collection(db, 'notifications');
-  const q = query(
-    notificationsRef,
-    where('vendorId', '==', vendorName),
-    orderBy('timestamp', 'desc'),
-    limit(5)
-  );
-
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    // If snapshot is empty, we now return an empty array instead of mock data.
-    if (snapshot.empty) {
-        callback([]);
-        return;
-    }
-
-    const notifications = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    } as VendorNotification));
-    
-    callback(notifications);
-
-  }, (error) => {
-    console.error("Error fetching vendor notifications:", error);
-    callback([]);
-  });
-
-  return unsubscribe;
+export function onRecentActivityUpdate(vendorId: string, callback: (notifications: VendorNotification[]) => void): Unsubscribe {
+  // Re-using the generic user notification service
+  return onUserNotificationsUpdate(vendorId, callback as (notifications: Notification[]) => void);
 }

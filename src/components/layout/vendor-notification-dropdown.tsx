@@ -12,28 +12,33 @@ import {
   DropdownMenuFooter,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Bell, Package, MessageSquare, Activity } from 'lucide-react';
-import { onRecentActivityUpdate, type VendorNotification } from '@/lib/vendor/dashboard-service';
+import { Bell, Package, MessageSquare, Activity, Gavel, HelpCircle, UserPlus, Shield, FileEdit, FileQuestion } from 'lucide-react';
+import { onUserNotificationsUpdate, type Notification, type NotificationType } from '@/lib/notifications-service';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
 import { Badge } from '../ui/badge';
 
-const VENDOR_NAME = "Gourmet Delights";
+// In a real app, this ID would come from the auth context
+const VENDOR_ID = "vendor001";
 
-const iconMap: { [key: string]: React.ElementType } = {
-  NEW_ORDER: Package,
+const iconMap: { [key in NotificationType]: React.ElementType } = {
+  ORDER_STATUS_UPDATE: Package,
   NEW_MESSAGE: MessageSquare,
-  STOCK_ALERT: Activity,
-  ACTION_REQUIRED: MessageSquare,
+  NEW_BID_RESPONSE: Gavel,
+  NEW_VENDOR_SUBMISSION: UserPlus,
+  USER_REPORT: Shield,
+  CONTENT_UPDATE: FileEdit,
+  NEW_SUPPORT_TICKET: HelpCircle,
+  NEW_SOURCING_REQUEST: FileQuestion,
 };
 
 export function VendorNotificationDropdown() {
-  const [notifications, setNotifications] = React.useState<VendorNotification[]>([]);
+  const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const unsubscribe = onRecentActivityUpdate(VENDOR_NAME, (newNotifications) => {
+    const unsubscribe = onUserNotificationsUpdate(VENDOR_ID, (newNotifications) => {
       setNotifications(newNotifications);
       setLoading(false);
     });

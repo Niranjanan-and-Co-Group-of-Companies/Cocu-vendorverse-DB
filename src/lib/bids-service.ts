@@ -1,10 +1,9 @@
 
-
 import { collection, onSnapshot, getDocs, writeBatch, doc, addDoc, serverTimestamp, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { db, storage } from './firebase';
 import type { Product } from './products';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { createNotification } from './notifications-service';
+import { createNotification } from './notifications-actions';
 
 export type BidStatus = 'Active' | 'Awarded' | 'Expired';
 

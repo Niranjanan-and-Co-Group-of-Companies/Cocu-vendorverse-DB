@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { 
@@ -16,7 +17,7 @@ import {
     doc
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { createNotification } from '../notifications-service';
+import { createNotification } from '../notifications-actions';
 
 // --- Data Types ---
 
@@ -106,7 +107,7 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
     await createNotification({
         userId: 'admin', // Generic admin user
         forAdmin: true,
-        type: 'new_ticket',
+        type: 'NEW_SUPPORT_TICKET',
         text: `New support ticket from ${vendorName}: "${data.subject}"`,
         link: `/admin/support?ticketId=${ticketRef.id}`
     });
