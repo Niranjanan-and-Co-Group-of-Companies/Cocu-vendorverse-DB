@@ -89,38 +89,50 @@ const DateTimePicker = ({ date, onDateChange }: { date?: Date, onDateChange: (da
             onDateChange(undefined);
             return;
         }
-        const newDate = new Date(date || new Date());
-        newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-        onDateChange(newDate);
+        // When a new date is picked, set time to 00:00, keeping it optional for the user to change.
+        selectedDate.setHours(0, 0, 0, 0); 
+        onDateChange(selectedDate);
     };
 
     const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const [hours, minutes] = e.target.value.split(':').map(Number);
         const newDate = new Date(date || new Date());
-        if (!isNaN(hours)) newDate.setHours(hours);
-        if (!isNaN(minutes)) newDate.setMinutes(minutes);
+        newDate.setHours(hours || 0);
+        newDate.setMinutes(minutes || 0);
         onDateChange(newDate);
     };
+
+    const handleClear = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onDateChange(undefined);
+    }
     
     return (
         <div className="flex gap-2">
             <Popover>
                 <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-2/3 justify-start text-left font-normal", !date && "text-muted-foreground")}>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal relative pr-8", !date && "text-muted-foreground")}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        {date ? format(date, "PPP HH:mm") : <span>Pick a date</span>}
+                         {date && (
+                             <div className="absolute right-1 top-1/2 -translate-y-1/2" onClick={handleClear}>
+                                <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                            </div>
+                        )}
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                     <Calendar mode="single" selected={date} onSelect={handleDateSelect} initialFocus />
+                    <div className="p-3 border-t">
+                        <Label>Time</Label>
+                        <Input
+                            type="time"
+                            value={date ? format(date, "HH:mm") : ''}
+                            onChange={handleTimeChange}
+                        />
+                    </div>
                 </PopoverContent>
             </Popover>
-            <Input
-                type="time"
-                value={date ? format(date, "HH:mm") : ''}
-                onChange={handleTimeChange}
-                className="w-1/3"
-            />
         </div>
     )
 }
