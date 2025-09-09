@@ -12,7 +12,7 @@ import Footer from '@/components/layout/footer';
 import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { getCategoryBySlug, getProductsByCategory } from '@/lib/categories-service';
+import { getCategoryBySlug, getProductsByCategory, onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 import React from 'react';
 import { calculateDisplayPrice, DisplayPrice } from '@/lib/pricing-service';
@@ -36,7 +36,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
         const pricedProducts = await Promise.all(
             productData.map(async p => ({
                 ...p,
-                displayPrice: await calculateDisplayPrice(p, 'personal', categoryData),
+                displayPrice: await calculateDisplayPrice(p.price, 'personal', categoryData, p.discountType, p.discountValue),
             }))
         );
         setProducts(pricedProducts);
@@ -144,7 +144,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
                         </Button>
                         </div>
                         {product.customizable && (
-                        <Button size="sm" variant="outline" className="w-full">Customise Now</Button>
+                        <Button asChild size="sm" variant="outline" className="w-full"><Link href={`/customize/${product.id}`}>Customise Now</Link></Button>
                         )}
                     </div>
                     </CardContent>

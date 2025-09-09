@@ -46,7 +46,7 @@ export function BidDetailsView({ bidId }: BidDetailsViewProps) {
                 setBid(bidData);
 
                 if (bidData.vendorResponses && bidData.products.length > 0) {
-                    const productInfo = { id: bidData.products[0].id, category: bidData.products[0].category };
+                    const productInfo = { id: bidData.products[0].id, category: bidData.products[0].category || '' };
                     const category = await getCategoryByName(productInfo.category);
                     
                     const responsesWithPrices = await Promise.all(

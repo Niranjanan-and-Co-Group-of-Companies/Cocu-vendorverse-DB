@@ -15,6 +15,7 @@ import { getAllProducts } from '@/lib/products-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { calculateDisplayPrice, DisplayPrice } from '@/lib/pricing-service';
+import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
 
 interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
@@ -27,7 +28,9 @@ function SearchResultsContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    let categoriesUnsubscribe: () => void;
+
+    const fetchProducts = async (categories: Category[]) => {
       setLoading(true);
       const allProducts = await getAllProducts();
       const filteredProducts = allProducts.filter(product =>
@@ -37,19 +40,31 @@ function SearchResultsContent() {
       );
       
       const pricedProducts = await Promise.all(
-          filteredProducts.map(async p => ({
-              ...p,
-              displayPrice: await calculateDisplayPrice(p, 'personal'),
-          }))
+          filteredProducts.map(async p => {
+              const category = categories.find(c => c.name === p.category);
+              return {
+                ...p,
+                displayPrice: await calculateDisplayPrice(p.price, 'personal', category, p.discountType, p.discountValue),
+              }
+          })
       );
       setSearchResults(pricedProducts);
       setLoading(false);
     }
+    
     if (query) {
-        fetchProducts();
+        categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Personalized', (categories) => {
+            fetchProducts(categories);
+        });
     } else {
         setLoading(false);
         setSearchResults([]);
+    }
+
+    return () => {
+        if (categoriesUnsubscribe) {
+            categoriesUnsubscribe();
+        }
     }
   }, [query]);
 
@@ -148,7 +163,7 @@ function SearchResultsContent() {
                       </Button>
                     </div>
                     {product.customizable && (
-                      <Button size="sm" variant="outline" className="w-full">Customise Now</Button>
+                      <Button asChild size="sm" variant="outline" className="w-full"><Link href={`/customize/${product.id}`}>Customise Now</Link></Button>
                     )}
                   </div>
                 </CardContent>

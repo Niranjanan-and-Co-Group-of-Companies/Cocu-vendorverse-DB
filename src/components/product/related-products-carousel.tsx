@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { Badge } from '../ui/badge';
+import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
 
 interface RelatedProductsCarouselProps {
   type: 'category' | 'vendor';
@@ -33,27 +34,41 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
   const pathname = usePathname();
 
   const basePath = pathname.includes('/corporate') ? '/corporate' : '';
+  const platform = basePath === '/corporate' ? 'Corporate' : 'Personalized';
 
   React.useEffect(() => {
-    async function fetchAndPriceProducts() {
+    let categoriesUnsubscribe: () => void;
+    async function fetchAndPriceProducts(categories: Category[]) {
         if (!value || currentProductId === undefined) {
             setLoading(false);
             return;
         }
 
         const products = await getRelatedProducts(type, value, currentProductId);
-        const platform = pathname.includes('/corporate') ? 'corporate' : 'personal';
+        
         const pricedProducts = await Promise.all(
-            products.map(async (p) => ({
-                ...p,
-                displayPrice: await calculateDisplayPrice(p, platform),
-            }))
+            products.map(async (p) => {
+                const category = categories.find(c => c.name === p.category);
+                return {
+                    ...p,
+                    displayPrice: await calculateDisplayPrice(p.price, platform, category, p.discountType, p.discountValue),
+                }
+            })
         );
         setRelatedProducts(pricedProducts);
         setLoading(false);
     }
-    fetchAndPriceProducts();
-  }, [type, value, currentProductId, pathname]);
+
+    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate(platform, (categories) => {
+        fetchAndPriceProducts(categories);
+    });
+
+    return () => {
+        if (categoriesUnsubscribe) {
+            categoriesUnsubscribe();
+        }
+    }
+  }, [type, value, currentProductId, platform]);
   
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 

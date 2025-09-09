@@ -52,7 +52,7 @@ export function BidDetailsDialog({ open, onOpenChange, bid }: BidDetailsDialogPr
   React.useEffect(() => {
     if (bid?.vendorResponses && bid.products.length > 0) {
         setLoadingPrices(true);
-        const productInfo = { id: bid.products[0].id, category: bid.products[0].category };
+        const productInfo = { id: bid.products[0].id, category: bid.products[0].category || '' };
         
         getCategoryByName(productInfo.category).then(category => {
             Promise.all(bid.vendorResponses.map(async (response) => {

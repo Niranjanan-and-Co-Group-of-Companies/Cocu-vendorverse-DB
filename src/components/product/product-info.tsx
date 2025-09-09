@@ -37,7 +37,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
         // We need the category with commission to calculate the price accurately
         unsubscribe = onCategoriesWithCommissionsUpdate(platform, (categories) => {
             const category = categories.find(c => c.name === product.category);
-            calculateDisplayPrice(product, platform, category).then(info => {
+            calculateDisplayPrice(product.price, platform, category, product.discountType, product.discountValue).then(info => {
                 setPriceInfo(info);
                 setLoadingPrice(false);
             });

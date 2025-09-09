@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { getCategoryByName } from '@/lib/categories-service';
 
 interface ComparisonTableProps {
   products: Product[];
@@ -59,10 +60,13 @@ export function ComparisonTable({ products }: ComparisonTableProps) {
   React.useEffect(() => {
     const fetchPrices = async () => {
         const pricedProducts = await Promise.all(
-            products.map(async p => ({
-                ...p,
-                displayPrice: await calculateDisplayPrice(p, 'corporate')
-            }))
+            products.map(async p => {
+                const category = await getCategoryByName(p.category);
+                return ({
+                    ...p,
+                    displayPrice: await calculateDisplayPrice(p.price, 'corporate', category || undefined, p.discountType, p.discountValue)
+                })
+            })
         );
         setProductsWithPrices(pricedProducts);
     }

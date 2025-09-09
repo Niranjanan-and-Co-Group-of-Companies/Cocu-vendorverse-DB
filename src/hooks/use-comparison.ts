@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { getCategoryByName } from '@/lib/categories-service';
 
 export interface ComparisonItem extends Product {
     displayPrice?: DisplayPrice;
@@ -37,8 +38,8 @@ export const useComparison = create(
         if (currentItems.some(item => item.id === product.id)) {
             return { success: false }; // Already in list, do nothing.
         }
-
-        const displayPrice = await calculateDisplayPrice(product, 'corporate');
+        const category = await getCategoryByName(product.category);
+        const displayPrice = await calculateDisplayPrice(product.price, 'corporate', category || undefined, product.discountType, product.discountValue);
         set({ items: [...currentItems, { ...product, displayPrice }] });
 
         return {

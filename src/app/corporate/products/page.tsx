@@ -4,14 +4,14 @@
 import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getAllProducts } from '@/lib/products-service';
-import { getProductsByCategory } from '@/lib/categories-service';
+import { getProductsByCategory, onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
 import type { Product } from '@/lib/products';
 import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
-import { getCategoryBySlug } from '@/lib/categories-service';
+import { getCategoryBySlug, type Category } from '@/lib/categories-service';
 
 interface ProductWithPrice extends Product {
     displayPrice: DisplayPrice;
@@ -29,13 +29,16 @@ function CorporateProductsPageContent() {
   const { toast } = useToast();
 
   React.useEffect(() => {
-    const fetchData = async () => {
+    let categoriesUnsubscribe: () => void;
+
+    const fetchData = async (categories: Category[]) => {
       setLoading(true);
       let products;
+      let currentCategory = null;
       if (categorySlug) {
-        const category = await getCategoryBySlug(categorySlug);
+        currentCategory = await getCategoryBySlug(categorySlug);
         products = await getProductsByCategory(categorySlug);
-        setTitle(category?.name || 'Corporate Products');
+        setTitle(currentCategory?.name || 'Corporate Products');
       } else {
         products = await getAllProducts();
         setTitle('Corporate Product Catalog');
@@ -44,16 +47,28 @@ function CorporateProductsPageContent() {
       const b2bProducts = products.filter(p => p.moq && p.moq > 0);
 
       const pricedProducts = await Promise.all(
-        b2bProducts.map(async (p) => ({
-          ...p,
-          displayPrice: await calculateDisplayPrice(p, 'corporate'),
-        }))
+        b2bProducts.map(async (p) => {
+          const categoryForPrice = categories.find(c => c.name === p.category) || currentCategory;
+          return {
+            ...p,
+            displayPrice: await calculateDisplayPrice(p.price, 'corporate', categoryForPrice || undefined, p.discountType, p.discountValue),
+          }
+        })
       );
       
       setAllProducts(pricedProducts);
       setLoading(false);
     };
-    fetchData();
+
+    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Corporate', (categories) => {
+        fetchData(categories);
+    });
+
+    return () => {
+        if(categoriesUnsubscribe) {
+            categoriesUnsubscribe();
+        }
+    }
   }, [categorySlug]);
 
   React.useEffect(() => {

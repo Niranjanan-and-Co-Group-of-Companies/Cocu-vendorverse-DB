@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { getCategoryByName } from '@/lib/categories-service';
 
 export interface WishlistItem extends Product {
     displayPrice?: DisplayPrice;
@@ -32,7 +33,8 @@ export const useWishlist = create(
           return { success: true, message: `"${itemToRemove.name}" removed from your wishlist.` };
         } else {
           // Add item to wishlist after fetching its price
-          const displayPrice = await calculateDisplayPrice(product, 'personal');
+          const category = await getCategoryByName(product.category);
+          const displayPrice = await calculateDisplayPrice(product.price, 'personal', category || undefined, product.discountType, product.discountValue);
           set({ items: [...currentItems, { ...product, displayPrice }] });
           return { success: true, message: `"${product.name}" added to your wishlist.` };
         }

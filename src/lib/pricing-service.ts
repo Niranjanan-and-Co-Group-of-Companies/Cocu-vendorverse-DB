@@ -33,7 +33,8 @@ async function calculateFinalPrice(
     basePrice: number,
     platform: 'personal' | 'corporate',
     category: Category | undefined,
-    product: Product
+    discountType?: 'Percentage' | 'Fixed Amount',
+    discountValue?: number
 ): Promise<DisplayPrice> {
      if (isNaN(basePrice)) {
          return { finalPrice: 0, originalPrice: 0, hasDiscount: false };
@@ -53,14 +54,14 @@ async function calculateFinalPrice(
     let hasDiscount = false;
     let discountText = '';
 
-    if (product.discountValue && product.discountType) {
+    if (discountValue && discountType) {
         hasDiscount = true;
-        if (product.discountType === 'Percentage') {
-            finalPrice = originalPrice * (1 - (product.discountValue / 100));
-            discountText = `${product.discountValue}% OFF`;
+        if (discountType === 'Percentage') {
+            finalPrice = originalPrice * (1 - (discountValue / 100));
+            discountText = `${discountValue}% OFF`;
         } else { // Fixed Amount
-            finalPrice = originalPrice - product.discountValue;
-            discountText = `₹${product.discountValue} OFF`;
+            finalPrice = originalPrice - discountValue;
+            discountText = `₹${discountValue} OFF`;
         }
     }
     
@@ -73,9 +74,15 @@ async function calculateFinalPrice(
 }
 
 
-export async function calculateDisplayPrice(product: Product, platform: 'personal' | 'corporate' = 'personal', category?: Category): Promise<DisplayPrice> {
-    const basePrice = parseFloat(String(product.price).replace('$', '').replace('₹', ''));
-    return calculateFinalPrice(basePrice, platform, category, product);
+export async function calculateDisplayPrice(
+    productPrice: string,
+    platform: 'personal' | 'corporate' = 'personal', 
+    category: Category | undefined,
+    discountType?: 'Percentage' | 'Fixed Amount',
+    discountValue?: number
+): Promise<DisplayPrice> {
+    const basePrice = parseFloat(String(productPrice).replace('$', '').replace('₹', ''));
+    return calculateFinalPrice(basePrice, platform, category, discountType, discountValue);
 }
 
 export async function calculateDisplayPriceFromQuote(
@@ -85,6 +92,5 @@ export async function calculateDisplayPriceFromQuote(
     platform: 'personal' | 'corporate' = 'corporate'
 ): Promise<DisplayPrice> {
     // For quotes, we assume the quoted price is the base price and no further discounts apply
-    const mockProduct = { price: String(quotedPrice) } as Product;
-    return calculateFinalPrice(quotedPrice, platform, category, mockProduct);
+    return calculateFinalPrice(quotedPrice, platform, category, undefined, undefined);
 }

@@ -122,25 +122,33 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFeatured = async () => {
+    let categoriesUnsubscribe: () => void;
+
+    const fetchFeatured = async (categoriesForPricing: Category[]) => {
         const featuredData = await getFeaturedPersonalProducts();
         const pricedFeaturedProducts = await Promise.all(
-            featuredData.map(async p => ({
-                ...p,
-                displayPrice: await calculateDisplayPrice(p, 'personal'),
-            }))
+            featuredData.map(async p => {
+                const category = categoriesForPricing.find(c => c.name === p.category);
+                return {
+                    ...p,
+                    displayPrice: await calculateDisplayPrice(p.price, 'personal', category, p.discountType, p.discountValue),
+                }
+            })
         );
         setFeaturedProducts(pricedFeaturedProducts);
     };
 
-    const unsubCategories = onCategoriesWithCommissionsUpdate('Personalized', setCategories);
-
-    Promise.all([fetchFeatured()]).then(() => {
-        setLoading(false);
+    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Personalized', (categories) => {
+        setCategories(categories);
+        fetchFeatured(categories).then(() => {
+            setLoading(false);
+        });
     });
 
     return () => {
-        unsubCategories();
+        if(categoriesUnsubscribe) {
+            categoriesUnsubscribe();
+        }
     };
   }, []);
 
@@ -226,7 +234,7 @@ export default function Home() {
                             </Button>
                           </div>
                            {product.customizable && (
-                              <Button size="sm" variant="outline" className="w-full">Customise Now</Button>
+                              <Button asChild size="sm" variant="outline" className="w-full"><Link href={`/customize/${product.id}`}>Customise Now</Link></Button>
                            )}
                         </div>
                       </CardContent>

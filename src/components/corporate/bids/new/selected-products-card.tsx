@@ -13,6 +13,7 @@ import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service'
 import type { Product } from '@/lib/products';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getCategoryByName } from '@/lib/categories-service';
 
 interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
@@ -30,7 +31,8 @@ export function SelectedProductsCard() {
             setLoadingPrices(true);
             const pricedItems = await Promise.all(
                 items.map(async item => {
-                    const displayPrice = await calculateDisplayPrice(item, 'corporate');
+                    const category = await getCategoryByName(item.category);
+                    const displayPrice = await calculateDisplayPrice(item.price, 'corporate', category || undefined, item.discountType, item.discountValue);
                     return { ...item, displayPrice };
                 })
             );

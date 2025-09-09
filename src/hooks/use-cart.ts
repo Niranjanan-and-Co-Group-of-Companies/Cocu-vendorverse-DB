@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { getCategoryByName } from '@/lib/categories-service';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -24,7 +25,8 @@ export const useCart = create(
     (set, get) => ({
       items: [],
       addItem: async (product, quantity = 1) => {
-        const displayPrice = await calculateDisplayPrice(product, 'personal');
+        const category = await getCategoryByName(product.category);
+        const displayPrice = await calculateDisplayPrice(product.price, 'personal', category || undefined, product.discountType, product.discountValue);
         const currentItems = get().items;
         const existingItem = currentItems.find(item => item.id === product.id);
 
