@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Link from 'next/link';
@@ -16,9 +15,11 @@ import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categori
 import { getActiveCorporateCampaignByPlacement, type Campaign } from '@/lib/marketing-service';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import type { Product } from '@/lib/products';
+import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductWithPrice extends Product {
-    displayPrice?: DisplayPrice;
+    displayPrice: DisplayPrice;
 }
 
 const HeroSection = () => {
@@ -114,6 +115,7 @@ export default function CorporateDashboardPage() {
   const [featuredProducts, setFeaturedProducts] = useState<ProductWithPrice[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     let categoriesUnsubscribe: () => void;
@@ -146,6 +148,13 @@ export default function CorporateDashboardPage() {
     };
   }, []);
 
+  const handleActionClick = (actionName: string, productName: string) => {
+    toast({
+      title: `${actionName} Clicked`,
+      description: `Action "${actionName}" was triggered for ${productName}.`,
+    });
+  };
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -165,44 +174,11 @@ export default function CorporateDashboardPage() {
             <CarouselContent>
               {featuredProducts.map((product) => (
                 <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
-                  <Card className="overflow-hidden group h-full flex flex-col">
-                    <CardHeader className="p-0 relative">
-                      <Link href={`/corporate/products/${product.id}`} className="block">
-                        <div className="overflow-hidden aspect-[4/3]">
-                          {product.displayPrice?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>}
-                          <Image
-                            src={product.image}
-                            alt={product.name}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            data-ai-hint="corporate gift"
-                          />
-                        </div>
-                      </Link>
-                    </CardHeader>
-                    <CardContent className="p-4 flex flex-col flex-grow">
-                        <Link href={`/corporate/products/${product.id}`} className="block">
-                            <h3 className="text-lg font-bold font-headline">{product.name}</h3>
-                        </Link>
-                       <p className="text-sm text-muted-foreground">by {product.vendor}</p>
-                      <div className="flex-grow"></div>
-                      <div className="flex items-end justify-between mt-4">
-                        {product.displayPrice ? (
-                            <div className="flex flex-col">
-                                <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
-                                {product.displayPrice.hasDiscount && (
-                                    <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
-                                )}
-                            </div>
-                        ) : (
-                            <p className="text-xl font-bold">{product.price}</p>
-                        )}
-                         <Button asChild size="sm" variant="secondary">
-                            <Link href={`/corporate/products/${product.id}`}>View Product</Link>
-                          </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                   <CorporateProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onAction={handleActionClick} 
+                   />
                 </CarouselItem>
               ))}
             </CarouselContent>
