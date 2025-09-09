@@ -1,8 +1,11 @@
 
+
 import { collection, getDocs, doc, onSnapshot, query, where, writeBatch, Unsubscribe, addDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Product } from './products';
+
+export type CategoryPlatform = 'Personalized' | 'Corporate' | 'Both';
 
 export interface Category {
   id: string;
@@ -10,6 +13,7 @@ export interface Category {
   slug: string;
   image?: string;
   productCount?: number; // Make optional as it will be calculated separately
+  platform: CategoryPlatform;
 }
 
 async function seedCategories() {
@@ -19,20 +23,21 @@ async function seedCategories() {
         console.log("Seeding categories...");
         const batch = writeBatch(db);
         const mockCategories = [
-            { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300" },
-            { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300" },
-            { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300" },
-            { name: "Office & Corporate", image: "https://picsum.photos/seed/office/400/300" },
-            { name: "Tech", image: "https://picsum.photos/seed/tech/400/300" },
-            { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300" },
-            { name: "Made by Sunshine", image: "https://picsum.photos/seed/sunshine/400/300" },
-            { name: "Other", image: "https://picsum.photos/seed/other/400/300" },
+            { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300", platform: 'Both' },
+            { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300", platform: 'Both' },
+            { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300", platform: 'Both' },
+            { name: "Office & Corporate", image: "https://picsum.photos/seed/office/400/300", platform: 'Corporate' },
+            { name: "Tech", image: "https://picsum.photos/seed/tech/400/300", platform: 'Both' },
+            { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Both' },
+            { name: "Made by Sunshine", image: "https://picsum.photos/seed/sunshine/400/300", platform: 'Personalized' },
+            { name: "Other", image: "https://picsum.photos/seed/other/400/300", platform: 'Both' },
         ];
         mockCategories.forEach(cat => {
             const docRef = doc(categoriesRef);
             batch.set(docRef, { 
                 name: cat.name, 
                 image: cat.image,
+                platform: cat.platform,
                 slug: cat.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')
             });
         });
@@ -84,8 +89,8 @@ export function onCategoriesUpdate(callback: (categories: Category[]) => void): 
 }
 
 // Add a new category
-export async function addCategory(categoryData: { name: string, imageFile?: File | null }) {
-    const { name, imageFile } = categoryData;
+export async function addCategory(categoryData: { name: string, platform: CategoryPlatform, imageFile?: File | null }) {
+    const { name, platform, imageFile } = categoryData;
     let imageUrl = `https://picsum.photos/seed/${name.toLowerCase()}/400/300`; // Default image
 
     if (imageFile) {
@@ -95,17 +100,19 @@ export async function addCategory(categoryData: { name: string, imageFile?: File
     await addDoc(collection(db, 'categories'), {
         name,
         slug: name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-'),
+        platform,
         image: imageUrl,
     });
 }
 
 // Update an existing category
-export async function updateCategory(categoryId: string, categoryData: { name: string, imageFile?: File | null }) {
-    const { name, imageFile } = categoryData;
+export async function updateCategory(categoryId: string, categoryData: { name: string, platform: CategoryPlatform, imageFile?: File | null }) {
+    const { name, platform, imageFile } = categoryData;
     const docRef = doc(db, 'categories', categoryId);
     
-    const updateData: { name: string, slug: string, image?: string } = {
+    const updateData: Partial<Category> = {
         name,
+        platform,
         slug: name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-'),
     };
 
@@ -124,9 +131,19 @@ export async function deleteCategory(categoryId: string) {
 
 // --- Functions from previous implementation, kept for compatibility ---
 
-export async function getCategories(): Promise<Category[]> {
+export async function getCategories(platform?: CategoryPlatform): Promise<Category[]> {
   await seedCategories();
-  const snapshot = await getDocs(collection(db, 'categories'));
+  const categoriesRef = collection(db, 'categories');
+  let q = query(categoriesRef);
+
+  if (platform && platform !== 'Both') {
+      q = query(categoriesRef, where('platform', 'in', ['Both', platform]));
+  } else if (!platform) {
+      // Default to personal if no platform specified on general pages
+       q = query(categoriesRef, where('platform', 'in', ['Both', 'Personalized']));
+  }
+  
+  const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
 }
 

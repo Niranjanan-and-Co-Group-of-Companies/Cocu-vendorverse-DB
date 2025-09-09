@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -14,9 +15,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { addCategory, updateCategory, type Category } from '@/lib/categories-service';
+import { addCategory, updateCategory, type Category, type CategoryPlatform } from '@/lib/categories-service';
 import Image from 'next/image';
 import { Upload } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CategoryDialogProps {
   open: boolean;
@@ -26,6 +28,7 @@ interface CategoryDialogProps {
 
 export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogProps) {
   const [name, setName] = React.useState('');
+  const [platform, setPlatform] = React.useState<CategoryPlatform>('Both');
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -35,9 +38,11 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
   React.useEffect(() => {
     if (category) {
       setName(category.name);
+      setPlatform(category.platform || 'Both');
       setPreviewUrl(category.image || null);
     } else {
       setName('');
+      setPlatform('Both');
       setPreviewUrl(null);
     }
     setImageFile(null); // Reset file on open/change
@@ -59,10 +64,10 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
     setIsSaving(true);
     try {
         if (category) { // Editing existing category
-            await updateCategory(category.id, { name, imageFile: imageFile || undefined });
+            await updateCategory(category.id, { name, platform, imageFile: imageFile || undefined });
             toast({ title: "Category Updated", description: `"${name}" has been updated.` });
         } else { // Creating new category
-            await addCategory({ name, imageFile: imageFile || undefined });
+            await addCategory({ name, platform, imageFile: imageFile || undefined });
             toast({ title: "Category Created", description: `"${name}" has been created.` });
         }
         onOpenChange(false);
@@ -87,6 +92,19 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" placeholder="e.g. Home & Decor" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="platform" className="text-right">Platform</Label>
+            <Select value={platform} onValueChange={(value: CategoryPlatform) => setPlatform(value)}>
+                <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select platform visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="Both">Personalized & Corporate</SelectItem>
+                    <SelectItem value="Personalized">Personalized Only</SelectItem>
+                    <SelectItem value="Corporate">Corporate Only</SelectItem>
+                </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right pt-2">Image</Label>

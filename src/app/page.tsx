@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -125,7 +126,7 @@ export default function Home() {
       setLoading(true);
       const [featuredData, categoriesData] = await Promise.all([
         getFeaturedPersonalProducts(),
-        getCategories(),
+        getCategories('Personalized'),
       ]);
 
       const pricedFeaturedProducts = await Promise.all(

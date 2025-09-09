@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -119,7 +120,7 @@ export default function CorporateDashboardPage() {
       setLoading(true);
       const [featuredData, categoriesData] = await Promise.all([
         getFeaturedCorporateProducts(),
-        getCategories(),
+        getCategories('Corporate'),
       ]);
 
       const pricedProducts = await Promise.all(

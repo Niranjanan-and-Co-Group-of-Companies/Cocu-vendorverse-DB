@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -15,9 +16,10 @@ import { PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { onCategoriesUpdate, getProductCountForCategory } from '@/lib/categories-service';
-import type { Category } from '@/lib/categories-service';
+import type { Category, CategoryPlatform } from '@/lib/categories-service';
 import { CategoryDialog } from '@/components/admin/categories/category-dialog';
 import { CategoryActions } from '@/components/admin/categories/category-actions';
+import { Badge } from '@/components/ui/badge';
 
 interface CategoryWithCount extends Category {
     productCount: number;
@@ -62,6 +64,16 @@ export default function CategoriesPage() {
         setIsDialogOpen(true);
     };
 
+    const getPlatformVariant = (platform: CategoryPlatform) => {
+        switch(platform) {
+            case 'Corporate': return 'secondary';
+            case 'Personalized': return 'outline';
+            case 'Both': return 'default';
+            default: return 'default';
+        }
+    };
+
+
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
@@ -80,6 +92,7 @@ export default function CategoriesPage() {
                         <TableRow>
                             <TableHead className="w-[80px]">Image</TableHead>
                             <TableHead>Category Name</TableHead>
+                            <TableHead>Platform</TableHead>
                             <TableHead>Products</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -90,6 +103,7 @@ export default function CategoriesPage() {
                                 <TableRow key={i}>
                                     <TableCell><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                                     <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                 </TableRow>
@@ -108,6 +122,9 @@ export default function CategoriesPage() {
                                         />
                                     </TableCell>
                                     <TableCell className="font-medium">{category.name}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={getPlatformVariant(category.platform)}>{category.platform}</Badge>
+                                    </TableCell>
                                     <TableCell>{category.productCount}</TableCell>
                                     <TableCell className="text-right">
                                         <CategoryActions category={category} onEdit={handleEdit} />

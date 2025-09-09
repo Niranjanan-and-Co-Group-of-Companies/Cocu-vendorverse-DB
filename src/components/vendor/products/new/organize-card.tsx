@@ -1,14 +1,16 @@
 
+
 'use client';
 
 import * as React from 'react';
+import { usePathname } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import type { Product, ProductStatus } from '@/lib/products';
-import { getCategories, type Category } from '@/lib/categories-service'; // Assuming a service to get categories
+import { getCategories, type Category, type CategoryPlatform } from '@/lib/categories-service'; // Assuming a service to get categories
 
 interface OrganizeCardProps {
   product: Product;
@@ -18,10 +20,14 @@ interface OrganizeCardProps {
 export function OrganizeCard({ product, onFieldChange }: OrganizeCardProps) {
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [tagInput, setTagInput] = React.useState('');
+  const pathname = usePathname();
+  
+  const isCorporateFlow = pathname.includes('corporate');
+  const platform: CategoryPlatform = isCorporateFlow ? 'Corporate' : 'Personalized';
 
   React.useEffect(() => {
-    getCategories().then(setCategories);
-  }, []);
+    getCategories(platform).then(setCategories);
+  }, [platform]);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
