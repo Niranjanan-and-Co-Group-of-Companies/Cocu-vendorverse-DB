@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -15,16 +16,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { savePromotion, type Promotion, type PromotionType, type PromotionStatus, type PromotionPlatform, getTargetableItems, type TargetableItem } from '@/lib/promotions-service';
+import { getProductsByCategory } from '@/lib/categories-service';
+import { getProductsByVendor } from '@/lib/products-service';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Loader2, X, Sparkles } from 'lucide-react';
+import { CalendarIcon, Loader2, X, Sparkles, AlertCircle, Search, Image as ImageIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Image from 'next/image';
 
 interface PromotionDialogProps {
   open: boolean;
@@ -46,50 +51,12 @@ const createDefaultPromotion = (): Partial<Promotion> => ({
     appliesTo: { products: [], categories: [], vendors: [] }
 });
 
-function MultiSelect({ title, items, selectedItems, onSelectionChange }: { title: string, items: TargetableItem[], selectedItems: TargetableItem[], onSelectionChange: (newSelection: TargetableItem[]) => void }) {
-    const [search, setSearch] = React.useState('');
-    const selectedIds = new Set(selectedItems.map(i => i.id));
-    
-    const filteredItems = items
-        .filter(item => item.name.toLowerCase().includes(search.toLowerCase()) && !selectedIds.has(item.id))
-        .slice(0, 10);
-
-    const handleSelect = (item: TargetableItem) => {
-        onSelectionChange([...selectedItems, item]);
-        setSearch('');
-    };
-
-    const handleRemove = (itemToRemove: TargetableItem) => {
-        onSelectionChange(selectedItems.filter(item => item.id !== itemToRemove.id));
-    };
-
-    return (
-        <div className="space-y-2">
-            <Label>{title}</Label>
-            <Input placeholder={`Search for a ${title.toLowerCase().slice(0, -1)}...`} value={search} onChange={e => setSearch(e.target.value)} />
-             {search && filteredItems.length > 0 && (
-                <ScrollArea className="h-32 border rounded-md">
-                    {filteredItems.map(item => (
-                        <div key={item.id} onClick={() => handleSelect(item)} className="p-2 cursor-pointer hover:bg-accent text-sm">{item.name}</div>
-                    ))}
-                </ScrollArea>
-             )}
-            <div className="flex flex-wrap gap-2">
-                {selectedItems.map(item => (
-                    <Badge key={item.id} variant="secondary">{item.name} <button onClick={() => handleRemove(item)} className="ml-2"><X className="h-3 w-3"/></button></Badge>
-                ))}
-            </div>
-        </div>
-    );
-}
-
 const DateTimePicker = ({ date, onDateChange }: { date?: Date, onDateChange: (date?: Date) => void }) => {
     const handleDateSelect = (selectedDate?: Date) => {
         if (!selectedDate) {
             onDateChange(undefined);
             return;
         }
-        // When a new date is picked, set time to 00:00, keeping it optional for the user to change.
         selectedDate.setHours(0, 0, 0, 0); 
         onDateChange(selectedDate);
     };
@@ -137,6 +104,32 @@ const DateTimePicker = ({ date, onDateChange }: { date?: Date, onDateChange: (da
     )
 }
 
+function SearchAndSelect({ title, items, onSelect }: { title: string, items: TargetableItem[], onSelect: (item: TargetableItem) => void }) {
+    const [search, setSearch] = React.useState('');
+    const filteredItems = search ? items.filter(item => item.name.toLowerCase().includes(search.toLowerCase())).slice(0, 5) : [];
+
+    return (
+        <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+                placeholder={`Search for a ${title.toLowerCase()}...`}
+                className="pl-8"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+            />
+            {search && filteredItems.length > 0 && (
+                <div className="absolute top-full mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md z-10">
+                    {filteredItems.map(item => (
+                        <div key={item.id} onClick={() => { onSelect(item); setSearch(''); }} className="p-2 cursor-pointer hover:bg-accent text-sm">
+                            {item.name}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDialogProps) {
   const [promoData, setPromoData] = React.useState<Partial<Promotion>>(createDefaultPromotion());
   const [isSaving, setIsSaving] = React.useState(false);
@@ -155,6 +148,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                 ...promotion,
                 startDate: promotion.startDate?.toDate ? promotion.startDate.toDate() : undefined,
                 expiresAt: promotion.expiresAt?.toDate ? promotion.expiresAt.toDate() : undefined,
+                appliesTo: promotion.appliesTo || { products: [], categories: [], vendors: [] },
             });
         } else {
             setPromoData(createDefaultPromotion());
@@ -166,8 +160,48 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
     setPromoData(prev => ({ ...prev, [field]: value }));
   };
   
-  const handleAppliesToChange = (type: 'products' | 'categories' | 'vendors', value: TargetableItem[]) => {
-      setPromoData(prev => ({ ...prev, appliesTo: { ...(prev.appliesTo || { products: [], categories: [], vendors: [] }), [type]: value } }));
+  const addProductsToSelection = (productsToAdd: TargetableItem[]) => {
+      setPromoData(prev => {
+          const currentProducts = prev.appliesTo?.products || [];
+          const currentProductIds = new Set(currentProducts.map(p => p.id));
+          const newProducts = productsToAdd.filter(p => !currentProductIds.has(p.id));
+          const updatedProducts = [...currentProducts, ...newProducts];
+          
+          const newState = {
+              ...prev,
+              appliesTo: {
+                  ...(prev.appliesTo || { products: [], categories: [], vendors: [] }),
+                  products: updatedProducts,
+              }
+          };
+          return JSON.parse(JSON.stringify(newState)); // Deep clone to force re-render
+      });
+  };
+
+  const handleSelect = async (type: 'product' | 'category' | 'vendor', item: TargetableItem) => {
+    if (type === 'product') {
+        addProductsToSelection([item]);
+    } else if (type === 'category') {
+        const products = await getProductsByCategory(item.id);
+        addProductsToSelection(products.map(p => ({ id: p.id, name: p.name, image: p.image })));
+    } else if (type === 'vendor') {
+        const products = await getProductsByVendor(item.id);
+        addProductsToSelection(products.map(p => ({ id: p.id, name: p.name, image: p.image })));
+    }
+  };
+  
+  const handleRemoveProduct = (productId: string) => {
+    setPromoData(prev => {
+        const updatedProducts = (prev.appliesTo?.products || []).filter(p => p.id !== productId);
+        const newState = {
+            ...prev,
+            appliesTo: {
+                ...(prev.appliesTo || { products: [], categories: [], vendors: [] }),
+                products: updatedProducts,
+            }
+        };
+        return JSON.parse(JSON.stringify(newState)); // Deep clone
+    });
   };
 
   const handleGenerateCode = () => {
@@ -194,14 +228,14 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh]">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{promotion ? 'Edit Promotion' : 'Create New Promotion'}</DialogTitle>
           <DialogDescription>
             Fill in the details for the promotional coupon code.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="pr-6 -mr-6">
+        <ScrollArea className="pr-6 -mr-6 flex-grow">
         <div className="grid gap-4 py-4">
             <div className="space-y-2">
                 <Label htmlFor="code">Coupon Code</Label>
@@ -277,10 +311,42 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
             </div>
              <div className="space-y-4 rounded-lg border p-4">
                 <h4 className="font-medium">Targeting (Optional)</h4>
-                <p className="text-sm text-muted-foreground">If no targets are selected, the coupon applies to the entire cart.</p>
-                <MultiSelect title="Products" items={targetableItems.products} selectedItems={promoData.appliesTo?.products || []} onSelectionChange={(val) => handleAppliesToChange('products', val)} />
-                <MultiSelect title="Categories" items={targetableItems.categories} selectedItems={promoData.appliesTo?.categories || []} onSelectionChange={(val) => handleAppliesToChange('categories', val)} />
-                <MultiSelect title="Vendors" items={targetableItems.vendors} selectedItems={promoData.appliesTo?.vendors || []} onSelectionChange={(val) => handleAppliesToChange('vendors', val)} />
+                <p className="text-sm text-muted-foreground">Search for products, categories, or vendors to apply this promotion to. If no targets are selected, it applies to the entire cart.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <SearchAndSelect title="Products" items={targetableItems.products} onSelect={(item) => handleSelect('product', item)} />
+                    <SearchAndSelect title="Categories" items={targetableItems.categories} onSelect={(item) => handleSelect('category', item)} />
+                    <SearchAndSelect title="Vendors" items={targetableItems.vendors} onSelect={(item) => handleSelect('vendor', item)} />
+                </div>
+                
+                <div>
+                  <Label>Applied to Products</Label>
+                  <ScrollArea className="h-48 border rounded-md p-2 mt-2">
+                     {(promoData.appliesTo?.products || []).length > 0 ? (
+                       <div className="space-y-2">
+                         {(promoData.appliesTo?.products || []).map(p => (
+                           <div key={p.id} className="flex items-center justify-between p-1 rounded-md hover:bg-muted">
+                             <div className="flex items-center gap-2">
+                               {p.image ? (
+                                 <Image src={p.image} alt={p.name} width={24} height={24} className="rounded-sm" />
+                               ) : (
+                                 <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                               )}
+                               <span className="text-sm truncate">{p.name}</span>
+                             </div>
+                             <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveProduct(p.id)}>
+                               <X className="h-4 w-4 text-destructive"/>
+                             </Button>
+                           </div>
+                         ))}
+                       </div>
+                     ) : (
+                       <div className="flex items-center justify-center h-full">
+                         <p className="text-sm text-muted-foreground">Applies to all products by default.</p>
+                       </div>
+                     )}
+                   </ScrollArea>
+                </div>
             </div>
         </div>
         </ScrollArea>

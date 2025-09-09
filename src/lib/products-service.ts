@@ -130,6 +130,12 @@ export async function getAllProducts(): Promise<Product[]> {
   return snapshot.docs.map((doc) => ({...doc.data()} as Product));
 }
 
+export async function getProductsByVendor(vendorId: string): Promise<Product[]> {
+    const q = query(productsCollection, where('vendorId', '==', vendorId));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as Product);
+}
+
 export async function getProductById(id: string): Promise<Product | null> {
     const docRef = doc(db, 'products', id);
     const docSnap = await getDoc(docRef);

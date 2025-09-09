@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { 
@@ -25,6 +26,7 @@ export type ConditionType = 'min-purchase' | 'customer-segment' | 'product-categ
 export interface TargetableItem {
     id: string;
     name: string;
+    image?: string; // Make image optional
 }
 
 export interface Promotion {
