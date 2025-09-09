@@ -3,58 +3,24 @@
 'use client';
 
 import * as React from 'react';
-import { getProductById, type PlainProduct, serializeProduct } from '@/lib/products-service';
+import type { PlainProduct } from '@/lib/products-service';
 import type { Product, ProductVariant } from '@/lib/products';
 import { ProductMediaGallery } from '@/components/product/product-media-gallery';
 import { ProductInfo } from '@/components/product/product-info';
 import { ProductInteractions } from '@/components/product/product-interactions';
 import { ProductDetailsAccordion } from '@/components/product/product-details-accordion';
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
-export function ProductPageContent({ id }: { id: string }) {
-    const [product, setProduct] = React.useState<PlainProduct | null>(null);
-    const [loading, setLoading] = React.useState(true);
+export function ProductPageContent({ product }: { product: PlainProduct }) {
     const [selectedVariant, setSelectedVariant] = React.useState<ProductVariant | null>(null);
 
     React.useEffect(() => {
-        if (id) {
-            setLoading(true);
-            getProductById(id).then(async productData => {
-                if (productData) {
-                    const plainProduct = await serializeProduct(productData);
-                    setProduct(plainProduct);
-                    setSelectedVariant(plainProduct.variants?.[0] || null);
-                }
-                setLoading(false);
-            });
+        if (product && product.variants) {
+            setSelectedVariant(product.variants[0] || null);
         }
-    }, [id]);
+    }, [product]);
 
-    if (loading) {
-        return (
-            <div className="container py-12 grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div>
-                    <Skeleton className="w-full aspect-square" />
-                    <div className="mt-4 grid grid-cols-5 gap-4">
-                        <Skeleton className="w-full aspect-square" />
-                        <Skeleton className="w-full aspect-square" />
-                        <Skeleton className="w-full aspect-square" />
-                        <Skeleton className="w-full aspect-square" />
-                    </div>
-                </div>
-                <div className="space-y-6">
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-6 w-1/4" />
-                    <Skeleton className="h-12 w-1/2" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-24 w-full" />
-                </div>
-            </div>
-        );
-    }
 
     if (!product) {
         return (
