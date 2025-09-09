@@ -10,19 +10,22 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { Product } from '@/lib/products';
 import { AlertCircle } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface PackageAndShippingCardProps {
   packaging: {
     weight: number; // in grams
     dimensions: { l: number, w: number, h: number }; // in cm
   };
-  preparationTime: number; // in days
+  preparationTime: { min: number, max: number };
+  preparationTimeUnit: 'days' | 'weeks';
   onFieldChange: (field: keyof Product, value: any) => void;
 }
 
 export function PackageAndShippingCard({ 
     packaging, 
-    preparationTime, 
+    preparationTime,
+    preparationTimeUnit,
     onFieldChange 
 }: PackageAndShippingCardProps) {
   
@@ -42,6 +45,15 @@ export function PackageAndShippingCard({
           weight: parseInt(value, 10) || 0
       });
   }
+  
+  const handlePrepTimeChange = (field: 'min' | 'max', value: string) => {
+    onFieldChange('preparationTime', {
+        ...preparationTime,
+        [field]: parseInt(value, 10) || 0,
+    });
+  }
+  
+  const isPrepTimeInvalid = preparationTime && preparationTime.max <= preparationTime.min;
 
   return (
     <Card>
@@ -50,15 +62,39 @@ export function PackageAndShippingCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-            <Label htmlFor="prep-time">Preparation Time (Days)</Label>
-            <Input 
-                id="prep-time"
-                placeholder="e.g. 3" 
-                type="number" 
-                value={preparationTime} 
-                onChange={e => onFieldChange('preparationTime', parseInt(e.target.value, 10) || 0)} 
-            />
-             <Alert variant="destructive" className="mt-2">
+            <Label>Preparation Time</Label>
+            <div className="flex items-center gap-2">
+                <Input 
+                    placeholder="Min" 
+                    type="number" 
+                    value={preparationTime.min} 
+                    onChange={e => handlePrepTimeChange('min', e.target.value)} 
+                />
+                 <Input 
+                    placeholder="Max" 
+                    type="number" 
+                    value={preparationTime.max} 
+                    onChange={e => handlePrepTimeChange('max', e.target.value)} 
+                />
+                 <Select value={preparationTimeUnit} onValueChange={(value) => onFieldChange('preparationTimeUnit', value)}>
+                    <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="days">Days</SelectItem>
+                        <SelectItem value="weeks">Weeks</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+             {isPrepTimeInvalid && (
+                 <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                        Max prep time must be greater than min prep time.
+                    </AlertDescription>
+                </Alert>
+            )}
+             <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                     Commit to your prep time. Delays may lead to penalties or order cancellations, as gifts must be timely.
