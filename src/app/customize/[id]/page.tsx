@@ -9,6 +9,7 @@ import Footer from '@/components/layout/footer';
 import { CustomizationStudio } from '@/components/personalization/customization-studio';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CustomizationProvider } from '@/hooks/use-customization';
+import { use } from 'react';
 
 function CustomizePageContent({ params }: { params: { id: string } }) {
     const [product, setProduct] = React.useState<Product | null>(null);
@@ -55,21 +56,20 @@ function CustomizePageContent({ params }: { params: { id: string } }) {
         );
     }
 
-    return (
-        <CustomizationProvider>
-            <CustomizationStudio product={product} />
-        </CustomizationProvider>
-    );
+    return <CustomizationStudio product={product} />;
 }
 
 
 export default function CustomizePage({ params }: { params: { id: string } }) {
+    const resolvedParams = use(params);
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-grow">
                 <React.Suspense fallback={<p>Loading...</p>}>
-                    <CustomizePageContent params={params} />
+                    <CustomizationProvider>
+                        <CustomizePageContent params={resolvedParams} />
+                    </CustomizationProvider>
                 </React.Suspense>
             </main>
             <Footer />
