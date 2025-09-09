@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import React, { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getFeaturedCorporateProducts, type FeaturedProduct } from '@/lib/featured-service';
-import { onCategoriesUpdate, type Category } from '@/lib/categories-service';
+import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
 import { getActiveCorporateCampaignByPlacement, type Campaign } from '@/lib/marketing-service';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import type { Product } from '@/lib/products';
@@ -127,12 +127,7 @@ export default function CorporateDashboardPage() {
       setFeaturedProducts(pricedProducts);
     };
 
-    const unsubCategories = onCategoriesUpdate((allCategories) => {
-        const corporateCategories = allCategories.filter(
-            cat => cat.platform === 'Corporate' || cat.platform === 'Both'
-        );
-        setCategories(corporateCategories);
-    });
+    const unsubCategories = onCategoriesWithCommissionsUpdate('Corporate', setCategories);
 
     Promise.all([fetchFeatured()]).then(() => {
         setLoading(false);

@@ -11,7 +11,7 @@ import Footer from '@/components/layout/footer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { onCategoriesUpdate, type Category } from '@/lib/categories-service';
+import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
 import { getActiveCampaignByPlacement, type Campaign } from '@/lib/marketing-service';
 import React, { useEffect, useState } from 'react';
 import type { Product } from '@/lib/products';
@@ -133,12 +133,7 @@ export default function Home() {
         setFeaturedProducts(pricedFeaturedProducts);
     };
 
-    const unsubCategories = onCategoriesUpdate((allCategories) => {
-        const personalCategories = allCategories.filter(
-            cat => cat.platform === 'Personalized' || cat.platform === 'Both'
-        );
-        setCategories(personalCategories);
-    });
+    const unsubCategories = onCategoriesWithCommissionsUpdate('Personalized', setCategories);
 
     Promise.all([fetchFeatured()]).then(() => {
         setLoading(false);
