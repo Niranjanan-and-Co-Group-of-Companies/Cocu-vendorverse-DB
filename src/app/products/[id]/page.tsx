@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -9,13 +8,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ProductPageContent } from '@/components/product/product-page-content';
 
 
-export default function ProductPage({ params: { id } }: { params: { id: string } }) {
+export default function ProductPage({ params }: { params: { id: string } }) {
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-grow">
                  <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
-                    <ProductPageContent id={id} />
+                    <ProductPageContent id={params.id} />
                 </React.Suspense>
             </main>
             <Footer />
