@@ -27,8 +27,7 @@ import { CommissionDialog } from '@/components/admin/commissions/commission-dial
 import { OverrideCard } from '@/components/admin/commissions/override-card';
 
 export default function CommissionsPage() {
-    const [retailRules, setRetailRules] = React.useState<CommissionRule[]>([]);
-    const [corporateRules, setCorporateRules] = React.useState<CommissionRule[]>([]);
+    const [allRules, setAllRules] = React.useState<CommissionRule[]>([]);
     const [vendorOverrides, setVendorOverrides] = React.useState<Override[]>([]);
     const [productOverrides, setProductOverrides] = React.useState<Override[]>([]);
     
@@ -43,8 +42,7 @@ export default function CommissionsPage() {
 
     React.useEffect(() => {
         const unsubCommissionRules = onCommissionRulesUpdate((data) => {
-            setRetailRules(data.filter(d => d.type === 'personalized-retail'));
-            setCorporateRules(data.filter(d => d.type === 'corporate-bulk'));
+            setAllRules(data);
             setLoading(false);
         });
         
@@ -69,7 +67,7 @@ export default function CommissionsPage() {
 
     const formatBuffer = (rule: { bufferType: 'fixed' | 'percentage', bufferValue: number }) => {
         if (rule.bufferType === 'fixed') {
-            return `$${rule.bufferValue.toFixed(2)}`;
+            return `₹${rule.bufferValue.toFixed(2)}`;
         }
         return `${rule.bufferValue}%`;
     }
@@ -111,6 +109,9 @@ export default function CommissionsPage() {
             </CardContent>
         </Card>
     );
+
+    const retailRules = allRules.filter(d => d.type === 'personalized-retail');
+    const corporateRules = allRules.filter(d => d.type === 'corporate-bulk');
 
     return (
         <div className="flex flex-col gap-6">

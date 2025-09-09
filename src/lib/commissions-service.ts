@@ -1,4 +1,5 @@
 
+'use server';
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, addDoc, deleteDoc, query } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Category } from './categories-service';
@@ -40,6 +41,7 @@ async function seedCommissionRules() {
     const categoriesSnapshot = await getDocs(categoriesRef);
     // If categories are not seeded, wait a bit and retry.
     if (categoriesSnapshot.empty) {
+        console.log("Categories not found, trying to seed commissions again in 2s...");
         setTimeout(seedCommissionRules, 2000);
         return;
     }
@@ -55,7 +57,7 @@ async function seedCommissionRules() {
             categoryId: category.id,
             categoryName: category.name,
             type: 'personalized-retail',
-            commissionRate: 15,
+            commissionRate: category.name === 'Made by Sunshine' ? 0 : 15,
             bufferType: 'fixed',
             bufferValue: 1.50
         });
@@ -73,6 +75,7 @@ async function seedCommissionRules() {
     });
 
     await batch.commit();
+    console.log("Commissions seeded successfully.");
 }
 
 

@@ -77,7 +77,7 @@ export function OverrideCard({
 
   const formatBuffer = (rule: { bufferType: 'fixed' | 'percentage', bufferValue: number }) => {
     if (rule.bufferType === 'fixed') {
-        return `$${rule.bufferValue.toFixed(2)}`;
+        return `₹${rule.bufferValue.toFixed(2)}`;
     }
     return `${rule.bufferValue}%`;
   }

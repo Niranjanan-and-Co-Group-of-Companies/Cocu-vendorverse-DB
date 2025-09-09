@@ -39,9 +39,6 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
       setCommissionRate(rule.commissionRate);
       setBufferType(rule.bufferType);
       setBufferValue(rule.bufferValue);
-      if ((rule as CommissionRule)?.categoryName === 'Made by Sunshine') {
-        setCommissionRate(0);
-      }
     } else {
       setCommissionRate(0);
       setBufferType('fixed');
@@ -92,7 +89,7 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
                     <Input 
                         id="commission-rate" 
                         type="number" 
-                        value={commissionRate} 
+                        value={isSunshineCategory ? 0 : commissionRate} 
                         onChange={(e) => setCommissionRate(parseFloat(e.target.value))} 
                         className="pr-8"
                         disabled={isSunshineCategory}
@@ -113,7 +110,7 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
                     <RadioGroup value={bufferType} onValueChange={(value) => setBufferType(value as any)} className="flex gap-4">
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="fixed" id="fixed" />
-                            <Label htmlFor="fixed">Fixed ($)</Label>
+                            <Label htmlFor="fixed">Fixed (₹)</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="percentage" id="percentage" />
@@ -130,7 +127,7 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
                             className="pr-8"
                         />
                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                            {bufferType === 'fixed' ? '$' : '%'}
+                            {bufferType === 'fixed' ? '₹' : '%'}
                          </span>
                     </div>
                 </div>
