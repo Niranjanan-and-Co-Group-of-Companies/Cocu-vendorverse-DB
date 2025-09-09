@@ -69,6 +69,7 @@ export type Product = {
   preparationTime: { min: number, max: number };
   preparationTimeUnit: 'days' | 'hours';
   platform: Platform;
+  shipsFromPincode: string; // Added for shipping calculations
+  createdAt: any; // Firestore Timestamp
+  updatedAt: any; // Firestore Timestamp
 };
-
-    

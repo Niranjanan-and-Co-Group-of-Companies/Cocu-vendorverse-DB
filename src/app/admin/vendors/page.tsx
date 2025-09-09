@@ -20,20 +20,14 @@ import { VendorActions } from '@/components/admin/vendors/vendor-actions';
 import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import type { Vendor } from '@/lib/vendors-service';
 
-export interface Vendor {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  status: 'Active' | 'Pending' | 'Suspended';
-  joinedDate: any; // Keep as any to handle Firestore Timestamps
-}
 
 export default function VendorsPage() {
   const [vendors, setVendors] = React.useState<Vendor[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [isAddVendorOpen, setIsAddVendorOpen] = React.useState(false);
+  const [isAddUserOpen, setIsAddUserOpen] = React.useState(false);
+  const [editingVendor, setEditingVendor] = React.useState<Vendor | null>(null);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -48,27 +42,13 @@ export default function VendorsPage() {
     // Cleanup subscription on unmount
     return () => unsub();
   }, []);
-
-  const handleVendorAdded = async (newVendor: Omit<Vendor, 'id' | 'avatar' | 'status' | 'joinedDate'>) => {
-    try {
-      await addDoc(collection(db, 'vendors'), {
-        ...newVendor,
-        avatar: `https://picsum.photos/seed/${Math.random()}/40/40`,
-        status: 'Pending',
-        joinedDate: serverTimestamp(),
-      });
-      // The onSnapshot listener will automatically update the UI
-    } catch (error) {
-      console.error("Error adding vendor: ", error);
-      toast({
-        title: "Error",
-        description: "Failed to add new vendor.",
-        variant: "destructive",
-      });
-    }
+  
+  const handleEdit = (vendor: Vendor) => {
+    setEditingVendor(vendor);
+    setIsAddUserOpen(true);
   };
   
-  const handleVendorStatusChange = async (vendorId: string, status: 'Active' | 'Pending' | 'Suspended') => {
+  const handleUserStatusChange = async (vendorId: string, status: 'Active' | 'Pending' | 'Suspended') => {
      try {
       const vendorRef = doc(db, 'vendors', vendorId);
       await updateDoc(vendorRef, { status });
@@ -111,11 +91,11 @@ export default function VendorsPage() {
             </p>
         </div>
         <AddVendorDialog
-            open={isAddVendorOpen}
-            onOpenChange={setIsAddVendorOpen}
-            onVendorAdded={handleVendorAdded}
+            open={isAddUserOpen}
+            onOpenChange={setIsAddUserOpen}
+            vendor={editingVendor}
         >
-            <Button onClick={() => setIsAddVendorOpen(true)}>
+            <Button onClick={() => { setEditingVendor(null); setIsAddUserOpen(true); }}>
                 <PlusCircle className="mr-2" />
                 Add Vendor
             </Button>
@@ -128,8 +108,9 @@ export default function VendorsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Vendor</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Location</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Joined Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -146,11 +127,10 @@ export default function VendorsPage() {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell>
                       <Skeleton className="h-6 w-20 rounded-full" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-24" />
                     </TableCell>
                     <TableCell className="text-right">
                       <Skeleton className="h-8 w-8 ml-auto" />
@@ -174,16 +154,15 @@ export default function VendorsPage() {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell>{vendor.phone}</TableCell>
+                    <TableCell>{vendor.address?.city || 'N/A'}, {vendor.address?.state || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(vendor.status)}>
                         {vendor.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      {formatDate(vendor.joinedDate)}
-                    </TableCell>
                     <TableCell className="text-right">
-                       <VendorActions vendor={vendor} onStatusChange={handleVendorStatusChange} />
+                       <VendorActions vendor={vendor} onStatusChange={handleUserStatusChange} onEdit={handleEdit} />
                     </TableCell>
                   </TableRow>
                 ))
@@ -205,7 +184,7 @@ const Card = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
 );
 
 const CardContent = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className="p-6 pt-0" {...props}>
+    <div className="p-0" {...props}>
         {children}
     </div>
 );

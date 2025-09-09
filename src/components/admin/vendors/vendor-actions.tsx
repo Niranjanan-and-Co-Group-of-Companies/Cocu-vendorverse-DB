@@ -21,17 +21,18 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Store, Package, CreditCard, ShieldOff } from 'lucide-react';
+import { MoreHorizontal, Store, Package, CreditCard, ShieldOff, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import type { Vendor } from '@/app/admin/vendors/page';
+import type { Vendor } from '@/lib/vendors-service';
 
 interface VendorActionsProps {
   vendor: Vendor;
   onStatusChange: (vendorId: string, status: 'Active' | 'Pending' | 'Suspended') => void;
+  onEdit: (vendor: Vendor) => void;
 }
 
-export function VendorActions({ vendor, onStatusChange }: VendorActionsProps) {
+export function VendorActions({ vendor, onStatusChange, onEdit }: VendorActionsProps) {
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = React.useState(false);
   const { toast } = useToast();
 
@@ -44,6 +45,14 @@ export function VendorActions({ vendor, onStatusChange }: VendorActionsProps) {
         variant: 'destructive'
     });
   };
+  
+  const handleApprove = () => {
+    onStatusChange(vendor.id, 'Active');
+    toast({
+        title: "Vendor Approved",
+        description: `${vendor.name} is now active and can start selling.`,
+    });
+  }
 
   return (
     <>
@@ -56,11 +65,9 @@ export function VendorActions({ vendor, onStatusChange }: VendorActionsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem asChild>
-             <Link href="#">
-                <Store className="mr-2 h-4 w-4" />
-                View Storefront
-            </Link>
+          <DropdownMenuItem onClick={() => onEdit(vendor)}>
+             <Store className="mr-2 h-4 w-4" />
+             Edit Details
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
              <Link href={`/admin/products?vendorId=${vendor.id}`}>
@@ -75,6 +82,12 @@ export function VendorActions({ vendor, onStatusChange }: VendorActionsProps) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+           {vendor.status === 'Pending' && (
+             <DropdownMenuItem onClick={handleApprove}>
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Approve Vendor
+            </DropdownMenuItem>
+           )}
           <DropdownMenuItem
             className="text-destructive focus:text-destructive focus:bg-destructive/10"
             onClick={() => setIsSuspendDialogOpen(true)}
