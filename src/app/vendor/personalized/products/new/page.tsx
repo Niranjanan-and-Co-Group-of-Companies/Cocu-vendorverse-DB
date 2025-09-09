@@ -27,13 +27,19 @@ const createDefaultProduct = (): Partial<Product> => ({
   vendor: 'Gourmet Delights', // This would come from auth context
   status: 'Draft',
   customizable: false,
-  customizationSides: {
-    front: { image: null },
-    back: { image: null },
-    left: { image: null },
-    right: { image: null },
-    top: { image: null },
-    bottom: { image: null },
+  variants: [
+    {
+        id: 'variant_default',
+        colorName: 'Default',
+        colorHex: '#ffffff',
+        image: null,
+        customizationSides: {
+            front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null }
+        }
+    }
+  ],
+  customizationAreas: {
+    front: [], back: [], left: [], right: [], top: [], bottom: []
   },
   galleryImages: [],
   videoUrl: '',
@@ -58,6 +64,7 @@ function ProductEditorContent() {
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    const [mainVariantId, setMainVariantId] = React.useState<string | null>(product.variants?.[0]?.id || null);
     
     // In a real app, this would come from a user/auth context
     const [isVerified] = React.useState(false);
@@ -66,10 +73,14 @@ function ProductEditorContent() {
         if (productId) {
             getProductById(String(productId)).then((data) => {
                 if (data) {
-                    setProduct({ ...createDefaultProduct(), ...data });
+                    const initialProduct = { ...createDefaultProduct(), ...data };
+                    setProduct(initialProduct);
+                    setMainVariantId(initialProduct.mainVariantId || initialProduct.variants?.[0]?.id || null);
                 }
                 setLoading(false);
             });
+        } else {
+             setMainVariantId(createDefaultProduct().variants?.[0]?.id || null);
         }
     }, [productId]);
     
@@ -85,6 +96,19 @@ function ProductEditorContent() {
                 [side]: file
             }
         }));
+        if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setProduct(prev => {
+                const newVariants = prev.variants?.map(v => {
+                    if (v.id === variantId) {
+                        const newSides = { ...v.customizationSides, [side]: { image: imageUrl } };
+                        return { ...v, customizationSides: newSides, image: side === 'front' ? imageUrl : v.image };
+                    }
+                    return v;
+                }) || [];
+                return { ...prev, variants: newVariants };
+            });
+        }
     };
 
     const handleAllowedCustomizationChange = (types: AllowedCustomizationType[]) => {
@@ -93,10 +117,9 @@ function ProductEditorContent() {
 
     const validateProduct = (): boolean => {
         if (product.customizable) {
-            const uploadedImageCount = Object.values(product.customizationSides || {}).filter(side => side.image).length;
-            const hasVideo = !!product.videoUrl;
-            if (uploadedImageCount + (hasVideo ? 1 : 0) < 2) {
-                setError('A minimum of 2 images (or 1 image and 1 video) is required for customizable products.');
+            const hasAtLeastOneImage = product.variants?.some(v => v.image || Object.values(v.customizationSides).some(s => s.image));
+             if (!hasAtLeastOneImage) {
+                setError('Each variant must have at least one image (main or side) for customizable products.');
                 window.scrollTo(0, 0);
                 return false;
             }
@@ -192,7 +215,7 @@ function ProductEditorContent() {
                         onImageChange={handleImageChange}
                         galleryImageFiles={galleryImageFiles}
                         onGalleryFilesChange={setGalleryImageFiles}
-                        mainVariantId={product.mainVariantId || ''}
+                        mainVariantId={mainVariantId}
                     />
                 </div>
                 {/* Right Sidebar */}

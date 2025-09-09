@@ -107,6 +107,20 @@ function ProductEditorContent() {
                 [side]: file
             }
         }));
+
+        if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setProduct(prev => {
+                const newVariants = prev.variants?.map(v => {
+                    if (v.id === variantId) {
+                        const newSides = { ...v.customizationSides, [side]: { image: imageUrl } };
+                        return { ...v, customizationSides: newSides, image: side === 'front' ? imageUrl : v.image };
+                    }
+                    return v;
+                }) || [];
+                return { ...prev, variants: newVariants };
+            });
+        }
     };
 
     const handleAllowedCustomizationChange = (types: AllowedCustomizationType[]) => {

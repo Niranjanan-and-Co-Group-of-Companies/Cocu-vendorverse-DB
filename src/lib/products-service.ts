@@ -24,6 +24,7 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
   };
 }
 
+
 async function seedProductsIfEmpty() {
     const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v2');
     const seedFlagSnap = await getDoc(seedFlagRef);
