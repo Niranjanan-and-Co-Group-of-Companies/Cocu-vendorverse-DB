@@ -148,31 +148,9 @@ export async function removeFeatured(productId: number) {
 
 // Search for products and vendors to feature
 export async function searchProductsAndVendors(searchQuery: string): Promise<ProductSearchResult[]> {
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    
-    // In a real app with a proper search index (like Algolia or Elasticsearch), this would be a single API call.
-    // For now, we'll do a simple "startsWith" query on the product name.
-    const productQuery = query(
-        productsCollection,
-        where('name_lowercase', '>=', lowerCaseQuery),
-        where('name_lowercase', '<=', lowerCaseQuery + '\uf8ff'),
-        limit(10)
-    );
-    
-    const productSnap = await getDocs(productQuery);
-
-    const productResults: ProductSearchResult[] = productSnap.docs.map(doc => {
-            const data = doc.data() as Product & { name_lowercase?: string };
-            return {
-                id: data.id,
-                name: data.name,
-                type: 'product',
-                image: data.image,
-                vendorName: data.vendor,
-            };
-    });
-
-    return productResults;
+    // This function is now simplified as the client will fetch all products and filter locally.
+    // Kept here for structure, but not used by the updated component.
+    return [];
 }
 
 

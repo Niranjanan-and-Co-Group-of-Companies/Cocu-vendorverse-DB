@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { searchProductsAndVendors, addFeatured, type ProductSearchResult } from '@/lib/featured-service';
+import { addFeatured } from '@/lib/featured-service';
+import { getAllProducts, type Product } from '@/lib/products-service';
 
 interface AddFeaturedProductProps {
   featuredProductIds: number[];
@@ -17,29 +18,28 @@ interface AddFeaturedProductProps {
 
 export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [searchType, setSearchType] = React.useState<'product' | 'vendor'>('product');
-  const [results, setResults] = React.useState<ProductSearchResult[]>([]);
-  const [loading, setLoading] = React.useState(false);
+  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
-  
-  React.useEffect(() => {
-    if (searchQuery.length < 2) {
-      setResults([]);
-      return;
-    }
-    
-    const debounce = setTimeout(async () => {
-        setLoading(true);
-        const searchResults = await searchProductsAndVendors(searchQuery);
-        // Prioritize product results, then vendor results
-        const productResults = searchResults.filter(r => r.type === 'product');
-        const vendorResults = searchResults.filter(r => r.type === 'vendor');
-        setResults([...productResults, ...vendorResults]);
-        setLoading(false);
-    }, 300);
 
-    return () => clearTimeout(debounce);
-  }, [searchQuery]);
+  React.useEffect(() => {
+      const fetchProducts = async () => {
+          setLoading(true);
+          const products = await getAllProducts();
+          setAllProducts(products);
+          setLoading(false);
+      }
+      fetchProducts();
+  }, []);
+  
+  const searchResults = React.useMemo(() => {
+    if (!searchQuery) return [];
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    return allProducts.filter(product => 
+        product.name.toLowerCase().includes(lowerCaseQuery) ||
+        product.vendor.toLowerCase().includes(lowerCaseQuery)
+    ).slice(0, 20); // Limit results for performance
+  }, [searchQuery, allProducts]);
 
   const handleAdd = async (productId: number, productName: string) => {
     try {
@@ -71,33 +71,27 @@ export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductPro
           />
         </div>
         <ScrollArea className="h-72 mt-4 pr-4">
-            {results.length > 0 ? (
+            {searchQuery && searchResults.length > 0 ? (
                  <div className="space-y-2">
-                    {results.map(item => {
-                        if (item.type === 'product') {
-                            return (
-                                <div key={`prod-${item.id}`} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
-                                    <div className="flex items-center gap-2 overflow-hidden">
-                                        <Image src={item.image!} alt={item.name} width={32} height={32} className="rounded-md" />
-                                        <div>
-                                            <p className="text-sm font-medium truncate">{item.name}</p>
-                                            <p className="text-xs text-muted-foreground truncate">{item.vendorName}</p>
-                                        </div>
-                                    </div>
-                                    <Button size="sm" variant="ghost" disabled={featuredProductIds.includes(item.id)} onClick={() => handleAdd(item.id, item.name)}>
-                                        <PlusCircle className="mr-2 h-4 w-4" /> Add
-                                    </Button>
+                    {searchResults.map(item => (
+                        <div key={`prod-${item.id}`} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                                <Image src={item.image!} alt={item.name} width={32} height={32} className="rounded-md" />
+                                <div>
+                                    <p className="text-sm font-medium truncate">{item.name}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{item.vendor}</p>
                                 </div>
-                            )
-                        }
-                        // This part will be enhanced to list products under a vendor
-                        return null;
-                    })}
+                            </div>
+                            <Button size="sm" variant="ghost" disabled={featuredProductIds.includes(item.id)} onClick={() => handleAdd(item.id, item.name)}>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add
+                            </Button>
+                        </div>
+                    ))}
                  </div>
             ) : (
                 <div className="h-full flex items-center justify-center">
                     <p className="text-sm text-muted-foreground">
-                        {loading ? 'Searching...' : 'Start typing to find products.'}
+                        {loading ? 'Loading products...' : (searchQuery ? 'No results found.' : 'Start typing to find products.')}
                     </p>
                 </div>
             )}

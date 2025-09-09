@@ -35,6 +35,7 @@ async function seedProductsIfEmpty() {
             const vendorInfo = VENDOR_MAP[product.vendor] || { id: 'unknown_vendor', pincode: '000000' };
             batch.set(docRef, { 
                 ...product, 
+                id: product.id,
                 name_lowercase: product.name.toLowerCase(),
                 status: 'Live', 
                 vendorId: vendorInfo.id,
@@ -134,7 +135,7 @@ export async function saveProduct(
 export async function getAllProducts(): Promise<Product[]> {
   await seedProductsIfEmpty();
   const snapshot = await getDocs(productsCollection);
-  return snapshot.docs.map((doc) => doc.data() as Product);
+  return snapshot.docs.map((doc) => ({id: doc.data().id, ...doc.data()} as Product));
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
