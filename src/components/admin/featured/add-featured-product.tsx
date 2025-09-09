@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -11,8 +10,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { addFeatured } from '@/lib/featured-service';
-import { type Product } from '@/lib/products';
-import { collection, onSnapshot, query, where, orderBy, startAt, endAt } from 'firebase/firestore';
+import type { Product } from '@/lib/products';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 interface AddFeaturedProductProps {
@@ -21,37 +20,33 @@ interface AddFeaturedProductProps {
 
 export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [searchResults, setSearchResults] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState(false);
+  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
 
   React.useEffect(() => {
-    if (searchQuery.trim().length < 2) {
-      setSearchResults([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    const q = query(
-        collection(db, 'products'),
-        orderBy('name_lowercase'),
-        startAt(searchQuery.toLowerCase()),
-        endAt(searchQuery.toLowerCase() + '\uf8ff')
-    );
-
+    // Fetch all products once for client-side filtering
+    const q = query(collection(db, 'products'), orderBy('name_lowercase'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const products = snapshot.docs.map(doc => doc.data() as Product);
-        setSearchResults(products);
+        setAllProducts(products);
         setLoading(false);
     }, (error) => {
-        console.error("Error searching products:", error);
+        console.error("Error fetching all products:", error);
         setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [searchQuery]);
+  }, []);
   
+  const searchResults = React.useMemo(() => {
+      if (!searchQuery.trim()) {
+          return [];
+      }
+      const lowerCaseQuery = searchQuery.toLowerCase();
+      return allProducts.filter(p => p.name_lowercase?.includes(lowerCaseQuery));
+  }, [searchQuery, allProducts]);
+
 
   const handleAdd = async (productId: string, productName: string) => {
     try {
@@ -76,7 +71,7 @@ export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductPro
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search products or vendors..."
+            placeholder="Search products..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -104,7 +99,7 @@ export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductPro
             ) : (
                 <div className="h-full flex items-center justify-center">
                     <p className="text-sm text-muted-foreground">
-                        {loading ? 'Searching...' : (searchQuery.length > 1 ? 'No results found.' : 'Start typing to find products.')}
+                        {loading ? 'Loading products...' : (searchQuery.length > 0 ? 'No results found.' : 'Start typing to find products.')}
                     </p>
                 </div>
             )}
