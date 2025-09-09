@@ -43,6 +43,7 @@ import { VendorNotificationDropdown } from './vendor-notification-dropdown';
 const VENDOR_ID = "vendor001";
 
 function CustomSidebarTrigger() {
+    'use client';
     const { open, toggleSidebar } = useSidebar();
   
     return (
@@ -58,6 +59,7 @@ function CustomSidebarTrigger() {
 }
 
 function VendorSidebar() {
+    'use client';
     const pathname = usePathname();
 
     const isActive = (path: string) => {

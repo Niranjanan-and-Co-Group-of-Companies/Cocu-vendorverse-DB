@@ -1,6 +1,4 @@
 
-'use client';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -49,6 +47,7 @@ import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 const VENDOR_ID = "vendor001";
 
 function CustomSidebarTrigger() {
+    'use client';
     const { open, toggleSidebar } = useSidebar();
   
     return (
@@ -97,6 +96,7 @@ const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
 
 
 function BothVendorSidebar() {
+    'use client';
     const pathname = usePathname();
     const [totalUnreadMessages, setTotalUnreadMessages] = React.useState(0);
 
@@ -224,6 +224,7 @@ function VerificationFlowHandler({
   isVerified: boolean;
   children: React.ReactNode;
 }) {
+    'use client';
   return (
     <>
       {!isVerified && (
@@ -247,7 +248,8 @@ function VerificationFlowHandler({
 }
 
 
-export function BothVendorSidebarLayout({ children }: { children: React.ReactNode; }) {
+function BothVendorSidebarLayoutContent({ children }: { children: React.ReactNode; }) {
+  'use client';
   const pathname = usePathname();
   const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard';
   
@@ -275,4 +277,8 @@ export function BothVendorSidebarLayout({ children }: { children: React.ReactNod
         </SidebarInset>
     </SidebarProvider>
   );
+}
+
+export function BothVendorSidebarLayout({ children }: { children: React.ReactNode; }) {
+    return <BothVendorSidebarLayoutContent>{children}</BothVendorSidebarLayoutContent>;
 }

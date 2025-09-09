@@ -1,6 +1,4 @@
 
-
-'use client';
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -45,6 +43,7 @@ import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 const VENDOR_ID = "vendor001";
 
 function CustomSidebarTrigger() {
+    'use client';
     const { open, toggleSidebar } = useSidebar();
   
     return (
@@ -61,6 +60,7 @@ function CustomSidebarTrigger() {
 
 
 function CorporateVendorSidebar() {
+    'use client';
     const pathname = usePathname();
 
     const isActive = (path: string) => {
@@ -177,7 +177,8 @@ function VerificationFlowHandler({
 }
 
 
-export default function CorporateVendorLayout({ children }: { children: React.ReactNode; }) {
+function CorporateVendorLayoutContent({ children }: { children: React.ReactNode; }) {
+  'use client';
   const pathname = usePathname();
   const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard';
   
@@ -205,4 +206,9 @@ export default function CorporateVendorLayout({ children }: { children: React.Re
         </SidebarInset>
     </SidebarProvider>
   );
+}
+
+
+export default function CorporateVendorLayout({ children }: { children: React.ReactNode; }) {
+    return <CorporateVendorLayoutContent>{children}</CorporateVendorLayoutContent>;
 }
