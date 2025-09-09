@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -64,6 +63,7 @@ export default function PromotionEnginePage() {
         switch (platform) {
             case 'Corporate': return 'secondary';
             case 'Personalized': return 'outline';
+            case 'Both': return 'default';
             default: return 'outline';
         }
     }

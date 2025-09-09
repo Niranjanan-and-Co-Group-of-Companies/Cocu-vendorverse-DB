@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/firestore';
@@ -84,7 +83,7 @@ async function calculateFinalPrice(
 
     const platformName = platform === 'personal' ? 'Personalized' : 'Corporate';
     const applicablePromotions = promotions.filter(promo => {
-        if (promo.platform !== platformName) {
+        if (promo.platform !== platformName && promo.platform !== 'Both') {
             return false;
         }
         if (promo.scope === 'All Products') return true;
@@ -106,7 +105,7 @@ async function calculateFinalPrice(
 
         if (currentDiscount > bestDiscount) {
             bestDiscount = currentDiscount;
-            bestDiscountText = promo.type === 'Percentage' ? `${promo.value}% OFF` : `$${promo.value} OFF`;
+            bestDiscountText = promo.type === 'Percentage' ? `${promo.value}% OFF` : `₹${promo.value} OFF`;
             appliedPromotionId = promo.id;
         }
     }
@@ -125,7 +124,7 @@ async function calculateFinalPrice(
 
 
 export async function calculateDisplayPrice(product: Product, platform: 'personal' | 'corporate' = 'personal', category?: Category): Promise<DisplayPrice> {
-    const basePrice = parseFloat(String(product.price).replace('$', ''));
+    const basePrice = parseFloat(String(product.price).replace('$', '').replace('₹', ''));
     return calculateFinalPrice(basePrice, platform, category, product.id);
 }
 
