@@ -90,11 +90,16 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
         if (absCurve === 0) return currentSize.height;
 
         const w = currentSize.width;
-        // Map curve from -100..100 to an angle for more intuitive control
-        const angle = (absCurve / 100) * 90; // Max 90 degrees curve
+        // At max curve (100), we want a perfect semicircle.
+        if (absCurve === 100) {
+            return Math.max(currentSize.height, w / 2);
+        }
+
+        // Map curve from 0-100 to an angle for more intuitive control
+        const angle = (absCurve / 100) * 90; // Max 90 degrees curve for full semicircle
         const sagitta = (w / 2) * Math.tan(angle * Math.PI / 360);
         
-        return Math.max(currentSize.height, sagitta * 2 + currentSize.height * 0.5);
+        return Math.max(currentSize.height, sagitta + currentSize.height * 0.5);
     };
 
 
@@ -110,8 +115,17 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
         
         const isDownward = curve < 0;
         const absCurve = Math.abs(curve);
-        const angle = (absCurve / 100) * 90;
         
+        // For a perfect semicircle at max curve
+        if (absCurve >= 100) {
+            const r = w / 2;
+            const sweepFlag = isDownward ? 0 : 1;
+            const yPos = isDownward ? r : h - r;
+            return `M 0,${yPos} A ${r},${r} 0 0,${sweepFlag} ${w},${yPos}`;
+        }
+
+        // Interpolate for other values
+        const angle = (absCurve / 100) * 90;
         const sagitta = (w / 2) * Math.tan(angle * Math.PI / 360);
         if(sagitta === 0) return `M 0,${h / 2} L ${w},${h / 2}`;
 
@@ -122,9 +136,9 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
         }
         
         const sweepFlag = isDownward ? 0 : 1;
-        const yPos = h / 2 - sagitta;
+        const yPos = isDownward ? (h/2 - sagitta) + sagitta : (h/2 + sagitta) - sagitta;
         
-        return `M 0,${isDownward ? yPos : h - yPos} A ${Math.abs(radius)} ${Math.abs(radius)} 0 0 ${sweepFlag} ${w},${isDownward ? yPos : h - yPos}`;
+        return `M 0,${yPos} A ${Math.abs(radius)},${Math.abs(radius)} 0 0,${sweepFlag} ${w},${yPos}`;
     }
 
     const onResizeStop = (event: React.SyntheticEvent, { size: finalSize }: { size: { width: number, height: number }}) => {
@@ -213,3 +227,5 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
         </div>
     );
 }
+
+    
