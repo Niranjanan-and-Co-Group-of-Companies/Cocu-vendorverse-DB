@@ -18,7 +18,7 @@ async function seedProductsIfEmpty() {
 
     if (!counterSnap.exists()) {
         console.log("Products counter not found. Seeding mock data...");
-        const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId' | 'shipsFromPincode' | 'createdAt' | 'updatedAt'>[] = [
+        const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId' | 'shipsFromPincode' | 'createdAt' | 'updatedAt' | 'mainVariantId'>[] = [
             { id: 1, name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', price: '45.00', tieredPricing: [{ quantity: 50, price: '$42.00' }, { quantity: 100, price: '$40.00' }, { quantity: 250, price: '$38.00' }], image: 'https://picsum.photos/600/400?random=1', galleryImages: ['https://picsum.photos/600/400?random=11', 'https://picsum.photos/600/400?random=12', 'https://picsum.photos/600/400?random=13'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, moq: 50, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.", category: "Food & Drink", customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: ['Text', 'Image Upload'], weight: 1, dimensions: { l: 8, w: 6, h: 2 }, inventoryBuffer: 5, tags: ['chocolate', 'gourmet', 'gift box'], preparationTime: { min: 3, max: 4 }, preparationTimeUnit: 'days', platform: 'Personalized' },
             { id: 2, name: 'Luxury Spa Set', vendor: 'Serene Moments', price: '$85.00', image: 'https://picsum.photos/600/400?random=2', galleryImages: ['https://picsum.photos/600/400?random=21', 'https://picsum.photos/600/400?random=22'], rating: 4.9, stock: 5, moq: 10, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", creatorStory: "Serene Moments was born from a desire to make self-care accessible to everyone. Our founder, a certified aromatherapist, personally formulates each product to ensure the highest quality and efficacy.", category: "Wellness", customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: [], weight: 3, dimensions: { l: 10, w: 8, h: 4 }, inventoryBuffer: 2, tags: ['spa', 'wellness', 'self-care', 'bath'], preparationTime: { min: 2, max: 3 }, preparationTimeUnit: 'days', tieredPricing: [], platform: 'Personalized' },
             { id: 3, name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', price: '$75.00', tieredPricing: [{ quantity: 25, price: '$70.00' }, { quantity: 50, price: '$65.00' }, { quantity: 100, price: '$60.00' }], image: 'https://picsum.photos/600/400?random=3', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Fashion & Accessories", galleryImages: [], videoUrl: '', description: '', creatorStory: '', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: ['Text'], weight: 0.5, dimensions: { l: 4, w: 3, h: 0.5 }, inventoryBuffer: 3, tags: ['leather', 'wallet', 'monogram'], preparationTime: { min: 5, max: 6 }, preparationTimeUnit: 'days', moq: 25, platform: 'Corporate' },
@@ -41,6 +41,7 @@ async function seedProductsIfEmpty() {
                 shipsFromPincode: vendorInfo.pincode,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
+                mainVariantId: product.variants?.[0]?.id || null,
             });
             lastId = product.id;
         });
@@ -94,11 +95,12 @@ export async function saveProduct(
             for (const [side, file] of Object.entries(variantImageFiles)) {
                 if (file) {
                     const imageUrl = await uploadFile(`products/${productId}/variant_${variant.id}_${side}_${file.name}`, file);
-                    variant.customizationSides[side as CustomizationSide] = {
-                        ...(variant.customizationSides[side as CustomizationSide]),
-                        image: imageUrl
-                    };
-                    // Update the main variant image if it's the 'front' side
+                    if (isNewProduct || !variant.customizationSides[side as CustomizationSide]?.image) {
+                        variant.customizationSides[side as CustomizationSide] = {
+                           ...(variant.customizationSides[side as CustomizationSide]),
+                            image: imageUrl
+                        };
+                    }
                     if (side === 'front') {
                         variant.image = imageUrl;
                     }
@@ -113,8 +115,15 @@ export async function saveProduct(
 
     finalProductData.galleryImages = [...(finalProductData.galleryImages || []), ...galleryImageUrls];
     
-    finalProductData.image = finalProductData.variants?.[0]?.image || finalProductData.galleryImages?.[0] || 'https://placehold.co/600x400';
+    const mainVariant = finalProductData.variants?.find(v => v.id === finalProductData.mainVariantId) 
+                        || finalProductData.variants?.[0];
 
+    if (finalProductData.customizable) {
+        finalProductData.image = mainVariant?.customizationSides.front?.image || mainVariant?.image || finalProductData.galleryImages?.[0] || 'https://placehold.co/600x400';
+    } else {
+        finalProductData.image = mainVariant?.image || finalProductData.galleryImages?.[0] || 'https://placehold.co/600x400';
+    }
+    
     const docRef = doc(db, 'products', String(productId));
     await setDoc(docRef, finalProductData, { merge: true });
     return productId;
@@ -149,14 +158,14 @@ export async function getRelatedProducts(category?: string, currentProductId?: n
     const q = query(
         productsCollection, 
         where('category', '==', category),
-        where('id', '!=', currentProductId), // Ensure we don't show the current product
-        limit(5) 
+        limit(10)
     );
 
     const snapshot = await getDocs(q);
     return snapshot.docs
         .map(doc => doc.data() as Product)
-        .slice(0, 4); // Still slice to ensure a max of 4 results
+        .filter(p => p.id !== currentProductId) // Ensure we don't show the current product
+        .slice(0, 4); // Slice to a max of 4 results
 }
 
 

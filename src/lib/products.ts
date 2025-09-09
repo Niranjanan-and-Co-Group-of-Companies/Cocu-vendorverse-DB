@@ -26,14 +26,13 @@ export interface CustomizationArea {
 
 export interface ProductSide {
   image: string | null;
-  // Areas are now defined at the top level
 }
 
 export interface ProductVariant {
     id: string;
     colorName: string;
     colorHex: string;
-    image: string | null; // The main image for this variant
+    image: string | null; // The main image for this variant, used if not customizable
     customizationSides: Record<CustomizationSide, ProductSide>;
 }
 
@@ -45,7 +44,7 @@ export type Product = {
   vendorId: string;
   price: string;
   tieredPricing?: TieredPrice[];
-  image: string; // This will now be the 'front' image from customizationSides
+  image: string; // Main display image for the product
   galleryImages: string[];
   videoUrl?: string;
   rating: number;
@@ -58,9 +57,9 @@ export type Product = {
   creatorStory?: string;
   category?: string;
   status: ProductStatus;
-  // Shared customization area definitions
   customizationAreas: Record<CustomizationSide, CustomizationArea[]>;
   variants: ProductVariant[];
+  mainVariantId: string | null; // ID of the variant whose image should be the main product image
   allowedCustomizations: AllowedCustomizationType[];
   weight: number;
   dimensions: { l: number, w: number, h: number };
@@ -69,7 +68,7 @@ export type Product = {
   preparationTime: { min: number, max: number };
   preparationTimeUnit: 'days' | 'hours';
   platform: Platform;
-  shipsFromPincode: string; // Added for shipping calculations
-  createdAt: any; // Firestore Timestamp
-  updatedAt: any; // Firestore Timestamp
+  shipsFromPincode: string; 
+  createdAt: any; 
+  updatedAt: any;
 };
