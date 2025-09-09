@@ -1,6 +1,6 @@
 
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Product } from './products';
@@ -21,13 +21,16 @@ export interface Category {
 let categoriesSeeded = false;
 
 async function seedCategories() {
-    if (categoriesSeeded) return;
+    // Check if seeding has already been attempted in this session
+    if (sessionStorage.getItem('categoriesSeeded')) {
+        return;
+    }
 
     const categoriesRef = collection(db, "categories");
     const snapshot = await getDocs(categoriesRef);
 
     // Set the flag to true immediately to prevent re-runs, even if seeding is needed.
-    categoriesSeeded = true; 
+    sessionStorage.setItem('categoriesSeeded', 'true'); 
 
     if (snapshot.empty) {
         console.log("Seeding categories...");
@@ -82,10 +85,11 @@ async function uploadCategoryImage(file: File): Promise<string> {
 // Get all categories with real-time updates
 export function onCategoriesUpdate(callback: (categories: Category[]) => void): Unsubscribe {
     const categoriesRef = collection(db, 'categories');
+    const q = query(categoriesRef, orderBy('name', 'asc')); // Order by name alphabetically
     
     seedCategories();
 
-    const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
         const categoriesData = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
@@ -140,7 +144,7 @@ export async function deleteCategory(categoryId: string) {
 
 // --- Real-time Combined Fetching ---
 
-export function onCategoriesWithCommissionsUpdate(platform: CategoryPlatform | 'Personalized' | 'Corporate', callback: (categories: Category[]) => void): Unsubscribe {
+export function onCategoriesWithCommissionsUpdate(platform: CategoryPlatform | 'Personalized' | 'Corporate' | 'Both', callback: (categories: Category[]) => void): Unsubscribe {
     seedCategories(); // Ensure categories exist
 
     const categoriesRef = collection(db, 'categories');
@@ -166,7 +170,7 @@ export function onCategoriesWithCommissionsUpdate(platform: CategoryPlatform | '
             commissionRate: commissionRulesMap.get(category.name) ?? 0,
         }));
         
-        callback(combined);
+        callback(combined.sort((a, b) => a.name.localeCompare(b.name)));
     };
 
     const unsubCategories = onSnapshot(categoriesQuery, (snapshot) => {
@@ -193,19 +197,22 @@ export async function getCategories(platform?: CategoryPlatform): Promise<Catego
 
     const categoriesRef = collection(db, 'categories');
     let categoriesQuery;
+
     if (platform) {
         categoriesQuery = query(categoriesRef, where('platform', 'in', ['Both', platform]));
     } else {
         categoriesQuery = query(categoriesRef);
     }
+    
     const categoriesSnapshot = await getDocs(categoriesQuery);
     const categories: Category[] = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
     
-    return categories;
+    return categories.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
+    await seedCategories();
     const q = query(collection(db, 'categories'), where('slug', '==', slug));
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
@@ -217,6 +224,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 
 export async function getCategoryByName(name?: string): Promise<Category | null> {
     if (!name) return null;
+    await seedCategories();
     const q = query(collection(db, 'categories'), where('name', '==', name));
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
