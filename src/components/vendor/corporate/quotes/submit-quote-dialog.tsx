@@ -21,6 +21,8 @@ import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import type { Product } from '@/lib/products';
+import { calculateDisplayPriceFromQuote, type DisplayPrice } from '@/lib/pricing-service';
+import { getCategoryByName } from '@/lib/categories-service';
 
 interface SubmitQuoteDialogProps {
   isOpen: boolean;
@@ -34,6 +36,7 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
   const [estimatedCompletionDate, setEstimatedCompletionDate] = React.useState<Date | undefined>();
   const [vendorNotes, setVendorNotes] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [customerDisplayPrice, setCustomerDisplayPrice] = React.useState<DisplayPrice | null>(null);
 
   React.useEffect(() => {
     if (quoteRequest?.vendorQuote?.finalPrice) {
@@ -52,6 +55,21 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
     }
   }, [quoteRequest]);
   
+  React.useEffect(() => {
+      const calculatePrice = async () => {
+          if(quoteRequest?.product) {
+              const category = await getCategoryByName(quoteRequest.product.category);
+              const displayPrice = await calculateDisplayPriceFromQuote(finalPrice, quoteRequest.product.id, category || undefined, 'corporate');
+              setCustomerDisplayPrice(displayPrice);
+          }
+      };
+      if (finalPrice > 0) {
+          calculatePrice();
+      } else {
+          setCustomerDisplayPrice(null);
+      }
+  }, [finalPrice, quoteRequest?.product]);
+
   if (!quoteRequest) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,6 +89,9 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
     }
     return <FileText className="h-5 w-5 text-muted-foreground" />;
   };
+  
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -116,6 +137,11 @@ export function SubmitQuoteDialog({ isOpen, onClose, quoteRequest, onSubmit }: S
                                 <Input id="final-price" type="number" step="0.01" value={finalPrice} onChange={e => setFinalPrice(parseFloat(e.target.value))} readOnly={isReadOnly} required className="pl-7"/>
                             </div>
                         </div>
+                         {customerDisplayPrice && (
+                             <div className="text-sm text-muted-foreground">
+                                Customer will see a price of approximately <span className="font-semibold text-foreground">{formatCurrency(customerDisplayPrice.finalPrice)}</span> per item.
+                             </div>
+                         )}
                         <div className="space-y-2">
                             <Label htmlFor="date">Estimated Completion Date (Ship-Out Date)</Label>
                             <Popover>

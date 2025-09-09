@@ -56,7 +56,7 @@ export function BidDetailsDialog({ open, onOpenChange, bid }: BidDetailsDialogPr
         
         getCategoryByName(productInfo.category).then(category => {
             Promise.all(bid.vendorResponses.map(async (response) => {
-                const displayPrice = await calculateDisplayPriceFromQuote(response.pricePerUnit, productInfo, category ?? undefined);
+                const displayPrice = await calculateDisplayPriceFromQuote(response.pricePerUnit, productInfo.id, category);
                 return { ...response, displayPrice };
             })).then(responsesWithPrices => {
                 setVendorResponses(responsesWithPrices);

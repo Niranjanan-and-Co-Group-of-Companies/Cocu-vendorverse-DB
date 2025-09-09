@@ -51,7 +51,7 @@ export function BidDetailsView({ bidId }: BidDetailsViewProps) {
                     
                     const responsesWithPrices = await Promise.all(
                         bidData.vendorResponses.map(async (response) => {
-                            const displayPrice = await calculateDisplayPriceFromQuote(response.pricePerUnit, productInfo, category ?? undefined);
+                            const displayPrice = await calculateDisplayPriceFromQuote(response.pricePerUnit, productInfo.id, category ?? undefined);
                             return { ...response, displayPrice };
                         })
                     );

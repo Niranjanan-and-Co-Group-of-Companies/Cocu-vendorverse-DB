@@ -27,7 +27,9 @@ function CategoryPageContent({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    let categoriesUnsubscribe: () => void;
+
+    const fetchData = async (categories: Category[]) => {
       setLoading(true);
       const categoryData = await getCategoryBySlug(slug);
 
@@ -36,7 +38,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
         const pricedProducts = await Promise.all(
             productData.map(async p => ({
                 ...p,
-                displayPrice: await calculateDisplayPrice(p.price, 'personal', categoryData, p.discountType, p.discountValue),
+                displayPrice: await calculateDisplayPrice(p.price, 'personal', categories.find(c => c.id === categoryData.id), p.discountType, p.discountValue),
             }))
         );
         setProducts(pricedProducts);
@@ -46,7 +48,15 @@ function CategoryPageContent({ slug }: { slug: string }) {
       setLoading(false);
     };
 
-    fetchData();
+    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Personalized', (categories) => {
+        fetchData(categories);
+    });
+    
+    return () => {
+        if(categoriesUnsubscribe) {
+            categoriesUnsubscribe();
+        }
+    };
   }, [slug]);
   
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);

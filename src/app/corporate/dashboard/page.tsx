@@ -116,25 +116,33 @@ export default function CorporateDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFeatured = async () => {
+    let categoriesUnsubscribe: () => void;
+    
+    const fetchFeatured = async (categoriesForPricing: Category[]) => {
       const featuredData = await getFeaturedCorporateProducts();
       const pricedProducts = await Promise.all(
-        featuredData.map(async (p) => ({
-          ...p,
-          displayPrice: await calculateDisplayPrice(p, 'corporate'),
-        }))
+        featuredData.map(async (p) => {
+          const category = categoriesForPricing.find(c => c.name === p.category);
+          return {
+            ...p,
+            displayPrice: await calculateDisplayPrice(p.price, 'corporate', category, p.discountType, p.discountValue),
+          }
+        })
       );
       setFeaturedProducts(pricedProducts);
     };
 
-    const unsubCategories = onCategoriesWithCommissionsUpdate('Corporate', setCategories);
-
-    Promise.all([fetchFeatured()]).then(() => {
-        setLoading(false);
+    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Corporate', (categories) => {
+        setCategories(categories);
+        fetchFeatured(categories).then(() => {
+            setLoading(false);
+        });
     });
     
     return () => {
-        unsubCategories();
+        if(categoriesUnsubscribe) {
+            categoriesUnsubscribe();
+        }
     };
   }, []);
 
