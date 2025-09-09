@@ -258,13 +258,9 @@ export async function getCategoryByName(name?: string): Promise<Category | null>
 }
 
 
-export async function getProductsByCategory(slug: string): Promise<Product[]> {
-    const category = await getCategoryBySlug(slug);
-    if (!category) {
-        return [];
-    }
+export async function getProductsByCategory(categoryName: string): Promise<Product[]> {
     const productsRef = collection(db, 'products');
-    const q = query(productsRef, where('category', '==', category.name));
+    const q = query(productsRef, where('category', '==', categoryName));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => doc.data() as Product);
 }
