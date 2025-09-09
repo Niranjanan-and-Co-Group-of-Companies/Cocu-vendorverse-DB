@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import * as React from 'react';
-import { onProductUpdate } from '@/lib/products-service';
+import { onProductUpdate } from '@/lib/products-client-service';
 import type { Product } from '@/lib/products';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';

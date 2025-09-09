@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import * as React from 'react';
-import { onProductUpdate } from '@/lib/products-service';
+import { onProductUpdate } from '@/lib/products-client-service';
 import type { Product } from '@/lib/products';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CustomizationProvider } from '@/hooks/use-customization';

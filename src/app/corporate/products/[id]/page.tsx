@@ -3,7 +3,7 @@
 'use client';
 
 import * as React from 'react';
-import { onProductUpdate } from '@/lib/products-service';
+import { onProductUpdate } from '@/lib/products-client-service';
 import type { Product } from '@/lib/products';
 import { ProductMediaGallery } from '@/components/product/product-media-gallery';
 import { ProductInfo } from '@/components/product/product-info';
