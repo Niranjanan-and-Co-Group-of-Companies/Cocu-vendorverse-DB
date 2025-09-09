@@ -124,7 +124,7 @@ export async function toggleFeaturedPlatform(productId: string, platform: 'perso
 export async function addFeatured(productId: string) {
   const docRef = doc(featuredCollection, String(productId));
   await setDoc(docRef, {
-    featuredOnPersonal: true, // Default to true on personal
+    featuredOnPersonal: false,
     featuredOnCorporate: false,
   });
 }
