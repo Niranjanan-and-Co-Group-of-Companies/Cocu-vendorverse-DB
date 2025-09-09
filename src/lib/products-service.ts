@@ -1,5 +1,4 @@
 
-
 import { collection, getDocs, writeBatch, doc, onSnapshot, getDoc, query, where, limit, updateDoc, Unsubscribe, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, storage } from './firebase';
 import type { Product, ProductStatus, CustomizationSide, AllowedCustomizationType, ProductVariant } from './products';
@@ -19,9 +18,9 @@ async function seedProductsIfEmpty() {
     if (!counterSnap.exists()) {
         console.log("Products counter not found. Seeding mock data...");
         const MOCK_PRODUCTS: Omit<Product, 'status' | 'vendorId' | 'shipsFromPincode' | 'createdAt' | 'updatedAt' | 'mainVariantId'>[] = [
-            { id: 1, name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', price: '45.00', tieredPricing: [{ quantity: 50, price: '$42.00' }, { quantity: 100, price: '$40.00' }, { quantity: 250, price: '$38.00' }], image: 'https://picsum.photos/600/400?random=1', galleryImages: ['https://picsum.photos/600/400?random=11', 'https://picsum.photos/600/400?random=12', 'https://picsum.photos/600/400?random=13'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, moq: 50, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.", category: "Food & Drink", customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: ['Text', 'Image Upload'], weight: 1, dimensions: { l: 8, w: 6, h: 2 }, inventoryBuffer: 5, tags: ['chocolate', 'gourmet', 'gift box'], preparationTime: { min: 3, max: 4 }, preparationTimeUnit: 'days', platform: 'Personalized' },
-            { id: 2, name: 'Luxury Spa Set', vendor: 'Serene Moments', price: '$85.00', image: 'https://picsum.photos/600/400?random=2', galleryImages: ['https://picsum.photos/600/400?random=21', 'https://picsum.photos/600/400?random=22'], rating: 4.9, stock: 5, moq: 10, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", creatorStory: "Serene Moments was born from a desire to make self-care accessible to everyone. Our founder, a certified aromatherapist, personally formulates each product to ensure the highest quality and efficacy.", category: "Wellness", customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: [], weight: 3, dimensions: { l: 10, w: 8, h: 4 }, inventoryBuffer: 2, tags: ['spa', 'wellness', 'self-care', 'bath'], preparationTime: { min: 2, max: 3 }, preparationTimeUnit: 'days', tieredPricing: [], platform: 'Personalized' },
-            { id: 3, name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', price: '$75.00', tieredPricing: [{ quantity: 25, price: '$70.00' }, { quantity: 50, price: '$65.00' }, { quantity: 100, price: '$60.00' }], image: 'https://picsum.photos/600/400?random=3', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Fashion & Accessories", galleryImages: [], videoUrl: '', description: '', creatorStory: '', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: ['Text'], weight: 0.5, dimensions: { l: 4, w: 3, h: 0.5 }, inventoryBuffer: 3, tags: ['leather', 'wallet', 'monogram'], preparationTime: { min: 5, max: 6 }, preparationTimeUnit: 'days', moq: 25, platform: 'Corporate' },
+            { id: 1, name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', price: '45.00', tieredPricing: [{ quantity: 50, price: '$42.00' }, { quantity: 100, price: '$40.00' }, { quantity: 250, price: '$38.00' }], image: 'https://picsum.photos/600/400?random=1', galleryImages: ['https://picsum.photos/600/400?random=11', 'https://picsum.photos/600/400?random=12', 'https://picsum.photos/600/400?random=13'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, moq: 50, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.", category: "Food & Drink", customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: ['Text', 'Image Upload'], packaging: { weight: 1000, dimensions: { l: 8, w: 6, h: 2 } }, inventoryBuffer: 5, tags: ['chocolate', 'gourmet', 'gift box'], preparationTime: 4, platform: 'Personalized', sku: 'GD-CHOC-01', hsnSac: '1806', taxRate: 18, mrp: 55, vendorSP: 45, platformBufferRate: 5, vendorCommissionRate: 15 },
+            { id: 2, name: 'Luxury Spa Set', vendor: 'Serene Moments', price: '$85.00', image: 'https://picsum.photos/600/400?random=2', galleryImages: ['https://picsum.photos/600/400?random=21', 'https://picsum.photos/600/400?random=22'], rating: 4.9, stock: 5, moq: 10, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", creatorStory: "Serene Moments was born from a desire to make self-care accessible to everyone. Our founder, a certified aromatherapist, personally formulates each product to ensure the highest quality and efficacy.", category: "Wellness", customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: [], packaging: { weight: 3000, dimensions: { l: 10, w: 8, h: 4 } }, inventoryBuffer: 2, tags: ['spa', 'wellness', 'self-care', 'bath'], preparationTime: 3, tieredPricing: [], platform: 'Personalized', sku: 'SM-SPA-01', hsnSac: '3307', taxRate: 18, mrp: 95, vendorSP: 85, platformBufferRate: 5, vendorCommissionRate: 12 },
+            { id: 3, name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', price: '$75.00', tieredPricing: [{ quantity: 25, price: '$70.00' }, { quantity: 50, price: '$65.00' }, { quantity: 100, price: '$60.00' }], image: 'https://picsum.photos/600/400?random=3', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Fashion & Accessories", galleryImages: [], videoUrl: '', description: '', creatorStory: '', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: ['Text'], packaging: { weight: 500, dimensions: { l: 4, w: 3, h: 0.5 } }, inventoryBuffer: 3, tags: ['leather', 'wallet', 'monogram'], preparationTime: 6, moq: 25, platform: 'Corporate', sku: 'HW-WLT-01', hsnSac: '4202', taxRate: 18, mrp: 85, vendorSP: 75, platformBufferRate: 5, vendorCommissionRate: 15 },
         ];
         const VENDOR_MAP: { [key: string]: { id: string, pincode: string } } = { 
             'Gourmet Delights': { id: 'vendor001', pincode: '400001'},
@@ -158,6 +157,7 @@ export async function getRelatedProducts(category?: string, currentProductId?: n
     const q = query(
         productsCollection, 
         where('category', '==', category),
+        where('status', '==', 'Live'),
         limit(10)
     );
 
@@ -198,8 +198,8 @@ export function onVendorProductsUpdate(vendorId: string, callback: (products: Pr
     return unsubscribe;
 }
 
-export async function updateProductStatus(productId: number, status: ProductStatus) {
-    const productRef = doc(db, 'products', String(productId));
+export async function updateProductStatus(productId: string, status: ProductStatus) {
+    const productRef = doc(db, 'products', productId);
     await updateDoc(productRef, { status: status, updatedAt: serverTimestamp() });
 }
 
@@ -222,7 +222,7 @@ export function onPendingProductsUpdate(callback: (products: ProductWithVendor[]
                  vendorCache.set(vendorId, vendorData);
                  return vendorData;
             }
-            return { id: vendorId, name: 'Unknown Vendor', email: '', phone: '', avatar: '', status: 'Active', joinedDate: null, address: { street: '', city: '', state: '', pincode: '', country: ''} };
+            return { id: vendorId, name: 'Unknown Vendor', email: '', phone: '', avatar: '', status: 'Active', joinedDate: null, address: { street: '', city: '', state: '', pincode: '', country: ''}, kyc: { currentStep: 1, status: 'Not Started', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted'} };
         }
 
         const productsPromises = snapshot.docs.map(async (doc) => {
@@ -248,9 +248,9 @@ export function getPendingProductCount(callback: (count: number) => void): Unsub
 
 
 export async function approveProduct(productId: number) {
-    await updateProductStatus(productId, 'Live');
+    await updateProductStatus(String(productId), 'Live');
 }
 
 export async function declineProduct(productId: number) {
-    await updateProductStatus(productId, 'Declined');
+    await updateProductStatus(String(productId), 'Declined');
 }

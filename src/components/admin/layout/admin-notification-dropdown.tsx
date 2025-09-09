@@ -12,7 +12,7 @@ import {
   DropdownMenuFooter,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Bell, Package, MessageSquare, Activity, UserPlus, Shield, FileEdit, HelpCircle } from 'lucide-react';
+import { Bell, Package, MessageSquare, Activity, UserPlus, Shield, FileEdit, HelpCircle, Gavel, FileQuestion } from 'lucide-react';
 import { onAdminNotificationsUpdate, type Notification, type NotificationType } from '@/lib/notifications-service';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,11 +22,12 @@ import { Badge } from '@/components/ui/badge';
 const iconMap: { [key in NotificationType]: React.ElementType } = {
   ORDER_STATUS_UPDATE: Package,
   NEW_MESSAGE: MessageSquare,
-  NEW_BID_RESPONSE: Activity,
-  new_vendor: UserPlus,
-  user_report: Shield,
-  content_update: FileEdit,
-  new_ticket: HelpCircle,
+  NEW_BID_RESPONSE: Gavel,
+  NEW_VENDOR_SUBMISSION: UserPlus,
+  USER_REPORT: Shield,
+  CONTENT_UPDATE: FileEdit,
+  NEW_SUPPORT_TICKET: HelpCircle,
+  NEW_SOURCING_REQUEST: FileQuestion,
 };
 
 export function AdminNotificationDropdown() {
@@ -93,7 +94,7 @@ export function AdminNotificationDropdown() {
         <DropdownMenuSeparator />
         <DropdownMenuFooter>
             <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href="#">View All Notifications</Link>
+                <Link href="/admin/notifications">View All Notifications</Link>
             </Button>
         </DropdownMenuFooter>
       </DropdownMenuContent>

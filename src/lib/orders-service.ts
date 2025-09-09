@@ -1,20 +1,18 @@
 
-import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product, CustomizationSide } from './products';
 import type { VendorOrder } from '@/app/vendor/personalized/orders/page';
 import { createNotification } from './notifications-service';
 
 export interface CustomizationDetails {
-    // This now represents the assets for a single customized side
     side: CustomizationSide;
-    proofUrl: string; // URL to the image with product background (for visual proof)
-    printUrl: string; // URL to the image with transparent background (for production)
+    proofUrl: string;
+    printUrl: string;
 }
 
 export interface OrderItem extends Product {
     quantity: number;
-    // An order item can have multiple customized sides
     customizations?: CustomizationDetails[];
 }
 
@@ -29,11 +27,12 @@ export interface Order {
         email: string;
         avatar?: string;
         shippingAddress: string;
-        pincode: string; // Added for shipping
+        pincode: string;
     };
     items: OrderItem[];
     status: OrderStatus;
-    date: any; // Firestore Timestamp
+    statusTimeline: { status: OrderStatus; at: Timestamp }[];
+    date: any;
     subtotal: number;
     shipping: number;
     total: number;
@@ -64,10 +63,11 @@ const MOCK_ORDERS: Omit<Order, 'id'>[] = [
             pincode: '62704'
         },
         items: [
-            { id: 1, name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', price: '₹45.00', image: 'https://picsum.photos/600/400?random=1', rating: 4.8, customizable: true, quantity: 1, category: "Food & Drink", featured: true, vendorId: 'vendor001', status: 'Live', customizationSides: { front: { image: null, areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } }, allowedCustomizations: ['Text', 'Image Upload'], weight: 1, dimensions: { l: 8, w: 6, h: 2 }, inventoryBuffer: 5, tags: ['chocolate', 'gourmet', 'gift box'], preparationTime: { min: 3, max: 4 }, preparationTimeUnit: 'days', platform: 'Personalized', shipsFromPincode: '400001', createdAt: new Date(), updatedAt: new Date() },
-            { id: 2, name: 'Luxury Spa Set', vendor: 'Serene Moments', price: '₹85.00', image: 'https://picsum.photos/600/400?random=2', rating: 4.9, customizable: false, quantity: 1, category: 'Wellness', featured: true, vendorId: 'vendor002', status: 'Live', customizationSides: { front: { image: null, areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } }, allowedCustomizations: [], weight: 3, dimensions: { l: 10, w: 8, h: 4 }, inventoryBuffer: 2, tags: ['spa', 'wellness', 'self-care', 'bath'], preparationTime: { min: 2, max: 3 }, preparationTimeUnit: 'days', tieredPricing: [], platform: 'Personalized', shipsFromPincode: '560001', createdAt: new Date(), updatedAt: new Date() },
+            { id: 1, name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', price: '₹45.00', image: 'https://picsum.photos/600/400?random=1', rating: 4.8, customizable: true, quantity: 1, category: "Food & Drink", featured: true, vendorId: 'vendor001', status: 'Live', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], mainVariantId: null, allowedCustomizations: ['Text', 'Image Upload'], weight: 1, dimensions: { l: 8, w: 6, h: 2 }, inventoryBuffer: 5, tags: ['chocolate', 'gourmet', 'gift box'], preparationTime: { min: 3, max: 4 }, preparationTimeUnit: 'days', platform: 'Personalized', shipsFromPincode: '400001', createdAt: new Date(), updatedAt: new Date(), sku: '', hsnSac: '', taxRate: 0, mrp: 0, vendorSP: 0, platformBufferRate: 0, vendorCommissionRate: 0, packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }, customizationSides: { front: { image: null, areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } } },
+            { id: 2, name: 'Luxury Spa Set', vendor: 'Serene Moments', price: '₹85.00', image: 'https://picsum.photos/600/400?random=2', rating: 4.9, customizable: false, quantity: 1, category: 'Wellness', featured: true, vendorId: 'vendor002', status: 'Live', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], mainVariantId: null, allowedCustomizations: [], weight: 3, dimensions: { l: 10, w: 8, h: 4 }, inventoryBuffer: 2, tags: ['spa', 'wellness', 'self-care', 'bath'], preparationTime: { min: 2, max: 3 }, preparationTimeUnit: 'days', tieredPricing: [], platform: 'Personalized', shipsFromPincode: '560001', createdAt: new Date(), updatedAt: new Date(), sku: '', hsnSac: '', taxRate: 0, mrp: 0, vendorSP: 0, platformBufferRate: 0, vendorCommissionRate: 0, packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }, customizationSides: { front: { image: null, areas: [] }, back: { image: null, areas: [] }, left: { image: null, areas: [] }, right: { image: null, areas: [] }, top: { image: null, areas: [] }, bottom: { image: null, areas: [] } } },
         ],
         status: 'Delivered',
+        statusTimeline: [{ status: 'Delivered', at: Timestamp.fromDate(new Date(2023, 10, 5)) }],
         date: Timestamp.fromDate(new Date(2023, 10, 5)),
         subtotal: 130.00,
         shipping: 10.00,

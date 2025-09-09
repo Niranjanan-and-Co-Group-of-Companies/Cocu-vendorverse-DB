@@ -1,9 +1,8 @@
 
-
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -12,35 +11,35 @@ import { AlertCircle } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 interface PackageAndShippingCardProps {
-  weight: number;
-  dimensions: { l: number, w: number, h: number };
-  inventoryBuffer: number;
-  preparationTime: { min: number, max: number };
-  preparationTimeUnit: 'days' | 'hours';
+  packaging: {
+    weight: number; // in grams
+    dimensions: { l: number, w: number, h: number }; // in cm
+  };
+  preparationTime: number; // in days
   onFieldChange: (field: keyof Product, value: any) => void;
 }
 
 export function PackageAndShippingCard({ 
-    weight, 
-    dimensions, 
-    inventoryBuffer, 
+    packaging, 
     preparationTime, 
-    preparationTimeUnit,
     onFieldChange 
 }: PackageAndShippingCardProps) {
   
   const handleDimensionChange = (dim: 'l' | 'w' | 'h', value: string) => {
-    onFieldChange('dimensions', { ...dimensions, [dim]: parseFloat(value) || 0 });
-  };
-  
-  const handlePrepTimeChange = (type: 'min' | 'max', value: string) => {
-    onFieldChange('preparationTime', { ...preparationTime, [type]: parseInt(value, 10) || 0 });
+    onFieldChange('packaging', {
+        ...packaging,
+        dimensions: {
+            ...packaging.dimensions,
+            [dim]: parseInt(value, 10) || 0
+        }
+    });
   };
 
-  const isPrepTimeInvalid = preparationTime.max !== preparationTime.min + 1;
-  
-  const handleUnitToggle = (isHours: boolean) => {
-    onFieldChange('preparationTimeUnit', isHours ? 'hours' : 'days');
+  const handleWeightChange = (value: string) => {
+      onFieldChange('packaging', {
+          ...packaging,
+          weight: parseInt(value, 10) || 0
+      });
   }
 
   return (
@@ -50,39 +49,14 @@ export function PackageAndShippingCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-            <div className="flex items-center justify-between">
-                <Label>Preparation Time</Label>
-                 <div className="flex items-center gap-2">
-                    <Label htmlFor="prep-time-unit" className="text-sm">Days</Label>
-                    <Switch 
-                        id="prep-time-unit"
-                        checked={preparationTimeUnit === 'hours'}
-                        onCheckedChange={handleUnitToggle}
-                    />
-                    <Label htmlFor="prep-time-unit" className="text-sm">Hours</Label>
-                </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-                <Input 
-                    placeholder="Min" 
-                    type="number" 
-                    value={preparationTime.min} 
-                    onChange={e => handlePrepTimeChange('min', e.target.value)} 
-                />
-                <Input 
-                    placeholder="Max" 
-                    type="number" 
-                    value={preparationTime.max} 
-                    onChange={e => handlePrepTimeChange('max', e.target.value)} 
-                />
-            </div>
-             {isPrepTimeInvalid && (
-                 <Alert variant="destructive" className="mt-2">
-                    <AlertDescription className="text-xs">
-                        Max {preparationTimeUnit} must be exactly one greater than min {preparationTimeUnit} (e.g., 4-5 {preparationTimeUnit}).
-                    </AlertDescription>
-                </Alert>
-             )}
+            <Label htmlFor="prep-time">Preparation Time (Days)</Label>
+            <Input 
+                id="prep-time"
+                placeholder="e.g. 3" 
+                type="number" 
+                value={preparationTime} 
+                onChange={e => onFieldChange('preparationTime', parseInt(e.target.value, 10) || 0)} 
+            />
              <Alert variant="destructive" className="mt-2">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -90,20 +64,16 @@ export function PackageAndShippingCard({
                 </AlertDescription>
             </Alert>
         </div>
-         <div className="space-y-2">
-          <Label htmlFor="inventoryBuffer">Inventory Buffer</Label>
-          <Input id="inventoryBuffer" type="number" value={inventoryBuffer} onChange={e => onFieldChange('inventoryBuffer', parseInt(e.target.value, 10))} />
+        <div className="space-y-2">
+          <Label htmlFor="weight">Package Weight (grams)</Label>
+          <Input id="weight" type="number" value={packaging.weight} onChange={e => handleWeightChange(e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="weight">Weight (kg)</Label>
-          <Input id="weight" type="number" value={weight} onChange={e => onFieldChange('weight', parseFloat(e.target.value) || 0)} />
-        </div>
-        <div className="space-y-2">
-            <Label>Dimensions (cm)</Label>
+            <Label>Package Dimensions (cm)</Label>
             <div className="grid grid-cols-3 gap-2">
-                <Input placeholder="L" type="number" value={dimensions.l} onChange={e => handleDimensionChange('l', e.target.value)} />
-                <Input placeholder="W" type="number" value={dimensions.w} onChange={e => handleDimensionChange('w', e.target.value)} />
-                <Input placeholder="H" type="number" value={dimensions.h} onChange={e => handleDimensionChange('h', e.target.value)} />
+                <Input placeholder="L" type="number" value={packaging.dimensions.l} onChange={e => handleDimensionChange('l', e.target.value)} />
+                <Input placeholder="W" type="number" value={packaging.dimensions.w} onChange={e => handleDimensionChange('w', e.target.value)} />
+                <Input placeholder="H" type="number" value={packaging.dimensions.h} onChange={e => handleDimensionChange('h', e.target.value)} />
             </div>
         </div>
         <Alert>

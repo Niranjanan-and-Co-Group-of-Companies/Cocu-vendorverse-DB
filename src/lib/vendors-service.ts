@@ -12,6 +12,17 @@ export interface VendorKYC {
     rejectionReason?: string; // Optional field for feedback on failure
 }
 
+export interface VendorAddress {
+  id: string;
+  label: string; // "Primary Warehouse", "Secondary Office"
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+  isDefault: boolean;
+}
+
 export interface Vendor {
   id: string;
   name: string;
@@ -20,24 +31,28 @@ export interface Vendor {
   avatar: string;
   status: 'Active' | 'Pending' | 'Suspended';
   joinedDate: any; // Keep as any to handle Firestore Timestamps
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    pincode: string;
-    country: string;
+  pickupAddresses: VendorAddress[];
+  gstProfile: {
+      gstin: string;
+      legalName: string;
+      stateCode: string;
   };
-  kyc: VendorKYC; // Updated KYC details
+  banking: {
+      beneficiary: string;
+      ifsc: string;
+      accountNoMasked: string; // e.g., "********1234"
+  };
+  payoutConfig: {
+      settlementHoldDays: number;
+      logisticsPayer: 'vendor' | 'customer' | 'shared';
+  };
+  kyc: VendorKYC;
 }
 
 const MOCK_VENDORS: Omit<Vendor, 'id' | 'joinedDate'>[] = [
-    { name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', phone: '9876543210', avatar: 'https://i.pravatar.cc/40?u=vendor001', status: 'Active', address: { street: '123 Foodie Lane', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', country: 'India'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
-    { name: 'Serene Moments', email: 'support@serenemoments.co', phone: '9876543211', avatar: 'https://i.pravatar.cc/40?u=vendor002', status: 'Active', address: { street: '456 Wellness Way', city: 'Bangalore', state: 'Karnataka', pincode: '560001', country: 'India'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } },
-    { name: 'Heritage Wares', email: 'info@heritagewares.com', phone: '9876543212', avatar: 'https://i.pravatar.cc/40?u=vendor003', status: 'Pending', address: { street: '789 Craft Circle', city: 'Jaipur', state: 'Rajasthan', pincode: '302001', country: 'India'}, kyc: { currentStep: 1, status: 'In Progress', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } },
-    { name: 'The Daily Grind', email: 'hello@dailygrind.coffee', phone: '9876543213', avatar: 'https://i.pravatar.cc/40?u=vendor004', status: 'Active', address: { street: '101 Brew Avenue', city: 'Chennai', state: 'Tamil Nadu', pincode: '600001', country: 'India'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
-    { name: 'Modern Blooms', email: 'contact@modernblooms.com', phone: '9876543214', avatar: 'https://i.pravatar.cc/40?u=vendor005', status: 'Suspended', address: { street: '212 Flower Road', city: 'Pune', state: 'Maharashtra', pincode: '411001', country: 'India'}, kyc: { currentStep: 2, status: 'Failed', panStatus: 'Verified', bankAccountStatus: 'Failed', rejectionReason: 'Bank account name does not match PAN.', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } },
-    { name: 'Signature Gifts', email: 'sales@signaturegifts.com', phone: '9876543215', avatar: 'https://i.pravatar.cc/40?u=vendor006', status: 'Active', address: { street: '313 Gifting Plaza', city: 'Delhi', state: 'Delhi', pincode: '110001', country: 'India'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
-    { name: 'Techie Gifts', email: 'support@techiegifts.com', phone: '9876543216', avatar: 'https://i.pravatar.cc/40?u=vendor007', status: 'Active', address: { street: '414 Circuit Board', city: 'Hyderabad', state: 'Telangana', pincode: '500001', country: 'India'}, kyc: { currentStep: 3, status: 'Pending Review', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Pending', gstinStatus: 'Pending' } },
+    { name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', phone: '9876543210', avatar: 'https://i.pravatar.cc/40?u=vendor001', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Main Kitchen', street: '123 Foodie Lane', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', country: 'India', isDefault: true }], gstProfile: { gstin: '27AAAAA0000A1Z5', legalName: 'Gourmet Delights Pvt Ltd', stateCode: '27' }, banking: { beneficiary: 'Gourmet Delights Pvt Ltd', ifsc: 'HDFC0000001', accountNoMasked: '********1234' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
+    { name: 'Serene Moments', email: 'support@serenemoments.co', phone: '9876543211', avatar: 'https://i.pravatar.cc/40?u=vendor002', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Warehouse A', street: '456 Wellness Way', city: 'Bangalore', state: 'Karnataka', pincode: '560001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: 'Serene Moments Inc', ifsc: 'ICIC0000002', accountNoMasked: '********5678' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'vendor'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } },
+    { name: 'Heritage Wares', email: 'info@heritagewares.com', phone: '9876543212', avatar: 'https://i.pravatar.cc/40?u=vendor003', status: 'Pending', pickupAddresses: [{ id: 'addr1', label: 'Workshop', street: '789 Craft Circle', city: 'Jaipur', state: 'Rajasthan', pincode: '302001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: '', ifsc: '', accountNoMasked: '' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 1, status: 'In Progress', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } },
 ];
 
 

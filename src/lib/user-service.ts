@@ -1,5 +1,5 @@
 
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
 
 export interface User {
@@ -9,6 +9,7 @@ export interface User {
   avatar: string;
   status: 'Active' | 'Suspended';
   joinedDate: any; 
+  communicationPrefs: { email: boolean; sms: boolean; };
 }
 
 // In a real application, you would have an authentication hook to get the current user's ID.
@@ -33,4 +34,16 @@ export async function getMockUser(): Promise<User | null> {
         console.error("Error fetching mock user:", error);
         return null;
     }
+}
+
+export function onUsersUpdate(callback: (users: User[]) => void): Unsubscribe {
+    const usersRef = collection(db, 'users');
+    const unsubscribe = onSnapshot(usersRef, (snapshot) => {
+        const users = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as User));
+        callback(users);
+    });
+    return unsubscribe;
 }

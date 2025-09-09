@@ -18,11 +18,12 @@ import { useToast } from '@/hooks/use-toast';
 import type { Vendor } from '@/lib/vendors-service';
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { Loader2 } from 'lucide-react';
 
 interface AddVendorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onVendorAdded?: (vendor: Omit<Vendor, 'id' | 'avatar' | 'status' | 'joinedDate'>) => void;
+  onVendorAdded?: (vendor: Omit<Vendor, 'id' | 'avatar' | 'status' | 'joinedDate' | 'kyc' | 'pickupAddresses' | 'gstProfile' | 'banking' | 'payoutConfig'>) => void;
   children: React.ReactNode;
   vendor?: Vendor | null; // Make vendor optional for add mode
 }
@@ -48,11 +49,11 @@ export function AddVendorDialog({ open, onOpenChange, vendor, children }: AddVen
                 name: vendor.name,
                 email: vendor.email,
                 phone: vendor.phone,
-                street: vendor.address?.street || '',
-                city: vendor.address?.city || '',
-                state: vendor.address?.state || '',
-                pincode: vendor.address?.pincode || '',
-                country: vendor.address?.country || 'India',
+                street: vendor.pickupAddresses?.[0]?.street || '',
+                city: vendor.pickupAddresses?.[0]?.city || '',
+                state: vendor.pickupAddresses?.[0]?.state || '',
+                pincode: vendor.pickupAddresses?.[0]?.pincode || '',
+                country: vendor.pickupAddresses?.[0]?.country || 'India',
             });
         } else {
              setFormData({
@@ -71,13 +72,16 @@ export function AddVendorDialog({ open, onOpenChange, vendor, children }: AddVen
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
-            address: {
+            pickupAddresses: [{
+                id: vendor?.pickupAddresses?.[0]?.id || 'addr_main',
+                label: 'Default Address',
                 street: formData.street,
                 city: formData.city,
                 state: formData.state,
                 pincode: formData.pincode,
                 country: formData.country,
-            }
+                isDefault: true,
+            }]
         };
 
         try {
@@ -91,6 +95,10 @@ export function AddVendorDialog({ open, onOpenChange, vendor, children }: AddVen
                     avatar: `https://i.pravatar.cc/40?u=${Math.random()}`,
                     status: 'Pending',
                     joinedDate: serverTimestamp(),
+                    kyc: { currentStep: 1, status: 'Not Started', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' },
+                    gstProfile: { gstin: '', legalName: '', stateCode: ''},
+                    banking: { beneficiary: '', ifsc: '', accountNoMasked: ''},
+                    payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}
                 });
                 toast({ title: 'Vendor Added', description: `${formData.name} has been added and is pending verification.` });
             }
@@ -130,7 +138,7 @@ export function AddVendorDialog({ open, onOpenChange, vendor, children }: AddVen
                 </div>
             </div>
              <div className="space-y-2">
-                <Label htmlFor="street">Street Address</Label>
+                <Label htmlFor="street">Street Address (for Pickup)</Label>
                 <Input id="street" value={formData.street} onChange={(e) => handleInputChange('street', e.target.value)} />
             </div>
              <div className="grid grid-cols-2 gap-4">
@@ -157,6 +165,7 @@ export function AddVendorDialog({ open, onOpenChange, vendor, children }: AddVen
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={handleSubmit} disabled={isSaving}>
+            {isSaving ? <Loader2 className="mr-2 animate-spin" /> : null}
             {isSaving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Vendor')}
           </Button>
         </DialogFooter>

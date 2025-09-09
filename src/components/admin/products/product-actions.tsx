@@ -36,7 +36,7 @@ export function AdminProductActions({ product }: AdminProductActionsProps) {
 
   const handleStatusChange = async (status: ProductWithStatus['status']) => {
     try {
-        await updateProductStatus(product.id, status);
+        await updateProductStatus(String(product.id), status);
         toast({
             title: "Product Status Updated",
             description: `"${product.name}" has been updated to ${status}.`

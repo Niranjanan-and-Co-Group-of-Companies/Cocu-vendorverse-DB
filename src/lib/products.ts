@@ -42,6 +42,10 @@ export type Product = {
   vendor: string; // Vendor Name
   vendorId: string;
   price: string;
+  mrp: number;
+  vendorSP: number;
+  platformBufferRate: number;
+  vendorCommissionRate: number;
   tieredPricing?: TieredPrice[];
   image: string; // Main display image for the product
   galleryImages: string[];
@@ -60,14 +64,18 @@ export type Product = {
   variants: ProductVariant[];
   mainVariantId: string | null; // ID of the variant whose image should be the main product image
   allowedCustomizations: AllowedCustomizationType[];
-  weight: number;
-  dimensions: { l: number, w: number, h: number };
+  packaging: {
+    weight: number; // in grams
+    dimensions: { l: number, w: number, h: number }; // in cm
+  };
   inventoryBuffer: number;
   tags: string[];
-  preparationTime: { min: number, max: number };
-  preparationTimeUnit: 'days' | 'hours';
+  preparationTime: number; // in days
   platform: Platform;
   shipsFromPincode: string; 
+  sku: string;
+  hsnSac: string;
+  taxRate: number; // as a percentage
   createdAt: any; 
   updatedAt: any;
 };
