@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -228,121 +227,123 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
             Fill in the details for the promotional coupon code.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-grow pr-6 -mr-6">
-        <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="code">Coupon Code</Label>
-                <div className="flex items-center gap-2">
-                    <Input id="code" value={promoData.code || ''} onChange={e => handleFieldChange('code', e.target.value.toUpperCase())} className="flex-grow font-mono" />
-                    <Button type="button" variant="outline" onClick={handleGenerateCode}>
-                        <Sparkles className="mr-2 h-4 w-4" /> Generate
-                    </Button>
+        <div className="flex-grow overflow-hidden">
+            <ScrollArea className="h-full pr-6">
+                <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="code">Coupon Code</Label>
+                        <div className="flex items-center gap-2">
+                            <Input id="code" value={promoData.code || ''} onChange={e => handleFieldChange('code', e.target.value.toUpperCase())} className="flex-grow font-mono" />
+                            <Button type="button" variant="outline" onClick={handleGenerateCode}>
+                                <Sparkles className="mr-2 h-4 w-4" /> Generate
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="type">Type</Label>
+                        <Select value={promoData.type} onValueChange={(value: PromotionType) => handleFieldChange('type', value)}>
+                            <SelectTrigger id="type"><SelectValue/></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Percentage">Percentage</SelectItem>
+                                <SelectItem value="Fixed Amount">Fixed Amount</SelectItem>
+                                <SelectItem value="Free Shipping">Free Shipping</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="value">Value</Label>
+                        <Input id="value" type="number" value={promoData.value || 0} onChange={e => handleFieldChange('value', parseFloat(e.target.value) || 0)} disabled={promoData.type === 'Free Shipping'} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea id="description" value={promoData.description || ''} onChange={e => handleFieldChange('description', e.target.value)} placeholder="e.g., 10% off for new users" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="platform">Platform</Label>
+                            <Select value={promoData.platform} onValueChange={(value: PromotionPlatform) => handleFieldChange('platform', value)}>
+                                <SelectTrigger id="platform"><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Personalized">Personalized</SelectItem>
+                                    <SelectItem value="Corporate">Corporate</SelectItem>
+                                    <SelectItem value="Both">Both</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="status">Status</Label>
+                            <Select value={promoData.status} onValueChange={(value: PromotionStatus) => handleFieldChange('status', value)}>
+                                <SelectTrigger id="status"><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="Inactive">Inactive</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="startDate">Start Date & Time (Optional)</Label>
+                            <DateTimePicker date={promoData.startDate} onDateChange={(date) => handleFieldChange('startDate', date)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="expiresAt">Expiry Date & Time (Optional)</Label>
+                            <DateTimePicker date={promoData.expiresAt} onDateChange={(date) => handleFieldChange('expiresAt', date)} />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="usageLimit">Usage Limit (0 for unlimited)</Label>
+                        <Input id="usageLimit" type="number" value={promoData.usageLimit || 0} onChange={e => handleFieldChange('usageLimit', parseInt(e.target.value, 10))} />
+                    </div>
+                    <div className="space-y-4 rounded-lg border p-4">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="visible" className="text-base">Visible on Platform</Label>
+                            <Switch id="visible" checked={promoData.visibleOnPlatform} onCheckedChange={(checked) => handleFieldChange('visibleOnPlatform', checked)} />
+                        </div>
+                        <p className="text-sm text-muted-foreground">If enabled, this coupon will be automatically applied at checkout for eligible orders. Only one visible coupon can be active at a time.</p>
+                    </div>
+                    <div className="space-y-4 rounded-lg border p-4">
+                        <h4 className="font-medium">Targeting (Optional)</h4>
+                        <p className="text-sm text-muted-foreground">Search for products, categories, or vendors to apply this promotion to. If no targets are selected, it applies to the entire cart.</p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <SearchAndSelect title="Products" items={targetableItems.products} onSelect={(item) => handleSelect('product', item)} />
+                            <SearchAndSelect title="Categories" items={targetableItems.categories} onSelect={(item) => handleSelect('category', item)} />
+                            <SearchAndSelect title="Vendors" items={targetableItems.vendors} onSelect={(item) => handleSelect('vendor', item)} />
+                        </div>
+                        
+                        <div>
+                        <Label>Applied to Products</Label>
+                        <ScrollArea className="h-48 border rounded-md p-2 mt-2">
+                            {(promoData.appliesTo?.products || []).length > 0 ? (
+                            <div className="space-y-2">
+                                {(promoData.appliesTo?.products || []).map(p => (
+                                <div key={p.id} className="flex items-center justify-between p-1 rounded-md hover:bg-muted">
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                    {p.image ? (
+                                        <Image src={p.image} alt={p.name} width={24} height={24} className="rounded-sm object-cover" />
+                                    ) : (
+                                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                                    )}
+                                    <span className="text-sm truncate">{p.name}</span>
+                                    </div>
+                                    <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveProduct(p.id)}>
+                                    <X className="h-4 w-4 text-destructive"/>
+                                    </Button>
+                                </div>
+                                ))}
+                            </div>
+                            ) : (
+                            <div className="flex items-center justify-center h-full">
+                                <p className="text-sm text-muted-foreground">Applies to all products by default.</p>
+                            </div>
+                            )}
+                        </ScrollArea>
+                        </div>
+                    </div>
                 </div>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select value={promoData.type} onValueChange={(value: PromotionType) => handleFieldChange('type', value)}>
-                    <SelectTrigger id="type"><SelectValue/></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Percentage">Percentage</SelectItem>
-                        <SelectItem value="Fixed Amount">Fixed Amount</SelectItem>
-                        <SelectItem value="Free Shipping">Free Shipping</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="value">Value</Label>
-                <Input id="value" type="number" value={promoData.value || 0} onChange={e => handleFieldChange('value', parseFloat(e.target.value) || 0)} disabled={promoData.type === 'Free Shipping'} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" value={promoData.description || ''} onChange={e => handleFieldChange('description', e.target.value)} placeholder="e.g., 10% off for new users" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="platform">Platform</Label>
-                    <Select value={promoData.platform} onValueChange={(value: PromotionPlatform) => handleFieldChange('platform', value)}>
-                        <SelectTrigger id="platform"><SelectValue/></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Personalized">Personalized</SelectItem>
-                            <SelectItem value="Corporate">Corporate</SelectItem>
-                            <SelectItem value="Both">Both</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={promoData.status} onValueChange={(value: PromotionStatus) => handleFieldChange('status', value)}>
-                        <SelectTrigger id="status"><SelectValue/></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Active">Active</SelectItem>
-                            <SelectItem value="Inactive">Inactive</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-             <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date & Time (Optional)</Label>
-                    <DateTimePicker date={promoData.startDate} onDateChange={(date) => handleFieldChange('startDate', date)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="expiresAt">Expiry Date & Time (Optional)</Label>
-                    <DateTimePicker date={promoData.expiresAt} onDateChange={(date) => handleFieldChange('expiresAt', date)} />
-                </div>
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="usageLimit">Usage Limit (0 for unlimited)</Label>
-                <Input id="usageLimit" type="number" value={promoData.usageLimit || 0} onChange={e => handleFieldChange('usageLimit', parseInt(e.target.value, 10))} />
-            </div>
-            <div className="space-y-4 rounded-lg border p-4">
-                <div className="flex items-center justify-between">
-                    <Label htmlFor="visible" className="text-base">Visible on Platform</Label>
-                    <Switch id="visible" checked={promoData.visibleOnPlatform} onCheckedChange={(checked) => handleFieldChange('visibleOnPlatform', checked)} />
-                </div>
-                <p className="text-sm text-muted-foreground">If enabled, this coupon will be automatically applied at checkout for eligible orders. Only one visible coupon can be active at a time.</p>
-            </div>
-             <div className="space-y-4 rounded-lg border p-4">
-                <h4 className="font-medium">Targeting (Optional)</h4>
-                <p className="text-sm text-muted-foreground">Search for products, categories, or vendors to apply this promotion to. If no targets are selected, it applies to the entire cart.</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <SearchAndSelect title="Products" items={targetableItems.products} onSelect={(item) => handleSelect('product', item)} />
-                    <SearchAndSelect title="Categories" items={targetableItems.categories} onSelect={(item) => handleSelect('category', item)} />
-                    <SearchAndSelect title="Vendors" items={targetableItems.vendors} onSelect={(item) => handleSelect('vendor', item)} />
-                </div>
-                
-                <div>
-                  <Label>Applied to Products</Label>
-                   <ScrollArea className="h-48 border rounded-md p-2 mt-2">
-                     {(promoData.appliesTo?.products || []).length > 0 ? (
-                       <div className="space-y-2">
-                         {(promoData.appliesTo?.products || []).map(p => (
-                           <div key={p.id} className="flex items-center justify-between p-1 rounded-md hover:bg-muted">
-                             <div className="flex items-center gap-2 overflow-hidden">
-                               {p.image ? (
-                                 <Image src={p.image} alt={p.name} width={24} height={24} className="rounded-sm object-cover" />
-                               ) : (
-                                 <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                               )}
-                               <span className="text-sm truncate">{p.name}</span>
-                             </div>
-                             <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveProduct(p.id)}>
-                               <X className="h-4 w-4 text-destructive"/>
-                             </Button>
-                           </div>
-                         ))}
-                       </div>
-                     ) : (
-                       <div className="flex items-center justify-center h-full">
-                         <p className="text-sm text-muted-foreground">Applies to all products by default.</p>
-                       </div>
-                     )}
-                   </ScrollArea>
-                </div>
-            </div>
+            </ScrollArea>
         </div>
-        </ScrollArea>
         <DialogFooter className="flex-shrink-0 pt-4 border-t">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={isSaving}>
