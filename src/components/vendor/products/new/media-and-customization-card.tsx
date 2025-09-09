@@ -40,10 +40,11 @@ export function MediaAndCustomizationCard({
         // If main variant changes, switch the active editing variant
         if (mainVariantId) {
             setActiveVariantId(mainVariantId);
-        } else if (product.variants && product.variants.length > 0) {
+        } else if (product.variants && product.variants.length > 0 && !product.variants.some(v => v.id === activeVariantId)) {
+            // If the active variant ID is no longer valid (e.g., variant deleted), default to the first one
             setActiveVariantId(product.variants[0].id);
         }
-    }, [mainVariantId, product.variants]);
+    }, [mainVariantId, product.variants, activeVariantId]);
 
     const activeVariant = product.variants?.find(v => v.id === activeVariantId);
     
