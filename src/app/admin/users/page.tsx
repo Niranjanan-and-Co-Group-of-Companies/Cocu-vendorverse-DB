@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -20,15 +21,7 @@ import { UserActions } from '@/components/admin/users/user-actions';
 import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  status: 'Active' | 'Suspended';
-  joinedDate: any; // Keep as any for Firestore Timestamps
-}
+import type { User, UserRole } from '@/lib/user-service';
 
 export default function UsersPage() {
   const [users, setUsers] = React.useState<User[]>([]);
@@ -49,14 +42,14 @@ export default function UsersPage() {
     return () => unsub();
   }, []);
 
-  const handleUserAdded = async (newUser: Omit<User, 'id' | 'avatar' | 'status' | 'joinedDate'>) => {
+  const handleUserAdded = async (newUser: Omit<User, 'id' | 'avatar' | 'status' | 'joinedDate' | 'communicationPrefs'>) => {
     try {
         await addDoc(collection(db, 'users'), {
             ...newUser,
             avatar: `https://picsum.photos/seed/${Math.random()}/40/40`,
             status: 'Active',
             joinedDate: serverTimestamp(),
-            createdAt: serverTimestamp(), // For dashboard queries
+            communicationPrefs: { email: true, sms: true },
         });
         // The onSnapshot listener will automatically update the UI
     } catch (error) {
@@ -92,6 +85,15 @@ export default function UsersPage() {
         return 'destructive';
     }
   };
+  
+  const getRoleVariant = (role: UserRole): 'default' | 'secondary' | 'outline' => {
+      switch(role) {
+          case 'admin': return 'default';
+          case 'vendor': return 'secondary';
+          case 'customer': return 'outline';
+          default: return 'outline';
+      }
+  }
 
   const formatDate = (timestamp: any) => {
     if (timestamp && typeof timestamp.toDate === 'function') {
@@ -127,6 +129,7 @@ export default function UsersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Customer</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -146,6 +149,9 @@ export default function UsersPage() {
                       </div>
                     </TableCell>
                     <TableCell>
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                     <TableCell>
                       <Skeleton className="h-6 w-20 rounded-full" />
                     </TableCell>
                     <TableCell>
@@ -172,6 +178,9 @@ export default function UsersPage() {
                           </p>
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                       <Badge variant={getRoleVariant(user.role)} className="capitalize">{user.role}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(user.status)}>

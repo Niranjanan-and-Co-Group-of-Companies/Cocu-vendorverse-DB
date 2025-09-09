@@ -1,12 +1,16 @@
 
-import { doc, getDoc, collection, onSnapshot, Unsubscribe } from 'firebase/firestore';
+
+import { doc, getDoc, collection, onSnapshot, Unsubscribe, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
+
+export type UserRole = 'customer' | 'vendor' | 'admin';
 
 export interface User {
   id: string;
   name: string;
   email: string;
   avatar: string;
+  role: UserRole;
   status: 'Active' | 'Suspended';
   joinedDate: any; 
   communicationPrefs: { email: boolean; sms: boolean; };
@@ -15,6 +19,28 @@ export interface User {
 // In a real application, you would have an authentication hook to get the current user's ID.
 // For demonstration purposes, we will fetch a specific, known user from the database.
 const MOCK_USER_ID = 'user001'; 
+const MOCK_USERS: Omit<User, 'id' | 'joinedDate'>[] = [
+    { name: 'Alice Johnson', email: 'alice.j@example.com', avatar: 'https://i.pravatar.cc/40?u=user001', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: false } },
+    { name: 'Admin User', email: 'admin@vendorverse.com', avatar: 'https://i.pravatar.cc/40?u=admin', role: 'admin', status: 'Active', communicationPrefs: { email: true, sms: true } },
+    { name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', avatar: 'https://i.pravatar.cc/40?u=vendor001', role: 'vendor', status: 'Active', communicationPrefs: { email: true, sms: true } },
+]
+
+async function seedUsers() {
+    const user001Ref = doc(db, 'users', 'user001');
+    const user001Snap = await getDoc(user001Ref);
+    if (!user001Snap.exists()) {
+        console.log("Seeding mock users...");
+        for (const user of MOCK_USERS) {
+            const id = user.role === 'admin' ? 'admin001' : user.role === 'vendor' ? 'vendor001' : 'user001';
+             await setDoc(doc(db, "users", id), {
+                ...user,
+                joinedDate: serverTimestamp()
+            });
+        }
+    }
+}
+seedUsers();
+
 
 /**
  * Fetches a mock user from the database to simulate a logged-in user.

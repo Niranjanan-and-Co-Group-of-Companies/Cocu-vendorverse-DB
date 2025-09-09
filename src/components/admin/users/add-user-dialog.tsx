@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -14,12 +15,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import type { User } from '@/app/admin/users/page';
+import type { User, UserRole } from '@/lib/user-service';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AddUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUserAdded: (user: Omit<User, 'id' | 'avatar' | 'status' | 'joinedDate'>) => void;
+  onUserAdded: (user: Omit<User, 'id' | 'avatar' | 'status' | 'joinedDate' | 'communicationPrefs'>) => void;
   children: React.ReactNode;
 }
 
@@ -28,6 +30,7 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [phone, setPhone] = React.useState('');
+  const [role, setRole] = React.useState<UserRole>('customer');
   const [otp, setOtp] = React.useState('');
   const { toast } = useToast();
 
@@ -60,7 +63,7 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
         return;
     }
     
-    onUserAdded({ name, email });
+    onUserAdded({ name, email, role });
     toast({
         title: "Customer Added",
         description: `Customer account for ${name} has been successfully created.`,
@@ -121,6 +124,21 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
                 </Label>
                 <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="col-span-3" placeholder="+91 98765 43210" />
               </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="role" className="text-right">
+                        Role
+                    </Label>
+                    <Select value={role} onValueChange={(value: UserRole) => setRole(value)}>
+                        <SelectTrigger id="role" className="col-span-3">
+                            <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="customer">Customer</SelectItem>
+                            <SelectItem value="vendor">Vendor</SelectItem>
+                             <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
             <DialogFooter>
               <Button onClick={handleContinue}>Continue</Button>
