@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/firestore';
@@ -83,7 +84,7 @@ async function calculateFinalPrice(
 
     const platformName = platform === 'personal' ? 'Personalized' : 'Corporate';
     const applicablePromotions = promotions.filter(promo => {
-        if (promo.platform !== 'Both' && promo.platform !== platformName) {
+        if (promo.platform !== platformName) {
             return false;
         }
         if (promo.scope === 'All Products') return true;

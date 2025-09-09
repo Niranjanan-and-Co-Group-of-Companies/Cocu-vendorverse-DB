@@ -4,7 +4,7 @@ export type ProductStatus = 'Live' | 'Draft' | 'Archived' | 'Pending Review' | '
 
 export type CustomizationSide = 'front' | 'back' | 'left' | 'right' | 'top' | 'bottom';
 export type AllowedCustomizationType = 'Text' | 'AI Image' | 'Image Upload' | 'QR Code' | 'Clipart';
-export type Platform = 'Personalized' | 'Corporate' | 'Both';
+export type Platform = 'Personalized' | 'Corporate';
 
 export interface TieredPrice {
   quantity: number;

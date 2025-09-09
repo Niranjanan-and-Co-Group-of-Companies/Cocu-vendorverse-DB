@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -48,7 +49,7 @@ const getInitialFormData = (promotion: Promotion | null): Partial<Promotion> => 
         code: '',
         type: 'Percentage',
         value: 10,
-        platform: 'Both',
+        platform: 'Personalized',
         status: 'Active',
         scope: 'All Products',
         usageLimit: null,
@@ -173,7 +174,6 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                     <Select value={formData.platform} onValueChange={(value: PromotionPlatform) => handleChange('platform', value)}>
                         <SelectTrigger id="platform"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="Both">All Platforms</SelectItem>
                             <SelectItem value="Personalized">Personalized Only</SelectItem>
                             <SelectItem value="Corporate">Corporate Only</SelectItem>
                         </SelectContent>

@@ -5,7 +5,7 @@ import { db } from './firebase';
 
 export type PromotionType = 'Percentage' | 'Fixed Amount';
 export type PromotionStatus = 'Active' | 'Inactive' | 'Expired';
-export type PromotionPlatform = 'Personalized' | 'Corporate' | 'Both';
+export type PromotionPlatform = 'Personalized' | 'Corporate';
 export type PromotionScope = 'All Products' | 'Specific Categories' | 'Specific Products';
 
 export interface Promotion {
@@ -28,11 +28,11 @@ export interface Promotion {
 }
 
 const MOCK_PROMOTIONS: Omit<Promotion, 'id' | 'createdAt'>[] = [
-    { code: 'WELCOME10', type: 'Percentage', value: 10, platform: 'Both', status: 'Active', usageCount: 42, usageLimit: 2000, startDate: new Date(2024, 0, 1), scope: 'All Products', isPublic: true },
+    { code: 'WELCOME10', type: 'Percentage', value: 10, platform: 'Personalized', status: 'Active', usageCount: 42, usageLimit: 2000, startDate: new Date(2024, 0, 1), scope: 'All Products', isPublic: true },
     { code: 'SUMMER24', type: 'Percentage', value: 15, platform: 'Personalized', status: 'Active', usageCount: 152, startDate: new Date(2024, 5, 1), expiresAt: new Date(2024, 7, 31), scope: 'All Products', isPublic: true },
     { code: 'CORPWELCOME', type: 'Fixed Amount', value: 100, platform: 'Corporate', status: 'Active', usageCount: 890, usageLimit: 1000, startDate: new Date(2024, 0, 1), scope: 'All Products', isPublic: false },
-    { code: 'FLASHFRIDAY', type: 'Percentage', value: 25, platform: 'Both', status: 'Expired', usageCount: 50, startDate: new Date(2024, 4, 17), expiresAt: new Date(2024, 4, 17), scope: 'All Products', isPublic: true },
-    { code: 'LAUNCHGIFT', type: 'Fixed Amount', value: 200, platform: 'Both', status: 'Inactive', usageCount: 0, startDate: new Date(2024, 6, 1), scope: 'Specific Categories', applicableCategoryIds: ['food-drink'], isPublic: false },
+    { code: 'FLASHFRIDAY', type: 'Percentage', value: 25, platform: 'Personalized', status: 'Expired', usageCount: 50, startDate: new Date(2024, 4, 17), expiresAt: new Date(2024, 4, 17), scope: 'All Products', isPublic: true },
+    { code: 'LAUNCHGIFT', type: 'Fixed Amount', value: 200, platform: 'Personalized', status: 'Inactive', usageCount: 0, startDate: new Date(2024, 6, 1), scope: 'Specific Categories', applicableCategoryIds: ['food-drink'], isPublic: false },
 ];
 
 async function seedPromotions() {
@@ -107,7 +107,7 @@ export async function getAvailableOffers(category?: string, productId?: number):
         promotionsRef,
         where('status', '==', 'Active'),
         where('isPublic', '==', true),
-        where('platform', 'in', ['Both', 'Personalized'])
+        where('platform', 'in', ['Personalized'])
     );
 
     const snapshot = await getDocs(q);

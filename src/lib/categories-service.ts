@@ -6,7 +6,7 @@ import { db, storage } from './firebase';
 import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
 
-export type CategoryPlatform = 'Personalized' | 'Corporate' | 'Both';
+export type CategoryPlatform = 'Personalized' | 'Corporate';
 
 export interface Category {
   id: string;
@@ -36,14 +36,14 @@ async function seedCategories() {
         console.log("Seeding categories...");
         const batch = writeBatch(db);
         const mockCategories = [
-            { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300", platform: 'Both' },
-            { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300", platform: 'Both' },
-            { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300", platform: 'Both' },
+            { name: "Food & Drink", image: "https://picsum.photos/seed/food/400/300", platform: 'Personalized' },
+            { name: "Wellness", image: "https://picsum.photos/seed/wellness/400/300", platform: 'Personalized' },
+            { name: "Fashion & Accessories", image: "https://picsum.photos/seed/fashion/400/300", platform: 'Personalized' },
             { name: "Office & Corporate", image: "https://picsum.photos/seed/office/400/300", platform: 'Corporate' },
-            { name: "Tech", image: "https://picsum.photos/seed/tech/400/300", platform: 'Both' },
-            { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Both' },
+            { name: "Tech", image: "https://picsum.photos/seed/tech/400/300", platform: 'Personalized' },
+            { name: "Home & Decor", image: "https://picsum.photos/seed/home/400/300", platform: 'Personalized' },
             { name: "Made by Sunshine", image: "https://picsum.photos/seed/sunshine/400/300", platform: 'Personalized' },
-            { name: "Other", image: "https://picsum.photos/seed/other/400/300", platform: 'Both' },
+            { name: "Other", image: "https://picsum.photos/seed/other/400/300", platform: 'Personalized' },
         ];
         mockCategories.forEach(cat => {
             const docRef = doc(categoriesRef);
@@ -148,8 +148,7 @@ export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Co
     seedCategories(); // Ensure categories exist
 
     const categoriesRef = collection(db, 'categories');
-    const platformFilter = ['Both', platform];
-    const categoriesQuery = query(categoriesRef, where('platform', 'in', platformFilter));
+    const categoriesQuery = query(categoriesRef, where('platform', '==', platform));
     
     const commissionsRef = collection(db, 'commissions');
 
@@ -200,7 +199,7 @@ export async function getCategories(platform?: CategoryPlatform): Promise<Catego
     let categoriesQuery;
 
     if (platform) {
-        categoriesQuery = query(categoriesRef, where('platform', 'in', ['Both', platform]));
+        categoriesQuery = query(categoriesRef, where('platform', '==', platform));
     } else {
         categoriesQuery = query(categoriesRef);
     }
@@ -232,7 +231,7 @@ export async function getCategoryByName(name?: string): Promise<Category | null>
         return null;
     }
     const docData = snapshot.docs[0];
-    const commissionType = (docData.data().platform === 'Corporate' || docData.data().platform === 'Both') ? 'corporate-bulk' : 'personalized-retail';
+    const commissionType = (docData.data().platform === 'Corporate') ? 'corporate-bulk' : 'personalized-retail';
     
     const commissionsQuery = query(collection(db, 'commissions'), where('categoryName', '==', name), where('type', '==', commissionType));
     const commissionsSnapshot = await getDocs(commissionsQuery);

@@ -91,7 +91,6 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
                 <SelectContent>
                   <SelectItem value="Personalized">Personalized Retail</SelectItem>
                   <SelectItem value="Corporate">Corporate & Bulk</SelectItem>
-                  <SelectItem value="Both">Both</SelectItem>
                 </SelectContent>
               </Select>
             </div>

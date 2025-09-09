@@ -28,7 +28,7 @@ interface CategoryDialogProps {
 
 export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogProps) {
   const [name, setName] = React.useState('');
-  const [platform, setPlatform] = React.useState<CategoryPlatform>('Both');
+  const [platform, setPlatform] = React.useState<CategoryPlatform>('Personalized');
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -38,11 +38,11 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
   React.useEffect(() => {
     if (category) {
       setName(category.name);
-      setPlatform(category.platform || 'Both');
+      setPlatform(category.platform || 'Personalized');
       setPreviewUrl(category.image || null);
     } else {
       setName('');
-      setPlatform('Both');
+      setPlatform('Personalized');
       setPreviewUrl(null);
     }
     setImageFile(null); // Reset file on open/change
@@ -100,9 +100,8 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
                     <SelectValue placeholder="Select platform visibility" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="Both">Both</SelectItem>
-                    <SelectItem value="Personalized">Personalized Only</SelectItem>
-                    <SelectItem value="Corporate">Corporate Only</SelectItem>
+                    <SelectItem value="Personalized">Personalized</SelectItem>
+                    <SelectItem value="Corporate">Corporate</SelectItem>
                 </SelectContent>
             </Select>
           </div>
