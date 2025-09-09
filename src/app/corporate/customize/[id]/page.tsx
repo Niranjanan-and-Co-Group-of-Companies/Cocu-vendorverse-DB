@@ -9,20 +9,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CustomizationProvider } from '@/hooks/use-customization';
 import { CorporateCustomizationStudio } from '@/components/corporate/customization/corporate-customization-studio';
 
-function CorporateCustomizePageContent({ params }: { params: { id: string } }) {
+function CorporateCustomizePageContent({ id }: { id: string }) {
     const [product, setProduct] = React.useState<Product | null>(null);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        if (params.id) {
+        if (id) {
             setLoading(true);
-            const unsubscribe = onProductUpdate(String(params.id), (productData) => {
+            const unsubscribe = onProductUpdate(String(id), (productData) => {
                 setProduct(productData);
                 setLoading(false);
             });
             return () => unsubscribe();
         }
-    }, [params.id]);
+    }, [id]);
 
     if (loading) {
         return (
@@ -66,7 +66,7 @@ export default function CorporateCustomizePage({ params }: { params: { id: strin
     return (
         <main className="flex-grow h-full">
             <React.Suspense fallback={<p>Loading...</p>}>
-                <CorporateCustomizePageContent params={params} />
+                <CorporateCustomizePageContent id={params.id} />
             </React.Suspense>
         </main>
     );

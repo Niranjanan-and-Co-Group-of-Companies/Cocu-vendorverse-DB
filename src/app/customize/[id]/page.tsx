@@ -10,22 +10,21 @@ import Footer from '@/components/layout/footer';
 import { CustomizationStudio } from '@/components/personalization/customization-studio';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CustomizationProvider } from '@/hooks/use-customization';
-import { use } from 'react';
 
-function CustomizePageContent({ params }: { params: { id: string } }) {
+function CustomizePageContent({ id }: { id: string }) {
     const [product, setProduct] = React.useState<Product | null>(null);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        if (params.id) {
+        if (id) {
             setLoading(true);
-            const unsubscribe = onProductUpdate(String(params.id), (productData) => {
+            const unsubscribe = onProductUpdate(String(id), (productData) => {
                 setProduct(productData);
                 setLoading(false);
             });
             return () => unsubscribe();
         }
-    }, [params.id]);
+    }, [id]);
 
     if (loading) {
         return (
@@ -62,14 +61,13 @@ function CustomizePageContent({ params }: { params: { id: string } }) {
 
 
 export default function CustomizePage({ params }: { params: { id: string } }) {
-    const resolvedParams = use(params);
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-grow">
                 <React.Suspense fallback={<p>Loading...</p>}>
                     <CustomizationProvider>
-                        <CustomizePageContent params={resolvedParams} />
+                        <CustomizePageContent id={params.id} />
                     </CustomizationProvider>
                 </React.Suspense>
             </main>

@@ -9,7 +9,7 @@ import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
-import { Suspense, useEffect, useState, use } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { getCategoryBySlug, getProductsByCategory } from '@/lib/categories-service';
@@ -21,8 +21,7 @@ interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
 }
 
-function CategoryPageContent({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+function CategoryPageContent({ slug }: { slug: string }) {
   const [products, setProducts] = useState<ProductWithPrice[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
@@ -173,12 +172,11 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
 
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
-  const resolvedParams = use(params);
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
        <Suspense fallback={<div>Loading...</div>}>
-         <CategoryPageContent params={resolvedParams} />
+         <CategoryPageContent slug={params.slug} />
        </Suspense>
       <Footer />
     </div>

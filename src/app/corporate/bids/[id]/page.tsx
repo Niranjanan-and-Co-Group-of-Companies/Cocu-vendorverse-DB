@@ -7,11 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { use } from 'react';
 
-function BidDetailsPageContent({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
-    
+function BidDetailsPageContent({ id }: { id: string }) {
     return (
         <div className="flex flex-col gap-6">
             <Link href="/corporate/bids" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
@@ -24,10 +21,10 @@ function BidDetailsPageContent({ params }: { params: Promise<{ id: string }> }) 
 }
 
 
-export default function BidDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default function BidDetailsPage({ params }: { params: { id: string } }) {
     return (
         <React.Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
-            <BidDetailsPageContent params={params} />
+            <BidDetailsPageContent id={params.id} />
         </React.Suspense>
     );
 }

@@ -12,12 +12,10 @@ import { RelatedProductsCarousel } from '@/components/product/related-products-c
 import { Skeleton } from '@/components/ui/skeleton';
 import { CorporateProductInteractions } from '@/components/corporate/corporate-product-interactions';
 import { AvailableOffers } from '@/components/product/available-offers';
-import { use } from 'react';
 import { getCategoryByName } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 
-function ProductPageContent({ params }: { params: { id: string } }) {
-    const { id } = use(params);
+function ProductPageContent({ id }: { id: string }) {
     const [product, setProduct] = React.useState<Product | null>(null);
     const [category, setCategory] = React.useState<Category | null>(null);
     const [loading, setLoading] = React.useState(true);
@@ -133,10 +131,10 @@ function ProductPageContent({ params }: { params: { id: string } }) {
 }
 
 
-export default function CorporateProductPage({ params }: { params: Promise<{ id: string }> }) {
+export default function CorporateProductPage({ params }: { params: { id: string } }) {
     return (
         <main className="flex-grow">
-            <ProductPageContent params={params} />
+            <ProductPageContent id={params.id} />
         </main>
     );
 }

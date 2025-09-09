@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -14,13 +13,11 @@ import { ProductDetailsAccordion } from '@/components/product/product-details-ac
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AvailableOffers } from '@/components/product/available-offers';
-import { use } from 'react';
 import { getCategoryByName } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 import { Button } from '@/components/ui/button';
 
-function ProductPageContent({ params }: { params: { id: string } }) {
-    const { id } = params;
+function ProductPageContent({ id }: { id: string }) {
     const [product, setProduct] = React.useState<Product | null>(null);
     const [category, setCategory] = React.useState<Category | null>(null);
     const [loading, setLoading] = React.useState(true);
@@ -152,7 +149,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <Header />
             <main className="flex-grow">
                  <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
-                    <ProductPageContent params={use(params)} />
+                    <ProductPageContent id={params.id} />
                 </React.Suspense>
             </main>
             <Footer />
