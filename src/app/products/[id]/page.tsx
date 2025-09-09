@@ -141,13 +141,13 @@ function ProductPageContent({ id }: { id: string }) {
 }
 
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage({ params: { id } }: { params: { id: string } }) {
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-grow">
                  <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
-                    <ProductPageContent id={params.id} />
+                    <ProductPageContent id={id} />
                 </React.Suspense>
             </main>
             <Footer />
