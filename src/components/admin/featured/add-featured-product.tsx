@@ -4,44 +4,55 @@
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, PlusCircle } from 'lucide-react';
+import { Search, PlusCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { addFeatured } from '@/lib/featured-service';
-import { getAllProducts, type Product } from '@/lib/products-service';
+import { type Product } from '@/lib/products';
+import { collection, onSnapshot, query, where, orderBy, startAt, endAt } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface AddFeaturedProductProps {
-  featuredProductIds: number[];
+  featuredProductIds: string[];
 }
 
 export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [searchResults, setSearchResults] = React.useState<Product[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const { toast } = useToast();
 
   React.useEffect(() => {
-      const fetchProducts = async () => {
-          setLoading(true);
-          const products = await getAllProducts();
-          setAllProducts(products);
-          setLoading(false);
-      }
-      fetchProducts();
-  }, []);
-  
-  const searchResults = React.useMemo(() => {
-    if (!searchQuery) return [];
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    return allProducts.filter(product => 
-        product.name.toLowerCase().includes(lowerCaseQuery) ||
-        product.vendor.toLowerCase().includes(lowerCaseQuery)
-    ).slice(0, 20); // Limit results for performance
-  }, [searchQuery, allProducts]);
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setLoading(false);
+      return;
+    }
 
-  const handleAdd = async (productId: number, productName: string) => {
+    setLoading(true);
+    const q = query(
+        collection(db, 'products'),
+        orderBy('name_lowercase'),
+        startAt(searchQuery.toLowerCase()),
+        endAt(searchQuery.toLowerCase() + '\uf8ff')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const products = snapshot.docs.map(doc => doc.data() as Product);
+        setSearchResults(products);
+        setLoading(false);
+    }, (error) => {
+        console.error("Error searching products:", error);
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [searchQuery]);
+  
+
+  const handleAdd = async (productId: string, productName: string) => {
     try {
         await addFeatured(productId);
         toast({
@@ -69,9 +80,10 @@ export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductPro
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+           {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
         </div>
         <ScrollArea className="h-72 mt-4 pr-4">
-            {searchQuery && searchResults.length > 0 ? (
+            {searchResults.length > 0 ? (
                  <div className="space-y-2">
                     {searchResults.map(item => (
                         <div key={`prod-${item.id}`} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
@@ -82,7 +94,7 @@ export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductPro
                                     <p className="text-xs text-muted-foreground truncate">{item.vendor}</p>
                                 </div>
                             </div>
-                            <Button size="sm" variant="ghost" disabled={featuredProductIds.includes(item.id)} onClick={() => handleAdd(item.id, item.name)}>
+                            <Button size="sm" variant="ghost" disabled={featuredProductIds.includes(String(item.id))} onClick={() => handleAdd(String(item.id), item.name)}>
                                 <PlusCircle className="mr-2 h-4 w-4" /> Add
                             </Button>
                         </div>
@@ -91,7 +103,7 @@ export function AddFeaturedProduct({ featuredProductIds }: AddFeaturedProductPro
             ) : (
                 <div className="h-full flex items-center justify-center">
                     <p className="text-sm text-muted-foreground">
-                        {loading ? 'Loading products...' : (searchQuery ? 'No results found.' : 'Start typing to find products.')}
+                        {loading ? 'Searching...' : (searchQuery.length > 1 ? 'No results found.' : 'Start typing to find products.')}
                     </p>
                 </div>
             )}

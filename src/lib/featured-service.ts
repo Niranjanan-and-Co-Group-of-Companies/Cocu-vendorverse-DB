@@ -10,14 +10,6 @@ export interface FeaturedProduct extends Product {
   b2bEnabled: boolean; // To know if the corporate toggle should be enabled
 }
 
-export interface ProductSearchResult {
-    id: number;
-    name: string;
-    type: 'product' | 'vendor';
-    image?: string;
-    vendorName?: string;
-}
-
 const featuredCollection = collection(db, 'featured');
 const productsCollection = collection(db, 'products');
 
@@ -117,7 +109,7 @@ export function onFeaturedProductsUpdate(callback: (products: FeaturedProduct[])
 }
 
 // Toggle a product's featured status on a specific platform
-export async function toggleFeaturedPlatform(productId: number, platform: 'personal' | 'corporate') {
+export async function toggleFeaturedPlatform(productId: string, platform: 'personal' | 'corporate') {
   const docRef = doc(featuredCollection, String(productId));
   const docSnap = await getDoc(docRef);
 
@@ -132,7 +124,7 @@ export async function toggleFeaturedPlatform(productId: number, platform: 'perso
 }
 
 // Add a product to the featured list
-export async function addFeatured(productId: number) {
+export async function addFeatured(productId: string) {
   const docRef = doc(featuredCollection, String(productId));
   await setDoc(docRef, {
     featuredOnPersonal: true, // Default to true on personal
@@ -141,16 +133,9 @@ export async function addFeatured(productId: number) {
 }
 
 // Remove a product from the featured list entirely
-export async function removeFeatured(productId: number) {
+export async function removeFeatured(productId: string) {
   const docRef = doc(featuredCollection, String(productId));
   await deleteDoc(docRef);
-}
-
-// Search for products and vendors to feature
-export async function searchProductsAndVendors(searchQuery: string): Promise<ProductSearchResult[]> {
-    // This function is now simplified as the client will fetch all products and filter locally.
-    // Kept here for structure, but not used by the updated component.
-    return [];
 }
 
 

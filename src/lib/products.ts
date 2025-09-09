@@ -1,4 +1,5 @@
 
+
 export type ProductStatus = 'Live' | 'Draft' | 'Archived' | 'Pending Review' | 'Declined';
 
 export type CustomizationSide = 'front' | 'back' | 'left' | 'right' | 'top' | 'bottom';
@@ -37,8 +38,9 @@ export interface ProductVariant {
 
 
 export type Product = {
-  id: number;
+  id: string;
   name: string;
+  name_lowercase: string;
   vendor: string; // Vendor Name
   vendorId: string;
   price: string;

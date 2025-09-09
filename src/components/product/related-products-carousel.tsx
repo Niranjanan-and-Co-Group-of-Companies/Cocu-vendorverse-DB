@@ -19,7 +19,7 @@ import { Badge } from '../ui/badge';
 interface RelatedProductsCarouselProps {
   type: 'category' | 'vendor';
   value?: string;
-  currentProductId?: number;
+  currentProductId?: string;
   title: string;
 }
 
