@@ -26,7 +26,8 @@ export type ConditionType = 'min-purchase' | 'customer-segment' | 'product-categ
 export interface TargetableItem {
     id: string;
     name: string;
-    image?: string; // Make image optional
+    image?: string;
+    platform?: 'Personalized' | 'Corporate';
 }
 
 export interface Promotion {
@@ -104,8 +105,8 @@ export async function getTargetableItems(): Promise<{ products: TargetableItem[]
     const vendorsSnap = await getDocs(query(collection(db, 'vendors'), orderBy('name')));
 
     return {
-        products: productsSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name, image: doc.data().image })),
-        categories: categoriesSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name, slug: doc.data().slug })),
+        products: productsSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name, image: doc.data().image, platform: doc.data().platform })),
+        categories: categoriesSnap.docs.map(doc => ({ id: doc.data().slug, name: doc.data().name })),
         vendors: vendorsSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name, image: doc.data().avatar })),
     };
 }

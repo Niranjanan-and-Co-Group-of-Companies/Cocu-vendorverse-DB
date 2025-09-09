@@ -176,7 +176,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
       });
   };
 
-  const handleSelect = async (type: 'product', item: TargetableItem) => {
+  const handleSelect = async (type: 'product' | 'category' | 'vendor', item: TargetableItem) => {
     if (type === 'product') {
         addProductsToSelection([item]);
     }
@@ -212,6 +212,15 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
         setIsSaving(false);
     }
   }
+  
+  const filteredTargetableProducts = React.useMemo(() => {
+    const platform = promoData.platform;
+    if (platform === 'Both') {
+      return targetableItems.products;
+    }
+    return targetableItems.products.filter(p => p.platform === platform);
+  }, [promoData.platform, targetableItems.products]);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -300,7 +309,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                     <h4 className="font-medium">Targeting (Optional)</h4>
                     <p className="text-sm text-muted-foreground">Search for products to apply this promotion to. If no products are selected, it applies to the entire cart.</p>
                     
-                    <SearchAndSelect title="Products" items={targetableItems.products} onSelect={(item) => handleSelect('product', item)} />
+                    <SearchAndSelect title="Products" items={filteredTargetableProducts} onSelect={(item) => handleSelect('product', item)} />
                     
                     <div>
                     <Label>Applied to Products</Label>
