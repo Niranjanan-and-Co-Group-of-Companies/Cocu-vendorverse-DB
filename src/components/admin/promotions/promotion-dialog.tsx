@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -14,14 +13,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { savePromotion, type Promotion, type PromotionType, type PromotionStatus, type PromotionPlatform } from '@/lib/promotions-service';
+import { savePromotion, type Promotion, type PromotionType, type PromotionStatus, type PromotionPlatform, getTargetableItems, type TargetableItem } from '@/lib/promotions-service';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, X } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 interface PromotionDialogProps {
   open: boolean;
@@ -39,17 +41,62 @@ const createDefaultPromotion = (): Partial<Promotion> => ({
     usageLimit: 100,
     usageCount: 0,
     conditions: [],
+    visibleOnPlatform: false,
+    appliesTo: { products: [], categories: [], vendors: [] }
 });
+
+function MultiSelect({ title, items, selectedItems, onSelectionChange }: { title: string, items: TargetableItem[], selectedItems: TargetableItem[], onSelectionChange: (newSelection: TargetableItem[]) => void }) {
+    const [search, setSearch] = React.useState('');
+    const selectedIds = new Set(selectedItems.map(i => i.id));
+    
+    const filteredItems = items
+        .filter(item => item.name.toLowerCase().includes(search.toLowerCase()) && !selectedIds.has(item.id))
+        .slice(0, 10);
+
+    const handleSelect = (item: TargetableItem) => {
+        onSelectionChange([...selectedItems, item]);
+        setSearch('');
+    };
+
+    const handleRemove = (itemToRemove: TargetableItem) => {
+        onSelectionChange(selectedItems.filter(item => item.id !== itemToRemove.id));
+    };
+
+    return (
+        <div className="space-y-2">
+            <Label>{title}</Label>
+            <Input placeholder={`Search for a ${title.toLowerCase().slice(0, -1)}...`} value={search} onChange={e => setSearch(e.target.value)} />
+             {search && filteredItems.length > 0 && (
+                <ScrollArea className="h-32 border rounded-md">
+                    {filteredItems.map(item => (
+                        <div key={item.id} onClick={() => handleSelect(item)} className="p-2 cursor-pointer hover:bg-accent text-sm">{item.name}</div>
+                    ))}
+                </ScrollArea>
+             )}
+            <div className="flex flex-wrap gap-2">
+                {selectedItems.map(item => (
+                    <Badge key={item.id} variant="secondary">{item.name} <button onClick={() => handleRemove(item)} className="ml-2"><X className="h-3 w-3"/></button></Badge>
+                ))}
+            </div>
+        </div>
+    );
+}
 
 export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDialogProps) {
   const [promoData, setPromoData] = React.useState<Partial<Promotion>>(createDefaultPromotion());
   const [isSaving, setIsSaving] = React.useState(false);
+  const [targetableItems, setTargetableItems] = React.useState<{ products: TargetableItem[], categories: TargetableItem[], vendors: TargetableItem[] }>({ products: [], categories: [], vendors: []});
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    getTargetableItems().then(setTargetableItems);
+  }, []);
 
   React.useEffect(() => {
     if (open) {
         if (promotion) {
             setPromoData({
+                ...createDefaultPromotion(),
                 ...promotion,
                 expiresAt: promotion.expiresAt?.toDate ? promotion.expiresAt.toDate() : undefined,
             });
@@ -63,6 +110,10 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
     setPromoData(prev => ({ ...prev, [field]: value }));
   };
   
+  const handleAppliesToChange = (type: 'products' | 'categories' | 'vendors', value: TargetableItem[]) => {
+      setPromoData(prev => ({ ...prev, appliesTo: { ...(prev.appliesTo || { products: [], categories: [], vendors: [] }), [type]: value } }));
+  };
+
   const handleSave = async () => {
     if (!promoData.code || !promoData.type) {
         toast({ title: "Code and Type are required.", variant: 'destructive' });
@@ -82,13 +133,14 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>{promotion ? 'Edit Promotion' : 'Create New Promotion'}</DialogTitle>
           <DialogDescription>
             Fill in the details for the promotional coupon code.
           </DialogDescription>
         </DialogHeader>
+        <ScrollArea className="pr-6 -mr-6">
         <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -158,7 +210,22 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                     </Popover>
                 </div>
             </div>
+            <div className="space-y-4 rounded-lg border p-4">
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="visible" className="text-base">Visible on Platform</Label>
+                    <Switch id="visible" checked={promoData.visibleOnPlatform} onCheckedChange={(checked) => handleFieldChange('visibleOnPlatform', checked)} />
+                </div>
+                <p className="text-sm text-muted-foreground">If enabled, this coupon will be automatically applied at checkout for eligible orders. Only one visible coupon can be active at a time.</p>
+            </div>
+             <div className="space-y-4 rounded-lg border p-4">
+                <h4 className="font-medium">Targeting (Optional)</h4>
+                <p className="text-sm text-muted-foreground">If no targets are selected, the coupon applies to the entire cart.</p>
+                <MultiSelect title="Products" items={targetableItems.products} selectedItems={promoData.appliesTo?.products || []} onSelectionChange={(val) => handleAppliesToChange('products', val)} />
+                <MultiSelect title="Categories" items={targetableItems.categories} selectedItems={promoData.appliesTo?.categories || []} onSelectionChange={(val) => handleAppliesToChange('categories', val)} />
+                <MultiSelect title="Vendors" items={targetableItems.vendors} selectedItems={promoData.appliesTo?.vendors || []} onSelectionChange={(val) => handleAppliesToChange('vendors', val)} />
+            </div>
         </div>
+        </ScrollArea>
         <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={isSaving}>
@@ -170,4 +237,3 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
     </Dialog>
   );
 }
-

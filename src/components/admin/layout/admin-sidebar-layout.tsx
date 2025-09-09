@@ -1,4 +1,7 @@
 'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +15,6 @@ import {
   SidebarTrigger,
   SidebarMenuBadge,
 } from '@/components/ui/sidebar';
-import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Home,
@@ -41,11 +43,10 @@ import {
   PackageSearch,
   BookCopy,
   Webhook,
-  Inbox,
-  Newspaper
+  Newspaper,
+  Inbox
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
 import React from 'react';
 import { getPendingProductCount } from '@/lib/products-client-service';
@@ -211,10 +212,10 @@ function AdminSidebar() {
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={isActive('/admin/promotions')} tooltip={{ children: 'Promotions' }}>
+                      <SidebarMenuButton asChild isActive={isActive('/admin/promotions')} tooltip={{ children: 'Promotion Engine' }}>
                         <Link href="/admin/promotions">
                           <Percent />
-                          <span>Promotions</span>
+                          <span>Promotion Engine</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -316,7 +317,7 @@ function AdminSidebar() {
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
-                     <SidebarMenuItem>
+                    <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/admin/webhooks')} tooltip={{ children: 'Webhooks' }}>
                             <Link href="/admin/webhooks">
                             <Webhook />
@@ -352,7 +353,7 @@ function AdminSidebar() {
     );
 }
 
-function AdminLayoutContent({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -376,13 +377,4 @@ function AdminLayoutContent({
         </SidebarInset>
     </SidebarProvider>
   );
-}
-
-
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <AdminLayoutContent>{children}</AdminLayoutContent>;
 }

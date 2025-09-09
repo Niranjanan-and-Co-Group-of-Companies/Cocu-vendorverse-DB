@@ -1,10 +1,8 @@
-
-
 'use client';
 
 import * as React from 'react';
 import type { Product } from '@/lib/products';
-import { Star } from 'lucide-react';
+import { Star, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { VendorInfoDialog } from './vendor-info-dialog';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
@@ -13,6 +11,8 @@ import type { Category } from '@/lib/categories-service';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
 import { usePathname } from 'next/navigation';
+import { getActivePromotionsForProduct, type Promotion } from '@/lib/promotions-service';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface ProductInfoProps {
   product: Product;
@@ -24,6 +24,7 @@ interface ProductInfoProps {
 export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps) {
   const [isVendorInfoOpen, setIsVendorInfoOpen] = React.useState(false);
   const [priceInfo, setPriceInfo] = React.useState<DisplayPrice | null>(null);
+  const [promotions, setPromotions] = React.useState<Promotion[]>([]);
   const [loadingPrice, setLoadingPrice] = React.useState(true);
   const pathname = usePathname();
   
@@ -34,7 +35,6 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
 
     async function fetchPrice() {
         setLoadingPrice(true);
-        // We need the category with commission to calculate the price accurately
         unsubscribe = onCategoriesWithCommissionsUpdate(platform, (categories) => {
             const category = categories.find(c => c.name === product.category);
             calculateDisplayPrice(product.price, platform, category, product.discountType, product.discountValue).then(info => {
@@ -44,7 +44,13 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
         });
     }
 
+    async function fetchPromotions() {
+        const applicablePromos = await getActivePromotionsForProduct(product.id, product.category || '', product.vendorId);
+        setPromotions(applicablePromos);
+    }
+
     fetchPrice();
+    fetchPromotions();
     
     return () => {
         if(unsubscribe) {
@@ -111,6 +117,24 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
                 </div>
             )}
         </div>
+        
+        {promotions.length > 0 && (
+            <Card>
+                <CardHeader className="p-4">
+                    <CardTitle className="text-base flex items-center gap-2">
+                        <Tag className="h-5 w-5"/> Available Offers
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0 space-y-2">
+                    {promotions.map(promo => (
+                        <div key={promo.id} className="text-sm p-2 rounded-md bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800">
+                           <span className="font-semibold">{promo.code}:</span> {promo.description}
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )}
+
         </div>
 
         <VendorInfoDialog 

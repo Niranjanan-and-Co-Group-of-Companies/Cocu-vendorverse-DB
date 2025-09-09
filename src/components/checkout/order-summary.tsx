@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -10,6 +9,8 @@ import { ScrollArea } from '../ui/scroll-area';
 import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Tag } from 'lucide-react';
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat('en-IN', {
@@ -22,6 +23,7 @@ export function OrderSummary() {
   const { items } = useCart();
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
+  const [couponCode, setCouponCode] = React.useState('');
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
@@ -58,6 +60,12 @@ export function OrderSummary() {
                 )})}
             </div>
         </ScrollArea>
+        <Separator />
+        <div className="flex items-center gap-2">
+            <Tag className="text-muted-foreground" />
+            <Input placeholder="Enter coupon code" value={couponCode} onChange={e => setCouponCode(e.target.value)} />
+            <Button variant="secondary" disabled={!couponCode}>Apply</Button>
+        </div>
         <Separator />
         <div className="space-y-2 text-sm">
             <div className="flex justify-between">
