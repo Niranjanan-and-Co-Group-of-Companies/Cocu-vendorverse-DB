@@ -9,22 +9,103 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { getMockUser, type User } from '@/lib/user-service';
 import { Skeleton } from '@/components/ui/skeleton';
+import { onSnapshot, query, collection, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Order } from '@/lib/orders-service';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Eye } from 'lucide-react';
 
 // Component for Orders Tab
 function OrdersTab() {
+    const [orders, setOrders] = React.useState<Order[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        // In a real app, this would use the current user's ID
+        const userId = 'user001';
+        const q = query(collection(db, 'orders'), where('customer.id', '==', userId));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+            setOrders(fetchedOrders);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+    
+    const formatDate = (timestamp: any) => {
+        if (!timestamp?.toDate) return 'N/A';
+        return timestamp.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+
+    const getStatusVariant = (status: Order['status']) => {
+        switch (status) {
+            case 'Delivered': return 'default';
+            case 'Shipped': return 'default';
+            case 'Processing':
+            case 'Preparing':
+            case 'Packaging':
+            case 'Dispatched': return 'secondary';
+            case 'Pending': return 'secondary';
+            case 'Cancelled': return 'destructive';
+            default: return 'outline';
+        }
+    };
+    
+    const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle>My Orders</CardTitle>
-                <CardDescription>Order history will be displayed here.</CardDescription>
+                <CardDescription>Your order history is displayed below.</CardDescription>
             </CardHeader>
             <CardContent>
-                 <div className="text-center text-muted-foreground py-8">
-                    <p>You haven't placed any orders yet.</p>
-                    <Button asChild className="mt-4">
-                        <Link href="/">Start Shopping</Link>
-                    </Button>
-                </div>
+                {loading ? (
+                    <div className="space-y-4">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                    </div>
+                ) : orders.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">
+                        <p>You haven't placed any orders yet.</p>
+                        <Button asChild className="mt-4">
+                            <Link href="/">Start Shopping</Link>
+                        </Button>
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Order ID</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {orders.map(order => (
+                                <TableRow key={order.id}>
+                                    <TableCell className="font-mono text-xs">#{order.id.substring(0, 8)}...</TableCell>
+                                    <TableCell>{formatDate(order.date)}</TableCell>
+                                    <TableCell><Badge variant={getStatusVariant(order.status)}>{order.status}</Badge></TableCell>
+                                    <TableCell className="font-medium">{formatCurrency(order.total)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="icon">
+                                            <Link href={`/account/orders/${order.id}`}>
+                                                <Eye className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
             </CardContent>
         </Card>
     );

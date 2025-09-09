@@ -13,26 +13,35 @@ import {
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle,
-    CardDescription,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const MOCK_WEBHOOKS = [
-  { id: 'evt_1', service: 'Razorpay', event: 'payment.failed', status: 'Failed', receivedAt: new Date(Date.now() - 3600000) },
-  { id: 'evt_2', service: 'Razorpay', event: 'payment.authorized', status: 'Success', receivedAt: new Date(Date.now() - 7200000) },
-  { id: 'evt_3', service: 'Shiprocket', event: 'order.dispatched', status: 'Success', receivedAt: new Date(Date.now() - 86400000) },
-  { id: 'evt_4', service: 'IDfy', event: 'kyc.failed', status: 'Failed', receivedAt: new Date(Date.now() - 172800000) },
-  { id: 'evt_5', service: 'Razorpay', event: 'payout.processed', status: 'Success', receivedAt: new Date(Date.now() - 259200000) },
-  { id: 'evt_6', service: 'Shiprocket', event: 'order.delivered', status: 'Success', receivedAt: new Date(Date.now() - 345600000) },
-  { id: 'evt_7', service: 'Razorpay', event: 'payment.authorized', status: 'Success', receivedAt: new Date(Date.now() - 432000000) },
-];
-
+interface WebhookEvent {
+    id: string;
+    service: string;
+    event: string;
+    status: 'Success' | 'Failed' | 'Pending';
+    receivedAt: any; // Firestore Timestamp
+}
 
 export default function WebhooksPage() {
+    const [events, setEvents] = React.useState<WebhookEvent[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const q = query(collection(db, 'webhookEvents'), orderBy('receivedAt', 'desc'), limit(50));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedEvents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WebhookEvent));
+            setEvents(fetchedEvents);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
 
     const getStatusIcon = (status: string) => {
         switch (status) {
@@ -61,14 +70,24 @@ export default function WebhooksPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {MOCK_WEBHOOKS.map((hook) => (
+                            {loading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-5 w-5 rounded-full" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-4 w-24" /></TableCell>
+                                </TableRow>
+                                ))
+                            ) : events.map((hook) => (
                                 <TableRow key={hook.id}>
                                     <TableCell>{getStatusIcon(hook.status)}</TableCell>
                                     <TableCell><Badge variant="outline">{hook.service}</Badge></TableCell>
                                     <TableCell className="font-medium">{hook.event}</TableCell>
                                     <TableCell className="font-mono text-xs">{hook.id}</TableCell>
                                     <TableCell className="text-right text-muted-foreground text-xs">
-                                        {formatDistanceToNow(hook.receivedAt, { addSuffix: true })}
+                                        {hook.receivedAt ? formatDistanceToNow(hook.receivedAt.toDate(), { addSuffix: true }) : 'N/A'}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -79,4 +98,3 @@ export default function WebhooksPage() {
         </div>
     );
 }
-
