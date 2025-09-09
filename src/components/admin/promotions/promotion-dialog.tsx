@@ -159,7 +159,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
     setPromoData(prev => ({ ...prev, [field]: value }));
   };
   
- const addProductsToSelection = (productsToAdd: TargetableItem[]) => {
+  const addProductsToSelection = (productsToAdd: TargetableItem[]) => {
       setPromoData(prev => {
           const newState = JSON.parse(JSON.stringify(prev)); // Deep clone
           const currentProducts = newState.appliesTo?.products || [];
@@ -222,13 +222,13 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{promotion ? 'Edit Promotion' : 'Create New Promotion'}</DialogTitle>
           <DialogDescription>
             Fill in the details for the promotional coupon code.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-grow pr-6 -mr-6">
+        <div className="flex-grow overflow-y-auto pr-6 -mr-6">
             <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                     <Label htmlFor="code">Coupon Code</Label>
@@ -342,8 +342,8 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                     </div>
                 </div>
             </div>
-        </ScrollArea>
-        <DialogFooter>
+        </div>
+        <DialogFooter className="flex-shrink-0">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving ? <Loader2 className="mr-2 animate-spin" /> : null}
