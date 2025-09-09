@@ -44,7 +44,8 @@ import {
   PackageSearch,
   BookCopy,
   Webhook,
-  Inbox
+  Inbox,
+  Newspaper
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
@@ -236,6 +237,14 @@ function AdminSidebar() {
                         </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
+                     <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/admin/blog')} tooltip={{ children: 'Blog' }}>
+                            <Link href="/admin/blog">
+                            <Newspaper />
+                            <span>Blog</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/bids')} tooltip={{ children: 'Bids' }}>
                         <Link href="/admin/bids">
@@ -357,7 +366,7 @@ export default function AdminLayout({
     <SidebarProvider>
         <AdminSidebar />
         <SidebarInset>
-            <header className="flex items-center justify-between gap-4 border-b p-2">
+            <header className="flex items-center justify-between gap-4 border-b p-2 h-14">
                 <div className="flex items-center gap-4">
                     <SidebarTrigger className="md:hidden"/>
                     <h1 className="font-headline text-lg font-semibold">{pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard'}</h1>
