@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -82,7 +81,7 @@ const DateTimePicker = ({ date, onDateChange }: { date?: Date, onDateChange: (da
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {date ? format(date, "PPP HH:mm") : <span>Pick a date</span>}
                          {date && (
-                             <div className="absolute right-1 top-1/2 -translate-y-1/2" onClick={handleClear}>
+                             <div className="absolute right-1 top-1/2 -translate-y-1/2 cursor-pointer" onClick={handleClear}>
                                 <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                             </div>
                         )}
@@ -160,23 +159,23 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
     setPromoData(prev => ({ ...prev, [field]: value }));
   };
   
-  const addProductsToSelection = (productsToAdd: TargetableItem[]) => {
+ const addProductsToSelection = (productsToAdd: TargetableItem[]) => {
       setPromoData(prev => {
           const currentProducts = prev.appliesTo?.products || [];
           const currentProductIds = new Set(currentProducts.map(p => p.id));
           const newProducts = productsToAdd.filter(p => !currentProductIds.has(p.id));
           const updatedProducts = [...currentProducts, ...newProducts];
           
-          const newState = {
+          return {
               ...prev,
               appliesTo: {
                   ...(prev.appliesTo || { products: [], categories: [], vendors: [] }),
                   products: updatedProducts,
               }
           };
-          return JSON.parse(JSON.stringify(newState)); // Deep clone to force re-render
       });
   };
+
 
   const handleSelect = async (type: 'product' | 'category' | 'vendor', item: TargetableItem) => {
     if (type === 'product') {
@@ -193,14 +192,13 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
   const handleRemoveProduct = (productId: string) => {
     setPromoData(prev => {
         const updatedProducts = (prev.appliesTo?.products || []).filter(p => p.id !== productId);
-        const newState = {
+        return {
             ...prev,
             appliesTo: {
                 ...(prev.appliesTo || { products: [], categories: [], vendors: [] }),
                 products: updatedProducts,
             }
         };
-        return JSON.parse(JSON.stringify(newState)); // Deep clone
     });
   };
 
@@ -321,14 +319,14 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                 
                 <div>
                   <Label>Applied to Products</Label>
-                  <ScrollArea className="h-48 border rounded-md p-2 mt-2">
+                  <div className="h-48 border rounded-md p-2 mt-2 overflow-y-auto">
                      {(promoData.appliesTo?.products || []).length > 0 ? (
                        <div className="space-y-2">
                          {(promoData.appliesTo?.products || []).map(p => (
                            <div key={p.id} className="flex items-center justify-between p-1 rounded-md hover:bg-muted">
-                             <div className="flex items-center gap-2">
+                             <div className="flex items-center gap-2 overflow-hidden">
                                {p.image ? (
-                                 <Image src={p.image} alt={p.name} width={24} height={24} className="rounded-sm" />
+                                 <Image src={p.image} alt={p.name} width={24} height={24} className="rounded-sm object-cover" />
                                ) : (
                                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
                                )}
@@ -345,7 +343,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                          <p className="text-sm text-muted-foreground">Applies to all products by default.</p>
                        </div>
                      )}
-                   </ScrollArea>
+                   </div>
                 </div>
             </div>
         </div>
