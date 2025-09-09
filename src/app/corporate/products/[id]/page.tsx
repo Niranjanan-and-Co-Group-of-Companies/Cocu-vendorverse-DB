@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -14,6 +13,7 @@ import { getCategoryByName } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 import { Button } from '@/components/ui/button';
 
+// All the stateful logic is now correctly contained within this client component.
 function ProductPageContent({ id }: { id: string }) {
     const [product, setProduct] = React.useState<Product | null>(null);
     const [category, setCategory] = React.useState<Category | null>(null);
