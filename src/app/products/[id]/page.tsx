@@ -12,7 +12,6 @@ import { ProductInteractions } from '@/components/product/product-interactions';
 import { ProductDetailsAccordion } from '@/components/product/product-details-accordion';
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AvailableOffers } from '@/components/product/available-offers';
 import { getCategoryByName } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 import { Button } from '@/components/ui/button';
@@ -110,7 +109,6 @@ function ProductPageContent({ id }: { id: string }) {
                         </div>
                     )}
 
-                    <AvailableOffers categoryId={category?.id} productId={product.id} />
                     <ProductInteractions product={product} categoryName={product.category} />
                 </div>
             </div>

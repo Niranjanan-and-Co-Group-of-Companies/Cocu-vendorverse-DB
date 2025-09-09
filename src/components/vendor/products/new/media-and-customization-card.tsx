@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -12,7 +13,7 @@ import { ImageUpload } from '@/components/common/image-upload';
 import { CustomizationAreaEditor } from './customization-area-editor';
 import { MultiImageUpload } from '@/components/common/multi-image-upload';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface MediaAndCustomizationCardProps {
   product: Product;
@@ -113,16 +114,6 @@ export function MediaAndCustomizationCard({
                                         onFileSelect={(file) => onImageChange(activeVariantId, side, file)}
                                         className="aspect-square"
                                     />
-                                    {activeVariant.customizationSides[side]?.image && (
-                                        <Button 
-                                            variant="outline" 
-                                            size="sm" 
-                                            className="w-full"
-                                            onClick={() => handleDefineArea(side)}
-                                        >
-                                            Define Area
-                                        </Button>
-                                    )}
                                 </div>
                             ))}
                         </div>
@@ -161,16 +152,6 @@ export function MediaAndCustomizationCard({
             </div>
         </CardContent>
         </Card>
-
-        {editingSide && activeVariant && (
-            <CustomizationAreaEditor
-                isOpen={!!editingSide}
-                onClose={() => setEditingSide(null)}
-                onSave={handleEditorSave}
-                imageUrl={activeVariant.customizationSides[editingSide]?.image || ''}
-                initialAreas={product.customizationAreas[editingSide] || []}
-            />
-        )}
     </>
   );
 }

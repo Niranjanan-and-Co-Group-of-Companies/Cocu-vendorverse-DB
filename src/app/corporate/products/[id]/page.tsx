@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -11,7 +10,6 @@ import { ProductDetailsAccordion } from '@/components/product/product-details-ac
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CorporateProductInteractions } from '@/components/corporate/corporate-product-interactions';
-import { AvailableOffers } from '@/components/product/available-offers';
 import { getCategoryByName } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 
@@ -91,7 +89,6 @@ function ProductPageContent({ id }: { id: string }) {
                         totalPrice={totalPrice}
                         quantity={quantity}
                     />
-                    <AvailableOffers categoryId={category?.id} productId={product.id} />
                     <CorporateProductInteractions 
                         product={product} 
                         onPriceChange={({unit, total, quantity}) => {
