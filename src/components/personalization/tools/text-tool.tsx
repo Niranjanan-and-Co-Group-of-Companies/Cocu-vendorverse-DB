@@ -148,6 +148,10 @@ export function TextTool() {
                         <Label>Curve</Label>
                         <Slider value={[selectedElement.curve || 0]} onValueChange={(val) => handleUpdate('curve', val[0])} min={-100} max={100} step={1} />
                      </div>
+                     <div className="space-y-2">
+                        <Label>Rotate</Label>
+                        <Slider value={[selectedElement.rotation || 0]} onValueChange={(val) => handleUpdate('rotation', val[0])} min={0} max={360} step={1} />
+                     </div>
                 </div>
             ) : (
                  <div className="text-center text-muted-foreground pt-4 border-t">
