@@ -214,14 +214,6 @@ function AdminSidebar() {
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={isActive('/admin/promotions')} tooltip={{ children: 'Promotion Engine' }}>
-                        <Link href="/admin/promotions">
-                          <Percent />
-                          <span>Promotion Engine</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={isActive('/admin/featured')} tooltip={{ children: 'Featured' }}>
                         <Link href="/admin/featured">
                           <Star />
