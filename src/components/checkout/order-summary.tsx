@@ -34,8 +34,6 @@ export function OrderSummary() {
   const [appliedPromotions, setAppliedPromotions] = React.useState<PlainPromotion[]>([]);
   const [isApplying, setIsApplying] = React.useState(false);
   
-  const [eligibleCartItemId, setEligibleCartItemId] = React.useState<string | null>(null);
-
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
       const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
@@ -50,37 +48,53 @@ export function OrderSummary() {
             return;
         }
 
-        let bestPromo: PlainPromotion | null = null;
-        let maxDiscount = 0;
-        let bestCartItemId: string | null = null;
+        const allEligiblePromos = new Map<string, PlainPromotion>();
 
+        // 1. Collect all unique eligible promotions
         for (const item of items) {
             const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId);
-            const itemPrice = (item.displayPrice?.originalPrice || parseFloat(item.price.replace('$', ''))) * item.quantity;
             const visiblePromos = promos.filter(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
-            
             for (const promo of visiblePromos) {
-                let currentDiscount = 0;
-                if (promo.type === 'Percentage') {
-                    currentDiscount = itemPrice * (promo.value / 100);
-                } else if (promo.type === 'Fixed Amount') {
-                    currentDiscount = promo.value;
-                }
-
-                if (currentDiscount > maxDiscount) {
-                    maxDiscount = currentDiscount;
-                    bestPromo = promo;
-                    bestCartItemId = item.cartItemId;
+                if (!allEligiblePromos.has(promo.id)) {
+                    allEligiblePromos.set(promo.id, promo);
                 }
             }
         }
         
+        if (allEligiblePromos.size === 0) {
+           setAppliedPromotions(prev => prev.filter(p => !p.visibleOnPlatform));
+           return;
+        }
+
+        // 2. Calculate the total discount for each promotion
+        let bestPromo: PlainPromotion | null = null;
+        let maxDiscount = 0;
+
+        for (const promo of allEligiblePromos.values()) {
+            let currentDiscount = 0;
+            const applicableItems = promo.appliesTo?.products?.length > 0 
+                ? items.filter(item => promo.appliesTo.products.includes(item.id))
+                : items;
+            
+            const applicableSubtotal = applicableItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price)) * item.quantity, 0);
+
+            if (promo.type === 'Percentage') {
+                currentDiscount = applicableSubtotal * (promo.value / 100);
+            } else if (promo.type === 'Fixed Amount') {
+                currentDiscount = Math.min(promo.value, applicableSubtotal);
+            }
+
+            if (currentDiscount > maxDiscount) {
+                maxDiscount = currentDiscount;
+                bestPromo = promo;
+            }
+        }
+        
+        // 3. Set only the best promotion + any manual promotions
         setAppliedPromotions(prev => {
             const manualPromos = prev.filter(p => !p.visibleOnPlatform);
             return bestPromo ? [bestPromo, ...manualPromos] : manualPromos;
         });
-
-        setEligibleCartItemId(bestCartItemId);
     };
 
     findAndApplyBestPromotion();
@@ -92,21 +106,16 @@ export function OrderSummary() {
       
       const isProductSpecific = promo.appliesTo?.products?.length > 0;
       
-      if (isProductSpecific) {
-          const applicableItems = items.filter(item => promo.appliesTo.products.includes(item.id));
-          const applicableSubtotal = applicableItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price)) * item.quantity, 0);
+      const applicableItems = isProductSpecific 
+        ? items.filter(item => promo.appliesTo!.products.includes(item.id))
+        : items;
+          
+      const applicableSubtotal = applicableItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price)) * item.quantity, 0);
 
-          if (promo.type === 'Percentage') {
-              discount = applicableSubtotal * (promo.value / 100);
-          } else if (promo.type === 'Fixed Amount') {
-              discount = Math.min(promo.value, applicableSubtotal);
-          }
-      } else { // Cart-wide promotions
-          if (promo.type === 'Percentage') {
-              discount = subtotal * (promo.value / 100);
-          } else if (promo.type === 'Fixed Amount') {
-              discount = Math.min(promo.value, subtotal);
-          }
+      if (promo.type === 'Percentage') {
+          discount = applicableSubtotal * (promo.value / 100);
+      } else if (promo.type === 'Fixed Amount') {
+          discount = Math.min(promo.value, applicableSubtotal);
       }
       return totalDiscount + discount;
     }, 0);
@@ -137,24 +146,15 @@ export function OrderSummary() {
         return;
     }
     
-    const visiblePromoCount = appliedPromotions.filter(p => p.visibleOnPlatform).length;
-    const manualPromoCount = appliedPromotions.filter(p => !p.visibleOnPlatform).length;
+    const hasManualPromo = appliedPromotions.some(p => !p.visibleOnPlatform);
 
-    if (promo.visibleOnPlatform && visiblePromoCount > 0) {
-        toast({ title: "Cannot Apply Coupon", description: "A site-wide promotion is already applied.", variant: "destructive" });
-        return;
-    }
-
-    if (!promo.visibleOnPlatform && manualPromoCount >= 1) {
+    if (!promo.visibleOnPlatform && hasManualPromo) {
         toast({ title: "Limit Reached", description: "You can only apply one manual coupon code.", variant: "destructive" });
         return;
     }
     
-    if (appliedPromotions.length >= 2) {
-        toast({ title: "Maximum Coupons Applied", description: "You can only apply a maximum of two coupons (one automatic, one manual).", variant: "destructive" });
-        return;
-    }
-
+    // This logic prevents stacking multiple manual coupons, or a manual coupon if a visible site-wide one is better.
+    // The automatic application logic will handle replacing a visible one if the manual one is better.
     setAppliedPromotions(prev => [...prev, promo]);
     setCouponInput('');
     toast({ title: "Coupon Applied!", description: `"${promo.code}" was successfully applied.` });
@@ -163,10 +163,6 @@ export function OrderSummary() {
   const handleRemoveCoupon = (promoId: string) => {
     const promoToRemove = appliedPromotions.find(p => p.id === promoId);
     if (!promoToRemove) return;
-    
-    if (!promoToRemove.visibleOnPlatform) {
-        setEligibleCartItemId(null);
-    }
     
     setAppliedPromotions(prev => prev.filter(p => p.id !== promoId));
     toast({ title: "Coupon Removed", description: `"${promoToRemove.code}" has been removed.`, variant: "destructive" });
