@@ -22,7 +22,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SourcingRequestDetailsDialog } from '@/components/admin/sourcing-requests/sourcing-request-details-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { onSourcingRequestsUpdate, updateSourcingRequestStatus, type SourcingRequest } from '@/lib/sourcing-requests-service';
+import { onSourcingRequestsUpdate } from '@/lib/sourcing-requests-client-service';
+import { updateSourcingRequestStatus, type SourcingRequest } from '@/lib/sourcing-requests-service';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SourcingRequestsPage() {

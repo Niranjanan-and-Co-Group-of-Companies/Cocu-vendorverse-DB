@@ -68,25 +68,6 @@ export async function createSourcingRequest(data: Omit<SourcingRequest, 'id' | '
 
 
 /**
- * Sets up a real-time listener for all sourcing requests for the admin panel.
- * @param callback Function to be called with the updated list of requests.
- * @returns Unsubscribe function for the listener.
- */
-export function onSourcingRequestsUpdate(callback: (requests: SourcingRequest[]) => void): () => void {
-    const q = query(collection(db, 'sourcingRequests'), orderBy('createdAt', 'desc'));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SourcingRequest));
-        callback(requests);
-    }, (error) => {
-        console.error("Error fetching sourcing requests: ", error);
-        callback([]);
-    });
-
-    return unsubscribe;
-}
-
-/**
  * Updates the status of a sourcing request.
  * @param requestId The ID of the request to update.
  * @param status The new status.
