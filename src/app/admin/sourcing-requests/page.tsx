@@ -22,77 +22,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SourcingRequestDetailsDialog } from '@/components/admin/sourcing-requests/sourcing-request-details-dialog';
 import { useToast } from '@/hooks/use-toast';
-
-// Mock data, in a real app this would come from a service
-const MOCK_REQUESTS = [
-    { 
-        id: 'SR001', 
-        customer: { 
-            name: 'Globex Corporation', 
-            contact: { name: 'John Doe', email: 'john.doe@globex.com', phone: '+91 98765 43210' } 
-        }, 
-        date: '2023-10-27', 
-        product: 'Matte black ceramic mugs with custom logo', 
-        quantity: 500, 
-        budgetPerItem: 12.50,
-        requiredBy: '2023-11-30',
-        status: 'New',
-        notes: 'Logo must be printed on both sides. Pantone color: Cool Gray 11 C. Mugs should be 11oz and dishwasher safe.',
-        attachments: [{ name: 'logo_guidelines.pdf', url: '#' }]
-    },
-    { 
-        id: 'SR002', 
-        customer: { 
-            name: 'Stark Industries', 
-            contact: { name: 'Pepper Potts', email: 'p.potts@stark-industries.net', phone: '+91 98765 43211' } 
-        }, 
-        date: '2023-10-26', 
-        product: 'Leather notebooks with custom debossed logo', 
-        quantity: 250, 
-        budgetPerItem: 25.00,
-        requiredBy: '2023-12-15',
-        status: 'In Progress',
-        notes: 'A5 size, ruled pages. Leather must be ethically sourced. Debossing should be subtle.',
-        attachments: []
-    },
-    { 
-        id: 'SR003', 
-        customer: { 
-            name: 'Wayne Enterprises', 
-            contact: { name: 'Lucius Fox', email: 'l.fox@wayne-enterprises.com', phone: '+91 98765 43212' } 
-        }, 
-        date: '2023-10-24', 
-        product: 'Eco-friendly tote bags with screen print', 
-        quantity: 1000, 
-        budgetPerItem: 8.00,
-        requiredBy: '2023-11-20',
-        status: 'Sourced',
-        notes: 'Print on one side only. Must be made from recycled cotton.',
-        attachments: [{ name: 'artwork.ai', url: '#' }]
-    },
-    { 
-        id: 'SR004', 
-        customer: { 
-            name: 'Cyberdyne Systems', 
-            contact: { name: 'Miles Dyson', email: 'm.dyson@cyberdyne.io', phone: '+91 98765 43213' } 
-        }, 
-        date: '2023-10-22', 
-        product: 'Custom USB flash drives (16GB)', 
-        quantity: 300, 
-        budgetPerItem: 10.00,
-        requiredBy: '2023-11-10',
-        status: 'Closed',
-        notes: 'Need a brushed metal finish.',
-        attachments: []
-    },
-];
-
-export type SourcingRequest = typeof MOCK_REQUESTS[0];
+import { onSourcingRequestsUpdate, updateSourcingRequestStatus, type SourcingRequest } from '@/lib/sourcing-requests-service';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SourcingRequestsPage() {
-    const [requests, setRequests] = React.useState(MOCK_REQUESTS);
+    const [requests, setRequests] = React.useState<SourcingRequest[]>([]);
+    const [loading, setLoading] = React.useState(true);
     const [selectedRequest, setSelectedRequest] = React.useState<SourcingRequest | null>(null);
     const { toast } = useToast();
+    
+    React.useEffect(() => {
+        const unsubscribe = onSourcingRequestsUpdate((data) => {
+            setRequests(data);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
 
     const getStatusVariant = (status: string) => {
         switch (status) {
@@ -104,15 +49,21 @@ export default function SourcingRequestsPage() {
         }
     };
     
-    const handleStatusChange = (id: string, status: SourcingRequest['status']) => {
-        setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
-        toast({ title: 'Status Updated', description: `Request ${id} marked as "${status}".` });
+    const handleStatusChange = async (id: string, status: SourcingRequest['status']) => {
+        try {
+            await updateSourcingRequestStatus(id, status);
+            toast({ title: 'Status Updated', description: `Request ${id} marked as "${status}".` });
+        } catch (error) {
+            toast({ title: 'Error', description: 'Failed to update status.', variant: 'destructive'});
+        }
     };
 
     const handleDownloadAttachments = (request: SourcingRequest) => {
-        if(request.attachments.length > 0) {
+        if(request.attachments && request.attachments.length > 0) {
             toast({ title: 'Downloading Attachments...', description: `Preparing to download ${request.attachments.length} file(s).` });
-            // In a real app, this would trigger actual downloads.
+            request.attachments.forEach(file => {
+                window.open(file.url, '_blank');
+            });
         } else {
              toast({ title: 'No Attachments', description: 'This request has no attachments.', variant: 'destructive'});
         }
@@ -142,12 +93,21 @@ export default function SourcingRequestsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {requests.map((request) => (
+                                {loading ? Array.from({length: 5}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                )) : requests.map((request) => (
                                     <TableRow key={request.id}>
-                                        <TableCell className="font-mono text-xs">{request.id}</TableCell>
-                                        <TableCell className="font-medium">{request.customer.name}</TableCell>
-                                        <TableCell>{request.product}</TableCell>
-                                        <TableCell>{request.date}</TableCell>
+                                        <TableCell className="font-mono text-xs">{request.id.slice(0,8)}...</TableCell>
+                                        <TableCell className="font-medium">{request.contactName}</TableCell>
+                                        <TableCell>{request.productDescription}</TableCell>
+                                        <TableCell>{request.createdAt.toDate().toLocaleDateString()}</TableCell>
                                         <TableCell>
                                             <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
                                         </TableCell>

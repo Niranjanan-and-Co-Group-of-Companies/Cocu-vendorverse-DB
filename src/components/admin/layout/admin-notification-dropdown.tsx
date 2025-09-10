@@ -12,7 +12,7 @@ import {
   DropdownMenuFooter,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Bell, Package, MessageSquare, Activity, UserPlus, Shield, FileEdit, HelpCircle, Gavel, FileQuestion } from 'lucide-react';
+import { Bell, Package, MessageSquare, Activity, UserPlus, Shield, FileEdit, HelpCircle, Gavel, FileQuestion, PackageSearch } from 'lucide-react';
 import { onAdminNotificationsUpdate, type Notification, type NotificationType } from '@/lib/notifications-service';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,7 +27,7 @@ const iconMap: { [key in NotificationType]: React.ElementType } = {
   USER_REPORT: Shield,
   CONTENT_UPDATE: FileEdit,
   NEW_SUPPORT_TICKET: HelpCircle,
-  NEW_SOURCING_REQUEST: FileQuestion,
+  NEW_SOURCING_REQUEST: PackageSearch,
   NEW_BID_REQUEST: Gavel,
 };
 

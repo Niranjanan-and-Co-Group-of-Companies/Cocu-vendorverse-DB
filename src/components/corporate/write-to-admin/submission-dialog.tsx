@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import type { SourcingRequestData } from '@/app/corporate/write-to-admin/page';
+import { createSourcingRequest } from '@/lib/sourcing-requests-service';
 
 interface SubmissionDialogProps {
   isOpen: boolean;
@@ -29,21 +30,26 @@ export function SubmissionDialog({ isOpen, onClose, requestData, onVerified }: S
   const [isVerifying, setIsVerifying] = React.useState(false);
   const { toast } = useToast();
 
-  const handleVerify = () => {
-    setIsVerifying(true);
-    // Simulate API call to verify OTP
-    setTimeout(() => {
-      if (otp === '123456') { // Mock OTP
-        // In a real app, you would submit the requestData to your backend here.
-        onVerified();
-      } else {
+  const handleVerify = async () => {
+    if (!requestData) return;
+    
+    if (otp !== '123456') { // Mock OTP check
         toast({ title: "Invalid OTP", description: "The OTP you entered is incorrect.", variant: "destructive" });
-      }
-      setIsVerifying(false);
-    }, 1500);
+        return;
+    }
+
+    setIsVerifying(true);
+    try {
+        await createSourcingRequest(requestData);
+        onVerified();
+    } catch (error) {
+        console.error("Failed to create sourcing request:", error);
+        toast({ title: "Error", description: "Could not submit your request. Please try again.", variant: "destructive" });
+    } finally {
+        setIsVerifying(false);
+    }
   };
   
-  // Reset OTP when dialog is closed or requestData changes
   React.useEffect(() => {
     setOtp('');
   }, [isOpen]);
