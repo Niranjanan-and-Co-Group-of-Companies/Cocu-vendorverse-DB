@@ -7,10 +7,12 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSearchSuggestions } from '@/ai/flows/search-flow';
 import { getSearchIndex, type SearchIndex } from '@/lib/products-service';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 export function Search() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -73,13 +75,15 @@ export function Search() {
     router.push(`/search?q=${suggestion}`);
     setShowSuggestions(false);
   };
+  
+  const placeholderText = isMobile ? "Search for Gift's" : "Search for gifts and more...";
 
   return (
     <div className="w-full max-w-lg relative" ref={searchContainerRef}>
       <form onSubmit={handleSearch}>
         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search for gifts and more..."
+          placeholder={placeholderText}
           className="pl-10 h-9"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
