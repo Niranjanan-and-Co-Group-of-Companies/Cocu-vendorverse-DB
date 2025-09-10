@@ -155,7 +155,6 @@ function ProductsTable() {
                     ))
                     ) : (
                     filteredProducts.map((product) => {
-                        const isB2B = product.moq && product.moq > 1;
                         return (
                         <TableRow key={product.id}>
                         <TableCell>
@@ -177,8 +176,8 @@ function ProductsTable() {
                          <TableCell>{product.vendor}</TableCell>
                         <TableCell>{formatCurrency(product.price)}</TableCell>
                         <TableCell>
-                           <Badge variant={isB2B ? 'secondary' : 'outline'}>
-                                {isB2B ? 'Corporate' : 'Personal'}
+                           <Badge variant={product.platform === 'Corporate' ? 'secondary' : 'outline'}>
+                                {product.platform}
                            </Badge>
                         </TableCell>
                         {isCorporateView && <TableCell>{product.moq}</TableCell>}
