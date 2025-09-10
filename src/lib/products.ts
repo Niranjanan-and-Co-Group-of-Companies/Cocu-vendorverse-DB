@@ -1,4 +1,5 @@
 
+
 export type ProductStatus = 'Live' | 'Draft' | 'Archived' | 'Pending Review' | 'Declined';
 
 export type CustomizationSide = 'front' | 'back' | 'left' | 'right' | 'top' | 'bottom';
@@ -17,6 +18,7 @@ export interface CustomizationArea {
   width: number;
   height: number;
   type: 'rect' | 'ellipse';
+  rotation: number;
   label?: string;
   defaultFont?: string;
   defaultFontSize?: number;
@@ -62,6 +64,7 @@ export type Product = {
   description?: string;
   creatorStory?: string;
   category?: string;
+  categorySlug?: string;
   status: ProductStatus;
   customizationAreas: Record<CustomizationSide, CustomizationArea[]>;
   variants: ProductVariant[];

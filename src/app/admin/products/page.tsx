@@ -30,7 +30,7 @@ type ProductView = 'all' | 'personal' | 'corporate';
 
 function ProductsTable() {
     const searchParams = useSearchParams();
-    const categoryFilter = searchParams.get('category');
+    const categorySlugFilter = searchParams.get('category');
     const [allProducts, setAllProducts] = React.useState<ProductWithStatus[]>([]);
     const [filteredProducts, setFilteredProducts] = React.useState<ProductWithStatus[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -43,9 +43,9 @@ function ProductsTable() {
         const productsRef = collection(db, 'products');
         let q;
 
-        if (categoryFilter) {
-            setTitle(`Products in: ${categoryFilter}`);
-            q = query(productsRef, where('category', '==', categoryFilter));
+        if (categorySlugFilter) {
+            setTitle(`Products in: ${categorySlugFilter.replace(/-/g, ' ')}`);
+            q = query(productsRef, where('categorySlug', '==', categorySlugFilter));
         } else {
             setTitle('All Products');
             q = query(productsRef);
@@ -61,7 +61,7 @@ function ProductsTable() {
         });
 
         return () => unsubscribe();
-    }, [categoryFilter]);
+    }, [categorySlugFilter]);
 
     React.useEffect(() => {
         let productsToFilter = [...allProducts];
@@ -71,11 +71,11 @@ function ProductsTable() {
         } else if (view === 'corporate') {
             productsToFilter = productsToFilter.filter(p => p.platform === 'Corporate' || p.platform === 'Both');
             setTitle('Corporate & Bulk Products');
-        } else {
+        } else if (!categorySlugFilter) {
             setTitle('All Products');
         }
         setFilteredProducts(productsToFilter);
-    }, [view, allProducts]);
+    }, [view, allProducts, categorySlugFilter]);
 
     const getStatusVariant = (status: ProductStatus) => {
         switch (status) {
@@ -104,7 +104,7 @@ function ProductsTable() {
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">{title}</h1>
+                    <h1 className="text-2xl font-bold capitalize">{title}</h1>
                     <p className="text-muted-foreground">
                         {filteredProducts.length} products found. Manage all products from all vendors in the marketplace.
                     </p>
