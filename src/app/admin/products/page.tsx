@@ -133,7 +133,7 @@ function ProductsTable() {
                     <TableHead>Name</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Vendor</TableHead>
-                    <TableHead>Price</TableHead>
+                    <TableHead>Pricing (Vendor/Cust.)</TableHead>
                     <TableHead>Type</TableHead>
                     {isCorporateView && <TableHead>MOQ</TableHead>}
                     <TableHead className="text-right">Actions</TableHead>
@@ -147,7 +147,7 @@ function ProductsTable() {
                         <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                         {isCorporateView && <TableCell><Skeleton className="h-5 w-12" /></TableCell>}
                         <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
@@ -174,7 +174,12 @@ function ProductsTable() {
                             </Badge>
                         </TableCell>
                          <TableCell>{product.vendor}</TableCell>
-                        <TableCell>{formatCurrency(product.price)}</TableCell>
+                        <TableCell>
+                            <div className="flex flex-col">
+                                <span>{formatCurrency(product.vendorSP)}</span>
+                                <span className="text-xs text-muted-foreground">{formatCurrency(product.price)}</span>
+                            </div>
+                        </TableCell>
                         <TableCell>
                            <Badge variant={product.platform === 'Corporate' ? 'secondary' : 'outline'}>
                                 {product.platform}
