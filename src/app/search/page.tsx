@@ -61,8 +61,8 @@ function SearchResultsContent() {
                     p.vendorSP, 
                     'Personalized', 
                     category, 
-                    firstApplicablePromotion?.type === 'Percentage' ? 'Percentage' : firstApplicablePromotion?.type === 'Fixed Amount' ? 'Fixed Amount' : undefined, 
-                    firstApplicablePromotion?.value
+                    firstApplicablePromotion?.type === 'Percentage' ? 'Percentage' : firstApplicablePromotion?.type === 'Fixed Amount' ? 'Fixed Amount' : p.discountType, 
+                    firstApplicablePromotion?.value ?? p.discountValue
                 ),
               }
           })

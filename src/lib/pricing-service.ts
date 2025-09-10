@@ -93,18 +93,10 @@ export async function calculateDisplayPrice(
         ? parseFloat(productVendorSP.replace('$', '').replace('₹', '')) 
         : productVendorSP;
 
-    // First, check for promotions from the promotions engine
-    // In a real app, we'd pass the full product object, but for now, we'll assume we don't have it.
-    // This part is simplified. The promotions actions would need more context.
-    // For now, we will prefer the direct product discount if it exists.
-
-    let discountType = productDiscountType;
-    let discountValue = productDiscountValue;
-
     // This is a simplification. A real implementation would have a more complex priority system.
     // For now, product-specific discounts override promotions.
-    if (discountType && discountValue) {
-        return calculateFinalPrice(basePrice, platform, category, discountType, discountValue);
+    if (productDiscountType && productDiscountValue) {
+        return calculateFinalPrice(basePrice, platform, category, productDiscountType, productDiscountValue);
     }
     
     // If no direct discount, calculate the base price without any promotion

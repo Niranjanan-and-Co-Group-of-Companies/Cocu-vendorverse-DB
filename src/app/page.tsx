@@ -23,6 +23,7 @@ import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { YouTubeEmbed } from '@/components/common/youtube-embed';
+import { getPromotionsForProduct } from '@/lib/promotions-actions';
 
 interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
@@ -143,9 +144,18 @@ export default function Home() {
         const pricedFeaturedProducts = await Promise.all(
             featuredData.map(async p => {
                 const category = categoriesForPricing.find(c => c.name === p.category);
+                const promotions = await getPromotionsForProduct(p.id, p.category || '', p.vendorId);
+                const firstApplicablePromotion = promotions[0];
+
                 return {
                     ...p,
-                    displayPrice: await calculateDisplayPrice(p.vendorSP, 'Personalized', category, p.discountType, p.discountValue),
+                    displayPrice: await calculateDisplayPrice(
+                        p.vendorSP, 
+                        'Personalized', 
+                        category, 
+                        firstApplicablePromotion?.type === 'Percentage' ? 'Percentage' : firstApplicablePromotion?.type === 'Fixed Amount' ? 'Fixed Amount' : p.discountType, 
+                        firstApplicablePromotion?.value ?? p.discountValue
+                    ),
                 }
             })
         );
