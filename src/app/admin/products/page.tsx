@@ -127,9 +127,9 @@ function ProductsPageContent() {
     
     const isCorporateView = view === 'corporate';
     
-    const formatCurrency = (value: string | number) => {
+    const formatCurrency = (value?: string | number) => {
         const numValue = typeof value === 'string' ? parseFloat(value.replace('$', '').replace('₹', '')) : value;
-        if(isNaN(numValue)) return value;
+        if(value === undefined || value === null || isNaN(numValue)) return 'N/A';
         return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(numValue);
     }
 
@@ -210,7 +210,7 @@ function ProductsPageContent() {
                         </TableCell>
                          <TableCell>{product.vendor}</TableCell>
                         <TableCell>{formatCurrency(product.vendorSP)}</TableCell>
-                        <TableCell className="font-medium">{formatCurrency(product.displayPrice || 0)}</TableCell>
+                        <TableCell className="font-medium">{formatCurrency(product.displayPrice)}</TableCell>
                         <TableCell>
                            <Badge variant={product.platform === 'Corporate' ? 'secondary' : 'outline'}>
                                 {product.platform}

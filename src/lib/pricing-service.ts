@@ -1,9 +1,10 @@
 
+
 'use server';
 
 import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Product } from './products';
+import type { Product, TieredPrice } from './products';
 import type { CommissionRule } from './commissions-service';
 import type { Category } from './categories-service';
 import { getPromotionsForProduct } from './promotions-actions';
@@ -41,14 +42,13 @@ export async function calculateDisplayPrice(
         discountType?: 'Percentage' | 'Fixed Amount';
         discountValue?: number;
         price?: string;
+        tieredPricing?: TieredPrice[];
     },
     platform: 'Personalized' | 'Corporate' = 'Personalized', 
     category: Category | undefined,
 ): Promise<DisplayPrice> {
 
-    const basePrice = platform === 'Corporate'
-        ? parseFloat(productInfo.price || String(productInfo.vendorSP))
-        : productInfo.vendorSP;
+    const basePrice = productInfo.vendorSP;
 
     if (isNaN(basePrice)) {
         return { finalPrice: 0, originalPrice: 0, hasDiscount: false };
@@ -59,10 +59,13 @@ export async function calculateDisplayPrice(
     const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
     
     let buffer = 0;
+    let commission = 0;
+
     if (rule) {
         buffer = rule.bufferType === 'fixed' ? rule.bufferValue : basePrice * (rule.bufferValue / 100);
+        commission = basePrice * (rule.commissionRate / 100);
     }
-    const customerPrice = basePrice + buffer;
+    const customerPrice = basePrice + buffer + commission;
     
     let finalPrice = customerPrice;
     let hasDiscount = false;
@@ -70,7 +73,7 @@ export async function calculateDisplayPrice(
     
     let promotions: PlainPromotion[] = [];
     if(platform === 'Personalized') {
-        promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
+      promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
     }
     const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
 
