@@ -48,21 +48,21 @@ export function OrderSummary() {
             return;
         }
 
-        const allEligiblePromos = new Map<string, PlainPromotion>();
+        let allEligiblePromos: PlainPromotion[] = [];
         for (const item of items) {
             const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId);
             const visiblePromos = promos.filter(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
-            for (const promo of visiblePromos) {
-                if (!allEligiblePromos.has(promo.id)) {
-                    allEligiblePromos.set(promo.id, promo);
-                }
-            }
+            visiblePromos.forEach(p => {
+              if (!allEligiblePromos.some(ep => ep.id === p.id)) {
+                allEligiblePromos.push(p);
+              }
+            });
         }
         
         let bestPromo: PlainPromotion | null = null;
         let maxDiscount = 0;
 
-        for (const promo of allEligiblePromos.values()) {
+        for (const promo of allEligiblePromos) {
             let currentDiscount = 0;
             const applicableItems = (promo.appliesTo?.products?.length || 0) > 0 
                 ? items.filter(item => promo.appliesTo!.products.includes(item.id))
@@ -179,27 +179,30 @@ export function OrderSummary() {
             <div className="space-y-4">
                 {items.map(item => {
                   const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
+                  const originalPrice = item.displayPrice?.originalPrice || price;
+                  const itemHasDiscount = item.displayPrice?.hasDiscount || false;
                   const maxQty = item.maxQuantityPerOrder || item.stock;
                   return (
                     <div key={item.cartItemId} className="flex items-start gap-4">
                         <div className="relative shrink-0">
                             <Image src={item.selectedVariant?.image || item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
-                             {item.displayPrice?.hasDiscount && (
-                                <Badge variant="destructive" className="absolute top-1 left-1 text-[8px] px-1 py-0 h-auto">
-                                    {item.displayPrice.discountText}
-                                </Badge>
-                            )}
                         </div>
                         <div className="flex-grow overflow-hidden">
                             <p className="font-semibold truncate">{item.name}</p>
-                             <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-baseline gap-2">
+                                <p className="text-sm font-semibold">{formatCurrency(price)}</p>
+                                {itemHasDiscount && (
+                                    <p className="text-xs text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
+                                )}
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                             <div className="flex items-center gap-2">
                                 <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)} disabled={item.quantity <= 1}><Minus className="h-3 w-3"/></Button>
                                 <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
                                 <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)} disabled={item.quantity >= maxQty}><Plus className="h-3 w-3"/></Button>
                             </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                             <p className="font-semibold">{formatCurrency(price * item.quantity)}</p>
+                             <p className="font-semibold text-sm mt-1">{formatCurrency(price * item.quantity)}</p>
                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleRemove(item.cartItemId, item.name)}>
                                 <X className="h-4 w-4" />
                             </Button>
