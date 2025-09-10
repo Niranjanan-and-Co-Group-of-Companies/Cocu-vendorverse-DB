@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Smartphone, Monitor } from 'lucide-react';
 import type { Campaign } from '@/lib/marketing-service';
 import Image from 'next/image';
+import { YouTubeEmbed } from '@/components/common/youtube-embed';
 
 interface CampaignPreviewDialogProps {
   open: boolean;
@@ -15,17 +16,29 @@ interface CampaignPreviewDialogProps {
 }
 
 function PreviewContent({ campaign }: { campaign: Campaign }) {
-    const creative = campaign.creatives?.[0]; // Show first creative for preview
+    const creative = campaign.creatives?.[0];
     if (!creative) return <div className="text-center text-muted-foreground">No creative to preview.</div>;
 
     const localImageUrl = creative.imageFile ? URL.createObjectURL(creative.imageFile) : creative.imageUrl;
 
+    const renderMedia = () => {
+        if(creative.videoUrl) {
+            return <YouTubeEmbed url={creative.videoUrl} />;
+        }
+        if(localImageUrl) {
+            return <Image src={localImageUrl} alt={creative.title} layout="fill" objectFit="cover" />;
+        }
+        return null;
+    }
+
     const renderPlacement = () => {
+        const mediaContent = renderMedia();
+
         switch(campaign.placement) {
             case 'homepage-hero':
                 return (
                      <section className="relative w-full h-full bg-muted flex items-center justify-center">
-                        {localImageUrl && <Image src={localImageUrl} alt={creative.title} layout="fill" objectFit="cover" />}
+                        {mediaContent}
                         <div className="absolute inset-0 bg-black/40" />
                         <div className="relative z-10 text-center text-white p-8">
                             <h1 className="text-4xl font-bold font-headline">{creative.title}</h1>
@@ -44,9 +57,9 @@ function PreviewContent({ campaign }: { campaign: Campaign }) {
                  return (
                     <div className="w-full h-full bg-black/60 flex items-center justify-center">
                         <div className="bg-background rounded-lg shadow-2xl w-[400px] overflow-hidden">
-                             {localImageUrl && (
+                             {mediaContent && (
                                 <div className="relative aspect-video">
-                                     <Image src={localImageUrl} alt={creative.title} layout="fill" objectFit="cover" />
+                                     {mediaContent}
                                 </div>
                              )}
                              <div className="p-6 text-center">
