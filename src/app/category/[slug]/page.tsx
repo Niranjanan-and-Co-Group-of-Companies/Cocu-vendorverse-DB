@@ -148,8 +148,8 @@ function CategoryPageContent({ slug }: { slug: string }) {
                             </div>
                         </Link>
                          <div className="absolute top-2 left-2 z-10 flex flex-col gap-y-2">
-                            {product.displayPrice?.hasDiscount && <Badge variant="destructive" >{product.displayPrice.discountText}</Badge>}
                             {product.featured && <Badge>Featured</Badge>}
+                            {product.displayPrice?.hasDiscount && <Badge variant="destructive" >{product.displayPrice.discountText}</Badge>}
                         </div>
                         <Button size="icon" variant="ghost" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full" onClick={() => handleWishlistToggle(product)}>
                             <Heart className={inWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-white drop-shadow-md"} />
