@@ -68,7 +68,7 @@ async function seedProductsIfEmpty() {
         
         const platform = product.platform as 'Personalized' | 'Corporate';
         const category = await getCategoryByName(product.category);
-        const displayPrice = await calculateDisplayPrice(product.vendorSP, platform, category, undefined, undefined);
+        const displayPrice = await calculateDisplayPrice({vendorSP: product.vendorSP}, platform, category);
         
         const fullProductData: Product = {
             ...product,
@@ -132,7 +132,15 @@ export async function saveProduct(
 
     const category = await getCategoryByName(productData.category);
     
-    const displayPrice = await calculateDisplayPrice(productData.vendorSP || 0, productData.platform, category, productData.discountType, productData.discountValue);
+    const displayPrice = await calculateDisplayPrice(
+        {
+            vendorSP: productData.vendorSP || 0,
+            discountType: productData.discountType,
+            discountValue: productData.discountValue,
+        }, 
+        productData.platform, 
+        category
+    );
 
     const finalProductData = { 
         ...productData, 
