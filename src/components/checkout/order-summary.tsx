@@ -137,15 +137,17 @@ export function OrderSummary() {
         return;
     }
     
-    // Check if the entered coupon is a visible/automatic one.
     if (promo.visibleOnPlatform) {
-         toast({ title: "Automatic Discount", description: "This discount is applied automatically if it's the best offer for your cart.", variant: "destructive" });
-         return;
+        const bestAutomaticPromo = appliedPromotions.find(p => p.visibleOnPlatform);
+        if (bestAutomaticPromo?.id !== promo.id) {
+             toast({ title: "Automatic Discount", description: "This discount is applied automatically if it's the best offer for your cart.", variant: "destructive" });
+             return;
+        }
     }
 
     const hasManualPromo = appliedPromotions.some(p => !p.visibleOnPlatform);
 
-    if (hasManualPromo) {
+    if (!promo.visibleOnPlatform && hasManualPromo) {
         toast({ title: "Limit Reached", description: "You can only apply one manual coupon code.", variant: "destructive" });
         return;
     }
