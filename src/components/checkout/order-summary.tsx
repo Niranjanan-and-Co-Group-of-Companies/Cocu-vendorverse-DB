@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -10,7 +11,8 @@ import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { Tag } from 'lucide-react';
+import { Tag, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat('en-IN', {
@@ -20,7 +22,8 @@ function formatCurrency(amount: number) {
 }
 
 export function OrderSummary() {
-  const { items } = useCart();
+  const { items, removeItem } = useCart();
+  const { toast } = useToast();
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
   const [couponCode, setCouponCode] = React.useState('');
@@ -31,6 +34,15 @@ export function OrderSummary() {
       return total + price * item.quantity;
     }, 0);
   }, [items]);
+
+  const handleRemove = (cartItemId: string, name: string) => {
+    removeItem(cartItemId);
+    toast({
+        title: "Item Removed",
+        description: `"${name}" has been removed from your cart.`,
+        variant: "destructive"
+    })
+  }
 
   const convenienceFee = subtotal * 0.03;
   const shippingFee = 49; // Mock fee, will be dynamic later
@@ -49,13 +61,16 @@ export function OrderSummary() {
                 {items.map(item => {
                   const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
                   return (
-                    <div key={item.id} className="flex items-center gap-4">
-                        <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
-                        <div className="flex-grow">
-                            <p className="font-semibold">{item.name}</p>
+                    <div key={item.cartItemId} className="flex items-center gap-4">
+                        <Image src={item.selectedVariant?.image || item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
+                        <div className="flex-grow overflow-hidden">
+                            <p className="font-semibold truncate">{item.name}</p>
                             <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                            <p className="font-medium">{formatCurrency(price * item.quantity)}</p>
                         </div>
-                        <p className="font-medium">{formatCurrency(price * item.quantity)}</p>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleRemove(item.cartItemId, item.name)}>
+                            <X className="h-4 w-4" />
+                        </Button>
                     </div>
                 )})}
             </div>
