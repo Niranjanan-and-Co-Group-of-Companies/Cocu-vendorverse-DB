@@ -118,7 +118,11 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                     <Link href={`${basePath}/products/${product.id}`} className="block">
                       <h3 className="text-lg font-bold font-headline">{product.name}</h3>
                     </Link>
-                    <p className="text-sm text-muted-foreground">{product.vendor}</p>
+                    {product.category && (
+                        <Link href={`/category/${product.category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                            {product.category}
+                        </Link>
+                    )}
                     <div className="flex-grow"></div>
                     <div className="flex items-end justify-between mt-4">
                         <div className="flex flex-col">

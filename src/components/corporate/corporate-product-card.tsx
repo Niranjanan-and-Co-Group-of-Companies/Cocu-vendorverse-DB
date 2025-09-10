@@ -121,7 +121,13 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
 
       <CardContent className="p-4 flex flex-col flex-grow gap-3">
         <div>
-          <p className="text-sm text-muted-foreground">{product.vendor}</p>
+            {product.category ? (
+                 <Link href={`/corporate/products?category=${product.category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {product.category}
+                </Link>
+            ) : (
+                <p className="text-sm text-muted-foreground">{product.vendor}</p>
+            )}
           <Link href={`/corporate/products/${product.id}`} className="block">
             <h3 className="text-lg font-bold font-headline truncate">{product.name}</h3>
           </Link>
