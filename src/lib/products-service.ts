@@ -28,7 +28,7 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
 
 async function seedProductsIfEmpty() {
-    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v7'); // Incremented version to force re-seed
+    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v9'); // Incremented version to force re-seed
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
