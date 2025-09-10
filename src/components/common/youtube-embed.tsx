@@ -9,21 +9,33 @@ interface YouTubeEmbedProps {
 
 export function YouTubeEmbed({ url }: YouTubeEmbedProps) {
   const getEmbedUrl = (youtubeUrl: string) => {
+    let videoId: string | null = null;
     try {
       const urlObj = new URL(youtubeUrl);
-      const videoId = urlObj.searchParams.get("v");
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0`;
-      }
+      videoId = urlObj.searchParams.get("v");
     } catch (e) {
-      console.error("Invalid YouTube URL", e);
+      // Fallback for shortlinks or invalid formats
+      const match = youtubeUrl.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/);
+      videoId = (match && match[1].length === 11) ? match[1] : null;
+    }
+    
+    if (videoId) {
+      // Parameters to make it a clean background video
+      const params = new URLSearchParams({
+        autoplay: '1',
+        mute: '1',
+        loop: '1',
+        playlist: videoId, // Required for loop to work
+        controls: '0',     // Hide player controls
+        showinfo: '0',     // Hide video title and uploader
+        modestbranding: '1', // Hide YouTube logo
+        fs: '0',           // Hide fullscreen button
+        iv_load_policy: '3', // Hide annotations
+      });
+      return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
     }
 
-    // Fallback for youtu.be shortlinks or invalid formats
-    const match = youtubeUrl.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/);
-    const videoId = (match && match[1].length === 11) ? match[1] : null;
-
-    return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0` : null;
+    return null;
   };
 
   const embedUrl = getEmbedUrl(url);
@@ -33,10 +45,9 @@ export function YouTubeEmbed({ url }: YouTubeEmbedProps) {
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full overflow-hidden">
       <iframe
-        width="100%"
-        height="100%"
+        className="w-full h-full scale-[1.5]"
         src={embedUrl}
         title="YouTube video player"
         frameBorder="0"

@@ -93,7 +93,7 @@ export function CampaignPreviewDialog({ open, onOpenChange, campaign }: Campaign
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={view === 'desktop' ? 'sm:max-w-4xl' : 'sm:max-w-sm'}>
+      <DialogContent className={view === 'desktop' ? 'sm:max-w-6xl' : 'sm:max-w-sm'}>
         <DialogHeader>
           <DialogTitle>Campaign Preview</DialogTitle>
           <DialogDescription>
@@ -101,7 +101,7 @@ export function CampaignPreviewDialog({ open, onOpenChange, campaign }: Campaign
           </DialogDescription>
         </DialogHeader>
         
-        <div className="my-4 mx-auto">
+        <div className="my-4 mx-auto w-full">
             <PreviewContent campaign={campaign} />
         </div>
 
