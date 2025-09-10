@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -88,12 +89,6 @@ export function CorporateSidebar() {
                         <SidebarMenuButton asChild isActive={isActive('/corporate/sourcing-requests')} tooltip={{ children: 'Sourcing Requests' }}>
                             <Link href="/corporate/sourcing-requests"><PackageSearch /><span>Sourcing Requests</span></Link>
                         </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/corporate/messages')} tooltip={{ children: 'Messages' }}>
-                            <Link href="/corporate/messages"><MessageSquare /><span>Messages</span></Link>
-                        </SidebarMenuButton>
-                        {totalUnreadMessages > 0 && <SidebarMenuBadge>{totalUnreadMessages}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/corporate/cart')} tooltip={{ children: 'Cart' }}>
