@@ -52,13 +52,12 @@ export function BulkPricingCalculator({ product, onPriceChange }: BulkPricingCal
     const calculateCurrentPrice = async () => {
         const category = await getCategoryByName(product.category);
         
-        // Determine the base price for this quantity from tiers or default
         let vendorSP = product.vendorSP;
         if (product.tieredPricing && product.tieredPricing.length > 0) {
             const sortedTiers = [...product.tieredPricing].sort((a, b) => b.quantity - a.quantity);
             const applicableTier = sortedTiers.find(tier => quantity >= tier.quantity);
-            if (applicableTier) {
-                vendorSP = parseFloat(applicableTier.price);
+            if (applicableTier && applicableTier.price) {
+                vendorSP = parseFloat(applicableTier.price.replace('$', '').replace('₹', ''));
             }
         }
         
@@ -77,7 +76,6 @@ export function BulkPricingCalculator({ product, onPriceChange }: BulkPricingCal
     if (quantity >= (product.moq || 1)) {
         calculateCurrentPrice();
     } else if (quantity !== 0) {
-        // If quantity is invalid but not zero, reset price info
         setCurrentDisplayPrice(null);
         onPriceChange({ unitPrice: 0, total: 0, quantity, displayPrice: null });
     }
@@ -114,7 +112,7 @@ export function BulkPricingCalculator({ product, onPriceChange }: BulkPricingCal
                             <div className="flex justify-between items-center w-full">
                                 <span>{tier.quantity}+ units</span>
                                 <div className="flex items-center gap-2">
-                                     {tier.displayPrice.hasDiscount && <Badge variant="secondary">{tier.displayPrice.discountText}</Badge>}
+                                     {tier.displayPrice.hasDiscount && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 leading-4">{tier.displayPrice.discountText}</Badge>}
                                     <span className="font-semibold">{formatCurrency(tier.displayPrice.finalPrice)}/unit</span>
                                 </div>
                             </div>
