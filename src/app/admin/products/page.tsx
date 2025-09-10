@@ -23,9 +23,8 @@ import type { Product, ProductStatus } from '@/lib/products';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminProductActions } from '@/components/admin/products/product-actions';
-import { onCommissionRulesUpdate, type CommissionRule } from '@/lib/commissions-client-service';
-import { calculateDisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
+import { calculateAdminDisplayPrice } from '@/lib/admin/admin-pricing-service';
 
 
 type ProductWithPrice = Product & { displayPrice?: number };
@@ -40,15 +39,8 @@ function ProductsPageContent() {
     const [loading, setLoading] = React.useState(true);
     const [title, setTitle] = React.useState('All Products');
     const [view, setView] = React.useState<ProductView>('all');
-    const [commissionRules, setCommissionRules] = React.useState<CommissionRule[]>([]);
 
-    // Effect 1: Fetch and listen to commission rule updates
-    React.useEffect(() => {
-        const unsubCommissions = onCommissionRulesUpdate(setCommissionRules);
-        return () => unsubCommissions();
-    }, []);
-
-    // Effect 2: Fetch and listen to product updates
+    // Effect to fetch product updates
     React.useEffect(() => {
         setLoading(true);
         const productsRef = collection(db, 'products');
@@ -68,16 +60,8 @@ function ProductsPageContent() {
         return () => unsubscribe();
     }, [categorySlugFilter]);
     
-    // Effect 3: Recalculate prices when products or commission rules change
+    // Effect to recalculate prices when products change
     React.useEffect(() => {
-        if (rawProducts.length === 0 || commissionRules.length === 0) {
-            if (rawProducts.length > 0) {
-              setAllProducts(rawProducts); // Show products even if commissions aren't loaded yet
-              setLoading(false);
-            }
-            return;
-        }
-
         const calculateAllPrices = async () => {
             const pricedProducts = await Promise.all(
                 rawProducts.map(async (p) => {
@@ -85,31 +69,30 @@ function ProductsPageContent() {
                     const platform = p.platform === 'Corporate' ? 'Corporate' : 'Personalized';
                     
                     const productInfo = {
-                        id: p.id,
                         vendorSP: p.vendorSP,
                         category: p.category,
-                        vendorId: p.vendorId,
-                        tieredPricing: p.tieredPricing,
-                        discountType: p.discountType,
-                        discountValue: p.discountValue,
                     };
 
-                    const displayPrice = await calculateDisplayPrice(
+                    const displayPrice = await calculateAdminDisplayPrice(
                         productInfo,
                         platform,
                         category || undefined,
-                        platform === 'Corporate' ? p.moq : 1 // Pass MOQ for corporate products
                     );
-                    return { ...p, displayPrice: displayPrice.finalPrice };
+                    return { ...p, displayPrice: displayPrice };
                 })
             );
             setAllProducts(pricedProducts);
             setLoading(false);
         };
         
-        calculateAllPrices();
+        if (rawProducts.length > 0) {
+            calculateAllPrices();
+        } else {
+            setAllProducts([]);
+            setLoading(false);
+        }
 
-    }, [rawProducts, commissionRules]);
+    }, [rawProducts]);
 
 
     const filteredProducts = React.useMemo(() => {
