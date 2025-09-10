@@ -190,7 +190,14 @@ export function OrderSummary() {
                   const maxQty = item.maxQuantityPerOrder || item.stock;
                   return (
                     <div key={item.cartItemId} className="flex items-start gap-4">
-                        <Image src={item.selectedVariant?.image || item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
+                        <div className="relative shrink-0">
+                            <Image src={item.selectedVariant?.image || item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
+                             {item.displayPrice?.hasDiscount && (
+                                <Badge variant="destructive" className="absolute top-1 left-1 text-[8px] px-1 py-0 h-auto">
+                                    {item.displayPrice.discountText}
+                                </Badge>
+                            )}
+                        </div>
                         <div className="flex-grow overflow-hidden">
                             <p className="font-semibold truncate">{item.name}</p>
                              <div className="flex items-center gap-2 mt-1">
@@ -273,6 +280,9 @@ export function OrderSummary() {
                 </Label>
             </div>
          </div>
+         <p className="text-xs text-muted-foreground">
+            Once an order is confirmed, it cannot be cancelled. For more details, please refer to our <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">Terms & Conditions</Link>.
+         </p>
         <Button className="w-full" size="lg" disabled={!canPlaceOrder}>
           Place Order & Pay
         </Button>
