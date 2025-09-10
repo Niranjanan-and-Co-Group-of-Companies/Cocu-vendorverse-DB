@@ -163,24 +163,6 @@ export function CampaignDetailsCard({ campaign, onFieldChange }: CampaignDetails
                 rows={3}
             />
         </div>
-
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div>
-            <Label htmlFor="audience-targeting">Audience Targeting</Label>
-            <p className="text-sm text-muted-foreground">Select which customers will see this campaign.</p>
-          </div>
-           <Select value={campaign.audience} onValueChange={(value) => onFieldChange('audience', value)}>
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select Audience" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="All">All Visitors</SelectItem>
-                    <SelectItem value="New Customers">New Customers</SelectItem>
-                    <SelectItem value="Returning Customers">Returning Customers</SelectItem>
-                    <SelectItem value="Corporate">Corporate Clients</SelectItem>
-                </SelectContent>
-            </Select>
-        </div>
       </CardContent>
     </Card>
   );
