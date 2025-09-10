@@ -26,7 +26,7 @@ function PreviewContent({ campaign }: { campaign: Campaign }) {
             return <YouTubeEmbed url={creative.videoUrl} />;
         }
         if(localImageUrl) {
-            return <Image src={localImageUrl} alt={creative.title} layout="fill" objectFit="cover" />;
+            return <Image src={localImageUrl} alt={creative.title} layout="fill" className="object-cover" />;
         }
         return null;
     }
@@ -37,8 +37,10 @@ function PreviewContent({ campaign }: { campaign: Campaign }) {
         switch(campaign.placement) {
             case 'homepage-hero':
                 return (
-                     <section className="relative w-full h-full bg-muted flex items-center justify-center">
-                        {mediaContent}
+                     <section className="relative w-full h-full bg-muted flex items-center justify-center overflow-hidden">
+                        <div className="absolute inset-0 w-full h-full">
+                           {mediaContent}
+                        </div>
                         <div className="absolute inset-0 bg-black/40" />
                         <div className="relative z-10 text-center text-white p-8">
                             <h1 className="text-4xl font-bold font-headline">{creative.title}</h1>
