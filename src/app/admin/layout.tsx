@@ -45,7 +45,6 @@ import {
   Newspaper
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
 import React from 'react';
 import { getPendingProductCount } from '@/lib/products-client-service';
@@ -70,7 +69,6 @@ function CustomSidebarTrigger() {
 function AdminSidebar() {
     const pathname = usePathname();
     const [openSupportTickets, setOpenSupportTickets] = React.useState(0);
-    const [moderationQueue, setModerationQueue] = React.useState(8);
     const [pendingProducts, setPendingProducts] = React.useState(0);
 
     React.useEffect(() => {
@@ -81,15 +79,6 @@ function AdminSidebar() {
             unsubProducts();
             unsubTickets();
         }
-    }, []);
-
-    React.useEffect(() => {
-        // Simulate real-time updates for other items
-        const interval = setInterval(() => {
-            setModerationQueue(Math.floor(Math.random() * 20));
-        }, 5000);
-
-        return () => clearInterval(interval);
     }, []);
 
     const isActive = (path: string) => {
@@ -290,15 +279,6 @@ function AdminSidebar() {
                         </Link>
                     </SidebarMenuButton>
                     {openSupportTickets > 0 && <SidebarMenuBadge>{openSupportTickets}</SidebarMenuBadge>}
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/moderation')} tooltip={{ children: 'Moderation' }}>
-                        <Link href="/admin/moderation">
-                        <ShieldAlert />
-                        <span>Moderation</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    {moderationQueue > 0 && <SidebarMenuBadge>{moderationQueue}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                      <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/admin/settings')} tooltip={{ children: 'Settings' }}>
