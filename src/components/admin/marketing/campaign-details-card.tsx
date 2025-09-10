@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import type { Campaign, Placement } from '@/lib/marketing-service';
+import type { Campaign, Placement, CampaignStatus } from '@/lib/marketing-service';
 import type { Platform } from '@/lib/products';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -38,6 +38,8 @@ export function CampaignDetailsCard({ campaign, onFieldChange }: CampaignDetails
     { value: 'category-banner', label: 'Category Page Banner' },
   ];
 
+  const statusOptions: CampaignStatus[] = ['Draft', 'Active', 'Scheduled', 'Finished'];
+
   return (
     <Card>
       <CardHeader>
@@ -56,6 +58,19 @@ export function CampaignDetailsCard({ campaign, onFieldChange }: CampaignDetails
                 />
             </div>
             <div className="space-y-2">
+                <Label htmlFor="campaign-status">Status</Label>
+                <Select value={campaign.status} onValueChange={(value: CampaignStatus) => onFieldChange('status', value)}>
+                    <SelectTrigger id="campaign-status">
+                        <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {statusOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
                 <Label htmlFor="campaign-type">Campaign Type</Label>
                 <Select value={campaign.type} onValueChange={(value) => onFieldChange('type', value)}>
                     <SelectTrigger id="campaign-type">
@@ -69,9 +84,6 @@ export function CampaignDetailsCard({ campaign, onFieldChange }: CampaignDetails
                     </SelectContent>
                 </Select>
             </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="platform">Platform</Label>
                 <Select value={campaign.platform} onValueChange={(value: Platform | 'Both') => onFieldChange('platform', value)}>
@@ -82,20 +94,6 @@ export function CampaignDetailsCard({ campaign, onFieldChange }: CampaignDetails
                         <SelectItem value="Personalized">Personalized</SelectItem>
                         <SelectItem value="Corporate">Corporate</SelectItem>
                         <SelectItem value="Both">Both</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="audience">Audience Targeting</Label>
-                 <Select value={campaign.audience} onValueChange={(value) => onFieldChange('audience', value)} disabled>
-                    <SelectTrigger id="audience">
-                        <SelectValue placeholder="Select audience" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="All">All Visitors</SelectItem>
-                        <SelectItem value="New Customers">New Customers</SelectItem>
-                        <SelectItem value="Returning Customers">Returning Customers</SelectItem>
-                         <SelectItem value="Corporate">Corporate</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -178,6 +176,21 @@ export function CampaignDetailsCard({ campaign, onFieldChange }: CampaignDetails
                 onChange={(e) => onFieldChange('description', e.target.value)}
                 rows={3}
             />
+        </div>
+        <div className="p-4 border rounded-lg space-y-2">
+            <Label htmlFor="audience">Audience Targeting</Label>
+            <p className="text-sm text-muted-foreground">Select which customers will see this campaign.</p>
+             <Select value={campaign.audience} onValueChange={(value) => onFieldChange('audience', value)} disabled>
+                <SelectTrigger id="audience">
+                    <SelectValue placeholder="Select audience" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="All">All Visitors</SelectItem>
+                    <SelectItem value="New Customers">New Customers</SelectItem>
+                    <SelectItem value="Returning Customers">Returning Customers</SelectItem>
+                     <SelectItem value="Corporate">Corporate</SelectItem>
+                </SelectContent>
+            </Select>
         </div>
       </CardContent>
     </Card>
