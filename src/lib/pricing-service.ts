@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/firestore';
@@ -31,7 +32,7 @@ async function getCommissionRules(): Promise<CommissionRule[]> {
 
 export async function calculateFinalPrice(
     basePrice: number,
-    platform: 'personal' | 'corporate',
+    platform: 'Personalized' | 'Corporate',
     category: Category | undefined,
     discountType?: 'Percentage' | 'Fixed Amount',
     discountValue?: number
@@ -41,13 +42,14 @@ export async function calculateFinalPrice(
     }
 
     const rules = await getCommissionRules();
-    const ruleType = platform === 'personal' ? 'personalized-retail' : 'corporate-bulk';
+    const ruleType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
     const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
     
     let buffer = 0;
     if (rule) {
         buffer = rule.bufferType === 'fixed' ? rule.bufferValue : basePrice * (rule.bufferValue / 100);
     }
+    
     const originalPrice = basePrice + buffer;
     
     let finalPrice = originalPrice;
@@ -76,7 +78,7 @@ export async function calculateFinalPrice(
 
 export async function calculateDisplayPrice(
     productVendorSP: string | number,
-    platform: 'personal' | 'corporate' = 'personal', 
+    platform: 'Personalized' | 'Corporate' = 'Personalized', 
     category: Category | undefined,
     discountType?: 'Percentage' | 'Fixed Amount',
     discountValue?: number
@@ -91,7 +93,7 @@ export async function calculateDisplayPriceFromQuote(
     quotedPrice: number,
     product: Pick<Product, 'id' | 'category'>,
     category?: Category,
-    platform: 'personal' | 'corporate' = 'corporate'
+    platform: 'Personalized' | 'Corporate' = 'Corporate'
 ): Promise<DisplayPrice> {
     // For quotes, we assume the quoted price is the base price and no further discounts apply
     return calculateFinalPrice(quotedPrice, platform, category, undefined, undefined);

@@ -28,7 +28,7 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
 
 async function seedProductsIfEmpty() {
-    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v5'); // Incremented version to force re-seed
+    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v6'); // Incremented version to force re-seed
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
@@ -38,7 +38,7 @@ async function seedProductsIfEmpty() {
     console.log("Products collection requires seeding. Seeding mock data...");
     
     const MOCK_PRODUCTS_RAW = [
-        { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 45.00, tieredPricing: [{ quantity: 50, price: '$42.00' }, { quantity: 100, price: '$40.00' }, { quantity: 250, price: '$38.00' }], image: 'https://picsum.photos/600/400?random=1', galleryImages: ['https://picsum.photos/600/400?random=11', 'https://picsum.photos/600/400?random=12', 'https://picsum.photos/600/400?random=13'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, moq: 50, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.", category: "Food & Drink", platform: 'Personalized'},
+        { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 45.00, tieredPricing: [{ quantity: 50, price: '42.00' }, { quantity: 100, price: '40.00' }, { quantity: 250, price: '38.00' }], image: 'https://picsum.photos/600/400?random=1', galleryImages: ['https://picsum.photos/600/400?random=11', 'https://picsum.photos/600/400?random=12', 'https://picsum.photos/600/400?random=13'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, moq: 50, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.", category: "Food & Drink", platform: 'Personalized'},
         { name: 'Luxury Spa Set', vendor: 'Serene Moments', vendorSP: 85.00, image: 'https://picsum.photos/600/400?random=2', galleryImages: ['https://picsum.photos/600/400?random=21', 'https://picsum.photos/600/400?random=22'], rating: 4.9, stock: 5, moq: 1, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", creatorStory: "Serene Moments was born from a desire to make self-care accessible to everyone. Our founder, a certified aromatherapist, personally formulates each product to ensure the highest quality and efficacy.", category: "Wellness", platform: 'Personalized' },
         { name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', vendorSP: 75.00, tieredPricing: [{ quantity: 25, price: '70.00' }, { quantity: 50, price: '65.00' }, { quantity: 100, price: '60.00' }], image: 'https://picsum.photos/600/400?random=3', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Fashion & Accessories", moq: 25, platform: 'Corporate'},
     ];
@@ -54,7 +54,7 @@ async function seedProductsIfEmpty() {
 
         // Await fetching the category to ensure buffer calculations are correct
         const category = await getCategoryByName(product.category);
-        const displayPrice = await calculateDisplayPrice(product.vendorSP, product.platform as 'personal' | 'corporate', category || undefined, undefined, undefined);
+        const displayPrice = await calculateDisplayPrice(product.vendorSP, product.platform as 'Personalized' | 'Corporate', category || undefined, undefined, undefined);
         
         const fullProductData = {
             ...product,
