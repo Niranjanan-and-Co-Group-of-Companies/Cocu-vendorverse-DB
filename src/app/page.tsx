@@ -5,7 +5,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gift, Heart, ShoppingCart, Star } from 'lucide-react';
+import { Gift, Heart, ShoppingCart } from 'lucide-react';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -144,15 +144,16 @@ export default function Home() {
         const pricedFeaturedProducts = await Promise.all(
             featuredData.map(async p => {
                 const category = categoriesForPricing.find(c => c.name === p.category);
-                const priceInfo = await calculateDisplayPrice(
-                    p,
-                    'Personalized', 
-                    category
-                );
-                return {
-                    ...p,
-                    displayPrice: priceInfo,
-                }
+                const productInfo = {
+                    id: p.id,
+                    vendorSP: p.vendorSP,
+                    category: p.category,
+                    vendorId: p.vendorId,
+                    discountType: p.discountType,
+                    discountValue: p.discountValue,
+                };
+                const priceInfo = await calculateDisplayPrice(productInfo, 'Personalized', category);
+                return { ...p, displayPrice: priceInfo };
             })
         );
         setFeaturedProducts(pricedFeaturedProducts);

@@ -4,12 +4,11 @@
 
 import * as React from 'react';
 import type { Product } from '@/lib/products';
-import { Star, Tag } from 'lucide-react';
+import { Tag } from 'lucide-react';
 import Link from 'next/link';
 import { VendorInfoDialog } from './vendor-info-dialog';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
-import { onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
-import type { Category } from '@/lib/categories-service';
+import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
 import { usePathname } from 'next/navigation';
@@ -40,7 +39,15 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
         setLoadingPrice(true);
         unsubscribe = onCategoriesWithCommissionsUpdate(platform, (categories) => {
             const category = categories.find(c => c.name === product.category);
-            calculateDisplayPrice(product, platform, category).then(info => {
+            const productInfo = {
+                id: product.id,
+                vendorSP: product.vendorSP,
+                category: product.category,
+                vendorId: product.vendorId,
+                discountType: product.discountType,
+                discountValue: product.discountValue,
+            };
+            calculateDisplayPrice(productInfo, platform, category).then(info => {
                 setPriceInfo(info);
                 setLoadingPrice(false);
             });

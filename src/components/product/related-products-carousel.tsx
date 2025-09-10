@@ -57,9 +57,17 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
         const pricedProducts = await Promise.all(
             products.map(async (p) => {
                 const category = categories.find(c => c.name === p.category);
+                 const productInfo = {
+                    id: p.id,
+                    vendorSP: p.vendorSP,
+                    category: p.category,
+                    vendorId: p.vendorId,
+                    discountType: p.discountType,
+                    discountValue: p.discountValue,
+                };
                 return {
                     ...p,
-                    displayPrice: await calculateDisplayPrice(p, 'Personalized', category),
+                    displayPrice: await calculateDisplayPrice(productInfo, 'Personalized', category),
                 }
             })
         );

@@ -7,7 +7,7 @@ import { Product } from '@/lib/products';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { Heart, ShoppingCart, Star } from 'lucide-react';
+import { Heart, ShoppingCart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
@@ -52,13 +52,17 @@ function SearchResultsContent() {
       const pricedProducts = await Promise.all(
           filteredProducts.map(async p => {
               const category = categories.find(c => c.name === p.category);
+              const productInfo = {
+                id: p.id,
+                vendorSP: p.vendorSP,
+                category: p.category,
+                vendorId: p.vendorId,
+                discountType: p.discountType,
+                discountValue: p.discountValue,
+              };
               return {
                 ...p,
-                displayPrice: await calculateDisplayPrice(
-                    p,
-                    'Personalized', 
-                    category
-                ),
+                displayPrice: await calculateDisplayPrice(productInfo, 'Personalized', category),
               }
           })
       );
@@ -115,9 +119,7 @@ function SearchResultsContent() {
                     <CardContent className="p-4 flex flex-col flex-grow gap-2">
                     <Skeleton className="h-5 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-4 w-1/4" />
                     <div className="flex-grow"></div>
-                    <Skeleton className="h-8 w-1/3" />
                     <div className="flex gap-2">
                         <Skeleton className="h-9 w-full" />
                         <Skeleton className="h-9 w-full" />

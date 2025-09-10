@@ -46,10 +46,18 @@ function CategoryPageContent({ slug }: { slug: string }) {
       if (categoryData) {
         const productData = await getProductsByCategory(slug);
         const pricedProducts = await Promise.all(
-            productData.map(async p => ({
-                ...p,
-                displayPrice: await calculateDisplayPrice(p, 'Personalized', categories.find(c => c.id === categoryData.id)),
-            }))
+            productData.map(async p => {
+                const productInfo = {
+                    id: p.id,
+                    vendorSP: p.vendorSP,
+                    category: p.category,
+                    vendorId: p.vendorId,
+                    discountType: p.discountType,
+                    discountValue: p.discountValue,
+                };
+                const displayPrice = await calculateDisplayPrice(productInfo, 'Personalized', categories.find(c => c.id === categoryData.id));
+                return { ...p, displayPrice };
+            })
         );
         setProducts(pricedProducts);
       }
@@ -101,9 +109,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
                     <CardContent className="p-4 flex flex-col flex-grow gap-2">
                     <Skeleton className="h-5 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-4 w-1/4" />
                     <div className="flex-grow"></div>
-                    <Skeleton className="h-8 w-1/3" />
                     <div className="flex gap-2">
                         <Skeleton className="h-9 w-full" />
                         <Skeleton className="h-9 w-full" />
