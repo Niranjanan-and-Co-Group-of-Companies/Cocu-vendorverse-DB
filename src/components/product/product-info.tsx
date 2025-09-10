@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -19,7 +18,6 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '.
 
 interface ProductInfoProps {
   product: Product;
-  displayPrice?: string | null;
   totalPrice?: number | null;
   quantity?: number;
 }
@@ -75,7 +73,6 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
   const showTotals = totalPrice && quantity && quantity >= (product.moq || 1);
-  const sortedTiers = product.tieredPricing?.sort((a,b) => a.quantity - b.quantity);
 
   return (
     <>

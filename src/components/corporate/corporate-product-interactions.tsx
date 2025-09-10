@@ -15,10 +15,11 @@ import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { BulkPricingCalculator } from './bulk-pricing-calculator';
 import { useCorporateChat } from '@/hooks/use-corporate-chat-store';
+import type { DisplayPrice } from '@/lib/pricing-service';
 
 interface CorporateProductInteractionsProps {
   product: Product;
-  onPriceChange: (details: { unit: string; total: number; quantity: number }) => void;
+  onPriceChange: (details: { unitPrice: number; total: number; quantity: number, displayPrice: DisplayPrice | null }) => void;
 }
 
 export function CorporateProductInteractions({ product, onPriceChange }: CorporateProductInteractionsProps) {

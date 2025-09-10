@@ -6,45 +6,84 @@ import type { Product, TieredPrice } from '@/lib/products';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { getCategoryByName } from '@/lib/categories-service';
+import { Skeleton } from '../ui/skeleton';
+import { Badge } from '../ui/badge';
 
 interface BulkPricingCalculatorProps {
   product: Product;
-  onPriceChange: (details: { unit: string; total: number; quantity: number }) => void;
+  onPriceChange: (details: { unitPrice: number; total: number; quantity: number, displayPrice: DisplayPrice | null }) => void;
 }
+
+interface TierWithPrice extends TieredPrice {
+    displayPrice: DisplayPrice;
+}
+
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
 export function BulkPricingCalculator({ product, onPriceChange }: BulkPricingCalculatorProps) {
   const [quantity, setQuantity] = React.useState(product.moq || 1);
+  const [pricedTiers, setPricedTiers] = React.useState<TierWithPrice[]>([]);
+  const [loadingTiers, setLoadingTiers] = React.useState(true);
+  const [currentDisplayPrice, setCurrentDisplayPrice] = React.useState<DisplayPrice | null>(null);
 
-  const getPriceForQuantity = (qty: number): string => {
-    if (!product.tieredPricing || product.tieredPricing.length === 0) {
-      return product.price;
-    }
-
-    let applicableTier: TieredPrice | undefined;
-    const sortedTiers = [...product.tieredPricing].sort((a, b) => b.quantity - a.quantity);
-    
-    for (const tier of sortedTiers) {
-      if (qty >= tier.quantity) {
-        applicableTier = tier;
-        break;
-      }
-    }
-
-    return applicableTier ? applicableTier.price : product.price;
-  };
-  
   React.useEffect(() => {
-    const unitPriceString = getPriceForQuantity(quantity);
-    const unitPriceNumber = parseFloat(unitPriceString.replace('$', ''));
-    const total = isNaN(unitPriceNumber) ? 0 : unitPriceNumber * quantity;
+    const fetchTierPrices = async () => {
+        if (!product.tieredPricing || product.tieredPricing.length === 0) {
+            setLoadingTiers(false);
+            return;
+        }
+        setLoadingTiers(true);
+        const category = await getCategoryByName(product.category);
+        const pricedTiersData = await Promise.all(
+            product.tieredPricing.map(async tier => {
+                 const displayPrice = await calculateDisplayPrice({ ...product, vendorSP: parseFloat(tier.price) }, 'Corporate', category || undefined, tier.quantity);
+                 return { ...tier, displayPrice };
+            })
+        );
+        setPricedTiers(pricedTiersData.sort((a,b) => a.quantity - b.quantity));
+        setLoadingTiers(false);
+    }
+    fetchTierPrices();
+  }, [product]);
 
-    onPriceChange({
-        unit: unitPriceString,
-        total: total,
-        quantity: quantity
-    });
+  React.useEffect(() => {
+    const calculateCurrentPrice = async () => {
+        const category = await getCategoryByName(product.category);
+        
+        // Determine the base price for this quantity from tiers or default
+        let vendorSP = product.vendorSP;
+        if (product.tieredPricing && product.tieredPricing.length > 0) {
+            const sortedTiers = [...product.tieredPricing].sort((a, b) => b.quantity - a.quantity);
+            const applicableTier = sortedTiers.find(tier => quantity >= tier.quantity);
+            if (applicableTier) {
+                vendorSP = parseFloat(applicableTier.price);
+            }
+        }
+        
+        const displayPrice = await calculateDisplayPrice({ ...product, vendorSP }, 'Corporate', category || undefined, quantity);
+        setCurrentDisplayPrice(displayPrice);
 
-  }, [quantity, product.tieredPricing, product.price, onPriceChange]);
+        const total = displayPrice.finalPrice * quantity;
+        onPriceChange({
+            unitPrice: displayPrice.finalPrice,
+            total: total,
+            quantity: quantity,
+            displayPrice: displayPrice
+        });
+    };
+
+    if (quantity >= (product.moq || 1)) {
+        calculateCurrentPrice();
+    } else if (quantity !== 0) {
+        // If quantity is invalid but not zero, reset price info
+        setCurrentDisplayPrice(null);
+        onPriceChange({ unitPrice: 0, total: 0, quantity, displayPrice: null });
+    }
+
+  }, [quantity, product, onPriceChange]);
+
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
@@ -57,23 +96,28 @@ export function BulkPricingCalculator({ product, onPriceChange }: BulkPricingCal
       setQuantity(qty);
     }
   }
-  
-  const sortedTiers = product.tieredPricing ? [...product.tieredPricing].sort((a, b) => a.quantity - b.quantity) : [];
 
   return (
     <div className="rounded-lg border p-4 space-y-4 bg-muted/20">
         <h4 className="font-semibold">Bulk Pricing Calculator</h4>
-        {sortedTiers.length > 0 && (
+        {pricedTiers.length > 0 && (
              <div className="space-y-2">
                 <Label htmlFor="quantity-tier">Select Quantity Tier</Label>
-                 <Select onValueChange={handleTierChange}>
+                 <Select onValueChange={handleTierChange} value={String(quantity)}>
                     <SelectTrigger id="quantity-tier">
                         <SelectValue placeholder="Select a tier" />
                     </SelectTrigger>
                     <SelectContent>
-                        {sortedTiers.map((tier) => (
+                        {loadingTiers ? <SelectItem value="loading" disabled>Loading tiers...</SelectItem> : 
+                        pricedTiers.map((tier) => (
                         <SelectItem key={tier.quantity} value={String(tier.quantity)}>
-                            {tier.quantity}+ units ({tier.price}/unit)
+                            <div className="flex justify-between items-center w-full">
+                                <span>{tier.quantity}+ units</span>
+                                <div className="flex items-center gap-2">
+                                     {tier.displayPrice.hasDiscount && <Badge variant="secondary">{tier.displayPrice.discountText}</Badge>}
+                                    <span className="font-semibold">{formatCurrency(tier.displayPrice.finalPrice)}/unit</span>
+                                </div>
+                            </div>
                         </SelectItem>
                         ))}
                     </SelectContent>
@@ -82,7 +126,7 @@ export function BulkPricingCalculator({ product, onPriceChange }: BulkPricingCal
         )}
         <div className="grid grid-cols-2 gap-4">
              <div className="space-y-2">
-                <Label htmlFor="quantity">Enter Quantity</Label>
+                <Label htmlFor="quantity">Enter Custom Quantity</Label>
                 <Input
                     id="quantity"
                     type="number"
@@ -95,8 +139,15 @@ export function BulkPricingCalculator({ product, onPriceChange }: BulkPricingCal
             </div>
             <div className="space-y-2">
                 <Label>Your Price / Unit</Label>
-                <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    {getPriceForQuantity(quantity)}
+                 <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-semibold">
+                    {currentDisplayPrice ? (
+                        <div className="flex items-center gap-2">
+                            {currentDisplayPrice.hasDiscount && <span className="text-xs text-muted-foreground line-through">{formatCurrency(currentDisplayPrice.originalPrice)}</span>}
+                            <span>{formatCurrency(currentDisplayPrice.finalPrice)}</span>
+                        </div>
+                    ) : (
+                         <span>-</span>
+                    )}
                 </div>
             </div>
         </div>

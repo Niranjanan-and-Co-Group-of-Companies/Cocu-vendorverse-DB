@@ -14,10 +14,12 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { BulkPricingCalculator } from './bulk-pricing-calculator';
+import { useCorporateChat } from '@/hooks/use-corporate-chat-store';
+import type { DisplayPrice } from '@/lib/pricing-service';
 
 interface CorporateProductInteractionsProps {
   product: Product;
-  onPriceChange: (details: { unit: string; total: number; quantity: number }) => void;
+  onPriceChange: (details: { unitPrice: number; total: number; quantity: number, displayPrice: DisplayPrice | null }) => void;
 }
 
 export function CorporateProductInteractions({ product, onPriceChange }: CorporateProductInteractionsProps) {
@@ -26,6 +28,7 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   const { addItem: addToBid, items: bidItems } = useBidRequest();
   const { addItem: addToCompare, removeItem: removeFromCompare, items: compareItems } = useComparison();
   const router = useRouter();
+  const { openChat } = useCorporateChat();
 
   const [pincode, setPincode] = React.useState('');
   const [deliveryInfo, setDeliveryInfo] = React.useState('');
@@ -125,20 +128,24 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
               <ShoppingCart className="mr-2" />
               Add to Cart
             </Button>
+            <Button size="lg" variant="secondary" onClick={() => openChat(product)} className="w-full">
+                <MessageSquare className="mr-2" />
+                Message Vendor
+            </Button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button size="lg" variant="outline" onClick={handleAddToBid} disabled={isAddedToBid} className="w-full">
               <Gavel className="mr-2" />
               {isAddedToBid ? 'Added to Bid' : 'Add to Bid'}
             </Button>
-        </div>
-         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-             <Button size="lg" variant="outline" onClick={handleToggleCompare} className={cn("w-full", isInCompare && "bg-accent")}>
+            <Button size="lg" variant="outline" onClick={handleToggleCompare} className={cn("w-full", isInCompare && "bg-accent")}>
               <Scale className="mr-2" />
               {isInCompare ? 'In Compare' : 'Compare'}
             </Button>
-            <Button size="lg" variant="default" className="w-full" onClick={handleBuyNow}>
-                Buy Now
-            </Button>
         </div>
+        <Button size="lg" variant="default" className="w-full" onClick={handleBuyNow}>
+          Buy Now
+        </Button>
       </>
     );
   }
