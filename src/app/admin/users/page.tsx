@@ -18,14 +18,12 @@ import { PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddUserDialog } from '@/components/admin/users/add-user-dialog';
 import { UserActions } from '@/components/admin/users/user-actions';
-import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { User, UserRole } from '@/lib/user-service';
-import { onUsersUpdate } from '@/lib/user-service';
 import { UserProfileDialog } from '@/components/admin/users/user-profile-dialog';
 import { UserOrdersDialog } from '@/components/admin/users/user-orders-dialog';
-
 
 export default function UsersPage() {
   const [users, setUsers] = React.useState<User[]>([]);
@@ -36,11 +34,17 @@ export default function UsersPage() {
   const { toast } = useToast();
 
   React.useEffect(() => {
-    const unsub = onUsersUpdate((usersData) => {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('role', 'in', ['customer', 'admin']));
+    
+    const unsub = onSnapshot(q, (snapshot) => {
+        const usersData: User[] = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as User));
         setUsers(usersData);
         setLoading(false);
     });
-    // Cleanup subscription on unmount
     return () => unsub();
   }, []);
 
@@ -53,7 +57,6 @@ export default function UsersPage() {
             joinedDate: serverTimestamp(),
             communicationPrefs: { email: true, sms: true },
         });
-        // The onSnapshot listener will automatically update the UI
     } catch (error) {
         console.error("Error adding user: ", error);
         toast({
@@ -68,7 +71,6 @@ export default function UsersPage() {
     try {
         const userRef = doc(db, 'users', userId);
         await updateDoc(userRef, { status });
-        // The onSnapshot listener will automatically update the UI
     } catch(error) {
         console.error("Error updating user status: ", error);
         toast({

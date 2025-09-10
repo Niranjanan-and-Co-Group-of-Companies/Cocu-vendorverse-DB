@@ -1,6 +1,6 @@
 
 
-import { doc, getDoc, collection, onSnapshot, Unsubscribe, setDoc, serverTimestamp, getDocs, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, Unsubscribe, setDoc, serverTimestamp, getDocs, writeBatch, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 
 export type UserRole = 'customer' | 'vendor' | 'admin';
@@ -16,9 +16,6 @@ export interface User {
   communicationPrefs: { email: boolean; sms: boolean; };
 }
 
-// In a real application, you would have an authentication hook to get the current user's ID.
-// For demonstration purposes, we will fetch a specific, known user from the database.
-const MOCK_USER_ID = 'user001'; 
 const MOCK_USERS: Omit<User, 'id' | 'joinedDate'>[] = [
     { name: 'Alice Johnson', email: 'alice.j@example.com', avatar: 'https://i.pravatar.cc/40?u=user001', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: false } },
     { name: 'Admin User', email: 'admin@vendorverse.com', avatar: 'https://i.pravatar.cc/40?u=admin', role: 'admin', status: 'Active', communicationPrefs: { email: true, sms: true } },
@@ -28,38 +25,47 @@ const MOCK_USERS: Omit<User, 'id' | 'joinedDate'>[] = [
 ];
 
 async function seedUsers() {
+    const seedFlagRef = doc(db, 'internal_flags', 'usersSeeded_v2');
+    const seedFlagSnap = await getDoc(seedFlagRef);
+
+    if (seedFlagSnap.exists()) {
+        return;
+    }
+
+    console.log("Seeding mock users v2...");
     const usersRef = collection(db, 'users');
     const snapshot = await getDocs(usersRef);
+    const existingEmails = new Set(snapshot.docs.map(d => d.data().email));
 
-    if (snapshot.empty) {
-        console.log("Seeding mock users...");
-        const batch = writeBatch(db);
-        MOCK_USERS.forEach(user => {
+    const batch = writeBatch(db);
+    MOCK_USERS.forEach(user => {
+        if (!existingEmails.has(user.email)) {
             const userRef = doc(usersRef);
             batch.set(userRef, {
                 ...user,
                 joinedDate: serverTimestamp()
             });
-        });
-        await batch.commit();
-        console.log("Mock users seeded.");
-    }
+        }
+    });
+    await batch.commit();
+
+    await setDoc(seedFlagRef, { completed: true });
+    console.log("Mock users seeding complete.");
 }
 seedUsers();
 
-
-/**
- * Fetches a mock user from the database to simulate a logged-in user.
- * @returns A promise that resolves to the User object or null if not found.
- */
+const MOCK_USER_ID = 'user001'; 
 export async function getMockUser(): Promise<User | null> {
-    const userRef = doc(db, 'users', MOCK_USER_ID);
+    // This function now needs to find the user by a property, not a specific ID
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where("email", "==", "alice.j@example.com"), limit(1));
     try {
-        const docSnap = await getDoc(userRef);
-        if (docSnap.exists()) {
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const docSnap = querySnapshot.docs[0];
             return { id: docSnap.id, ...docSnap.data() } as User;
         } else {
-            console.warn(`Mock user with ID "${MOCK_USER_ID}" not found.`);
+            console.warn(`Mock user "alice.j@example.com" not found.`);
             return null;
         }
     } catch (error) {
