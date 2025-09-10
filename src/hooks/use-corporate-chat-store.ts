@@ -4,6 +4,7 @@
 import { create } from 'zustand';
 import type { Product } from '@/lib/products';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { useState, useEffect } from 'react';
 
 // This will be replaced by the actual service types later
 export interface Conversation {
@@ -48,7 +49,7 @@ interface CorporateChatState {
   closeSafetyNotice: (shouldProceed: boolean) => void;
 }
 
-export const useCorporateChat = create(
+const useCorporateChatStore = create(
     persist<CorporateChatState>(
         (set, get) => ({
             conversations: [],
@@ -124,3 +125,26 @@ export const useCorporateChat = create(
         }
     )
 );
+
+// Custom hook to prevent hydration errors with zustand persist middleware
+export const useCorporateChat = () => {
+  const store = useCorporateChatStore();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  return isClient ? store : {
+    conversations: [],
+    selectedConversation: null,
+    isLoading: true,
+    isReady: false,
+    isSafetyNoticeOpen: false,
+    newConversationInfo: null,
+    selectConversation: () => {},
+    openChat: () => {},
+    initiateNewConversation: () => {},
+    closeSafetyNotice: () => {},
+  };
+};
