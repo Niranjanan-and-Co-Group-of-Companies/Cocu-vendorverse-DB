@@ -100,8 +100,10 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
     <Card className="overflow-hidden group h-full flex flex-col">
       <div className="relative">
         <Link href={`/corporate/products/${product.id}`} className="block aspect-[4/3] bg-muted overflow-hidden">
-            {product.displayPrice?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>}
-            {product.featured && <Badge className="absolute top-2 right-2 z-10">Featured</Badge>}
+            <div className="absolute top-2 left-2 z-10 flex flex-col gap-y-2">
+                {product.featured && <Badge>Featured</Badge>}
+                {product.displayPrice?.hasDiscount && <Badge variant="destructive">{product.displayPrice.discountText}</Badge>}
+            </div>
             <Image
               src={product.image}
               alt={product.name}

@@ -6,7 +6,7 @@ import { Product } from '@/lib/products';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { Heart, ShoppingCart, Star } from 'lucide-react';
+import { Heart, ShoppingCart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
