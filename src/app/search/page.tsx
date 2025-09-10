@@ -101,7 +101,7 @@ function SearchResultsContent() {
             <h1 className="text-2xl font-bold mb-4">
               Searching...
             </h1>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
                 <Card key={i} className="overflow-hidden group h-full flex flex-col">
                     <CardHeader className="p-0 relative">
@@ -132,7 +132,7 @@ function SearchResultsContent() {
         </h1>
         
         {searchResults.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {searchResults.map((product) => {
                const inWishlist = isItemInWishlist(product.id);
                return (

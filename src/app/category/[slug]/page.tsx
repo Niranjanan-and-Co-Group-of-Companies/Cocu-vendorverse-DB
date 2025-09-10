@@ -92,7 +92,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
         <main className="flex-grow container py-8">
             <Skeleton className="h-8 w-1/4 mb-4" />
             <Skeleton className="h-4 w-1/2 mb-8" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
                 <Card key={i} className="overflow-hidden group h-full flex flex-col">
                     <CardHeader className="p-0 relative">
@@ -124,7 +124,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
             <p className="text-muted-foreground mb-8">{products.length} products</p>
             
             {products.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {products.map((product) => {
                   const inWishlist = isItemInWishlist(product.id);
                   return (
