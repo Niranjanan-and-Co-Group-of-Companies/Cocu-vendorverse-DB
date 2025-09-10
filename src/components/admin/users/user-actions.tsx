@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -23,15 +24,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, User, ShoppingCart, ShieldOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
-import type { User } from '@/app/admin/users/page';
+import type { User as UserType } from '@/lib/user-service';
 
 interface UserActionsProps {
-  user: User;
+  user: UserType;
   onStatusChange: (userId: string, status: 'Active' | 'Suspended') => void;
+  onViewProfile: () => void;
+  onViewOrders: () => void;
 }
 
-export function UserActions({ user, onStatusChange }: UserActionsProps) {
+export function UserActions({ user, onStatusChange, onViewProfile, onViewOrders }: UserActionsProps) {
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = React.useState(false);
   const { toast } = useToast();
 
@@ -56,17 +58,13 @@ export function UserActions({ user, onStatusChange }: UserActionsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem asChild>
-             <Link href="#">
-                <User className="mr-2 h-4 w-4" />
-                View Profile
-            </Link>
+          <DropdownMenuItem onClick={onViewProfile}>
+             <User className="mr-2 h-4 w-4" />
+             View Profile
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-             <Link href={`/admin/orders?userId=${user.id}`}>
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                View Orders
-            </Link>
+          <DropdownMenuItem onClick={onViewOrders}>
+             <ShoppingCart className="mr-2 h-4 w-4" />
+             View Orders
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

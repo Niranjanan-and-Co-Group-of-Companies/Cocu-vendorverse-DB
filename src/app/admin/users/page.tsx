@@ -22,11 +22,16 @@ import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from 
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { User, UserRole } from '@/lib/user-service';
+import { UserProfileDialog } from '@/components/admin/users/user-profile-dialog';
+import { UserOrdersDialog } from '@/components/admin/users/user-orders-dialog';
+
 
 export default function UsersPage() {
   const [users, setUsers] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isAddUserOpen, setIsAddUserOpen] = React.useState(false);
+  const [viewingProfileUser, setViewingProfileUser] = React.useState<User | null>(null);
+  const [viewingOrdersUser, setViewingOrdersUser] = React.useState<User | null>(null);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -103,103 +108,113 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-            <h1 className="text-2xl font-bold">Manage Users</h1>
-            <p className="text-muted-foreground">
-            Here you can view, edit, and manage all customer accounts.
-            </p>
-        </div>
-        <AddUserDialog
-            open={isAddUserOpen}
-            onOpenChange={setIsAddUserOpen}
-            onUserAdded={handleUserAdded}
-        >
-            <Button onClick={() => setIsAddUserOpen(true)}>
+    <>
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div>
+              <h1 className="text-2xl font-bold">Manage Users</h1>
+              <p className="text-muted-foreground">
+              Here you can view, edit, and manage all customer accounts.
+              </p>
+          </div>
+          <AddUserDialog
+              open={isAddUserOpen}
+              onOpenChange={setIsAddUserOpen}
+              onUserAdded={handleUserAdded}
+          >
+            <Button>
                 <PlusCircle className="mr-2" />
                 Add Customer
             </Button>
-        </AddUserDialog>
-      </div>
+          </AddUserDialog>
+        </div>
 
-      <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-        <div className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="flex flex-col gap-1">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-40" />
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Joined Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-10 w-10 rounded-full" />
+                          <div className="flex flex-col gap-1">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-40" />
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-6 w-20 rounded-full" />
-                    </TableCell>
-                     <TableCell>
-                      <Skeleton className="h-6 w-20 rounded-full" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Skeleton className="h-8 w-8 ml-auto" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={user.avatar} alt={user.name} data-ai-hint="avatar" />
-                          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{user.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {user.email}
-                          </p>
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="h-8 w-8 ml-auto" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage src={user.avatar} alt={user.name} data-ai-hint="avatar" />
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{user.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {user.email}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                       <Badge variant={getRoleVariant(user.role)} className="capitalize">{user.role}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(user.status)}>
-                        {user.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {formatDate(user.joinedDate)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                       <UserActions user={user} onStatusChange={handleUserStatusChange} />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getRoleVariant(user.role)} className="capitalize">{user.role}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusVariant(user.status)}>
+                          {user.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {formatDate(user.joinedDate)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <UserActions 
+                            user={user} 
+                            onStatusChange={handleUserStatusChange}
+                            onViewProfile={() => setViewingProfileUser(user)}
+                            onViewOrders={() => setViewingOrdersUser(user)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
-    </div>
+      
+      <UserProfileDialog user={viewingProfileUser} open={!!viewingProfileUser} onOpenChange={() => setViewingProfileUser(null)} />
+      <UserOrdersDialog user={viewingOrdersUser} open={!!viewingOrdersUser} onOpenChange={() => setViewingOrdersUser(null)} />
+    </>
   );
 }
