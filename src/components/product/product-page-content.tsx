@@ -17,7 +17,8 @@ export function ProductPageContent({ product }: { product: PlainProduct }) {
 
     React.useEffect(() => {
         if (product && product.variants) {
-            setSelectedVariant(product.variants[0] || null);
+            const mainVariant = product.variants.find(v => v.id === product.mainVariantId) || product.variants[0];
+            setSelectedVariant(mainVariant || null);
         }
     }, [product]);
 
@@ -88,7 +89,7 @@ export function ProductPageContent({ product }: { product: PlainProduct }) {
                     type="vendor"
                     value={product.vendorId}
                     currentProductId={product.id}
-                    title={`More from ${product.vendor}`}
+                    title="More from the same vendor"
                 />
             </div>
         </div>
