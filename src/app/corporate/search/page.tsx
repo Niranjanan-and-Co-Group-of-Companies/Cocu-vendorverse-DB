@@ -1,0 +1,158 @@
+
+'use client';
+
+import * as React from 'react';
+import { useSearchParams } from 'next/navigation';
+import { getAllProducts } from '@/lib/products-service';
+import { onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
+import type { Product } from '@/lib/products';
+import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import { getCategoryBySlug, type Category } from '@/lib/categories-service';
+
+interface ProductWithPrice extends Product {
+    displayPrice: DisplayPrice;
+}
+
+function CorporateSearchPageContent() {
+  const searchParams = useSearchParams();
+  const query = searchParams.get('q') || '';
+  
+  const [allProducts, setAllProducts] = React.useState<ProductWithPrice[]>([]);
+  const [filteredProducts, setFilteredProducts] = React.useState<ProductWithPrice[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [sortOption, setSortOption] = React.useState('rating-desc');
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    let categoriesUnsubscribe: () => void;
+
+    const fetchData = async (categories: Category[]) => {
+      setLoading(true);
+      const products = await getAllProducts();
+      
+      const b2bProducts = products.filter(p => {
+          const lowerCaseQuery = query.toLowerCase();
+          const matchesQuery = p.name.toLowerCase().includes(lowerCaseQuery) ||
+                               p.vendor.toLowerCase().includes(lowerCaseQuery) ||
+                               p.description?.toLowerCase().includes(lowerCaseQuery);
+          return p.moq && p.moq > 0 && matchesQuery;
+      });
+
+      const pricedProducts = await Promise.all(
+        b2bProducts.map(async (p) => {
+          const categoryForPrice = categories.find(c => c.name === p.category);
+           const productInfo = {
+              id: p.id,
+              vendorSP: p.vendorSP,
+              category: p.category,
+              vendorId: p.vendorId,
+              tieredPricing: p.tieredPricing,
+              price: p.price,
+            };
+          return {
+            ...p,
+            displayPrice: await calculateDisplayPrice(productInfo, 'Corporate', categoryForPrice || undefined),
+          }
+        })
+      );
+      
+      setAllProducts(pricedProducts);
+      setLoading(false);
+    };
+
+    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Corporate', (categories) => {
+        fetchData(categories);
+    });
+
+    return () => {
+        if(categoriesUnsubscribe) {
+            categoriesUnsubscribe();
+        }
+    }
+  }, [query]);
+
+  React.useEffect(() => {
+    let results = [...allProducts];
+
+    switch (sortOption) {
+      case 'rating-desc':
+        results.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'price-asc':
+        results.sort((a, b) => a.displayPrice.finalPrice - b.displayPrice.finalPrice);
+        break;
+      case 'price-desc':
+        results.sort((a, b) => b.displayPrice.finalPrice - a.displayPrice.finalPrice);
+        break;
+    }
+
+    setFilteredProducts(results);
+  }, [sortOption, allProducts]);
+
+  const handleActionClick = (actionName: string, productName: string) => {
+    toast({
+      title: `${actionName} Clicked`,
+      description: `Action "${actionName}" was triggered for ${productName}.`,
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-8">
+      <div>
+        <h1 className="text-3xl font-bold font-headline">Search Results for "{query}"</h1>
+        <p className="text-muted-foreground mt-2">
+          {filteredProducts.length} corporate products found.
+        </p>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 items-center">
+        <div className="w-full md:w-auto md:ml-auto">
+          <Select value={sortOption} onValueChange={setSortOption}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="rating-desc">Sort by: Popularity</SelectItem>
+              <SelectItem value="price-asc">Sort by: Price (Low to High)</SelectItem>
+              <SelectItem value="price-desc">Sort by: Price (High to Low)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-[520px] w-full" />
+          ))}
+        </div>
+      ) : filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {filteredProducts.map(product => (
+            <CorporateProductCard 
+              key={product.id} 
+              product={product} 
+              onAction={handleActionClick} 
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 text-muted-foreground">
+          <p>No corporate products found matching your search.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function CorporateSearchPage() {
+    return (
+        <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
+            <CorporateSearchPageContent />
+        </React.Suspense>
+    )
+}

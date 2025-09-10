@@ -34,7 +34,7 @@ export default function Header() {
         
         <div className="flex-1 flex justify-center">
           <div className="w-full max-w-lg relative">
-            <Search />
+            <Search platform="personalized" />
           </div>
         </div>
 

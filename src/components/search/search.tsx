@@ -9,8 +9,11 @@ import { getSearchSuggestions } from '@/ai/flows/search-flow';
 import { getSearchIndex, type SearchIndex } from '@/lib/products-service';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+interface SearchProps {
+    platform?: 'personalized' | 'corporate';
+}
 
-export function Search() {
+export function Search({ platform = 'personalized' }: SearchProps) {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [query, setQuery] = useState('');
@@ -65,18 +68,20 @@ export function Search() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      router.push(`/search?q=${query}`);
+      const searchPath = platform === 'corporate' ? '/corporate/search' : '/search';
+      router.push(`${searchPath}?q=${query}`);
       setShowSuggestions(false);
     }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
     setQuery(suggestion);
-    router.push(`/search?q=${suggestion}`);
+    const searchPath = platform === 'corporate' ? '/corporate/search' : '/search';
+    router.push(`${searchPath}?q=${suggestion}`);
     setShowSuggestions(false);
   };
   
-  const placeholderText = isMobile ? "Search for Gift's" : "Search for gifts and more...";
+  const placeholderText = isMobile ? "Search..." : "Search for gifts, vendors, and more...";
 
   return (
     <div className="w-full max-w-lg relative" ref={searchContainerRef}>

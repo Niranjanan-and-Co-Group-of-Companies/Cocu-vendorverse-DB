@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -35,7 +36,7 @@ export default function CorporateHeader() {
         
         <div className="flex-1 flex justify-center px-8">
           <div className="w-full max-w-lg relative">
-            <Search />
+            <Search platform="corporate" />
           </div>
         </div>
 
