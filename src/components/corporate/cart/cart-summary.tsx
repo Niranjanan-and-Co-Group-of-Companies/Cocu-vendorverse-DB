@@ -9,8 +9,9 @@ import type { CartItem } from '@/hooks/use-corporate-cart';
 import { Input } from '@/components/ui/input';
 import { Tag, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getPromotionByCode } from '@/lib/promotions-actions';
+import { getPromotionByCode, getPromotionsForProduct } from '@/lib/promotions-actions';
 import type { PlainPromotion } from '@/lib/promotions-service';
+import Link from 'next/link';
 
 interface CartSummaryProps {
   items: CartItem[];
@@ -19,27 +20,87 @@ interface CartSummaryProps {
 export function CartSummary({ items }: CartSummaryProps) {
   const { toast } = useToast();
   const [couponInput, setCouponInput] = React.useState('');
-  const [appliedPromotion, setAppliedPromotion] = React.useState<PlainPromotion | null>(null);
+  const [appliedPromotions, setAppliedPromotions] = React.useState<PlainPromotion[]>([]);
   const [isApplying, setIsApplying] = React.useState(false);
+
+  React.useEffect(() => {
+    const findAndApplyBestPromotion = async () => {
+        if (items.length === 0) {
+            setAppliedPromotions([]);
+            return;
+        }
+
+        let allEligiblePromos: PlainPromotion[] = [];
+        for (const item of items) {
+            const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId, 'Corporate');
+            const visiblePromos = promos.filter(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
+            visiblePromos.forEach(p => {
+              if (!allEligiblePromos.some(ep => ep.id === p.id)) {
+                allEligiblePromos.push(p);
+              }
+            });
+        }
+        
+        let bestPromo: PlainPromotion | null = null;
+        let maxDiscount = 0;
+
+        for (const promo of allEligiblePromos) {
+            let currentDiscount = 0;
+            const applicableItems = (promo.appliesTo?.products?.length || 0) > 0 
+                ? items.filter(item => promo.appliesTo!.products.includes(item.id))
+                : items;
+            
+            const applicableSubtotal = applicableItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price)) * item.quantity, 0);
+
+            if (promo.type === 'Percentage') {
+                currentDiscount = applicableSubtotal * (promo.value / 100);
+            } else if (promo.type === 'Fixed Amount') {
+                currentDiscount = Math.min(promo.value, applicableSubtotal);
+            }
+
+            if (currentDiscount > maxDiscount) {
+                maxDiscount = currentDiscount;
+                bestPromo = promo;
+            }
+        }
+        
+        setAppliedPromotions(prev => {
+            const manualPromos = prev.filter(p => !p.visibleOnPlatform);
+            return bestPromo ? [bestPromo, ...manualPromos] : manualPromos;
+        });
+    };
+
+    findAndApplyBestPromotion();
+  }, [items]);
+
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
-      const price = parseFloat(item.price.replace('$', '').replace('₹', ''));
+      const price = item.displayPrice?.originalPrice || parseFloat(item.price.replace('$', '').replace('₹', ''));
       return total + price * item.quantity;
     }, 0);
   }, [items]);
 
   const discountAmount = React.useMemo(() => {
-    if (!appliedPromotion) return 0;
-    
-    let discount = 0;
-    if (appliedPromotion.type === 'Percentage') {
-        discount = subtotal * (appliedPromotion.value / 100);
-    } else if (appliedPromotion.type === 'Fixed Amount') {
-        discount = Math.min(appliedPromotion.value, subtotal);
-    }
-    return discount;
-  }, [appliedPromotion, subtotal]);
+    return appliedPromotions.reduce((totalDiscount, promo) => {
+      let discount = 0;
+      
+      const isProductSpecific = promo.appliesTo?.products?.length > 0;
+      
+      const applicableItems = isProductSpecific 
+        ? items.filter(item => promo.appliesTo!.products.includes(item.id))
+        : items;
+          
+      const applicableSubtotal = applicableItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price)) * item.quantity, 0);
+
+      if (promo.type === 'Percentage') {
+          discount = applicableSubtotal * (promo.value / 100);
+      } else if (promo.type === 'Fixed Amount') {
+          discount = Math.min(promo.value, applicableSubtotal);
+      }
+      return totalDiscount + discount;
+    }, 0);
+  }, [appliedPromotions, items]);
 
   const handleApplyCoupon = async () => {
     if (!couponInput) return;
@@ -52,21 +113,34 @@ export function CartSummary({ items }: CartSummaryProps) {
         return;
     }
 
-    if (appliedPromotion) {
-        toast({ title: "Coupon Already Applied", description: "Only one coupon can be applied per order.", variant: "destructive" });
+    if (appliedPromotions.some(p => p.id === promo.id)) {
+        toast({ title: "Coupon Already Applied", variant: "destructive" });
         return;
     }
     
-    setAppliedPromotion(promo);
+    if (promo.visibleOnPlatform) {
+        toast({ title: "Automatic Discount", description: "This discount is applied automatically if it's the best offer for your cart.", variant: "destructive" });
+        return;
+    }
+
+    const hasManualPromo = appliedPromotions.some(p => !p.visibleOnPlatform);
+
+    if (hasManualPromo) {
+        toast({ title: "Limit Reached", description: "You can only apply one manual coupon code.", variant: "destructive" });
+        return;
+    }
+    
+    setAppliedPromotions(prev => [...prev, promo]);
     setCouponInput('');
     toast({ title: "Coupon Applied!", description: `"${promo.code}" was successfully applied.` });
   };
   
-  const handleRemoveCoupon = () => {
-    if (appliedPromotion) {
-      toast({ title: "Coupon Removed", description: `"${appliedPromotion.code}" has been removed.`, variant: "destructive" });
-      setAppliedPromotion(null);
-    }
+  const handleRemoveCoupon = (promoId: string) => {
+    const promoToRemove = appliedPromotions.find(p => p.id === promoId);
+    if (!promoToRemove) return;
+    
+    setAppliedPromotions(prev => prev.filter(p => p.id !== promoId));
+    toast({ title: "Coupon Removed", description: `"${promoToRemove.code}" has been removed.`, variant: "destructive" });
   };
 
   const formatCurrency = (amount: number) => {
@@ -91,12 +165,14 @@ export function CartSummary({ items }: CartSummaryProps) {
                 {isApplying ? <Loader2 className="animate-spin"/> : 'Apply'}
             </Button>
         </div>
-        {appliedPromotion && (
+        {appliedPromotions.length > 0 && (
             <div className="space-y-1 pl-7">
-                <div className="flex items-center justify-between text-xs p-1 bg-green-100 dark:bg-green-900/50 rounded-md">
-                    <span className="font-semibold text-green-700 dark:text-green-300">{appliedPromotion.code}</span>
-                    <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={handleRemoveCoupon}><X className="h-3 w-3"/></Button>
-                </div>
+                {appliedPromotions.map(p => (
+                    <div key={p.id} className="flex items-center justify-between text-xs p-1 bg-green-100 dark:bg-green-900/50 rounded-md">
+                        <span className="font-semibold text-green-700 dark:text-green-300">{p.code}</span>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={() => handleRemoveCoupon(p.id)}><X className="h-3 w-3"/></Button>
+                    </div>
+                ))}
             </div>
         )}
         <Separator />
@@ -125,8 +201,8 @@ export function CartSummary({ items }: CartSummaryProps) {
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="w-full" size="lg">
-          Proceed to Checkout
+        <Button className="w-full" size="lg" asChild>
+            <Link href="/corporate/checkout">Proceed to Checkout</Link>
         </Button>
       </CardFooter>
     </Card>
