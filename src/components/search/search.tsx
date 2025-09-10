@@ -79,7 +79,7 @@ export function Search() {
       <form onSubmit={handleSearch}>
         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search for gifts, vendors, and more..."
+          placeholder="Search for gifts and more..."
           className="pl-10 h-9"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
