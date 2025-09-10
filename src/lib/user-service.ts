@@ -1,6 +1,6 @@
 
 
-import { doc, getDoc, collection, onSnapshot, Unsubscribe, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, Unsubscribe, setDoc, serverTimestamp, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from './firebase';
 
 export type UserRole = 'customer' | 'vendor' | 'admin';
@@ -22,21 +22,27 @@ const MOCK_USER_ID = 'user001';
 const MOCK_USERS: Omit<User, 'id' | 'joinedDate'>[] = [
     { name: 'Alice Johnson', email: 'alice.j@example.com', avatar: 'https://i.pravatar.cc/40?u=user001', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: false } },
     { name: 'Admin User', email: 'admin@vendorverse.com', avatar: 'https://i.pravatar.cc/40?u=admin', role: 'admin', status: 'Active', communicationPrefs: { email: true, sms: true } },
-    { name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', avatar: 'https://i.pravatar.cc/40?u=vendor001', role: 'vendor', status: 'Active', communicationPrefs: { email: true, sms: true } },
-]
+    { name: 'Bob Williams', email: 'bob.w@example.com', avatar: 'https://i.pravatar.cc/40?u=user002', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: true } },
+    { name: 'Charlie Brown', email: 'charlie.b@example.com', avatar: 'https://i.pravatar.cc/40?u=user003', role: 'customer', status: 'Suspended', communicationPrefs: { email: false, sms: false } },
+    { name: 'Diana Prince', email: 'diana.p@example.com', avatar: 'https://i.pravatar.cc/40?u=user004', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: true } },
+];
 
 async function seedUsers() {
-    const user001Ref = doc(db, 'users', 'user001');
-    const user001Snap = await getDoc(user001Ref);
-    if (!user001Snap.exists()) {
+    const usersRef = collection(db, 'users');
+    const snapshot = await getDocs(usersRef);
+
+    if (snapshot.empty) {
         console.log("Seeding mock users...");
-        for (const user of MOCK_USERS) {
-            const id = user.role === 'admin' ? 'admin001' : user.role === 'vendor' ? 'vendor001' : 'user001';
-             await setDoc(doc(db, "users", id), {
+        const batch = writeBatch(db);
+        MOCK_USERS.forEach(user => {
+            const userRef = doc(usersRef);
+            batch.set(userRef, {
                 ...user,
                 joinedDate: serverTimestamp()
             });
-        }
+        });
+        await batch.commit();
+        console.log("Mock users seeded.");
     }
 }
 seedUsers();

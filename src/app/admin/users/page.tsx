@@ -22,6 +22,7 @@ import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from 
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { User, UserRole } from '@/lib/user-service';
+import { onUsersUpdate } from '@/lib/user-service';
 import { UserProfileDialog } from '@/components/admin/users/user-profile-dialog';
 import { UserOrdersDialog } from '@/components/admin/users/user-orders-dialog';
 
@@ -35,11 +36,7 @@ export default function UsersPage() {
   const { toast } = useToast();
 
   React.useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'users'), (snapshot) => {
-        const usersData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        } as User));
+    const unsub = onUsersUpdate((usersData) => {
         setUsers(usersData);
         setLoading(false);
     });

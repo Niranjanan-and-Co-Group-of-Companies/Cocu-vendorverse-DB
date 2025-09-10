@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -102,8 +103,8 @@ export default function VendorsPage() {
         </AddVendorDialog>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
+      <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+        <div className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -155,7 +156,7 @@ export default function VendorsPage() {
                       </div>
                     </TableCell>
                     <TableCell>{vendor.phone}</TableCell>
-                    <TableCell>{vendor.address?.city || 'N/A'}, {vendor.address?.state || 'N/A'}</TableCell>
+                    <TableCell>{vendor.pickupAddresses?.[0]?.city || 'N/A'}, {vendor.pickupAddresses?.[0]?.state || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(vendor.status)}>
                         {vendor.status}
@@ -169,22 +170,8 @@ export default function VendorsPage() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
-
-// We need to import Card and CardContent to use them.
-// Let's assume they are in our component library.
-const Card = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" {...props}>
-        {children}
-    </div>
-);
-
-const CardContent = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className="p-0" {...props}>
-        {children}
-    </div>
-);
