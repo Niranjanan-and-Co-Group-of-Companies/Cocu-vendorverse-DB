@@ -7,7 +7,7 @@ import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
 import type { Category } from './categories-service';
 import { getPromotionsForProduct } from './promotions-actions';
-import type { Promotion } from './promotions-service';
+import type { PlainPromotion } from './promotions-service';
 
 export interface DisplayPrice {
     finalPrice: number;
@@ -63,22 +63,20 @@ export async function calculateDisplayPrice(
     let hasDiscount = false;
     let discountText = '';
     
-    // Default to product's own discount, but allow promotions to override
+    let promotions: PlainPromotion[] = [];
+    if(platform === 'Personalized') {
+        promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
+    }
+    const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
+
     let discountType: 'Percentage' | 'Fixed Amount' | undefined = productInfo.discountType;
     let discountValue: number | undefined = productInfo.discountValue;
 
-    // 1. Check for active promotions first, as they have higher priority
-    if(platform === 'Personalized') {
-        const promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
-        const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
-        
-        if (firstApplicablePromotion) {
-            discountType = firstApplicablePromotion.type as 'Percentage' | 'Fixed Amount';
-            discountValue = firstApplicablePromotion.value;
-        }
+    if (firstApplicablePromotion) {
+        discountType = firstApplicablePromotion.type as 'Percentage' | 'Fixed Amount';
+        discountValue = firstApplicablePromotion.value;
     }
     
-    // 2. Apply the highest priority discount (promotions, then direct)
     if (discountValue && discountType) {
         hasDiscount = true;
         if (discountType === 'Percentage') {
@@ -121,4 +119,3 @@ export async function calculateDisplayPriceFromQuote(
         hasDiscount: false,
     };
 }
-

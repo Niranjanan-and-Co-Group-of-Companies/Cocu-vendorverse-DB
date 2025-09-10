@@ -10,23 +10,24 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Promotion, TargetableItem } from './promotions-service';
+import type { Promotion, PlainPromotion } from './promotions-service';
 
-export async function getPromotionsForProduct(productId: string, categorySlug: string, vendorId: string): Promise<Promotion[]> {
+export async function getPromotionsForProduct(productId: string, category: string, vendorId: string): Promise<PlainPromotion[]> {
     const now = Timestamp.now();
     const promotions: Record<string, Promotion> = {};
 
+    // A product can be targeted directly, or through its category or vendor.
     const queries = [
-        // Sitewide promotions (where all appliesTo arrays are empty)
+        // Sitewide promotions (where appliesTo is empty)
         query(collection(db, 'promotions'), 
-            where('appliesTo.products', '==', []), 
-            where('appliesTo.categories', '==', []), 
+            where('appliesTo.products', '==', []),
+            where('appliesTo.categories', '==', []),
             where('appliesTo.vendors', '==', [])
         ),
         // Promotions for this specific product
         query(collection(db, 'promotions'), where('appliesTo.products', 'array-contains', productId)),
         // Promotions for this category
-        query(collection(db, 'promotions'), where('appliesTo.categories', 'array-contains', categorySlug)),
+        query(collection(db, 'promotions'), where('appliesTo.categories', 'array-contains', category)),
         // Promotions for this vendor
         query(collection(db, 'promotions'), where('appliesTo.vendors', 'array-contains', vendorId)),
     ];
@@ -36,12 +37,13 @@ export async function getPromotionsForProduct(productId: string, categorySlug: s
             q,
             where('status', '==', 'Active'),
         );
+
         const snapshot = await getDocs(baseQuery);
         snapshot.forEach(doc => {
             const promo = { id: doc.id, ...doc.data() } as Promotion;
             // Check expiry date
-            if (!promo.expiresAt || promo.expiresAt.toDate() > now.toDate()) {
-                 if (!promotions[promo.id]) {
+            if (!promo.expiresAt || (promo.expiresAt.toDate && promo.expiresAt.toDate() > now.toDate())) {
+                if (!promotions[promo.id]) {
                     promotions[promo.id] = promo;
                 }
             }
@@ -55,5 +57,10 @@ export async function getPromotionsForProduct(productId: string, categorySlug: s
         return bSpecificity - aSpecificity; // Higher specificity first
     });
 
-    return sortedPromotions;
+    // Serialize Firestore Timestamps to strings before returning to the client
+    return sortedPromotions.map(promo => ({
+        ...promo,
+        startDate: promo.startDate?.toDate ? promo.startDate.toDate().toISOString() : null,
+        expiresAt: promo.expiresAt?.toDate ? promo.expiresAt.toDate().toISOString() : null,
+    }));
 }

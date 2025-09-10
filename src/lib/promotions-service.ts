@@ -51,6 +51,12 @@ export interface Promotion {
   conditions: Condition[];
 }
 
+export type PlainPromotion = Omit<Promotion, 'startDate' | 'expiresAt'> & {
+    startDate: string | null;
+    expiresAt: string | null;
+};
+
+
 export interface Condition {
     type: ConditionType;
     value: string | number;

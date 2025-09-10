@@ -12,7 +12,7 @@ import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
 import { usePathname } from 'next/navigation';
 import { getPromotionsForProduct } from '@/lib/promotions-actions';
-import type { Promotion } from '@/lib/promotions-service';
+import type { PlainPromotion } from '@/lib/promotions-service';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface ProductInfoProps {
@@ -25,7 +25,7 @@ interface ProductInfoProps {
 export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps) {
   const [isVendorInfoOpen, setIsVendorInfoOpen] = React.useState(false);
   const [priceInfo, setPriceInfo] = React.useState<DisplayPrice | null>(null);
-  const [promotions, setPromotions] = React.useState<Promotion[]>([]);
+  const [promotions, setPromotions] = React.useState<PlainPromotion[]>([]);
   const [loadingPrice, setLoadingPrice] = React.useState(true);
   const pathname = usePathname();
   
@@ -54,7 +54,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
     }
 
     async function fetchPromotions() {
-        const applicablePromos = await getPromotionsForProduct(product.id, product.categorySlug || '', product.vendorId);
+        const applicablePromos = await getPromotionsForProduct(product.id, product.category || '', product.vendorId);
         setPromotions(applicablePromos.filter(p => p.visibleOnPlatform));
     }
 
