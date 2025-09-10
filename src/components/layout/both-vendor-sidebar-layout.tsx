@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -41,7 +40,6 @@ import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { VendorNotificationDropdown } from '@/components/layout/vendor-notification-dropdown';
-import { onVendorConversationsUpdate } from '@/lib/vendor/messages-service';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 
@@ -98,18 +96,6 @@ const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
 
 function BothVendorSidebar() {
     const pathname = usePathname();
-    const [totalUnreadMessages, setTotalUnreadMessages] = React.useState(0);
-
-    React.useEffect(() => {
-        const unsubscribe = onVendorConversationsUpdate(VENDOR_ID, (conversations) => {
-            const corporateConversations = conversations.filter(c => c.type === 'Corporate');
-            const totalUnread = corporateConversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
-            setTotalUnreadMessages(totalUnread);
-        });
-
-        return () => unsubscribe();
-    }, []);
-
 
     const isActive = (path: string) => {
         return pathname.startsWith(path);
@@ -183,13 +169,6 @@ function BothVendorSidebar() {
                     </SidebarMenuItem>
                     
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/both/messages')} tooltip={{ children: 'Messages' }}>
-                            <Link href="/vendor/both/messages"><MessageSquare /><span>Messages</span></Link>
-                        </SidebarMenuButton>
-                        {totalUnreadMessages > 0 && <SidebarMenuBadge>{totalUnreadMessages}</SidebarMenuBadge>}
-                    </SidebarMenuItem>
-                    
-                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/both/support')} tooltip={{ children: 'Support' }}>
                             <Link href="/vendor/both/support"><LifeBuoy /><span>Support</span></Link>
                         </SidebarMenuButton>
@@ -224,7 +203,6 @@ function VerificationFlowHandler({
   isVerified: boolean;
   children: React.ReactNode;
 }) {
-    'use client';
   return (
     <>
       {!isVerified && (

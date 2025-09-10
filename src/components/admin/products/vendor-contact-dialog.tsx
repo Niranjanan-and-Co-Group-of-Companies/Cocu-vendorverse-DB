@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import type { Vendor } from '@/app/admin/vendors/page';
+import type { Vendor } from '@/lib/vendors-service';
 import { Mail, Phone, MessageSquare } from 'lucide-react';
 
 interface VendorContactDialogProps {
@@ -52,8 +52,8 @@ export function VendorContactDialog({ open, onOpenChange, vendor }: VendorContac
                  <Button variant="outline" className="w-full justify-start">
                     <Phone className="mr-2" /> Call Vendor
                 </Button>
-                 <Button variant="outline" className="w-full justify-start">
-                    <MessageSquare className="mr-2" /> Send Platform Message
+                 <Button variant="outline" className="w-full justify-start" disabled>
+                    <MessageSquare className="mr-2" /> Send Platform Message (Disabled)
                 </Button>
             </div>
         </div>

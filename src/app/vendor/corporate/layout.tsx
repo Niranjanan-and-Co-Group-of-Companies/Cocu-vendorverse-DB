@@ -45,7 +45,7 @@ import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 const VENDOR_ID = "vendor001";
 
 function CustomSidebarTrigger() {
-    'use client';
+    
     const { open, toggleSidebar } = useSidebar();
   
     return (
@@ -62,7 +62,7 @@ function CustomSidebarTrigger() {
 
 
 function CorporateVendorSidebar() {
-    'use client';
+    
     const pathname = usePathname();
 
     const isActive = (path: string) => {
@@ -114,11 +114,6 @@ function CorporateVendorSidebar() {
                      <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/analytics')} tooltip={{ children: 'Analytics' }}>
                             <Link href="/vendor/corporate/analytics"><LineChart /><span>Analytics</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/messages')} tooltip={{ children: 'Messages' }}>
-                            <Link href="/vendor/corporate/messages"><MessageSquare /><span>Messages</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
@@ -180,7 +175,7 @@ function VerificationFlowHandler({
 
 
 function CorporateVendorLayoutContent({ children }: { children: React.ReactNode; }) {
-  'use client';
+  
   const pathname = usePathname();
   const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard';
   

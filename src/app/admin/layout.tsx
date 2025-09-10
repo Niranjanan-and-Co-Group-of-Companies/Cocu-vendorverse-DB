@@ -226,14 +226,6 @@ function AdminSidebar() {
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive('/admin/chat-logs')} tooltip={{ children: 'Chat Logs' }}>
-                        <Link href="/admin/chat-logs">
-                        <MessageSquare />
-                        <span>Chat Logs</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
                      <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/admin/blog')} tooltip={{ children: 'Blog' }}>
                             <Link href="/admin/blog">
