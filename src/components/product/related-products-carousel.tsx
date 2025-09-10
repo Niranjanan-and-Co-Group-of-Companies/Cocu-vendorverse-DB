@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -60,7 +59,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                  const productInfo = {
                     id: p.id,
                     vendorSP: p.vendorSP,
-                    category: p.category,
+                    categorySlug: p.categorySlug,
                     vendorId: p.vendorId,
                     discountType: p.discountType,
                     discountValue: p.discountValue,
@@ -156,18 +155,16 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                       <h3 className="text-lg font-bold font-headline">{product.name}</h3>
                     </Link>
                     {product.category && (
-                        <Link href={`/category/${product.category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                        <Link href={`/category/${product.categorySlug}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                             {product.category}
                         </Link>
                     )}
                     <div className="flex-grow"></div>
-                    <div className="flex items-end justify-between mt-4">
-                        <div className="flex flex-col">
-                            <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
-                            {product.displayPrice.hasDiscount && (
-                                <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
-                            )}
-                        </div>
+                    <div className="flex items-baseline gap-2 mt-4">
+                        <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
+                        {product.displayPrice.hasDiscount && (
+                            <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
+                        )}
                     </div>
                      <div className="mt-4 flex flex-col gap-2">
                         <div className="flex gap-2">

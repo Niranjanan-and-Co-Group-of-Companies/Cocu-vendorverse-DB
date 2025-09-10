@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -42,7 +41,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
             const productInfo = {
                 id: product.id,
                 vendorSP: product.vendorSP,
-                category: product.category,
+                categorySlug: product.categorySlug,
                 vendorId: product.vendorId,
                 discountType: product.discountType,
                 discountValue: product.discountValue,
@@ -55,7 +54,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
     }
 
     async function fetchPromotions() {
-        const applicablePromos = await getPromotionsForProduct(product.id, product.category || '', product.vendorId);
+        const applicablePromos = await getPromotionsForProduct(product.id, product.categorySlug || '', product.vendorId);
         setPromotions(applicablePromos.filter(p => p.visibleOnPlatform));
     }
 
@@ -80,7 +79,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
         <div className="space-y-4">
         <div>
             {product.category && (
-                <Link href={`/category/${product.category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="text-sm text-primary font-medium hover:underline">
+                <Link href={`/category/${product.categorySlug}`} className="text-sm text-primary font-medium hover:underline">
                     {product.category}
                 </Link>
             )}
@@ -101,22 +100,19 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
             </div>
         </div>
         
-        <div className="flex flex-col gap-2 rounded-lg border bg-muted/50 p-4">
+        <div className="space-y-2">
             {loadingPrice ? (
                 <Skeleton className="h-10 w-1/2" />
             ) : priceInfo ? (
-                <>
-                    <div className="flex items-baseline gap-3">
-                        <span className="text-3xl font-bold text-primary">{formatCurrency(priceInfo.finalPrice)}</span>
-                        {priceInfo.hasDiscount && (
-                            <span className="text-xl text-muted-foreground line-through">{formatCurrency(priceInfo.originalPrice)}</span>
-                        )}
-                         <span className="text-muted-foreground">/ unit</span>
-                    </div>
+                <div className="flex items-baseline gap-3">
                     {priceInfo.hasDiscount && (
                         <Badge variant="destructive">{priceInfo.discountText}</Badge>
                     )}
-                </>
+                    <span className="text-3xl font-bold text-primary">{formatCurrency(priceInfo.finalPrice)}</span>
+                    {priceInfo.hasDiscount && (
+                        <span className="text-xl text-muted-foreground line-through">{formatCurrency(priceInfo.originalPrice)}</span>
+                    )}
+                </div>
             ) : null }
              {showTotals && (
                 <div className="text-lg">

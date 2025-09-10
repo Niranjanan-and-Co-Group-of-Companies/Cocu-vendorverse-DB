@@ -9,28 +9,35 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Promotion } from './promotions-service';
+import type { Promotion, TargetableItem } from './promotions-service';
 
-export async function getPromotionsForProduct(productId: string, categoryName: string, vendorId: string): Promise<Promotion[]> {
+export async function getPromotionsForProduct(productId: string, categorySlug: string, vendorId: string): Promise<Promotion[]> {
     const now = Timestamp.now();
     const promotions: Record<string, Promotion> = {};
 
+    const productRef = { id: productId };
+    const categoryRef = { id: categorySlug };
+    const vendorRef = { id: vendorId };
+
     const queries = [
-        // Promotions for this specific product
-        query(collection(db, 'promotions'), where('appliesTo.products', 'array-contains', { id: productId, name: '' })), // Name is just a placeholder here
-        // Promotions for this category
-        query(collection(db, 'promotions'), where('appliesTo.categories', 'array-contains', { id: categoryName, name: '' })),
-        // Promotions for this vendor
-        query(collection(db, 'promotions'), where('appliesTo.vendors', 'array-contains', { id: vendorId, name: '' })),
         // Sitewide promotions
-        query(collection(db, 'promotions'), where('appliesTo.products', '==', []), where('appliesTo.categories', '==', []), where('appliesTo.vendors', '==', []))
+        query(collection(db, 'promotions'), 
+            where('appliesTo.products', '==', []), 
+            where('appliesTo.categories', '==', []), 
+            where('appliesTo.vendors', '==', [])
+        ),
+        // Promotions for this specific product
+        query(collection(db, 'promotions'), where('appliesTo.products', 'array-contains', productRef)),
+        // Promotions for this category
+        query(collection(db, 'promotions'), where('appliesTo.categories', 'array-contains', categoryRef)),
+        // Promotions for this vendor
+        query(collection(db, 'promotions'), where('appliesTo.vendors', 'array-contains', vendorRef)),
     ];
 
     for (const q of queries) {
         const baseQuery = query(
             q,
             where('status', '==', 'Active'),
-            where('visibleOnPlatform', '==', true),
         );
         const snapshot = await getDocs(baseQuery);
         snapshot.forEach(doc => {
@@ -43,6 +50,13 @@ export async function getPromotionsForProduct(productId: string, categoryName: s
             }
         });
     }
+    
+    // Sort to have the most specific (product-level) promotion first
+    const sortedPromotions = Object.values(promotions).sort((a, b) => {
+        const aSpecificity = a.appliesTo.products.length + a.appliesTo.categories.length + a.appliesTo.vendors.length;
+        const bSpecificity = b.appliesTo.products.length + b.appliesTo.categories.length + b.appliesTo.vendors.length;
+        return bSpecificity - aSpecificity; // Higher specificity first
+    });
 
-    return Object.values(promotions);
+    return sortedPromotions;
 }
