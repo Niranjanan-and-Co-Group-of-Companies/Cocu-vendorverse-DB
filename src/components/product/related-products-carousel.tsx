@@ -123,16 +123,14 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
             <CarouselItem key={product.id} className="md:basis-1/3 lg:basis-1/4">
                 <Card className="overflow-hidden group h-full flex flex-col">
                 <CardHeader className="p-0 relative">
-                  <Link href={`${basePath}/products/${product.id}`} className="block">
-                    <div className="overflow-hidden aspect-[4/3]">
+                  <Link href={`${basePath}/products/${product.id}`} className="block aspect-[4/3] bg-muted overflow-hidden">
                     <Image
                         src={product.image}
                         alt={product.name}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         data-ai-hint="gift product"
                     />
-                    </div>
                   </Link>
                   <div className="absolute top-2 left-2 z-10 flex flex-col gap-y-2">
                         {product.displayPrice.hasDiscount && (

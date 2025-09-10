@@ -99,18 +99,16 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   return (
     <Card className="overflow-hidden group h-full flex flex-col">
       <div className="relative">
-        <Link href={`/corporate/products/${product.id}`} className="block">
-          <div className="overflow-hidden aspect-[4/3] bg-muted">
+        <Link href={`/corporate/products/${product.id}`} className="block aspect-[4/3] bg-muted overflow-hidden">
             {product.displayPrice?.hasDiscount && <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>}
             {product.featured && <Badge className="absolute top-2 right-2 z-10">Featured</Badge>}
             <Image
               src={product.image}
               alt={product.name}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               data-ai-hint="corporate gift"
             />
-          </div>
         </Link>
         {product.moq && (
           <Badge className="absolute bottom-2 right-2 z-10" variant="secondary">
