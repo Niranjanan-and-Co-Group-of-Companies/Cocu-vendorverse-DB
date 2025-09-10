@@ -27,7 +27,8 @@ import {
   Heart,
   Scale,
   MessageSquare,
-  PenSquare
+  PenSquare,
+  PackageSearch
 } from 'lucide-react';
 import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useComparison } from '@/hooks/use-comparison';
@@ -84,8 +85,8 @@ export function CorporateSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/corporate/write-to-admin')} tooltip={{ children: 'Write to Admin' }}>
-                            <Link href="/corporate/write-to-admin"><PenSquare /><span>Write to Admin</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive('/corporate/sourcing-requests')} tooltip={{ children: 'Sourcing Requests' }}>
+                            <Link href="/corporate/sourcing-requests"><PackageSearch /><span>Sourcing Requests</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
