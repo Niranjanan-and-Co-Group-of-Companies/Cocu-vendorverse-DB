@@ -15,8 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Check, X, MessageSquare, PackageSearch } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { onPendingProductsUpdate, approveProduct, declineProduct } from '@/lib/products-service';
-import type { ProductWithVendor } from '@/lib/products-client-service';
+import { approveProduct, declineProduct } from '@/lib/products-service';
+import { onPendingProductsUpdate, type ProductWithVendor } from '@/lib/products-client-service';
 import { useToast } from '@/hooks/use-toast';
 import { VendorContactDialog } from '@/components/admin/products/vendor-contact-dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -54,12 +54,12 @@ export default function NewProductsPage() {
         setFilteredProducts(productsToFilter);
     }, [view, pendingProducts]);
 
-    const handleApprove = async (productId: number) => {
+    const handleApprove = async (productId: string) => {
         await approveProduct(productId);
         toast({ title: 'Product Approved', description: 'The product is now live on the marketplace.' });
     };
 
-    const handleDecline = async (productId: number) => {
+    const handleDecline = async (productId: string) => {
         await declineProduct(productId);
         toast({ title: 'Product Declined', description: 'The product has been returned to the vendor as a draft.', variant: 'destructive' });
     };
