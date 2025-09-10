@@ -23,37 +23,61 @@ import type { Product, ProductStatus } from '@/lib/products';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminProductActions } from '@/components/admin/products/product-actions';
+import { onCommissionRulesUpdate, type CommissionRule } from '@/lib/commissions-client-service';
+import { calculateDisplayPrice } from '@/lib/pricing-service';
+import { getCategoryByName, onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
 
 
-type ProductWithStatus = Product & { status: ProductStatus };
+type ProductWithPrice = Product & { displayPrice?: number };
 type ProductView = 'all' | 'personal' | 'corporate';
 
 function ProductsTable() {
     const searchParams = useSearchParams();
     const categorySlugFilter = searchParams.get('category');
-    const [allProducts, setAllProducts] = React.useState<ProductWithStatus[]>([]);
-    const [filteredProducts, setFilteredProducts] = React.useState<ProductWithStatus[]>([]);
+    const [allProducts, setAllProducts] = React.useState<ProductWithPrice[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [title, setTitle] = React.useState('All Products');
     const [view, setView] = React.useState<ProductView>('all');
+    const [commissionRules, setCommissionRules] = React.useState<CommissionRule[]>([]);
 
+    // Fetch commission rules once
+    React.useEffect(() => {
+        const unsubCommissions = onCommissionRulesUpdate(setCommissionRules);
+        return () => unsubCommissions();
+    }, []);
+
+    // Fetch products and then calculate their prices
     React.useEffect(() => {
         setLoading(true);
-
         const productsRef = collection(db, 'products');
-        let q;
+        let q = categorySlugFilter
+            ? query(productsRef, where('categorySlug', '==', categorySlugFilter))
+            : query(productsRef);
 
-        if (categorySlugFilter) {
-            setTitle(`Products in: ${categorySlugFilter.replace(/-/g, ' ')}`);
-            q = query(productsRef, where('categorySlug', '==', categorySlugFilter));
-        } else {
-            setTitle('All Products');
-            q = query(productsRef);
-        }
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            const productsData = snapshot.docs.map(doc => ({...doc.data(), id: doc.id} as Product));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const productsData = snapshot.docs.map(doc => doc.data() as ProductWithStatus);
-            setAllProducts(productsData);
+            if (commissionRules.length > 0) {
+                 const pricedProducts = await Promise.all(
+                    productsData.map(async (p) => {
+                        const category = await getCategoryByName(p.category);
+                        const displayPrice = await calculateDisplayPrice(
+                            p.vendorSP,
+                            p.platform,
+                            category || undefined,
+                            p.discountType,
+                            p.discountValue
+                        );
+                        return { ...p, displayPrice: displayPrice.finalPrice };
+                    })
+                );
+                setAllProducts(pricedProducts);
+            } else {
+                // If commissions haven't loaded yet, set products without price
+                setAllProducts(productsData);
+            }
+            
+            setTitle(categorySlugFilter ? `Products in: ${categorySlugFilter.replace(/-/g, ' ')}` : 'All Products');
             setLoading(false);
         }, (error) => {
             console.error("Error fetching products: ", error);
@@ -61,9 +85,9 @@ function ProductsTable() {
         });
 
         return () => unsubscribe();
-    }, [categorySlugFilter]);
+    }, [categorySlugFilter, commissionRules]); // Re-run when commissions change
 
-    React.useEffect(() => {
+    const filteredProducts = React.useMemo(() => {
         let productsToFilter = [...allProducts];
         if (view === 'personal') {
             productsToFilter = productsToFilter.filter(p => p.platform === 'Personalized');
@@ -74,21 +98,16 @@ function ProductsTable() {
         } else if (!categorySlugFilter) {
             setTitle('All Products');
         }
-        setFilteredProducts(productsToFilter);
+        return productsToFilter;
     }, [view, allProducts, categorySlugFilter]);
 
     const getStatusVariant = (status: ProductStatus) => {
         switch (status) {
-            case 'Live':
-                return 'default';
-            case 'Pending Review':
-                return 'secondary';
-            case 'Draft':
-                return 'secondary';
-            case 'Declined':
-                return 'destructive';
-            default:
-                return 'outline';
+            case 'Live': return 'default';
+            case 'Pending Review': return 'secondary';
+            case 'Draft': return 'secondary';
+            case 'Declined': return 'destructive';
+            default: return 'outline';
         }
     };
     
@@ -177,7 +196,7 @@ function ProductsTable() {
                         </TableCell>
                          <TableCell>{product.vendor}</TableCell>
                         <TableCell>{formatCurrency(product.vendorSP)}</TableCell>
-                        <TableCell className="font-medium">{formatCurrency(product.price)}</TableCell>
+                        <TableCell className="font-medium">{formatCurrency(product.displayPrice || 0)}</TableCell>
                         <TableCell>
                            <Badge variant={product.platform === 'Corporate' ? 'secondary' : 'outline'}>
                                 {product.platform}
