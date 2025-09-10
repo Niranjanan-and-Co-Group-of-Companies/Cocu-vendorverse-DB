@@ -13,6 +13,8 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Tag, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getPromotionsForProduct } from '@/lib/promotions-actions';
+import type { PlainPromotion } from '@/lib/promotions-service';
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat('en-IN', {
@@ -27,6 +29,7 @@ export function OrderSummary() {
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
   const [couponCode, setCouponCode] = React.useState('');
+  const [appliedPromotion, setAppliedPromotion] = React.useState<PlainPromotion | null>(null);
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
@@ -34,6 +37,64 @@ export function OrderSummary() {
       return total + price * item.quantity;
     }, 0);
   }, [items]);
+  
+  React.useEffect(() => {
+    const findAndApplyBestPromotion = async () => {
+        if (items.length === 0) {
+            setAppliedPromotion(null);
+            setCouponCode('');
+            return;
+        }
+
+        let bestPromo: PlainPromotion | null = null;
+        let maxDiscount = 0;
+
+        for (const item of items) {
+            const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId);
+            const itemPrice = (item.displayPrice?.originalPrice || parseFloat(item.price.replace('$', ''))) * item.quantity;
+
+            for (const promo of promos) {
+                if (promo.type === 'Free Shipping') continue;
+
+                let currentDiscount = 0;
+                if (promo.type === 'Percentage') {
+                    currentDiscount = itemPrice * (promo.value / 100);
+                } else if (promo.type === 'Fixed Amount') {
+                    currentDiscount = promo.value;
+                }
+
+                if (currentDiscount > maxDiscount) {
+                    maxDiscount = currentDiscount;
+                    bestPromo = promo;
+                }
+            }
+        }
+        
+        if (bestPromo) {
+            setAppliedPromotion(bestPromo);
+            setCouponCode(bestPromo.code);
+        } else {
+            setAppliedPromotion(null);
+            setCouponCode('');
+        }
+    };
+
+    findAndApplyBestPromotion();
+  }, [items]);
+  
+  const discountAmount = React.useMemo(() => {
+    if (!appliedPromotion) return 0;
+    
+    // For simplicity, applying discount on subtotal. A real app might be more complex.
+    if (appliedPromotion.type === 'Percentage') {
+        return subtotal * (appliedPromotion.value / 100);
+    }
+    if (appliedPromotion.type === 'Fixed Amount') {
+        return Math.min(appliedPromotion.value, subtotal); // Can't discount more than the subtotal
+    }
+    return 0;
+  }, [appliedPromotion, subtotal]);
+
 
   const handleRemove = (cartItemId: string, name: string) => {
     removeItem(cartItemId);
@@ -45,8 +106,8 @@ export function OrderSummary() {
   }
 
   const convenienceFee = subtotal * 0.03;
-  const shippingFee = 49; // Mock fee, will be dynamic later
-  const total = subtotal + convenienceFee + shippingFee;
+  const shippingFee = (appliedPromotion?.type === 'Free Shipping' || (subtotal - discountAmount > 500)) ? 0 : 49;
+  const total = subtotal - discountAmount + convenienceFee + shippingFee;
   
   const canPlaceOrder = isConfirmed && agreedToTerms;
 
@@ -87,9 +148,15 @@ export function OrderSummary() {
                 <span>Subtotal</span>
                 <span>{formatCurrency(subtotal)}</span>
             </div>
+            {discountAmount > 0 && (
+                <div className="flex justify-between text-green-600">
+                    <span>Discount ({appliedPromotion?.code})</span>
+                    <span>-{formatCurrency(discountAmount)}</span>
+                </div>
+            )}
             <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{formatCurrency(shippingFee)}</span>
+                <span>{shippingFee === 0 ? 'Free' : formatCurrency(shippingFee)}</span>
             </div>
              <div className="flex justify-between">
                 <span className="text-muted-foreground">Convenience Fee (3%)</span>
