@@ -18,7 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order, OrderStatus } from '@/lib/orders-service';
-import { onVendorOrdersUpdate, updateOrderStatus } from '@/lib/orders-service';
+import { onVendorOrdersUpdate } from '@/lib/orders-client-service';
+import { updateOrderStatus } from '@/lib/orders-service';
 import { VendorOrderActions } from '@/components/vendor/orders/vendor-order-actions';
 import { VendorOrderDetailsDialog } from '@/components/vendor/orders/vendor-order-details-dialog';
 import Image from 'next/image';
