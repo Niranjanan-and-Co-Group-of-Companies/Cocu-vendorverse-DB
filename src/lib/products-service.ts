@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, getDocs, writeBatch, doc, getDoc, query, where, limit, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -28,19 +27,19 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
 
 async function seedProductsIfEmpty() {
-    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v3');
+    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v4'); // Incremented version to force re-seed
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return; // Seeding already performed.
     }
     
-    console.log("Products collection seems empty or unseeded. Seeding mock data...");
+    console.log("Products collection requires seeding. Seeding mock data...");
     
-    const MOCK_PRODUCTS: Omit<Product, 'id' | 'status' | 'vendorId' | 'price' | 'shipsFromPincode' | 'createdAt' | 'updatedAt' | 'mainVariantId' | 'packaging' | 'categorySlug'>[] = [
-        { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 45.00, tieredPricing: [{ quantity: 50, price: '$42.00' }, { quantity: 100, price: '$40.00' }, { quantity: 250, price: '$38.00' }], image: 'https://picsum.photos/600/400?random=1', galleryImages: ['https://picsum.photos/600/400?random=11', 'https://picsum.photos/600/400?random=12', 'https://picsum.photos/600/400?random=13'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, moq: 50, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.", category: "Food & Drink", customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: ['Text', 'Image Upload'], weight: 1000, dimensions: { l: 8, w: 6, h: 2 }, inventoryBuffer: 5, tags: ['chocolate', 'gourmet', 'gift box'], preparationTime: 4, platform: 'Personalized', sku: 'GD-CHOC-01', hsnSac: '1806', taxRate: 18, mrp: 55, platformBufferRate: 5, vendorCommissionRate: 15, name_lowercase: 'artisanal chocolate box', customizationSides: { front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } } },
-        { name: 'Luxury Spa Set', vendor: 'Serene Moments', vendorSP: 85.00, image: 'https://picsum.photos/600/400?random=2', galleryImages: ['https://picsum.photos/600/400?random=21', 'https://picsum.photos/600/400?random=22'], rating: 4.9, stock: 5, moq: 10, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", creatorStory: "Serene Moments was born from a desire to make self-care accessible to everyone. Our founder, a certified aromatherapist, personally formulates each product to ensure the highest quality and efficacy.", category: "Wellness", customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: [], weight: 3000, dimensions: { l: 10, w: 8, h: 4 }, inventoryBuffer: 2, tags: ['spa', 'wellness', 'self-care', 'bath'], preparationTime: 3, tieredPricing: [], platform: 'Personalized', sku: '', hsnSac: '', taxRate: 0, mrp: 0, platformBufferRate: 0, vendorCommissionRate: 0, name_lowercase: 'luxury spa set', customizationSides: { front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } } },
-        { name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', vendorSP: 75.00, tieredPricing: [{ quantity: 25, price: '70.00' }, { quantity: 50, price: '65.00' }, { quantity: 100, price: '60.00' }], image: 'https://picsum.photos/600/400?random=3', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Fashion & Accessories", galleryImages: [], videoUrl: '', description: '', creatorStory: '', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], allowedCustomizations: ['Text'], weight: 500, dimensions: { l: 4, w: 3, h: 0.5 }, inventoryBuffer: 3, tags: ['leather', 'wallet', 'monogram'], preparationTime: { min: 5, max: 6 }, preparationTimeUnit: 'days', moq: 25, platform: 'Corporate', sku: 'HW-WLT-01', hsnSac: '4202', taxRate: 18, mrp: 85, platformBufferRate: 5, vendorCommissionRate: 15, name_lowercase: 'handcrafted leather wallet', customizationSides: { front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } } },
+    const MOCK_PRODUCTS_RAW = [
+        { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 45.00, tieredPricing: [{ quantity: 50, price: '$42.00' }, { quantity: 100, price: '$40.00' }, { quantity: 250, price: '$38.00' }], image: 'https://picsum.photos/600/400?random=1', galleryImages: ['https://picsum.photos/600/400?random=11', 'https://picsum.photos/600/400?random=12', 'https://picsum.photos/600/400?random=13'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, moq: 50, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.", category: "Food & Drink", platform: 'Personalized'},
+        { name: 'Luxury Spa Set', vendor: 'Serene Moments', vendorSP: 85.00, image: 'https://picsum.photos/600/400?random=2', galleryImages: ['https://picsum.photos/600/400?random=21', 'https://picsum.photos/600/400?random=22'], rating: 4.9, stock: 5, moq: 1, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", creatorStory: "Serene Moments was born from a desire to make self-care accessible to everyone. Our founder, a certified aromatherapist, personally formulates each product to ensure the highest quality and efficacy.", category: "Wellness", platform: 'Personalized' },
+        { name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', vendorSP: 75.00, tieredPricing: [{ quantity: 25, price: '70.00' }, { quantity: 50, price: '65.00' }, { quantity: 100, price: '60.00' }], image: 'https://picsum.photos/600/400?random=3', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Fashion & Accessories", moq: 25, platform: 'Corporate'},
     ];
     const VENDOR_MAP: { [key: string]: { id: string, pincode: string } } = { 
         'Gourmet Delights': { id: 'vendor001', pincode: '400001'},
@@ -48,17 +47,17 @@ async function seedProductsIfEmpty() {
         'Heritage Wares': { id: 'vendor003', pincode: '302001'},
     };
     const batch = writeBatch(db);
-    for (const product of MOCK_PRODUCTS) {
+    for (const product of MOCK_PRODUCTS_RAW) {
         const docRef = doc(productsCollection); // Auto-generate ID
         const vendorInfo = VENDOR_MAP[product.vendor] || { id: 'unknown_vendor', pincode: '000000' };
 
         const category = await getCategoryByName(product.category);
-        const displayPrice = await calculateDisplayPrice(product.vendorSP, product.platform, category || undefined, product.discountType, product.discountValue);
+        const displayPrice = await calculateDisplayPrice(product.vendorSP, product.platform, category, undefined, undefined);
         
-        batch.set(docRef, { 
+        const fullProductData = {
             ...product,
-            price: displayPrice.finalPrice.toFixed(2), // Set the calculated final price
-            packaging: { weight: product.weight, dimensions: product.dimensions },
+            price: displayPrice.finalPrice.toFixed(2), // Final Customer Price
+            packaging: { weight: 1, dimensions: { l: 10, w: 10, h: 5 } },
             id: docRef.id,
             name_lowercase: product.name.toLowerCase(),
             status: 'Live', 
@@ -68,11 +67,27 @@ async function seedProductsIfEmpty() {
             updatedAt: serverTimestamp(),
             mainVariantId: null,
             categorySlug: product.category?.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-'),
-        });
+            customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] },
+            variants: [],
+            allowedCustomizations: [],
+            inventoryBuffer: 5,
+            tags: [],
+            preparationTime: { min: 3, max: 4 },
+            preparationTimeUnit: 'days',
+            sku: `${product.vendor.substring(0,2).toUpperCase()}-${docRef.id.substring(0,4)}`,
+            hsnSac: '9505',
+            taxRate: 18,
+            mrp: product.vendorSP * 1.5,
+            platformBufferRate: 0,
+            vendorCommissionRate: 0,
+            customizationSides: { front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } }
+        };
+
+        batch.set(docRef, fullProductData);
     }
     await batch.commit();
     await setDoc(seedFlagRef, { seeded: true, at: serverTimestamp() });
-    console.log(`${MOCK_PRODUCTS.length} products seeded.`);
+    console.log(`${MOCK_PRODUCTS_RAW.length} products seeded.`);
 }
 seedProductsIfEmpty();
 
@@ -98,12 +113,13 @@ export async function saveProduct(
     const categorySlug = productData.category ? productData.category.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-') : '';
 
     const category = await getCategoryByName(productData.category);
+    // Correctly calculate final price based on vendorSP and buffer.
     const displayPrice = await calculateDisplayPrice(productData.vendorSP || 0, productData.platform, category || undefined, productData.discountType, productData.discountValue);
 
     const finalProductData = { 
         ...productData, 
         id: productId, 
-        price: displayPrice.finalPrice.toFixed(2),
+        price: displayPrice.finalPrice.toFixed(2), // This is the final customer price. vendorSP is the base.
         name_lowercase: productData.name?.toLowerCase(),
         shipsFromPincode,
         categorySlug,
