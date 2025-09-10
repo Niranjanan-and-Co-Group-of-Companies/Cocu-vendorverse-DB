@@ -11,9 +11,9 @@ import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { Tag, X, Plus, Minus } from 'lucide-react';
+import { Tag, X, Plus, Minus, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getPromotionsForProduct } from '@/lib/promotions-actions';
+import { getPromotionsForProduct, getPromotionByCode } from '@/lib/promotions-actions';
 import type { PlainPromotion } from '@/lib/promotions-service';
 
 function formatCurrency(amount: number) {
@@ -28,9 +28,10 @@ export function OrderSummary() {
   const { toast } = useToast();
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
-  const [couponCode, setCouponCode] = React.useState('');
-  const [appliedPromotion, setAppliedPromotion] = React.useState<PlainPromotion | null>(null);
-  const [eligibleCartItemId, setEligibleCartItemId] = React.useState<string | null>(null);
+  const [couponInput, setCouponInput] = React.useState('');
+  const [appliedPromotions, setAppliedPromotions] = React.useState<PlainPromotion[]>([]);
+  const [isApplying, setIsApplying] = React.useState(false);
+  const [autoAppliedPromo, setAutoAppliedPromo] = React.useState<PlainPromotion | null>(null);
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
@@ -42,23 +43,19 @@ export function OrderSummary() {
   React.useEffect(() => {
     const findAndApplyBestPromotion = async () => {
         if (items.length === 0) {
-            setAppliedPromotion(null);
-            setCouponCode('');
-            setEligibleCartItemId(null);
+            setAutoAppliedPromo(null);
             return;
         }
 
         let bestPromo: PlainPromotion | null = null;
         let maxDiscount = 0;
-        let bestCartItemId: string | null = null;
 
         for (const item of items) {
             const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId);
             const itemPrice = (item.displayPrice?.originalPrice || parseFloat(item.price.replace('$', ''))) * item.quantity;
+            const visiblePromos = promos.filter(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
 
-            for (const promo of promos) {
-                if (promo.type === 'Free Shipping' || !promo.visibleOnPlatform) continue;
-
+            for (const promo of visiblePromos) {
                 let currentDiscount = 0;
                 if (promo.type === 'Percentage') {
                     currentDiscount = itemPrice * (promo.value / 100);
@@ -69,41 +66,47 @@ export function OrderSummary() {
                 if (currentDiscount > maxDiscount) {
                     maxDiscount = currentDiscount;
                     bestPromo = promo;
-                    bestCartItemId = item.cartItemId;
                 }
             }
         }
-        
-        if (bestPromo) {
-            setAppliedPromotion(bestPromo);
-            setCouponCode(bestPromo.code);
-            setEligibleCartItemId(bestCartItemId);
-        } else {
-            setAppliedPromotion(null);
-            setCouponCode('');
-            setEligibleCartItemId(null);
-        }
+        setAutoAppliedPromo(bestPromo);
     };
-
     findAndApplyBestPromotion();
   }, [items]);
   
-  const discountAmount = React.useMemo(() => {
-    if (!appliedPromotion || !eligibleCartItemId) return 0;
-    
-    const eligibleItem = items.find(item => item.cartItemId === eligibleCartItemId);
-    if (!eligibleItem) return 0;
-    
-    const eligibleItemPrice = (eligibleItem.displayPrice?.originalPrice || parseFloat(eligibleItem.price.replace('$', ''))) * eligibleItem.quantity;
-    
-    if (appliedPromotion.type === 'Percentage') {
-        return eligibleItemPrice * (appliedPromotion.value / 100);
-    }
-    if (appliedPromotion.type === 'Fixed Amount') {
-        return Math.min(appliedPromotion.value, eligibleItemPrice);
-    }
-    return 0;
-  }, [appliedPromotion, eligibleCartItemId, items]);
+  React.useEffect(() => {
+      // Automatically manage the applied promotions list based on auto-applied promo
+      setAppliedPromotions(prev => {
+          const manualPromos = prev.filter(p => !p.visibleOnPlatform);
+          return autoAppliedPromo ? [autoAppliedPromo, ...manualPromos] : manualPromos;
+      });
+  }, [autoAppliedPromo]);
+
+
+  const calculateDiscount = (promo: PlainPromotion) => {
+      let discount = 0;
+      if (promo.appliesTo?.products?.length > 0) {
+          const discountedItems = items.filter(item => promo.appliesTo.products.includes(item.id));
+          const totalDiscountedValue = discountedItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price.replace('$', ''))) * item.quantity, 0);
+
+          if (promo.type === 'Percentage') {
+              discount = totalDiscountedValue * (promo.value / 100);
+          } else if (promo.type === 'Fixed Amount') {
+              discount = Math.min(promo.value, totalDiscountedValue);
+          }
+      } else { // Sitewide or category-wide (simplified for now)
+          if (promo.type === 'Percentage') {
+              discount = subtotal * (promo.value / 100);
+          } else if (promo.type === 'Fixed Amount') {
+              discount = Math.min(promo.value, subtotal);
+          }
+      }
+      return discount;
+  }
+  
+  const totalDiscount = React.useMemo(() => {
+    return appliedPromotions.reduce((sum, promo) => sum + calculateDiscount(promo), 0);
+  }, [appliedPromotions, items, subtotal]);
 
 
   const handleRemove = (cartItemId: string, name: string) => {
@@ -114,10 +117,58 @@ export function OrderSummary() {
         variant: "destructive"
     })
   }
+  
+  const handleApplyCoupon = async () => {
+    if (!couponInput) return;
+    setIsApplying(true);
+    const promo = await getPromotionByCode(couponInput);
+    setIsApplying(false);
 
-  const convenienceFee = subtotal * 0.03;
-  const shippingFee = (appliedPromotion?.type === 'Free Shipping' || (subtotal - discountAmount > 500)) ? 0 : 49;
-  const total = subtotal - discountAmount + convenienceFee + shippingFee;
+    if (!promo) {
+        toast({ title: "Invalid Coupon", description: "The coupon code you entered is not valid or has expired.", variant: "destructive" });
+        return;
+    }
+
+    if (appliedPromotions.some(p => p.id === promo.id)) {
+        toast({ title: "Coupon Already Applied", variant: "destructive" });
+        return;
+    }
+
+    if (promo.visibleOnPlatform) {
+        toast({ title: "Cannot Apply Manually", description: "This promotion is applied automatically.", variant: "destructive" });
+        return;
+    }
+    
+    if (appliedPromotions.filter(p => !p.visibleOnPlatform).length >= 1) {
+        toast({ title: "Limit Reached", description: "You can only apply one manual coupon code.", variant: "destructive" });
+        return;
+    }
+    
+    if (appliedPromotions.length >= 2) {
+        toast({ title: "Maximum Coupons Applied", description: "You can only apply a maximum of two coupons.", variant: "destructive" });
+        return;
+    }
+
+    setAppliedPromotions(prev => [...prev, promo]);
+    setCouponInput('');
+    toast({ title: "Coupon Applied!", description: `"${promo.code}" was successfully applied.` });
+  };
+  
+  const handleRemoveCoupon = (promoId: string) => {
+    const promoToRemove = appliedPromotions.find(p => p.id === promoId);
+    if (!promoToRemove) return;
+    
+    if (promoToRemove.visibleOnPlatform) {
+      setAutoAppliedPromo(null); // This will trigger the useEffect to remove it
+    } else {
+      setAppliedPromotions(prev => prev.filter(p => p.id !== promoId));
+    }
+    toast({ title: "Coupon Removed", description: `"${promoToRemove.code}" has been removed.`, variant: "destructive" });
+  };
+
+  const shippingFee = (subtotal - totalDiscount > 500) ? 0 : 49;
+  const convenienceFee = (subtotal - totalDiscount) * 0.03;
+  const total = subtotal - totalDiscount + convenienceFee + shippingFee;
   
   const canPlaceOrder = isConfirmed && agreedToTerms;
 
@@ -154,10 +205,24 @@ export function OrderSummary() {
             </div>
         </ScrollArea>
         <Separator />
-        <div className="flex items-center gap-2">
-            <Tag className="text-muted-foreground" />
-            <Input placeholder="Enter coupon code" value={couponCode} onChange={e => setCouponCode(e.target.value)} />
-            <Button variant="secondary" disabled={!couponCode}>Apply</Button>
+        <div className="space-y-2">
+            <div className="flex items-center gap-2">
+                <Tag className="text-muted-foreground" />
+                <Input placeholder="Enter coupon code" value={couponInput} onChange={e => setCouponInput(e.target.value)} />
+                <Button variant="secondary" onClick={handleApplyCoupon} disabled={!couponInput || isApplying}>
+                    {isApplying ? <Loader2 className="animate-spin"/> : 'Apply'}
+                </Button>
+            </div>
+            {appliedPromotions.length > 0 && (
+                <div className="space-y-1 pl-7">
+                    {appliedPromotions.map(p => (
+                        <div key={p.id} className="flex items-center justify-between text-xs p-1 bg-green-100 dark:bg-green-900/50 rounded-md">
+                            <span className="font-semibold text-green-700 dark:text-green-300">{p.code}</span>
+                            <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={() => handleRemoveCoupon(p.id)}><X className="h-3 w-3"/></Button>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
         <Separator />
         <div className="space-y-2 text-sm">
@@ -165,10 +230,10 @@ export function OrderSummary() {
                 <span>Subtotal</span>
                 <span>{formatCurrency(subtotal)}</span>
             </div>
-            {discountAmount > 0 && (
+            {totalDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
-                    <span>Discount ({appliedPromotion?.code})</span>
-                    <span>-{formatCurrency(discountAmount)}</span>
+                    <span>Discount</span>
+                    <span>-{formatCurrency(totalDiscount)}</span>
                 </div>
             )}
             <div className="flex justify-between">
