@@ -59,7 +59,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                  const productInfo = {
                     id: p.id,
                     vendorSP: p.vendorSP,
-                    categorySlug: p.categorySlug,
+                    category: p.category,
                     vendorId: p.vendorId,
                     discountType: p.discountType,
                     discountValue: p.discountValue,

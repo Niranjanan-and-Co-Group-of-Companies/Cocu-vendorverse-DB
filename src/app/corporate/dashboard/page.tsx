@@ -131,14 +131,20 @@ export default function CorporateDashboardPage() {
       const pricedProducts = await Promise.all(
         featuredData.map(async (p) => {
           const category = categoriesForPricing.find(c => c.name === p.category);
+          const productInfo = {
+              id: p.id,
+              vendorSP: p.vendorSP,
+              category: p.category,
+              vendorId: p.vendorId,
+              tieredPricing: p.tieredPricing,
+              price: p.price,
+          };
           return {
             ...p,
             displayPrice: await calculateDisplayPrice(
-                {...p, vendorSP: p.vendorSP || parseFloat(p.price)}, 
+                productInfo, 
                 'Corporate', 
-                category, 
-                p.discountType, 
-                p.discountValue
+                category
             ),
           }
         })

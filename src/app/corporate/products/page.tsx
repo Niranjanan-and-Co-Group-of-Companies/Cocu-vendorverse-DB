@@ -49,9 +49,17 @@ function CorporateProductsPageContent() {
       const pricedProducts = await Promise.all(
         b2bProducts.map(async (p) => {
           const categoryForPrice = categories.find(c => c.name === p.category) || currentCategory;
+           const productInfo = {
+              id: p.id,
+              vendorSP: p.vendorSP,
+              category: p.category,
+              vendorId: p.vendorId,
+              tieredPricing: p.tieredPricing,
+              price: p.price,
+            };
           return {
             ...p,
-            displayPrice: await calculateDisplayPrice({ ...p, vendorSP: p.vendorSP || parseFloat(p.price) }, 'Corporate', categoryForPrice || undefined),
+            displayPrice: await calculateDisplayPrice(productInfo, 'Corporate', categoryForPrice || undefined),
           }
         })
       );
