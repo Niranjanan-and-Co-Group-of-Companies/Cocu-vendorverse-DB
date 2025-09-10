@@ -24,13 +24,15 @@ interface CartState {
 const updateItemPrice = async (item: Product, quantity: number): Promise<DisplayPrice | undefined> => {
     const category = await getCategoryByName(item.category);
     
-    // Determine the correct vendorSP based on tiered pricing
     let vendorSP = item.vendorSP;
     if (item.tieredPricing && item.tieredPricing.length > 0) {
         const sortedTiers = [...item.tieredPricing].sort((a, b) => b.quantity - a.quantity);
         const applicableTier = sortedTiers.find(tier => quantity >= tier.quantity);
         if (applicableTier && applicableTier.price) {
-            vendorSP = parseFloat(applicableTier.price.replace('$', '').replace('₹', ''));
+            const tierPrice = parseFloat(applicableTier.price.replace(/[₹$,]/g, ''));
+            if (!isNaN(tierPrice)) {
+                 vendorSP = tierPrice;
+            }
         }
     }
     
@@ -52,13 +54,13 @@ export const useCorporateCart = create(
       addItem: async (product, quantity = 1) => {
         const currentItems = get().items;
         const existingItem = currentItems.find(item => item.id === product.id);
+        const newQuantity = Math.max(product.moq || 1, quantity);
 
         if (existingItem) {
-          const newQuantity = existingItem.quantity + quantity;
-          await get().updateQuantity(product.id, newQuantity);
-          return { success: true, message: `Added ${quantity} more of "${product.name}" to your cart.` };
+          const updatedQuantity = existingItem.quantity + newQuantity;
+          await get().updateQuantity(product.id, updatedQuantity);
+          return { success: true, message: `Added ${newQuantity} more of "${product.name}" to your cart.` };
         } else {
-          const newQuantity = Math.max(product.moq || 1, quantity);
           const displayPrice = await updateItemPrice(product, newQuantity);
           set({ items: [...currentItems, { ...product, quantity: newQuantity, displayPrice }] });
           return { success: true, message: `"${product.name}" (x${newQuantity}) added to cart.` };

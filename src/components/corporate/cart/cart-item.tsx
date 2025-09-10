@@ -51,7 +51,7 @@ export function CartItem({ item }: CartItemProps) {
   };
   
   const unitPrice = item.displayPrice?.finalPrice;
-  const totalPrice = unitPrice ? unitPrice * item.quantity : 0;
+  const totalPrice = unitPrice ? unitPrice * item.quantity : undefined;
 
   return (
     <Card>
@@ -92,7 +92,7 @@ export function CartItem({ item }: CartItemProps) {
                     <p className="text-xs text-muted-foreground mt-1">MOQ: {item.moq}</p>
                 </div>
                  <div className="flex flex-col items-end gap-2">
-                     {isUpdating || unitPrice === undefined ? (
+                     {isUpdating || totalPrice === undefined ? (
                          <Loader2 className="h-5 w-5 animate-spin" />
                      ) : (
                         <p className="font-semibold">
