@@ -119,7 +119,7 @@ export function OrderSummary() {
       }
       return totalDiscount + discount;
     }, 0);
-  }, [appliedPromotions, items, subtotal]);
+  }, [appliedPromotions, items]);
 
   const handleRemove = (cartItemId: string, name: string) => {
     removeItem(cartItemId);
@@ -153,8 +153,6 @@ export function OrderSummary() {
         return;
     }
     
-    // This logic prevents stacking multiple manual coupons, or a manual coupon if a visible site-wide one is better.
-    // The automatic application logic will handle replacing a visible one if the manual one is better.
     setAppliedPromotions(prev => [...prev, promo]);
     setCouponInput('');
     toast({ title: "Coupon Applied!", description: `"${promo.code}" was successfully applied.` });
