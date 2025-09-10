@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import { createNotification } from './notifications-actions';
@@ -17,6 +17,7 @@ export interface SourcingRequest {
     notes: string;
     contactName: string;
     contactPhone: string;
+    customerId: string; // The ID of the corporate user/company
     attachments: { name: string; url: string }[];
     status: SourcingRequestStatus;
     createdAt: any; // Firestore Timestamp
@@ -68,11 +69,23 @@ export async function createSourcingRequest(data: Omit<SourcingRequest, 'id' | '
 
 
 /**
- * Updates the status of a sourcing request.
+ * Updates the status of a sourcing request and notifies the customer.
  * @param requestId The ID of the request to update.
  * @param status The new status.
  */
 export async function updateSourcingRequestStatus(requestId: string, status: SourcingRequestStatus) {
     const docRef = doc(db, 'sourcingRequests', requestId);
     await updateDoc(docRef, { status });
+
+    // Notify the customer who created the request
+    const requestSnap = await getDoc(docRef);
+    if (requestSnap.exists()) {
+        const requestData = requestSnap.data() as SourcingRequest;
+        await createNotification({
+            userId: requestData.customerId,
+            type: 'SOURCING_REQUEST_UPDATE',
+            text: `Your sourcing request #${requestId.slice(0, 6)} has been updated to "${status}".`,
+            link: `/corporate/sourcing-requests`
+        });
+    }
 }
