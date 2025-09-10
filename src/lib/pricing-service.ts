@@ -98,7 +98,7 @@ export async function calculateDisplayPrice(
 
 export async function calculateDisplayPriceFromQuote(
     quotedPrice: number,
-    product: Pick<Product, 'id' | 'category'>,
+    productId: string,
     category?: Category,
     platform: 'Personalized' | 'Corporate' = 'Corporate'
 ): Promise<DisplayPrice> {
