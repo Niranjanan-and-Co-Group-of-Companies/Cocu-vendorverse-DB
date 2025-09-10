@@ -120,7 +120,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
             {relatedProducts.map((product) => {
               const inWishlist = isItemInWishlist(product.id);
               return (
-            <CarouselItem key={product.id} className="md:basis-1/3 lg:basis-1/4">
+            <CarouselItem key={product.id} className="basis-2/3 md:basis-1/3 lg:basis-1/4">
                 <Card className="overflow-hidden group h-full flex flex-col">
                 <CardHeader className="p-0 relative">
                   <Link href={`${basePath}/products/${product.id}`} className="block aspect-[4/3] bg-muted overflow-hidden">

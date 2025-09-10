@@ -204,7 +204,7 @@ export default function Home() {
                 {featuredProducts.map((product) => {
                   const inWishlist = isItemInWishlist(product.id);
                   return (
-                  <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3">
+                  <CarouselItem key={product.id} className="basis-2/3 md:basis-1/2 lg:basis-1/3">
                     <Card className="overflow-hidden group h-full flex flex-col">
                       <CardHeader className="p-0 relative">
                         <Link href={`/products/${product.id}`} className="block w-full h-full">
