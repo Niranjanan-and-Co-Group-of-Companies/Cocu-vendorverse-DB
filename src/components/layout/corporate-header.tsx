@@ -19,6 +19,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import { Badge } from '../ui/badge';
 import { CorporateCartPreview } from './previews/corporate-cart-preview';
 import { CorporateComparePreview } from './previews/corporate-compare-preview';
+import { CorporateWishlistPreview } from './previews/corporate-wishlist-preview';
 
 
 export default function CorporateHeader() {
@@ -42,6 +43,7 @@ export default function CorporateHeader() {
 
         <nav className="ml-auto flex items-center gap-1">
            <CorporateNotificationDropdown />
+           <CorporateWishlistPreview />
            <CorporateCartPreview />
            <CorporateComparePreview />
            
