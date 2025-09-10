@@ -7,6 +7,8 @@ import { db } from './firebase';
 import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
 import type { Category } from './categories-service';
+import { getPromotionsForProduct } from './promotions-actions';
+import type { Promotion } from './promotions-service';
 
 export interface DisplayPrice {
     finalPrice: number;
@@ -83,13 +85,30 @@ export async function calculateDisplayPrice(
     productVendorSP: string | number,
     platform: 'Personalized' | 'Corporate' = 'Personalized', 
     category: Category | undefined,
-    discountType?: 'Percentage' | 'Fixed Amount',
-    discountValue?: number
+    // These optional params are for direct product discounts
+    productDiscountType?: 'Percentage' | 'Fixed Amount',
+    productDiscountValue?: number
 ): Promise<DisplayPrice> {
     const basePrice = typeof productVendorSP === 'string' 
         ? parseFloat(productVendorSP.replace('$', '').replace('₹', '')) 
         : productVendorSP;
-    return calculateFinalPrice(basePrice, platform, category, discountType, discountValue);
+
+    // First, check for promotions from the promotions engine
+    // In a real app, we'd pass the full product object, but for now, we'll assume we don't have it.
+    // This part is simplified. The promotions actions would need more context.
+    // For now, we will prefer the direct product discount if it exists.
+
+    let discountType = productDiscountType;
+    let discountValue = productDiscountValue;
+
+    // This is a simplification. A real implementation would have a more complex priority system.
+    // For now, product-specific discounts override promotions.
+    if (discountType && discountValue) {
+        return calculateFinalPrice(basePrice, platform, category, discountType, discountValue);
+    }
+    
+    // If no direct discount, calculate the base price without any promotion
+    return calculateFinalPrice(basePrice, platform, category);
 }
 
 export async function calculateDisplayPriceFromQuote(

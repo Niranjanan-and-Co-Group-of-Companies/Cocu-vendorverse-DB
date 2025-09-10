@@ -20,6 +20,7 @@ import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categori
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
+import { getPromotionsForProduct } from '@/lib/promotions-actions';
 
 interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
@@ -27,13 +28,13 @@ interface ProductWithPrice extends Product {
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const query = searchParams.get('q') || '';
   const [searchResults, setSearchResults] = useState<ProductWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
   const { addItem: addToCart } = useCart();
   const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
   const { toast } = useToast();
-  const router = useRouter();
 
 
   useEffect(() => {
@@ -51,9 +52,18 @@ function SearchResultsContent() {
       const pricedProducts = await Promise.all(
           filteredProducts.map(async p => {
               const category = categories.find(c => c.name === p.category);
+              const promotions = await getPromotionsForProduct(p.id, p.category || '', p.vendorId);
+              const firstApplicablePromotion = promotions[0];
+
               return {
                 ...p,
-                displayPrice: await calculateDisplayPrice(p.vendorSP, 'Personalized', category, p.discountType, p.discountValue),
+                displayPrice: await calculateDisplayPrice(
+                    p.vendorSP, 
+                    'Personalized', 
+                    category, 
+                    firstApplicablePromotion?.type === 'Percentage' ? 'Percentage' : firstApplicablePromotion?.type === 'Fixed Amount' ? 'Fixed Amount' : undefined, 
+                    firstApplicablePromotion?.value
+                ),
               }
           })
       );
