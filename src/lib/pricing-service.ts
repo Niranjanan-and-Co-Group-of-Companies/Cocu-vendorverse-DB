@@ -41,16 +41,16 @@ export async function calculateDisplayPrice(
         vendorId: string;
         discountType?: 'Percentage' | 'Fixed Amount';
         discountValue?: number;
-        price?: string;
+        price?: string; // This is the old customer-facing price, will be recalculated.
         tieredPricing?: TieredPrice[];
     },
     platform: 'Personalized' | 'Corporate' = 'Personalized', 
     category: Category | undefined,
 ): Promise<DisplayPrice> {
 
-    const basePrice = productInfo.vendorSP;
+    const vendorSP = productInfo.vendorSP;
 
-    if (isNaN(basePrice)) {
+    if (isNaN(vendorSP)) {
         return { finalPrice: 0, originalPrice: 0, hasDiscount: false };
     }
 
@@ -59,27 +59,30 @@ export async function calculateDisplayPrice(
     const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
     
     let buffer = 0;
-    let commission = 0;
 
     if (rule) {
-        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : basePrice * (rule.bufferValue / 100);
-        commission = basePrice * (rule.commissionRate / 100);
+        // Buffer is calculated based on the Vendor SP
+        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : vendorSP * (rule.bufferValue / 100);
     }
-    const customerPrice = basePrice + buffer + commission;
+    
+    // Customer SP (Original Price) is Vendor SP + Buffer
+    const customerPrice = vendorSP + buffer;
     
     let finalPrice = customerPrice;
     let hasDiscount = false;
     let discountText = '';
     
+    // Check for applicable promotions first (for personalized platform)
     let promotions: PlainPromotion[] = [];
     if(platform === 'Personalized') {
       promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
     }
     const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
+    
+    let discountType = productInfo.discountType;
+    let discountValue = productInfo.discountValue;
 
-    let discountType: 'Percentage' | 'Fixed Amount' | undefined = productInfo.discountType;
-    let discountValue: number | undefined = productInfo.discountValue;
-
+    // A site-wide promotion takes precedence over a product-specific one for display
     if (firstApplicablePromotion) {
         discountType = firstApplicablePromotion.type as 'Percentage' | 'Fixed Amount';
         discountValue = firstApplicablePromotion.value;
@@ -88,6 +91,7 @@ export async function calculateDisplayPrice(
     if (discountValue && discountType) {
         hasDiscount = true;
         if (discountType === 'Percentage') {
+            // Discount is applied on the Customer Price
             finalPrice = customerPrice * (1 - (discountValue / 100));
             discountText = `${discountValue}% OFF`;
         } else { // Fixed Amount
@@ -105,12 +109,12 @@ export async function calculateDisplayPrice(
 }
 
 export async function calculateDisplayPriceFromQuote(
-    quotedPrice: number,
+    quotedPrice: number, // This is the vendor's quoted price PER UNIT, equivalent to VendorSP
     productId: string,
     category?: Category,
     platform: 'Personalized' | 'Corporate' = 'Corporate'
 ): Promise<DisplayPrice> {
-    // For quotes, we assume the quoted price is the base price and no further discounts apply
+
     const rules = await getCommissionRules();
     const ruleType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
     const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
@@ -119,6 +123,7 @@ export async function calculateDisplayPriceFromQuote(
     if (rule) {
         buffer = rule.bufferType === 'fixed' ? rule.bufferValue : quotedPrice * (rule.bufferValue / 100);
     }
+    
     const customerPrice = quotedPrice + buffer;
     
     return {
@@ -127,3 +132,4 @@ export async function calculateDisplayPriceFromQuote(
         hasDiscount: false,
     };
 }
+
