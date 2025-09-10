@@ -66,10 +66,10 @@ function ProductsTable() {
     React.useEffect(() => {
         let productsToFilter = [...allProducts];
         if (view === 'personal') {
-            productsToFilter = productsToFilter.filter(p => p.platform === 'Personalized' || p.platform === 'Both');
+            productsToFilter = productsToFilter.filter(p => p.platform === 'Personalized');
             setTitle('Personalized Retail Products');
         } else if (view === 'corporate') {
-            productsToFilter = productsToFilter.filter(p => p.platform === 'Corporate' || p.platform === 'Both');
+            productsToFilter = productsToFilter.filter(p => p.platform === 'Corporate');
             setTitle('Corporate & Bulk Products');
         } else if (!categorySlugFilter) {
             setTitle('All Products');

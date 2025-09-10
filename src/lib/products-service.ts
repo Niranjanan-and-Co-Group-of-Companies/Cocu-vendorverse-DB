@@ -28,14 +28,14 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
 
 async function seedProductsIfEmpty() {
-    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v6'); // Incremented version to force re-seed
+    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v7'); // Incremented version to force re-seed
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return; // Seeding already performed.
     }
     
-    console.log("Products collection requires seeding. Seeding mock data...");
+    console.log("Performing one-time product database hard reset...");
     
     const MOCK_PRODUCTS_RAW = [
         { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 45.00, tieredPricing: [{ quantity: 50, price: '42.00' }, { quantity: 100, price: '40.00' }, { quantity: 250, price: '38.00' }], image: 'https://picsum.photos/600/400?random=1', galleryImages: ['https://picsum.photos/600/400?random=11', 'https://picsum.photos/600/400?random=12', 'https://picsum.photos/600/400?random=13'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, moq: 50, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.", category: "Food & Drink", platform: 'Personalized'},
@@ -47,19 +47,28 @@ async function seedProductsIfEmpty() {
         'Serene Moments': { id: 'vendor002', pincode: '560001'},
         'Heritage Wares': { id: 'vendor003', pincode: '302001'},
     };
-    const batch = writeBatch(db);
+    
+    // Hard reset logic
+    const existingProductsSnapshot = await getDocs(productsCollection);
+    const deleteBatch = writeBatch(db);
+    existingProductsSnapshot.docs.forEach(doc => {
+        deleteBatch.delete(doc.ref);
+    });
+    await deleteBatch.commit();
+    console.log(`Deleted ${existingProductsSnapshot.size} old products.`);
+    
+    // Seeding logic
+    const seedBatch = writeBatch(db);
     for (const product of MOCK_PRODUCTS_RAW) {
-        const docRef = doc(productsCollection); // Auto-generate ID
+        const docRef = doc(productsCollection);
         const vendorInfo = VENDOR_MAP[product.vendor] || { id: 'unknown_vendor', pincode: '000000' };
 
-        // Await fetching the category to ensure buffer calculations are correct
         const category = await getCategoryByName(product.category);
-        const displayPrice = await calculateDisplayPrice(product.vendorSP, product.platform as 'Personalized' | 'Corporate', category || undefined, undefined, undefined);
+        const displayPrice = await calculateDisplayPrice(product.vendorSP, product.platform as 'Personalized' | 'Corporate', category, undefined, undefined);
         
         const fullProductData = {
             ...product,
-            price: displayPrice.finalPrice.toFixed(2), // Final Customer Price
-            packaging: { weight: 1, dimensions: { l: 10, w: 10, h: 5 } },
+            price: displayPrice.finalPrice.toFixed(2),
             id: docRef.id,
             name_lowercase: product.name.toLowerCase(),
             status: 'Live', 
@@ -74,6 +83,7 @@ async function seedProductsIfEmpty() {
             allowedCustomizations: [],
             inventoryBuffer: 5,
             tags: [],
+            packaging: { weight: 1, dimensions: { l: 10, w: 10, h: 5 } },
             preparationTime: { min: 3, max: 4 },
             preparationTimeUnit: 'days',
             sku: `${product.vendor.substring(0,2).toUpperCase()}-${docRef.id.substring(0,4)}`,
@@ -85,9 +95,9 @@ async function seedProductsIfEmpty() {
             customizationSides: { front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } }
         };
 
-        batch.set(docRef, fullProductData);
+        seedBatch.set(docRef, fullProductData);
     }
-    await batch.commit();
+    await seedBatch.commit();
     await setDoc(seedFlagRef, { seeded: true, at: serverTimestamp() });
     console.log(`${MOCK_PRODUCTS_RAW.length} products seeded.`);
 }
@@ -115,13 +125,14 @@ export async function saveProduct(
     const categorySlug = productData.category ? productData.category.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-') : '';
 
     const category = await getCategoryByName(productData.category);
-    // Correctly calculate final price based on vendorSP and buffer.
-    const displayPrice = await calculateDisplayPrice(productData.vendorSP || 0, productData.platform, category || undefined, productData.discountType, productData.discountValue);
+    
+    const displayPrice = await calculateDisplayPrice(productData.vendorSP || 0, productData.platform, category, productData.discountType, productData.discountValue);
 
     const finalProductData = { 
         ...productData, 
         id: productId, 
-        price: displayPrice.finalPrice.toFixed(2), // This is the final customer price. vendorSP is the base.
+        price: displayPrice.finalPrice.toFixed(2),
+        vendorSP: productData.vendorSP || 0,
         name_lowercase: productData.name?.toLowerCase(),
         shipsFromPincode,
         categorySlug,
