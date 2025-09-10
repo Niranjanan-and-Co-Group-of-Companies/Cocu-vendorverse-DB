@@ -34,19 +34,21 @@ type ProductView = 'all' | 'personal' | 'corporate';
 function ProductsPageContent() {
     const searchParams = useSearchParams();
     const categorySlugFilter = searchParams.get('category');
+    
+    const [rawProducts, setRawProducts] = React.useState<Product[]>([]);
     const [allProducts, setAllProducts] = React.useState<ProductWithPrice[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [title, setTitle] = React.useState('All Products');
     const [view, setView] = React.useState<ProductView>('all');
     const [commissionRules, setCommissionRules] = React.useState<CommissionRule[]>([]);
 
-    // Fetch commission rules once
+    // Effect 1: Fetch and listen to commission rule updates
     React.useEffect(() => {
         const unsubCommissions = onCommissionRulesUpdate(setCommissionRules);
         return () => unsubCommissions();
     }, []);
 
-    // Fetch products and then calculate their prices
+    // Effect 2: Fetch and listen to product updates
     React.useEffect(() => {
         setLoading(true);
         const productsRef = collection(db, 'products');
@@ -54,40 +56,52 @@ function ProductsPageContent() {
             ? query(productsRef, where('categorySlug', '==', categorySlugFilter))
             : query(productsRef);
 
-        const unsubscribe = onSnapshot(q, async (snapshot) => {
+        const unsubscribe = onSnapshot(q, (snapshot) => {
             const productsData = snapshot.docs.map(doc => ({...doc.data(), id: doc.id} as Product));
-
-            if (commissionRules.length > 0) {
-                 const pricedProducts = await Promise.all(
-                    productsData.map(async (p) => {
-                        const category = await getCategoryByName(p.category);
-                        const platform = p.platform === 'Corporate' ? 'Corporate' : 'Personalized';
-                        
-                        const displayPrice = await calculateDisplayPrice(
-                            p.vendorSP,
-                            platform,
-                            category || undefined,
-                            p.discountType,
-                            p.discountValue
-                        );
-                        return { ...p, displayPrice: displayPrice.finalPrice };
-                    })
-                );
-                setAllProducts(pricedProducts);
-            } else {
-                // If commissions haven't loaded yet, set products without price
-                setAllProducts(productsData);
-            }
-            
+            setRawProducts(productsData);
             setTitle(categorySlugFilter ? `Products in: ${categorySlugFilter.replace(/-/g, ' ')}` : 'All Products');
-            setLoading(false);
         }, (error) => {
             console.error("Error fetching products: ", error);
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, [categorySlugFilter, commissionRules]); // Re-run when commissions change
+    }, [categorySlugFilter]);
+    
+    // Effect 3: Recalculate prices when products or commission rules change
+    React.useEffect(() => {
+        if (rawProducts.length === 0 || commissionRules.length === 0) {
+            if (rawProducts.length > 0) {
+              setAllProducts(rawProducts); // Show products even if commissions aren't loaded yet
+              setLoading(false);
+            }
+            return;
+        }
+
+        const calculateAllPrices = async () => {
+            const pricedProducts = await Promise.all(
+                rawProducts.map(async (p) => {
+                    const category = await getCategoryByName(p.category);
+                    const platform = p.platform === 'Corporate' ? 'Corporate' : 'Personalized';
+                    
+                    const displayPrice = await calculateDisplayPrice(
+                        p.vendorSP,
+                        platform,
+                        category || undefined,
+                        p.discountType,
+                        p.discountValue
+                    );
+                    return { ...p, displayPrice: displayPrice.finalPrice };
+                })
+            );
+            setAllProducts(pricedProducts);
+            setLoading(false);
+        };
+        
+        calculateAllPrices();
+
+    }, [rawProducts, commissionRules]);
+
 
     const filteredProducts = React.useMemo(() => {
         let productsToFilter = [...allProducts];
