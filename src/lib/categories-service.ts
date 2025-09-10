@@ -258,9 +258,9 @@ export async function getCategoryByName(name?: string): Promise<Category | null>
 }
 
 
-export async function getProductsByCategory(categoryName: string): Promise<Product[]> {
+export async function getProductsByCategory(categorySlug: string): Promise<Product[]> {
     const productsRef = collection(db, 'products');
-    const q = query(productsRef, where('category', '==', categoryName));
+    const q = query(productsRef, where('categorySlug', '==', categorySlug));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => doc.data() as Product);
 }
