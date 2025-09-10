@@ -3,7 +3,7 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProductPageContent } from '@/components/product/product-page-content';
-import { getProductById, serializeProduct, type PlainProduct } from '@/lib/products-service';
+import { getProductById, serializeProduct } from '@/lib/products-service';
 
 // This is a Server Component. It can access params directly.
 export default async function ProductPage({ params }: { params: { id: string } }) {
