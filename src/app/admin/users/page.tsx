@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -35,7 +34,7 @@ export default function UsersPage() {
 
   React.useEffect(() => {
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('role', 'in', ['customer', 'admin']));
+    const q = query(usersRef, where('role', '==', 'customer'));
     
     const unsub = onSnapshot(q, (snapshot) => {
         const usersData: User[] = snapshot.docs.map(doc => ({
