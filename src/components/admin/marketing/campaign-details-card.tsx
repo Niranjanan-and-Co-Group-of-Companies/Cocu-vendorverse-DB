@@ -71,18 +71,34 @@ export function CampaignDetailsCard({ campaign, onFieldChange }: CampaignDetails
             </div>
         </div>
         
-        <div className="space-y-2">
-            <Label htmlFor="platform">Platform</Label>
-            <Select value={campaign.platform} onValueChange={(value: Platform | 'Both') => onFieldChange('platform', value)}>
-                <SelectTrigger id="platform">
-                    <SelectValue placeholder="Select a platform" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="Personalized">Personalized</SelectItem>
-                    <SelectItem value="Corporate">Corporate</SelectItem>
-                    <SelectItem value="Both">Both</SelectItem>
-                </SelectContent>
-            </Select>
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="platform">Platform</Label>
+                <Select value={campaign.platform} onValueChange={(value: Platform | 'Both') => onFieldChange('platform', value)}>
+                    <SelectTrigger id="platform">
+                        <SelectValue placeholder="Select a platform" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Personalized">Personalized</SelectItem>
+                        <SelectItem value="Corporate">Corporate</SelectItem>
+                        <SelectItem value="Both">Both</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="audience">Audience Targeting</Label>
+                 <Select value={campaign.audience} onValueChange={(value) => onFieldChange('audience', value)} disabled>
+                    <SelectTrigger id="audience">
+                        <SelectValue placeholder="Select audience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="All">All Visitors</SelectItem>
+                        <SelectItem value="New Customers">New Customers</SelectItem>
+                        <SelectItem value="Returning Customers">Returning Customers</SelectItem>
+                         <SelectItem value="Corporate">Corporate</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
 
 
