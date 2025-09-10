@@ -24,7 +24,7 @@ async function getCommissionRules(): Promise<CommissionRule[]> {
         return commissionRulesCache;
     }
     const snapshot = await getDocs(collection(db, 'commissions'));
-    commissionRulesCache = snapshot.docs.map(doc => doc.data() as CommissionRule);
+    commissionRulesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommissionRule));
     cacheTimestamp = now;
     return commissionRulesCache;
 }

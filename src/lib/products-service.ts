@@ -27,28 +27,31 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 }
 
 async function seedProductsIfEmpty() {
-    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v15'); 
+    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v18'); 
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
-        return;
+        return; // The correct seeding has already been performed.
     }
     
-    console.log("Performing one-time product database hard reset (v15)...");
+    console.log("Performing one-time product database hard reset (v18)...");
     
     // Hard reset logic: Delete all existing products first.
     const existingProductsSnapshot = await getDocs(productsCollection);
-    const deleteBatch = writeBatch(db);
-    existingProductsSnapshot.docs.forEach(doc => {
-        deleteBatch.delete(doc.ref);
-    });
-    await deleteBatch.commit();
-    console.log(`Deleted ${existingProductsSnapshot.size} old products.`);
+    if (existingProductsSnapshot.size > 0) {
+        const deleteBatch = writeBatch(db);
+        existingProductsSnapshot.docs.forEach(doc => {
+            deleteBatch.delete(doc.ref);
+        });
+        await deleteBatch.commit();
+        console.log(`Deleted ${existingProductsSnapshot.size} old products.`);
+    }
+
 
     const MOCK_PRODUCTS_RAW = [
         { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 45.00, image: 'https://picsum.photos/seed/choco/600/400', galleryImages: ['https://picsum.photos/seed/choco1/600/400', 'https://picsum.photos/seed/choco2/600/400', 'https://picsum.photos/seed/choco3/600/400'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", creatorStory: "Founded by a third-generation chocolatier, Gourmet Delights is dedicated to the art of fine chocolate making. We travel the world to source the best ingredients and honor traditional techniques.", category: "Food & Drink", platform: 'Personalized'},
         { name: 'Luxury Spa Set', vendor: 'Serene Moments', vendorSP: 85.00, image: 'https://picsum.photos/seed/spa/600/400', galleryImages: ['https://picsum.photos/seed/spa1/600/400', 'https://picsum.photos/seed/spa2/600/400'], rating: 4.9, stock: 5, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", creatorStory: "Serene Moments was born from a desire to make self-care accessible to everyone. Our founder, a certified aromatherapist, personally formulates each product to ensure the highest quality and efficacy.", category: "Wellness", platform: 'Personalized' },
-        { name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', vendorSP: 75.00, tieredPricing: [{ quantity: 25, price: '70.00' }, { quantity: 50, price: '65.00' }, { quantity: 100, price: '60.00' }], image: 'https://picsum.photos/seed/wallet/600/400', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Fashion & Accessories", moq: 25, platform: 'Corporate'},
+        { name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', vendorSP: 75.00, tieredPricing: [{ quantity: 25, price: '70.00' }, { quantity: 50, price: '65.00' }, { quantity: 100, price: '60.00' }], image: 'https://picsum.photos/seed/wallet/600/400', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Office & Corporate", moq: 25, platform: 'Corporate'},
     ];
     
     const VENDOR_MAP: { [key: string]: { id: string, pincode: string } } = { 
