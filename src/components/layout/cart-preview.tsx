@@ -97,7 +97,12 @@ export function CartPreview() {
                                             <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
                                             <Button variant="outline" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(e, item.cartItemId, item.quantity + 1)} disabled={item.quantity >= maxQty}><Plus className="h-3 w-3"/></Button>
                                         </div>
-                                        <p className="text-sm font-semibold mt-1">{formatCurrency(price * item.quantity)}</p>
+                                        <div className="flex items-baseline gap-2 mt-1">
+                                            <p className="text-sm font-semibold">{formatCurrency(price * item.quantity)}</p>
+                                            {item.displayPrice?.hasDiscount && (
+                                                 <p className="text-xs text-muted-foreground line-through">{formatCurrency(item.displayPrice.originalPrice * item.quantity)}</p>
+                                            )}
+                                        </div>
                                     </div>
                                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive self-start" onClick={(e) => handleRemove(e, item.cartItemId, item.name)}>
                                         <X className="h-4 w-4" />
