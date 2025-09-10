@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -39,7 +40,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
         setLoadingPrice(true);
         unsubscribe = onCategoriesWithCommissionsUpdate(platform, (categories) => {
             const category = categories.find(c => c.name === product.category);
-            calculateDisplayPrice(product.price, platform, category, product.discountType, product.discountValue).then(info => {
+            calculateDisplayPrice(product.vendorSP, platform, category, product.discountType, product.discountValue).then(info => {
                 setPriceInfo(info);
                 setLoadingPrice(false);
             });
@@ -143,7 +144,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
             open={isVendorInfoOpen}
             onOpenChange={setIsVendorInfoOpen}
             vendorName={product.vendor}
-            vendorBio={product.creatorStory || ''}
+            vendorBio={''}
         />
     </>
   );

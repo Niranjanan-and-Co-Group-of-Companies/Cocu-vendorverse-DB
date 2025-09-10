@@ -59,7 +59,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                 const category = categories.find(c => c.name === p.category);
                 return {
                     ...p,
-                    displayPrice: await calculateDisplayPrice(p.price, 'personal', category, p.discountType, p.discountValue),
+                    displayPrice: await calculateDisplayPrice(p.vendorSP, 'Personalized', category, p.discountType, p.discountValue),
                 }
             })
         );
