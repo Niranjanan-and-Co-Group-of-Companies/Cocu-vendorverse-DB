@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 import { DollarSign, Package, PlusCircle, Search as SearchIcon, ShoppingCart } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order } from '@/lib/orders-service';
-import { onOrdersUpdate, updateOrderStatus } from '@/lib/orders-service';
+import { onOrdersUpdate, updateOrderStatus } from '@/lib/orders-client-service';
 import Link from 'next/link';
 import { OrderActions } from '@/components/admin/orders/order-actions';
 import { OrderDetailsDialog } from '@/components/admin/orders/order-details-dialog';
@@ -117,11 +117,9 @@ export default function OrdersPage() {
                         Here you can view, track, and manage all orders.
                     </p>
                 </div>
-                <Button asChild>
-                   <Link href="/admin/orders/new">
-                        <PlusCircle className="mr-2" />
-                        Create Order
-                    </Link>
+                <Button disabled>
+                    <PlusCircle className="mr-2" />
+                    Create Order
                 </Button>
             </div>
             
@@ -246,5 +244,3 @@ export default function OrdersPage() {
         </div>
     );
 }
-
-    

@@ -116,7 +116,7 @@ function AdminSidebar() {
 
               <SidebarContent>
                 <div className="flex flex-col gap-2 px-2 group-data-[state=collapsed]:hidden">
-                    <Button asChild variant="outline" size="sm" className="justify-start">
+                    <Button asChild variant="outline" size="sm" className="justify-start" disabled>
                     <Link href="/admin/orders/new">
                         <PlusCircle />
                         <span>New Order</span>
