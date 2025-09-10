@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -10,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { PlusCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '../ui/input';
+import { calculateCustomerShippingCost } from '@/lib/shipping-service';
+import { useCart } from '@/hooks/use-cart';
 
 const MOCK_ADDRESSES = [
     { id: 'addr1', name: 'Home', line1: '123 Maple St', city: 'Springfield', state: 'IL', zip: '62704', country: 'USA' },
@@ -17,16 +18,38 @@ const MOCK_ADDRESSES = [
 ];
 
 export function ShippingAddress() {
+    const { items } = useCart();
     const [addresses, setAddresses] = React.useState(MOCK_ADDRESSES);
-    const [selectedAddress, setSelectedAddress] = React.useState(addresses[0]?.id || '');
+    const [selectedAddressId, setSelectedAddressId] = React.useState(addresses[0]?.id || '');
     const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
     const [phone, setPhone] = React.useState('');
+    const [shippingCost, setShippingCost] = React.useState<number | null>(null);
+    const [isCalculating, setIsCalculating] = React.useState(false);
+    
+    const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
+
+    React.useEffect(() => {
+        const getShippingCost = async () => {
+            if (selectedAddress) {
+                setIsCalculating(true);
+                const cost = await calculateCustomerShippingCost(items, selectedAddress.zip);
+                setShippingCost(cost);
+                setIsCalculating(false);
+            }
+        };
+        getShippingCost();
+    }, [selectedAddressId, items]);
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         const numericValue = value.replace(/\D/g, '').slice(0, 10);
         setPhone(numericValue);
     };
+    
+    const formatCurrency = (amount: number | null) => {
+        if (amount === null) return '';
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+    }
 
     return (
         <>
@@ -42,7 +65,7 @@ export function ShippingAddress() {
                 </Button>
             </CardHeader>
             <CardContent>
-                <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress}>
+                <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId}>
                     <div className="space-y-4">
                         {addresses.map(addr => (
                             <Label key={addr.id} htmlFor={addr.id} className="flex items-start gap-4 p-4 border rounded-md has-[:checked]:bg-accent has-[:checked]:border-primary cursor-pointer">
@@ -55,6 +78,14 @@ export function ShippingAddress() {
                         ))}
                     </div>
                 </RadioGroup>
+                 {selectedAddress && (
+                    <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                        <h4 className="font-semibold">Estimated Shipping Cost</h4>
+                        <p className="text-lg font-bold text-primary">
+                            {isCalculating ? "Calculating..." : formatCurrency(shippingCost)}
+                        </p>
+                    </div>
+                )}
             </CardContent>
             </Card>
 

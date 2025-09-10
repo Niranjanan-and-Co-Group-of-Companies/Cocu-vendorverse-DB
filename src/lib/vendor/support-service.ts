@@ -53,7 +53,6 @@ export interface SupportTicket {
     createdAt: Timestamp;
     lastUpdated: Timestamp;
     isReadByVendor: boolean;
-    expiresAt: Timestamp;
 }
 
 export interface KnowledgeBaseArticle {
@@ -87,16 +86,12 @@ export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
 }
 
 // Create a new support ticket
-export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor' | 'expiresAt'>): Promise<string> {
-    const now = Timestamp.now();
-    const tenDaysFromNow = new Timestamp(now.seconds + 10 * 24 * 60 * 60, now.nanoseconds);
-    
+export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor'>): Promise<string> {
     const ticketData = {
         ...data,
         createdAt: serverTimestamp(),
         lastUpdated: serverTimestamp(),
         isReadByVendor: true,
-        expiresAt: tenDaysFromNow,
     };
     const ticketRef = await addDoc(collection(db, 'supportTickets'), ticketData);
 

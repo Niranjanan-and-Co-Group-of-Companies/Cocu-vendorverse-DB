@@ -183,7 +183,7 @@ export function CreateTicketDialog({ open, onOpenChange, vendorId }: CreateTicke
           </div>
             <Alert variant="destructive">
                 <AlertDescription>
-                    Support tickets and their chat history will be automatically deleted after 10 days of being marked as 'Resolved'.
+                    This is not a real-time chat. For urgent issues that are blocking orders, please use the live chat option when available. Support tickets and their chat history will be automatically deleted after 10 days of being marked as 'Resolved'.
                 </AlertDescription>
             </Alert>
         </div>

@@ -17,6 +17,7 @@ import { getPromotionsForProduct, getPromotionByCode } from '@/lib/promotions-ac
 import type { PlainPromotion } from '@/lib/promotions-service';
 import Link from 'next/link';
 import { Badge } from '../ui/badge';
+import { calculateCustomerShippingCost } from '@/lib/shipping-service';
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat('en-IN', {
@@ -33,6 +34,7 @@ export function OrderSummary() {
   const [couponInput, setCouponInput] = React.useState('');
   const [appliedPromotions, setAppliedPromotions] = React.useState<PlainPromotion[]>([]);
   const [isApplying, setIsApplying] = React.useState(false);
+  const [shippingFee, setShippingFee] = React.useState(0); // This will be calculated later
   
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
@@ -138,16 +140,13 @@ export function OrderSummary() {
     }
     
     if (promo.visibleOnPlatform) {
-        const bestAutomaticPromo = appliedPromotions.find(p => p.visibleOnPlatform);
-        if (bestAutomaticPromo?.id !== promo.id) {
-             toast({ title: "Automatic Discount", description: "This discount is applied automatically if it's the best offer for your cart.", variant: "destructive" });
-             return;
-        }
+        toast({ title: "Automatic Discount", description: "This discount is applied automatically if it's the best offer for your cart.", variant: "destructive" });
+        return;
     }
 
     const hasManualPromo = appliedPromotions.some(p => !p.visibleOnPlatform);
 
-    if (!promo.visibleOnPlatform && hasManualPromo) {
+    if (hasManualPromo) {
         toast({ title: "Limit Reached", description: "You can only apply one manual coupon code.", variant: "destructive" });
         return;
     }
@@ -165,7 +164,6 @@ export function OrderSummary() {
     toast({ title: "Coupon Removed", description: `"${promoToRemove.code}" has been removed.`, variant: "destructive" });
   };
 
-  const shippingFee = (subtotal - discountAmount > 500) ? 0 : 49;
   const convenienceFee = (subtotal - discountAmount) * 0.03;
   const total = subtotal - discountAmount + convenienceFee + shippingFee;
   
