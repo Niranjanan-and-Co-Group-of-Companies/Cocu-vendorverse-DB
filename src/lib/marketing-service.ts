@@ -1,5 +1,6 @@
 
-import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp, updateDoc, query, where, limit } from 'firebase/firestore';
+
+import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp, updateDoc, query, where, limit, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { CampaignCreative } from '@/app/admin/marketing/new/page';
@@ -132,6 +133,7 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
         where('status', '==', 'Active'),
         where('platform', 'in', ['Personalized', 'Both']),
         where('startDate', '<=', now),
+        orderBy('startDate', 'desc'),
         limit(1) // Get the most recent one that has started
     );
 
@@ -163,6 +165,7 @@ export async function getActiveCorporateCampaignByPlacement(placement: Placement
         where('status', '==', 'Active'),
         where('platform', 'in', ['Corporate', 'Both']),
         where('startDate', '<=', now),
+        orderBy('startDate', 'desc'),
         limit(1)
     );
 
