@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -31,7 +30,7 @@ export function OrderSummary() {
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
   const [couponCode, setCouponCode] = React.useState('');
   const [appliedPromotion, setAppliedPromotion] = React.useState<PlainPromotion | null>(null);
-  const [eligibleItemPrice, setEligibleItemPrice] = React.useState(0);
+  const [eligibleCartItemId, setEligibleCartItemId] = React.useState<string | null>(null);
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
@@ -45,12 +44,13 @@ export function OrderSummary() {
         if (items.length === 0) {
             setAppliedPromotion(null);
             setCouponCode('');
+            setEligibleCartItemId(null);
             return;
         }
 
         let bestPromo: PlainPromotion | null = null;
         let maxDiscount = 0;
-        let bestItemPrice = 0;
+        let bestCartItemId: string | null = null;
 
         for (const item of items) {
             const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId);
@@ -69,7 +69,7 @@ export function OrderSummary() {
                 if (currentDiscount > maxDiscount) {
                     maxDiscount = currentDiscount;
                     bestPromo = promo;
-                    bestItemPrice = itemPrice;
+                    bestCartItemId = item.cartItemId;
                 }
             }
         }
@@ -77,11 +77,11 @@ export function OrderSummary() {
         if (bestPromo) {
             setAppliedPromotion(bestPromo);
             setCouponCode(bestPromo.code);
-            setEligibleItemPrice(bestItemPrice);
+            setEligibleCartItemId(bestCartItemId);
         } else {
             setAppliedPromotion(null);
             setCouponCode('');
-            setEligibleItemPrice(0);
+            setEligibleCartItemId(null);
         }
     };
 
@@ -89,7 +89,12 @@ export function OrderSummary() {
   }, [items]);
   
   const discountAmount = React.useMemo(() => {
-    if (!appliedPromotion || eligibleItemPrice === 0) return 0;
+    if (!appliedPromotion || !eligibleCartItemId) return 0;
+    
+    const eligibleItem = items.find(item => item.cartItemId === eligibleCartItemId);
+    if (!eligibleItem) return 0;
+    
+    const eligibleItemPrice = (eligibleItem.displayPrice?.originalPrice || parseFloat(eligibleItem.price.replace('$', ''))) * eligibleItem.quantity;
     
     if (appliedPromotion.type === 'Percentage') {
         return eligibleItemPrice * (appliedPromotion.value / 100);
@@ -98,7 +103,7 @@ export function OrderSummary() {
         return Math.min(appliedPromotion.value, eligibleItemPrice);
     }
     return 0;
-  }, [appliedPromotion, eligibleItemPrice]);
+  }, [appliedPromotion, eligibleCartItemId, items]);
 
 
   const handleRemove = (cartItemId: string, name: string) => {
