@@ -43,32 +43,34 @@ export async function calculateFinalPrice(
     const rules = await getCommissionRules();
     const ruleType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
     const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
-    
-    let buffer = 0;
-    if (rule) {
-        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : basePrice * (rule.bufferValue / 100);
-    }
-    
-    const originalPrice = basePrice + buffer;
-    
-    let finalPrice = originalPrice;
+
+    // First, apply any discount to the base price
+    let discountedBasePrice = basePrice;
     let hasDiscount = false;
     let discountText = '';
-
+    
     if (discountValue && discountType) {
         hasDiscount = true;
         if (discountType === 'Percentage') {
-            finalPrice = originalPrice * (1 - (discountValue / 100));
+            discountedBasePrice = basePrice * (1 - (discountValue / 100));
             discountText = `${discountValue}% OFF`;
         } else { // Fixed Amount
-            finalPrice = originalPrice - discountValue;
+            discountedBasePrice = basePrice - discountValue;
             discountText = `₹${discountValue} OFF`;
         }
     }
     
+    let buffer = 0;
+    if (rule) {
+        // IMPORTANT: Buffer is calculated on the discounted price, not the original base price.
+        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : discountedBasePrice * (rule.bufferValue / 100);
+    }
+    
+    const finalPrice = discountedBasePrice + buffer;
+    
     return {
         finalPrice: Math.max(0, finalPrice),
-        originalPrice,
+        originalPrice: basePrice, // Original price is always the pre-discount, pre-buffer price
         hasDiscount,
         discountText,
     };

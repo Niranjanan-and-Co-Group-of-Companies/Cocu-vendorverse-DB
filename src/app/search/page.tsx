@@ -53,7 +53,7 @@ function SearchResultsContent() {
               const category = categories.find(c => c.name === p.category);
               return {
                 ...p,
-                displayPrice: await calculateDisplayPrice(p.price, 'personal', category, p.discountType, p.discountValue),
+                displayPrice: await calculateDisplayPrice(p.price, 'Personalized', category, p.discountType, p.discountValue),
               }
           })
       );

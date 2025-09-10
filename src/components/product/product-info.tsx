@@ -30,7 +30,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
   const [loadingPrice, setLoadingPrice] = React.useState(true);
   const pathname = usePathname();
   
-  const platform = pathname.includes('/corporate') ? 'corporate' : 'personal';
+  const platform = pathname.includes('/corporate') ? 'Corporate' : 'Personalized';
 
   React.useEffect(() => {
     let unsubscribe: () => void;
