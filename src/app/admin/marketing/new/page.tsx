@@ -35,7 +35,7 @@ const createDefaultCampaign = (): Omit<Campaign, 'id'> => ({
   placement: 'homepage-hero',
   creatives: [
     {
-      id: `creative_${Math.random().toString(36).substring(2, 9)}`, // Use a random string instead of Date.now() for initial load
+      id: 'creative_initial', // Use a static ID to prevent hydration errors
       title: 'New Exciting Offer',
       description: 'Check out our latest promotion.',
       ctaText: 'Shop Now',
@@ -87,7 +87,7 @@ function NewCampaignPageContent() {
     
     const handleAddCreative = () => {
         const newCreative: CampaignCreative = {
-            id: `creative_${Math.random().toString(36).substring(2, 9)}`, // Use random string for client-side additions
+            id: `creative_${Date.now()}`, // Use timestamp for unique client-side IDs
             title: 'New Creative', description: '', ctaText: 'Learn More', ctaLink: '#',
         };
         setCampaign(prev => ({ ...prev, creatives: [...(prev.creatives || []), newCreative]}));
