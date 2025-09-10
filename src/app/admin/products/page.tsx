@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { onSnapshot, query, where, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Product, ProductStatus } from '@/lib/products';
 import Link from 'next/link';
@@ -25,13 +25,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminProductActions } from '@/components/admin/products/product-actions';
 import { onCommissionRulesUpdate, type CommissionRule } from '@/lib/commissions-client-service';
 import { calculateDisplayPrice } from '@/lib/pricing-service';
-import { getCategoryByName, onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
+import { getCategoryByName } from '@/lib/categories-service';
 
 
 type ProductWithPrice = Product & { displayPrice?: number };
 type ProductView = 'all' | 'personal' | 'corporate';
 
-function ProductsTable() {
+function ProductsPageContent() {
     const searchParams = useSearchParams();
     const categorySlugFilter = searchParams.get('category');
     const [allProducts, setAllProducts] = React.useState<ProductWithPrice[]>([]);
@@ -61,9 +61,11 @@ function ProductsTable() {
                  const pricedProducts = await Promise.all(
                     productsData.map(async (p) => {
                         const category = await getCategoryByName(p.category);
+                        const platform = p.platform === 'Corporate' ? 'Corporate' : 'Personalized';
+                        
                         const displayPrice = await calculateDisplayPrice(
                             p.vendorSP,
-                            p.platform,
+                            platform,
                             category || undefined,
                             p.discountType,
                             p.discountValue
@@ -219,7 +221,7 @@ function ProductsTable() {
 export default function ProductsPage() {
     return (
         <React.Suspense fallback={<div>Loading...</div>}>
-            <ProductsTable />
+            <ProductsPageContent />
         </React.Suspense>
     );
 }
