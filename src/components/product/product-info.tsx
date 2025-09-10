@@ -40,7 +40,7 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
         setLoadingPrice(true);
         unsubscribe = onCategoriesWithCommissionsUpdate(platform, (categories) => {
             const category = categories.find(c => c.name === product.category);
-            calculateDisplayPrice(product.vendorSP, platform, category, product.discountType, product.discountValue).then(info => {
+            calculateDisplayPrice(product, platform, category).then(info => {
                 setPriceInfo(info);
                 setLoadingPrice(false);
             });
@@ -49,11 +49,13 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
 
     async function fetchPromotions() {
         const applicablePromos = await getPromotionsForProduct(product.id, product.category || '', product.vendorId);
-        setPromotions(applicablePromos);
+        setPromotions(applicablePromos.filter(p => p.visibleOnPlatform));
     }
 
     fetchPrice();
-    fetchPromotions();
+    if(platform === 'Personalized') {
+      fetchPromotions();
+    }
     
     return () => {
         if(unsubscribe) {

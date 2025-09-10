@@ -48,7 +48,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
         const pricedProducts = await Promise.all(
             productData.map(async p => ({
                 ...p,
-                displayPrice: await calculateDisplayPrice(p.vendorSP, 'Personalized', categories.find(c => c.id === categoryData.id), p.discountType, p.discountValue),
+                displayPrice: await calculateDisplayPrice(p, 'Personalized', categories.find(c => c.id === categoryData.id)),
             }))
         );
         setProducts(pricedProducts);

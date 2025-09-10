@@ -52,17 +52,12 @@ function SearchResultsContent() {
       const pricedProducts = await Promise.all(
           filteredProducts.map(async p => {
               const category = categories.find(c => c.name === p.category);
-              const promotions = await getPromotionsForProduct(p.id, p.category || '', p.vendorId);
-              const firstApplicablePromotion = promotions[0];
-
               return {
                 ...p,
                 displayPrice: await calculateDisplayPrice(
-                    p.vendorSP, 
+                    p, 
                     'Personalized', 
-                    category, 
-                    firstApplicablePromotion?.type === 'Percentage' ? 'Percentage' : firstApplicablePromotion?.type === 'Fixed Amount' ? 'Fixed Amount' : p.discountType, 
-                    firstApplicablePromotion?.value ?? p.discountValue
+                    category
                 ),
               }
           })

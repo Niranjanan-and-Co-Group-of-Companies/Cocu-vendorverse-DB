@@ -82,24 +82,30 @@ export async function calculateFinalPrice(
 
 
 export async function calculateDisplayPrice(
-    productVendorSP: string | number,
+    product: Pick<Product, 'id' | 'vendorSP' | 'category' | 'vendorId' | 'discountType' | 'discountValue'>,
     platform: 'Personalized' | 'Corporate' = 'Personalized', 
     category: Category | undefined,
-    // These optional params are for direct product discounts
-    productDiscountType?: 'Percentage' | 'Fixed Amount',
-    productDiscountValue?: number
 ): Promise<DisplayPrice> {
-    const basePrice = typeof productVendorSP === 'string' 
-        ? parseFloat(productVendorSP.replace('$', '').replace('₹', '')) 
-        : productVendorSP;
+    const basePrice = typeof product.vendorSP === 'string' 
+        ? parseFloat(product.vendorSP.replace('$', '').replace('₹', '')) 
+        : product.vendorSP;
 
-    // This is a simplification. A real implementation would have a more complex priority system.
-    // For now, product-specific discounts override promotions.
-    if (productDiscountType && productDiscountValue) {
-        return calculateFinalPrice(basePrice, platform, category, productDiscountType, productDiscountValue);
+    // 1. Check for active promotions first
+    const promotions = await getPromotionsForProduct(product.id, product.category || '', product.vendorId);
+    const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform);
+
+    if (firstApplicablePromotion && firstApplicablePromotion.type !== 'Free Shipping') {
+        const promoDiscountType = firstApplicablePromotion.type;
+        const promoDiscountValue = firstApplicablePromotion.value;
+        return calculateFinalPrice(basePrice, platform, category, promoDiscountType, promoDiscountValue);
     }
     
-    // If no direct discount, calculate the base price without any promotion
+    // 2. If no promotions, check for direct product-level discounts
+    if (product.discountType && product.discountValue) {
+        return calculateFinalPrice(basePrice, platform, category, product.discountType, product.discountValue);
+    }
+    
+    // 3. If no discounts of any kind, calculate the base price
     return calculateFinalPrice(basePrice, platform, category);
 }
 
