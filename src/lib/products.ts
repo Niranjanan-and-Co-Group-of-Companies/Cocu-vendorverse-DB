@@ -71,7 +71,7 @@ export type Product = {
   mainVariantId: string | null; // ID of the variant whose image should be the main product image
   allowedCustomizations: AllowedCustomizationType[];
   packaging: {
-    weight: number; // in grams
+    weight: number; // in kg
     dimensions: { l: number, w: number, h: number }; // in cm
   };
   inventoryBuffer: number;

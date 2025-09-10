@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface PackageAndShippingCardProps {
   packaging: {
-    weight: number; // in grams
+    weight: number; // in kg
     dimensions: { l: number, w: number, h: number }; // in cm
   };
   preparationTime: { min: number, max: number };
@@ -42,7 +42,7 @@ export function PackageAndShippingCard({
   const handleWeightChange = (value: string) => {
       onFieldChange('packaging', {
           ...packaging,
-          weight: parseInt(value, 10) || 0
+          weight: parseFloat(value) || 0
       });
   }
   
@@ -102,8 +102,8 @@ export function PackageAndShippingCard({
             </Alert>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="weight">Package Weight (grams)</Label>
-          <Input id="weight" type="number" value={packaging?.weight || 0} onChange={e => handleWeightChange(e.target.value)} />
+          <Label htmlFor="weight">Package Weight (kg)</Label>
+          <Input id="weight" type="number" step="0.01" value={packaging?.weight || 0} onChange={e => handleWeightChange(e.target.value)} />
         </div>
         <div className="space-y-2">
             <Label>Package Dimensions (cm)</Label>
