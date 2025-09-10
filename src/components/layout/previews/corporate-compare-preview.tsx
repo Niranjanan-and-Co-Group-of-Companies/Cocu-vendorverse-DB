@@ -59,7 +59,14 @@ export function CorporateComparePreview() {
                     {items.map(item => (
                         <DropdownMenuItem key={item.id} asChild className="focus:bg-transparent">
                             <Link href={`/corporate/products/${item.id}`} className="flex gap-3 w-full">
-                                <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
+                                <div className="relative shrink-0">
+                                    <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
+                                    {item.displayPrice?.hasDiscount && (
+                                        <Badge variant="destructive" className="absolute top-1 left-1 text-[8px] px-1 py-0">
+                                            {item.displayPrice.discountText}
+                                        </Badge>
+                                    )}
+                                </div>
                                 <div className="flex-1 overflow-hidden">
                                     <p className="font-medium truncate">{item.name}</p>
                                      {item.displayPrice ? (
