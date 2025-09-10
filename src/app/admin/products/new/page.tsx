@@ -58,7 +58,7 @@ const createDefaultProduct = (): Partial<Product> => ({
   tieredPricing: [],
 });
 
-function ProductEditorContent() {
+function NewProductPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const productId = searchParams.get('id');
@@ -276,10 +276,10 @@ function ProductEditorContent() {
 }
 
 
-export default function NewProductPage() {
+export default function ProductEditorPage() {
     return (
         <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
-            <ProductEditorContent />
+            <NewProductPage />
         </React.Suspense>
     );
 }
