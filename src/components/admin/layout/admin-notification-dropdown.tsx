@@ -12,7 +12,7 @@ import {
   DropdownMenuFooter,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Bell, Package, MessageSquare, Activity, UserPlus, Shield, FileEdit, HelpCircle, Gavel, FileQuestion, PackageSearch, Circle, CheckCircle } from 'lucide-react';
+import { Bell, Package, MessageSquare, Activity, UserPlus, Shield, FileEdit, HelpCircle, Gavel, FileQuestion, PackageSearch, X } from 'lucide-react';
 import { onAdminNotificationsUpdate, type Notification, type NotificationType } from '@/lib/notifications-service';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -47,27 +47,30 @@ export function AdminNotificationDropdown() {
     return () => unsubscribe();
   }, []);
   
-  const handleMarkAsRead = async (e: React.MouseEvent, notificationId?: string) => {
+  const handleCloseNotification = async (e: React.MouseEvent, notificationId?: string) => {
     e.stopPropagation();
     e.preventDefault();
     if (!notificationId) return;
 
     try {
       await markNotificationAsRead(notificationId);
+      toast({
+        title: "Notification Dismissed",
+      })
     } catch (error) {
-      toast({ title: 'Error', description: 'Could not mark notification as read.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Could not dismiss notification.', variant: 'destructive' });
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadNotifications = notifications.filter(n => !n.isRead);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell />
-          {unreadCount > 0 && (
-            <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{unreadCount}</Badge>
+          {unreadNotifications.length > 0 && (
+            <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{unreadNotifications.length}</Badge>
           )}
           <span className="sr-only">Notifications</span>
         </Button>
@@ -75,7 +78,7 @@ export function AdminNotificationDropdown() {
       <DropdownMenuContent align="end" className="w-96">
         <DropdownMenuLabel className="flex justify-between items-center">
           <span>Notifications</span>
-          {unreadCount > 0 && <Badge variant="secondary">{unreadCount} new</Badge>}
+          {unreadNotifications.length > 0 && <Badge variant="secondary">{unreadNotifications.length} new</Badge>}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
@@ -86,11 +89,11 @@ export function AdminNotificationDropdown() {
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
              </div>
-          ) : notifications.length > 0 ? (
-            notifications.map(notification => {
+          ) : unreadNotifications.length > 0 ? (
+            unreadNotifications.map(notification => {
               const Icon = iconMap[notification.type] || Bell;
               return (
-                <DropdownMenuItem key={notification.id} asChild className={cn(!notification.isRead && "bg-blue-50 dark:bg-blue-900/20")}>
+                <DropdownMenuItem key={notification.id} asChild>
                   <Link href={notification.link || '#'} className="flex items-start gap-3 w-full pr-8 relative">
                     <Icon className="mt-1 h-4 w-4 text-muted-foreground" />
                     <div className="flex-1">
@@ -99,17 +102,15 @@ export function AdminNotificationDropdown() {
                         {formatDistanceToNow(notification.timestamp.toDate(), { addSuffix: true })}
                       </p>
                     </div>
-                     <div className="absolute top-1/2 right-2 -translate-y-1/2">
+                     <div className="absolute top-1/2 right-0 -translate-y-1/2">
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 group"
-                            onClick={(e) => handleMarkAsRead(e, notification.id)}
-                            disabled={notification.isRead}
-                            aria-label="Mark as read"
+                            className="h-7 w-7"
+                            onClick={(e) => handleCloseNotification(e, notification.id)}
+                            aria-label="Close notification"
                         >
-                            <Circle className={cn("h-3 w-3 text-blue-500", notification.isRead && "hidden")} />
-                            <CheckCircle className={cn("h-3 w-3 text-green-500", !notification.isRead && "hidden")} />
+                            <X className="h-4 w-4 text-muted-foreground" />
                         </Button>
                     </div>
                   </Link>
