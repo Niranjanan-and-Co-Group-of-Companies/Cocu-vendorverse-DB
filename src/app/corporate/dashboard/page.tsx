@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -8,7 +9,7 @@ import { Gift, Heart, ShoppingCart, Star } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getFeaturedCorporateProducts, type FeaturedProduct } from '@/lib/featured-service';
 import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
@@ -178,7 +179,7 @@ export default function CorporateDashboardPage() {
           <Carousel opts={{ align: "start", loop: true, }} className="w-full mt-6 -ml-4">
             <CarouselContent>
               {featuredProducts.map((product) => (
-                <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
+                <CarouselItem key={product.id} className="basis-1/2 md:basis-1/2 lg:basis-1/3 pl-4">
                    <CorporateProductCard 
                     key={product.id} 
                     product={product} 
