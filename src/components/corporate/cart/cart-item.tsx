@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface CartItemProps {
   item: CartItemType;
@@ -49,8 +50,8 @@ export function CartItem({ item }: CartItemProps) {
     }).format(amount);
   };
   
-  const unitPrice = item.displayPrice?.finalPrice ?? 0;
-  const totalPrice = unitPrice * item.quantity;
+  const unitPrice = item.displayPrice?.finalPrice;
+  const totalPrice = unitPrice ? unitPrice * item.quantity : 0;
 
   return (
     <Card>
@@ -68,13 +69,15 @@ export function CartItem({ item }: CartItemProps) {
                 <div className="md:col-span-2">
                     <p className="font-semibold">{item.name}</p>
                     <p className="text-sm text-muted-foreground">by {item.vendor}</p>
-                    {item.displayPrice && (
+                    {unitPrice !== undefined ? (
                          <div className="flex items-center gap-2 mt-1">
                             <span className="text-sm font-semibold">{formatCurrency(unitPrice)}</span>
-                            {item.displayPrice.hasDiscount && (
+                            {item.displayPrice?.hasDiscount && (
                                 <Badge variant="secondary">{item.displayPrice.discountText}</Badge>
                             )}
                          </div>
+                    ) : (
+                        <Skeleton className="h-5 w-24 mt-1" />
                     )}
                 </div>
                 <div>
@@ -89,7 +92,7 @@ export function CartItem({ item }: CartItemProps) {
                     <p className="text-xs text-muted-foreground mt-1">MOQ: {item.moq}</p>
                 </div>
                  <div className="flex flex-col items-end gap-2">
-                     {isUpdating ? (
+                     {isUpdating || unitPrice === undefined ? (
                          <Loader2 className="h-5 w-5 animate-spin" />
                      ) : (
                         <p className="font-semibold">
