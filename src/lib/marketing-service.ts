@@ -130,6 +130,7 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
         campaignsRef,
         where('placement', '==', placement),
         where('status', '==', 'Active'),
+        where('platform', 'in', ['Personalized', 'Both']),
         where('startDate', '<=', now),
         limit(1) // Get the most recent one that has started
     );
@@ -143,7 +144,7 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
     const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
 
     // Additional check for end date
-    if (campaignData.endDate && campaignData.endDate < now) {
+    if (campaignData.endDate && campaignData.endDate.toDate() < new Date()) {
         return null; // Campaign has expired
     }
 
@@ -160,7 +161,7 @@ export async function getActiveCorporateCampaignByPlacement(placement: Placement
         campaignsRef,
         where('placement', '==', placement),
         where('status', '==', 'Active'),
-        where('audience', '==', 'Corporate'),
+        where('platform', 'in', ['Corporate', 'Both']),
         where('startDate', '<=', now),
         limit(1)
     );

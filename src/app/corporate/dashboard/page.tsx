@@ -17,6 +17,7 @@ import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service'
 import type { Product } from '@/lib/products';
 import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
 import { useToast } from '@/hooks/use-toast';
+import { YouTubeEmbed } from '@/components/common/youtube-embed';
 
 interface ProductWithPrice extends Product {
     displayPrice: DisplayPrice;
@@ -84,7 +85,11 @@ const HeroSection = () => {
             {heroCampaign.creatives.map(creative => (
               <CarouselItem key={creative.id}>
                 <div className="relative aspect-[16/9] md:aspect-[21/9] w-full">
-                  {creative.imageUrl && <Image src={creative.imageUrl} alt={creative.title} fill className="object-cover" data-ai-hint="promotional background" />}
+                   {creative.videoUrl ? (
+                      <YouTubeEmbed url={creative.videoUrl} />
+                  ) : creative.imageUrl && (
+                      <Image src={creative.imageUrl} alt={creative.title} fill className="object-cover" data-ai-hint="promotional background" />
+                  )}
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                     <div className="text-center text-white p-8">
                        <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter">{creative.title}</h1>
