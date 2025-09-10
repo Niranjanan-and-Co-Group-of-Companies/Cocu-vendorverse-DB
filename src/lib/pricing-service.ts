@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/firestore';
@@ -82,16 +81,21 @@ export async function calculateFinalPrice(
 
 
 export async function calculateDisplayPrice(
-    product: Pick<Product, 'id' | 'vendorSP' | 'category' | 'vendorId' | 'discountType' | 'discountValue'>,
+    productInfo: {
+        id: string;
+        vendorSP: number;
+        category?: string;
+        vendorId: string;
+        discountType?: 'Percentage' | 'Fixed Amount';
+        discountValue?: number;
+    },
     platform: 'Personalized' | 'Corporate' = 'Personalized', 
     category: Category | undefined,
 ): Promise<DisplayPrice> {
-    const basePrice = typeof product.vendorSP === 'string' 
-        ? parseFloat(product.vendorSP.replace('$', '').replace('₹', '')) 
-        : product.vendorSP;
+    const basePrice = productInfo.vendorSP;
 
     // 1. Check for active promotions first
-    const promotions = await getPromotionsForProduct(product.id, product.category || '', product.vendorId);
+    const promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
     const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform);
 
     if (firstApplicablePromotion && firstApplicablePromotion.type !== 'Free Shipping') {
@@ -101,8 +105,8 @@ export async function calculateDisplayPrice(
     }
     
     // 2. If no promotions, check for direct product-level discounts
-    if (product.discountType && product.discountValue) {
-        return calculateFinalPrice(basePrice, platform, category, product.discountType, product.discountValue);
+    if (productInfo.discountType && productInfo.discountValue) {
+        return calculateFinalPrice(basePrice, platform, category, productInfo.discountType, productInfo.discountValue);
     }
     
     // 3. If no discounts of any kind, calculate the base price

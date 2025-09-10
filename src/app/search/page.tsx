@@ -55,7 +55,14 @@ function SearchResultsContent() {
               return {
                 ...p,
                 displayPrice: await calculateDisplayPrice(
-                    p, 
+                    {
+                        id: p.id,
+                        vendorSP: p.vendorSP,
+                        category: p.category,
+                        vendorId: p.vendorId,
+                        discountType: p.discountType,
+                        discountValue: p.discountValue
+                    },
                     'Personalized', 
                     category
                 ),

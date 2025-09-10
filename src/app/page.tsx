@@ -144,13 +144,21 @@ export default function Home() {
         const pricedFeaturedProducts = await Promise.all(
             featuredData.map(async p => {
                 const category = categoriesForPricing.find(c => c.name === p.category);
+                const priceInfo = await calculateDisplayPrice(
+                    {
+                        id: p.id,
+                        vendorSP: p.vendorSP,
+                        category: p.category,
+                        vendorId: p.vendorId,
+                        discountType: p.discountType,
+                        discountValue: p.discountValue
+                    },
+                    'Personalized', 
+                    category
+                );
                 return {
                     ...p,
-                    displayPrice: await calculateDisplayPrice(
-                        p, 
-                        'Personalized', 
-                        category
-                    ),
+                    displayPrice: priceInfo,
                 }
             })
         );
