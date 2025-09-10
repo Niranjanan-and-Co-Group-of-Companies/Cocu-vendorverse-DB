@@ -4,7 +4,7 @@
 import { collection, onSnapshot, query, where, orderBy, limit, Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
 
-export type NotificationType = 'ORDER_STATUS_UPDATE' | 'NEW_MESSAGE' | 'NEW_BID_RESPONSE' | 'NEW_VENDOR_SUBMISSION' | 'USER_REPORT' | 'CONTENT_UPDATE' | 'NEW_SUPPORT_TICKET' | 'NEW_SOURCING_REQUEST';
+export type NotificationType = 'ORDER_STATUS_UPDATE' | 'NEW_MESSAGE' | 'NEW_BID_RESPONSE' | 'NEW_VENDOR_SUBMISSION' | 'USER_REPORT' | 'CONTENT_UPDATE' | 'NEW_SUPPORT_TICKET' | 'NEW_SOURCING_REQUEST' | 'NEW_BID_REQUEST';
 
 export interface Notification {
     id?: string;

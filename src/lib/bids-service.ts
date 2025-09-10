@@ -1,4 +1,5 @@
 
+
 import { collection, onSnapshot, getDocs, writeBatch, doc, addDoc, serverTimestamp, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { db, storage } from './firebase';
 import type { Product } from './products';
@@ -159,7 +160,7 @@ export async function createBid(data: {
     await createNotification({
         userId: 'admin',
         forAdmin: true,
-        type: 'NEW_BID_RESPONSE', // This should probably be a new type like NEW_BID_REQUEST
+        type: 'NEW_BID_REQUEST',
         text: `New bid request #${bidRef.id.slice(0,6)} created by ${customerName}.`,
         link: `/admin/bids?id=${bidRef.id}`
     });
@@ -170,9 +171,9 @@ export async function createBid(data: {
         if (!vendorId) continue;
         await createNotification({
             userId: vendorId,
-            type: 'NEW_BID_RESPONSE', // Also should be a new type
+            type: 'NEW_BID_REQUEST',
             text: `You have a new bid request from ${customerName}.`,
-            link: `/vendor/corporate/bids/${bidRef.id}`
+            link: `/vendor/corporate/bids`
         });
     }
 }

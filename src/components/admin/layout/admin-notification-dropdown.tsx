@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -27,6 +28,7 @@ const iconMap: { [key in NotificationType]: React.ElementType } = {
   CONTENT_UPDATE: FileEdit,
   NEW_SUPPORT_TICKET: HelpCircle,
   NEW_SOURCING_REQUEST: FileQuestion,
+  NEW_BID_REQUEST: Gavel,
 };
 
 export function AdminNotificationDropdown() {
