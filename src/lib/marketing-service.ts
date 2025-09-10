@@ -1,4 +1,5 @@
 
+'use client';
 
 import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp, updateDoc, query, where, limit, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -133,8 +134,7 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
         where('status', '==', 'Active'),
         where('platform', 'in', ['Personalized', 'Both']),
         where('startDate', '<=', now),
-        orderBy('startDate', 'desc'),
-        limit(1) // Get the most recent one that has started
+        orderBy('startDate', 'desc')
     );
 
     const snapshot = await getDocs(q);
@@ -142,15 +142,15 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
         return null;
     }
 
-    const campaignDoc = snapshot.docs[0];
-    const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
-
-    // Additional check for end date
-    if (campaignData.endDate && campaignData.endDate.toDate() < new Date()) {
-        return null; // Campaign has expired
+    // Find the first valid campaign that has not ended
+    for (const campaignDoc of snapshot.docs) {
+        const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
+        if (!campaignData.endDate || (campaignData.endDate && campaignData.endDate.toDate() > now.toDate())) {
+            return campaignData;
+        }
     }
-
-    return campaignData;
+    
+    return null; // All found campaigns have ended
 }
 
 
@@ -165,8 +165,7 @@ export async function getActiveCorporateCampaignByPlacement(placement: Placement
         where('status', '==', 'Active'),
         where('platform', 'in', ['Corporate', 'Both']),
         where('startDate', '<=', now),
-        orderBy('startDate', 'desc'),
-        limit(1)
+        orderBy('startDate', 'desc')
     );
 
     const snapshot = await getDocs(q);
@@ -174,12 +173,13 @@ export async function getActiveCorporateCampaignByPlacement(placement: Placement
         return null;
     }
 
-    const campaignDoc = snapshot.docs[0];
-    const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
-
-    if (campaignData.endDate && campaignData.endDate.toDate() < new Date()) {
-        return null;
+    // Find the first valid campaign that has not ended
+    for (const campaignDoc of snapshot.docs) {
+        const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
+        if (!campaignData.endDate || (campaignData.endDate && campaignData.endDate.toDate() > now.toDate())) {
+            return campaignData;
+        }
     }
-
-    return campaignData;
+    
+    return null; // All found campaigns have ended
 }
