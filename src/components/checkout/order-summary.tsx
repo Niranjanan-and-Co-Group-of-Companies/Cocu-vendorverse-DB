@@ -49,8 +49,6 @@ export function OrderSummary() {
         }
 
         const allEligiblePromos = new Map<string, PlainPromotion>();
-
-        // 1. Collect all unique eligible promotions
         for (const item of items) {
             const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId);
             const visiblePromos = promos.filter(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
@@ -61,19 +59,13 @@ export function OrderSummary() {
             }
         }
         
-        if (allEligiblePromos.size === 0) {
-           setAppliedPromotions(prev => prev.filter(p => !p.visibleOnPlatform));
-           return;
-        }
-
-        // 2. Calculate the total discount for each promotion
         let bestPromo: PlainPromotion | null = null;
         let maxDiscount = 0;
 
         for (const promo of allEligiblePromos.values()) {
             let currentDiscount = 0;
-            const applicableItems = promo.appliesTo?.products?.length > 0 
-                ? items.filter(item => promo.appliesTo.products.includes(item.id))
+            const applicableItems = (promo.appliesTo?.products?.length || 0) > 0 
+                ? items.filter(item => promo.appliesTo!.products.includes(item.id))
                 : items;
             
             const applicableSubtotal = applicableItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price)) * item.quantity, 0);
@@ -90,7 +82,6 @@ export function OrderSummary() {
             }
         }
         
-        // 3. Set only the best promotion + any manual promotions
         setAppliedPromotions(prev => {
             const manualPromos = prev.filter(p => !p.visibleOnPlatform);
             return bestPromo ? [bestPromo, ...manualPromos] : manualPromos;
@@ -146,9 +137,15 @@ export function OrderSummary() {
         return;
     }
     
+    // Check if the entered coupon is a visible/automatic one.
+    if (promo.visibleOnPlatform) {
+         toast({ title: "Automatic Discount", description: "This discount is applied automatically if it's the best offer for your cart.", variant: "destructive" });
+         return;
+    }
+
     const hasManualPromo = appliedPromotions.some(p => !p.visibleOnPlatform);
 
-    if (!promo.visibleOnPlatform && hasManualPromo) {
+    if (hasManualPromo) {
         toast({ title: "Limit Reached", description: "You can only apply one manual coupon code.", variant: "destructive" });
         return;
     }
