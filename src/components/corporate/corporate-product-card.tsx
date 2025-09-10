@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -18,7 +16,6 @@ import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useRouter } from 'next/navigation';
 import { type DisplayPrice } from '@/lib/pricing-service';
 import { Skeleton } from '../ui/skeleton';
-import { useCorporateWishlist } from '@/hooks/use-corporate-wishlist';
 
 interface CorporateProductCardProps {
   product: Product & { displayPrice: DisplayPrice };
@@ -30,13 +27,11 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   const { items: bidItems, addItem: addBidItem } = useBidRequest();
   const { items: compareItems, addItem: addCompareItem, removeItem: removeCompareItem } = useComparison();
   const { items: cartItems, addItem: addCartItem } = useCorporateCart();
-  const { addItem: toggleWishlistItem, isItemInWishlist } = useCorporateWishlist();
   const router = useRouter();
 
   const isAddedToBid = bidItems.some((item) => item.id === product.id);
   const isInCompare = compareItems.some((item) => item.id === product.id);
   const isInCart = cartItems.some((item) => item.id === product.id);
-  const isInWishlist = isItemInWishlist(product.id);
 
   const handleAddToCart = () => {
     const result = addCartItem(product);
@@ -80,11 +75,6 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
         });
     }
   };
-  
-  const handleWishlistToggle = async () => {
-      const result = await toggleWishlistItem(product);
-      toast({ title: result.message, variant: result.success ? 'default' : 'destructive' });
-  }
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
@@ -112,10 +102,6 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
                 {product.featured && <Badge>Featured</Badge>}
                 {product.displayPrice?.hasDiscount && <Badge variant="destructive">{product.displayPrice.discountText}</Badge>}
             </div>
-             <Button size="icon" variant="ghost" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full" onClick={handleWishlistToggle}>
-                <Heart className={isInWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-white drop-shadow-md"} />
-                <span className="sr-only">Add to Wishlist</span>
-            </Button>
             <Image
               src={product.image}
               alt={product.name}
