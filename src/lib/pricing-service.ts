@@ -29,7 +29,7 @@ async function getCommissionRules(): Promise<CommissionRule[]> {
     return commissionRulesCache;
 }
 
-async function calculateFinalPrice(
+export async function calculateFinalPrice(
     basePrice: number,
     platform: 'personal' | 'corporate',
     category: Category | undefined,
@@ -75,13 +75,15 @@ async function calculateFinalPrice(
 
 
 export async function calculateDisplayPrice(
-    productPrice: string,
+    productVendorSP: string | number,
     platform: 'personal' | 'corporate' = 'personal', 
     category: Category | undefined,
     discountType?: 'Percentage' | 'Fixed Amount',
     discountValue?: number
 ): Promise<DisplayPrice> {
-    const basePrice = parseFloat(String(productPrice).replace('$', '').replace('₹', ''));
+    const basePrice = typeof productVendorSP === 'string' 
+        ? parseFloat(productVendorSP.replace('$', '').replace('₹', '')) 
+        : productVendorSP;
     return calculateFinalPrice(basePrice, platform, category, discountType, discountValue);
 }
 
