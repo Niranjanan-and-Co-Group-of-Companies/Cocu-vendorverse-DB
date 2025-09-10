@@ -26,7 +26,8 @@ interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
 }
 
-function CategoryPageContent({ slug }: { slug: string }) {
+function CategoryPageContent({ params }: { params: { slug: string } }) {
+  const { slug } = params;
   const [products, setProducts] = useState<ProductWithPrice[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
@@ -219,7 +220,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
        <Suspense fallback={<div>Loading...</div>}>
-         <CategoryPageContent slug={params.slug} />
+         <CategoryPageContent params={params} />
        </Suspense>
       <Footer />
     </div>
