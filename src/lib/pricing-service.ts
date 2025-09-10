@@ -62,10 +62,12 @@ export async function calculateDisplayPrice(
     let finalPrice = customerPrice;
     let hasDiscount = false;
     let discountText = '';
+    
+    // Default to product's own discount, but allow promotions to override
     let discountType: 'Percentage' | 'Fixed Amount' | undefined = productInfo.discountType;
     let discountValue: number | undefined = productInfo.discountValue;
 
-    // 1. Check for active promotions first
+    // 1. Check for active promotions first, as they have higher priority
     if(platform === 'Personalized') {
         const promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
         const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
@@ -119,3 +121,4 @@ export async function calculateDisplayPriceFromQuote(
         hasDiscount: false,
     };
 }
+
