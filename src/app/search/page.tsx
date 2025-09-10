@@ -55,14 +55,7 @@ function SearchResultsContent() {
               return {
                 ...p,
                 displayPrice: await calculateDisplayPrice(
-                    {
-                        id: p.id,
-                        vendorSP: p.vendorSP,
-                        category: p.category,
-                        vendorId: p.vendorId,
-                        discountType: p.discountType,
-                        discountValue: p.discountValue
-                    },
+                    p,
                     'Personalized', 
                     category
                 ),
@@ -179,10 +172,6 @@ function SearchResultsContent() {
                         {product.category}
                     </Link>
                   )}
-                  <div className="flex items-center gap-1 mt-2">
-                    <Star className="w-4 h-4 fill-primary text-primary" />
-                    <span className="text-sm font-medium">{product.rating}</span>
-                  </div>
                   <div className="flex-grow"></div>
                   <div className="flex items-end justify-between mt-4">
                     {product.displayPrice ? (

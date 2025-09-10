@@ -159,10 +159,6 @@ function CategoryPageContent({ slug }: { slug: string }) {
                             {product.category}
                         </Link>
                     )}
-                    <div className="flex items-center gap-1 mt-2">
-                        <Star className="w-4 h-4 fill-primary text-primary" />
-                        <span className="text-sm font-medium">{product.rating}</span>
-                    </div>
                     <div className="flex-grow"></div>
                     <div className="flex items-end justify-between mt-4">
                         {product.displayPrice ? (

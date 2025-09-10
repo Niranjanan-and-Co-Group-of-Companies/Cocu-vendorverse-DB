@@ -84,11 +84,6 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
         </div>
 
         <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-                <Star className="w-5 h-5 fill-primary text-primary" />
-                <span className="font-bold text-lg">{product.rating}</span>
-                <span className="text-sm text-muted-foreground">(24 ratings)</span>
-            </div>
             <div className="flex items-center gap-2">
                 {product.stock > 0 && product.stock < 10 && (
                     <span className="text-sm font-medium text-destructive">Low Stock</span>
