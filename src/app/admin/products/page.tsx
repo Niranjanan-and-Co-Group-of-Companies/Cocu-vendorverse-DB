@@ -84,8 +84,19 @@ function ProductsPageContent() {
                     const category = await getCategoryByName(p.category);
                     const platform = p.platform === 'Corporate' ? 'Corporate' : 'Personalized';
                     
+                    const productInfo = {
+                        id: p.id,
+                        vendorSP: p.vendorSP,
+                        price: p.price,
+                        category: p.category,
+                        vendorId: p.vendorId,
+                        tieredPricing: p.tieredPricing,
+                        discountType: p.discountType,
+                        discountValue: p.discountValue,
+                    };
+
                     const displayPrice = await calculateDisplayPrice(
-                        {...p, vendorSP: p.vendorSP || parseFloat(p.price)},
+                        productInfo,
                         platform,
                         category || undefined,
                     );
