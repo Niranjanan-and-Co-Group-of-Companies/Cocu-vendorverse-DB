@@ -133,7 +133,13 @@ export default function CorporateDashboardPage() {
           const category = categoriesForPricing.find(c => c.name === p.category);
           return {
             ...p,
-            displayPrice: await calculateDisplayPrice(p.price, 'corporate', category, p.discountType, p.discountValue),
+            displayPrice: await calculateDisplayPrice(
+                {...p, vendorSP: p.vendorSP || parseFloat(p.price)}, 
+                'Corporate', 
+                category, 
+                p.discountType, 
+                p.discountValue
+            ),
           }
         })
       );
@@ -174,12 +180,14 @@ export default function CorporateDashboardPage() {
             </p>
           </div>
           {loading ? (
-              <div className="mt-6 flex justify-center"><Skeleton className="h-96 w-full max-w-6xl" /></div>
+              <div className="mt-6 grid grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-[520px] w-full" />)}
+              </div>
           ) : (
           <Carousel opts={{ align: "start", loop: true, }} className="w-full mt-6 -ml-4">
             <CarouselContent>
               {featuredProducts.map((product) => (
-                <CarouselItem key={product.id} className="basis-1/2 md:basis-1/2 lg:basis-1/3 pl-4">
+                <CarouselItem key={product.id} className="basis-full sm:basis-1/2 lg:basis-1/3 pl-4">
                    <CorporateProductCard 
                     key={product.id} 
                     product={product} 

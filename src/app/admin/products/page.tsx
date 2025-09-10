@@ -85,11 +85,9 @@ function ProductsPageContent() {
                     const platform = p.platform === 'Corporate' ? 'Corporate' : 'Personalized';
                     
                     const displayPrice = await calculateDisplayPrice(
-                        p.vendorSP,
+                        {...p, vendorSP: p.vendorSP || parseFloat(p.price)},
                         platform,
                         category || undefined,
-                        p.discountType,
-                        p.discountValue
                     );
                     return { ...p, displayPrice: displayPrice.finalPrice };
                 })

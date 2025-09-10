@@ -40,11 +40,16 @@ export async function calculateDisplayPrice(
         vendorId: string;
         discountType?: 'Percentage' | 'Fixed Amount';
         discountValue?: number;
+        price?: string;
     },
     platform: 'Personalized' | 'Corporate' = 'Personalized', 
     category: Category | undefined,
 ): Promise<DisplayPrice> {
-    const basePrice = productInfo.vendorSP;
+
+    const basePrice = platform === 'Corporate'
+        ? parseFloat(productInfo.price || String(productInfo.vendorSP))
+        : productInfo.vendorSP;
+
     if (isNaN(basePrice)) {
         return { finalPrice: 0, originalPrice: 0, hasDiscount: false };
     }

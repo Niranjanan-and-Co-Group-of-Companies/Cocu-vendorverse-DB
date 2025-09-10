@@ -51,7 +51,7 @@ function CorporateProductsPageContent() {
           const categoryForPrice = categories.find(c => c.name === p.category) || currentCategory;
           return {
             ...p,
-            displayPrice: await calculateDisplayPrice(p.price, 'corporate', categoryForPrice || undefined, p.discountType, p.discountValue),
+            displayPrice: await calculateDisplayPrice({ ...p, vendorSP: p.vendorSP || parseFloat(p.price) }, 'Corporate', categoryForPrice || undefined),
           }
         })
       );
@@ -128,7 +128,7 @@ function CorporateProductsPageContent() {
           ))}
         </div>
       ) : filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredProducts.map(product => (
             <CorporateProductCard 
               key={product.id} 
