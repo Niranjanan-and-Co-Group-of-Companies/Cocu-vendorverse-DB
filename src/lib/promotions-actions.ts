@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { 
@@ -10,11 +11,13 @@ import {
     limit
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Promotion, PlainPromotion } from './promotions-service';
+import type { Promotion, PlainPromotion, PromotionPlatform } from './promotions-service';
 
-export async function getPromotionsForProduct(productId: string, category: string, vendorId: string): Promise<PlainPromotion[]> {
+export async function getPromotionsForProduct(productId: string, category: string, vendorId: string, platform: PromotionPlatform): Promise<PlainPromotion[]> {
     const now = Timestamp.now();
     const promotions: Record<string, Promotion> = {};
+    
+    const platformFilter = platform === 'Both' ? ['Personalized', 'Corporate', 'Both'] : [platform, 'Both'];
 
     // Build a list of queries to execute
     const queries = [
@@ -41,6 +44,7 @@ export async function getPromotionsForProduct(productId: string, category: strin
         const finalQuery = query(
             q,
             where('status', '==', 'Active'),
+            where('platform', 'in', platformFilter)
         );
 
         const snapshot = await getDocs(finalQuery);

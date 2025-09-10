@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, getDocs, query, where, Timestamp, limit } from 'firebase/firestore';
@@ -80,15 +81,15 @@ export async function calculateDisplayPrice(
     let discountType = productInfo.discountType;
     let discountValue = productInfo.discountValue;
 
-    // For personalized platform, automatic promotions can override product-level discounts if better
-    if (platform === 'Personalized') {
-      const promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
-      const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
-      
-      if (firstApplicablePromotion) {
-          discountType = firstApplicablePromotion.type as 'Percentage' | 'Fixed Amount';
-          discountValue = firstApplicablePromotion.value;
-      }
+    // Fetch and apply automatic promotions
+    const promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId, platform);
+    const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
+    
+    // An automatic promotion can override a product-level discount if it's better
+    // For simplicity, we'll let the automatic promotion take precedence if it exists.
+    if (firstApplicablePromotion) {
+        discountType = firstApplicablePromotion.type as 'Percentage' | 'Fixed Amount';
+        discountValue = firstApplicablePromotion.value;
     }
     
     if (discountValue && discountType) {
