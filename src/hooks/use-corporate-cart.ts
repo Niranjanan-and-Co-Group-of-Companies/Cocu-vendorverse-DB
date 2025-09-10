@@ -23,9 +23,20 @@ interface CartState {
 
 const updateItemPrice = async (item: Product, quantity: number): Promise<DisplayPrice | undefined> => {
     const category = await getCategoryByName(item.category);
+    
+    // Determine the correct vendorSP based on tiered pricing
+    let vendorSP = item.vendorSP;
+    if (item.tieredPricing && item.tieredPricing.length > 0) {
+        const sortedTiers = [...item.tieredPricing].sort((a, b) => b.quantity - a.quantity);
+        const applicableTier = sortedTiers.find(tier => quantity >= tier.quantity);
+        if (applicableTier && applicableTier.price) {
+            vendorSP = parseFloat(applicableTier.price.replace('$', '').replace('₹', ''));
+        }
+    }
+    
     const productInfo = {
         id: item.id,
-        vendorSP: item.vendorSP, // CORRECT: Use the numeric vendorSP directly
+        vendorSP: vendorSP,
         category: item.category,
         vendorId: item.vendorId,
         tieredPricing: item.tieredPricing,
@@ -47,7 +58,7 @@ export const useCorporateCart = create(
           await get().updateQuantity(product.id, newQuantity);
           return { success: true, message: `Added ${quantity} more of "${product.name}" to your cart.` };
         } else {
-          const newQuantity = product.moq || quantity;
+          const newQuantity = Math.max(product.moq || 1, quantity);
           const displayPrice = await updateItemPrice(product, newQuantity);
           set({ items: [...currentItems, { ...product, quantity: newQuantity, displayPrice }] });
           return { success: true, message: `"${product.name}" (x${newQuantity}) added to cart.` };
