@@ -66,7 +66,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                 };
                 return {
                     ...p,
-                    displayPrice: await calculateDisplayPrice(productInfo, 'Personalized', category),
+                    displayPrice: await calculateDisplayPrice(productInfo, platform, category),
                 }
             })
         );
