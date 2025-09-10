@@ -75,7 +75,14 @@ export function WishlistPreview() {
                     {items.map(item => (
                         <DropdownMenuItem key={item.id} asChild className="focus:bg-transparent">
                             <Link href={`/products/${item.id}`} className="flex gap-3 w-full">
-                                <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
+                                <div className="relative shrink-0">
+                                    <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
+                                    {item.displayPrice?.hasDiscount && (
+                                        <Badge variant="destructive" className="absolute top-1 left-1 text-xs">
+                                            {item.displayPrice.discountText}
+                                        </Badge>
+                                    )}
+                                </div>
                                 <div className="flex-1 overflow-hidden">
                                     <p className="font-medium truncate">{item.name}</p>
                                     {item.displayPrice ? (
