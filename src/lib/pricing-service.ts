@@ -85,8 +85,6 @@ export async function calculateDisplayPrice(
     const promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId, platform);
     const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
     
-    // An automatic promotion can override a product-level discount if it's better
-    // For simplicity, we'll let the automatic promotion take precedence if it exists.
     if (firstApplicablePromotion) {
         discountType = firstApplicablePromotion.type as 'Percentage' | 'Fixed Amount';
         discountValue = firstApplicablePromotion.value;
@@ -113,7 +111,7 @@ export async function calculateDisplayPrice(
 
 export async function calculateDisplayPriceFromQuote(
     quotedPrice: number, // Vendor's quoted price PER UNIT (VendorSP)
-    productId: string,
+    product: Pick<Product, 'id' | 'category'>,
     category?: Category,
     platform: 'Personalized' | 'Corporate' = 'Corporate'
 ): Promise<DisplayPrice> {

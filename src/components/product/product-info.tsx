@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -14,6 +15,7 @@ import { usePathname } from 'next/navigation';
 import { getPromotionsForProduct } from '@/lib/promotions-actions';
 import type { PlainPromotion } from '@/lib/promotions-service';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 
 interface ProductInfoProps {
   product: Product;
@@ -45,8 +47,10 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
                 vendorId: product.vendorId,
                 discountType: product.discountType,
                 discountValue: product.discountValue,
+                price: product.price,
+                tieredPricing: product.tieredPricing
             };
-            calculateDisplayPrice(productInfo, platform, category).then(info => {
+            calculateDisplayPrice(productInfo, platform, category, quantity).then(info => {
                 setPriceInfo(info);
                 setLoadingPrice(false);
             });
@@ -54,25 +58,24 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
     }
 
     async function fetchPromotions() {
-        const applicablePromos = await getPromotionsForProduct(product.id, product.category || '', product.vendorId);
+        const applicablePromos = await getPromotionsForProduct(product.id, product.category || '', product.vendorId, platform);
         setPromotions(applicablePromos.filter(p => p.visibleOnPlatform));
     }
 
     fetchPrice();
-    if(platform === 'Personalized') {
-      fetchPromotions();
-    }
+    fetchPromotions();
     
     return () => {
         if(unsubscribe) {
             unsubscribe();
         }
     };
-  }, [product, platform]);
+  }, [product, platform, quantity]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
   const showTotals = totalPrice && quantity && quantity >= (product.moq || 1);
+  const sortedTiers = product.tieredPricing?.sort((a,b) => a.quantity - b.quantity);
 
   return (
     <>
@@ -136,6 +139,32 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
                     ))}
                 </CardContent>
             </Card>
+        )}
+
+        {platform === 'Corporate' && sortedTiers && sortedTiers.length > 0 && (
+          <Card>
+            <CardHeader className="p-4">
+              <CardTitle className="text-base">Volume Pricing</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+               <Table>
+                 <TableHeader>
+                   <TableRow>
+                     <TableHead>Quantity</TableHead>
+                     <TableHead className="text-right">Price per item</TableHead>
+                   </TableRow>
+                 </TableHeader>
+                 <TableBody>
+                   {sortedTiers.map(tier => (
+                     <TableRow key={tier.quantity}>
+                       <TableCell>{tier.quantity}+</TableCell>
+                       <TableCell className="text-right font-medium">{tier.price}</TableCell>
+                     </TableRow>
+                   ))}
+                 </TableBody>
+               </Table>
+            </CardContent>
+          </Card>
         )}
 
         </div>
