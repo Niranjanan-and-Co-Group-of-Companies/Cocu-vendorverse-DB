@@ -132,14 +132,16 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                         data-ai-hint="gift product"
                     />
-                    {product.displayPrice.hasDiscount && (
-                        <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.displayPrice.discountText}</Badge>
-                    )}
-                    {product.featured && <Badge className="absolute top-2 right-2 z-10">Featured</Badge>}
                     </div>
                   </Link>
-                   <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background" onClick={() => handleWishlistToggle(product)}>
-                        <Heart className={inWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4"} />
+                  <div className="absolute top-2 left-2 z-10 flex flex-col gap-y-2">
+                        {product.displayPrice.hasDiscount && (
+                            <Badge variant="destructive" >{product.displayPrice.discountText}</Badge>
+                        )}
+                        {product.featured && <Badge>Featured</Badge>}
+                    </div>
+                   <Button size="icon" variant="ghost" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full" onClick={() => handleWishlistToggle(product)}>
+                        <Heart className={inWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-white drop-shadow-md"} />
                         <span className="sr-only">Add to Wishlist</span>
                     </Button>
                 </CardHeader>
