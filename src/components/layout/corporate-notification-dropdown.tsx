@@ -12,12 +12,14 @@ import {
   DropdownMenuFooter,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Bell, Package, MessageSquare, UserPlus, Shield, FileEdit, HelpCircle, Gavel, FileQuestion, PackageSearch } from 'lucide-react';
+import { Bell, Package, MessageSquare, UserPlus, Shield, FileEdit, HelpCircle, Gavel, FileQuestion, PackageSearch, X } from 'lucide-react';
 import { onUserNotificationsUpdate, type Notification, type NotificationType } from '@/lib/notifications-service';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
 import { Badge } from '../ui/badge';
+import { markNotificationAsRead } from '@/lib/notifications-actions';
+import { useToast } from '@/hooks/use-toast';
 
 // In a real app, this ID would come from the auth context
 const CORPORATE_USER_ID = 'corp-123';
@@ -38,6 +40,7 @@ const iconMap: { [key in NotificationType]: React.ElementType } = {
 export function CorporateNotificationDropdown() {
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     const unsubscribe = onUserNotificationsUpdate(CORPORATE_USER_ID, (newNotifications) => {
@@ -47,23 +50,38 @@ export function CorporateNotificationDropdown() {
     return () => unsubscribe();
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const handleCloseNotification = async (e: React.MouseEvent, notificationId?: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!notificationId) return;
+
+    try {
+      await markNotificationAsRead(notificationId);
+      toast({
+        title: "Notification Dismissed",
+      })
+    } catch (error) {
+      toast({ title: 'Error', description: 'Could not dismiss notification.', variant: 'destructive' });
+    }
+  };
+
+  const unreadNotifications = notifications.filter(n => !n.isRead);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell />
-          {unreadCount > 0 && (
-            <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{unreadCount}</Badge>
+          {unreadNotifications.length > 0 && (
+            <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{unreadNotifications.length}</Badge>
           )}
           <span className="sr-only">Notifications</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-96">
         <DropdownMenuLabel className="flex justify-between items-center">
           <span>Notifications</span>
-          {unreadCount > 0 && <Badge variant="secondary">{unreadCount} new</Badge>}
+          {unreadNotifications.length > 0 && <Badge variant="secondary">{unreadNotifications.length} new</Badge>}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
@@ -74,18 +92,29 @@ export function CorporateNotificationDropdown() {
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
              </div>
-          ) : notifications.length > 0 ? (
-            notifications.map(notification => {
+          ) : unreadNotifications.length > 0 ? (
+            unreadNotifications.map(notification => {
               const Icon = iconMap[notification.type] || Bell;
               return (
                 <DropdownMenuItem key={notification.id} asChild>
-                  <Link href={notification.link || '#'} className="flex items-start gap-3 w-full">
+                  <Link href={notification.link || '#'} className="flex items-start gap-3 w-full pr-8 relative">
                     <Icon className="mt-1 h-4 w-4 text-muted-foreground" />
                     <div className="flex-1">
                       <p className="text-sm leading-snug">{notification.text}</p>
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(notification.timestamp.toDate(), { addSuffix: true })}
                       </p>
+                    </div>
+                     <div className="absolute top-1/2 right-0 -translate-y-1/2">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={(e) => handleCloseNotification(e, notification.id)}
+                            aria-label="Close notification"
+                        >
+                            <X className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                     </div>
                   </Link>
                 </DropdownMenuItem>
