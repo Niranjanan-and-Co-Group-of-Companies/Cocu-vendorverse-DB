@@ -99,6 +99,15 @@ function NewCampaignPageContent() {
     }
 
     const handleSave = async () => {
+        if (!campaign.name?.trim()) {
+            toast({
+                title: 'Campaign Name Required',
+                description: 'Please enter a name for your campaign before saving.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
         setIsSaving(true);
         try {
             await saveCampaign(campaign as Campaign);
