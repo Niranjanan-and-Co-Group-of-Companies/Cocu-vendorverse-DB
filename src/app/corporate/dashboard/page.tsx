@@ -193,7 +193,7 @@ export default function CorporateDashboardPage() {
           <Carousel opts={{ align: "start", loop: true, }} className="w-full mt-6 -ml-4">
             <CarouselContent>
               {featuredProducts.map((product) => (
-                <CarouselItem key={product.id} className="basis-full sm:basis-1/2 lg:basis-1/3 pl-4">
+                <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/2 lg:basis-1/3 pl-4">
                    <CorporateProductCard 
                     key={product.id} 
                     product={product} 
