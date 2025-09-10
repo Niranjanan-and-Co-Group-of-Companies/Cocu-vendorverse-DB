@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -11,9 +10,15 @@ import { ProductInteractions } from '@/components/product/product-interactions';
 import { ProductDetailsAccordion } from '@/components/product/product-details-accordion';
 import { RelatedProductsCarousel } from '@/components/product/related-products-carousel';
 import { Button } from '@/components/ui/button';
+import { CorporateProductInteractions } from '../corporate/corporate-product-interactions';
+import { usePathname } from 'next/navigation';
 
 export function ProductPageContent({ product }: { product: PlainProduct }) {
     const [selectedVariant, setSelectedVariant] = React.useState<ProductVariant | null>(null);
+    const [priceDetails, setPriceDetails] = React.useState<{ unit: string; total: number; quantity: number } | null>(null);
+    const pathname = usePathname();
+    const isCorporate = pathname.includes('/corporate');
+
 
     React.useEffect(() => {
         if (product && product.variants) {
@@ -44,7 +49,11 @@ export function ProductPageContent({ product }: { product: PlainProduct }) {
                     selectedVariant={selectedVariant}
                 />
                 <div className="flex flex-col gap-6">
-                    <ProductInfo product={product as Product} />
+                    <ProductInfo 
+                        product={product as Product} 
+                        totalPrice={priceDetails?.total}
+                        quantity={priceDetails?.quantity}
+                    />
                     
                     {product.variants && product.variants.length > 1 && (
                         <div>
@@ -64,8 +73,12 @@ export function ProductPageContent({ product }: { product: PlainProduct }) {
                             </div>
                         </div>
                     )}
-
-                    <ProductInteractions product={product as Product} categoryName={product.category} selectedVariant={selectedVariant} />
+                    
+                    {isCorporate ? (
+                        <CorporateProductInteractions product={product as Product} onPriceChange={setPriceDetails} />
+                    ) : (
+                        <ProductInteractions product={product as Product} categoryName={product.category} selectedVariant={selectedVariant} />
+                    )}
                 </div>
             </div>
             <div className="mt-12 lg:mt-20">

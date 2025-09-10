@@ -141,32 +141,6 @@ export function ProductInfo({ product, totalPrice, quantity }: ProductInfoProps)
             </Card>
         )}
 
-        {platform === 'Corporate' && sortedTiers && sortedTiers.length > 0 && (
-          <Card>
-            <CardHeader className="p-4">
-              <CardTitle className="text-base">Volume Pricing</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-               <Table>
-                 <TableHeader>
-                   <TableRow>
-                     <TableHead>Quantity</TableHead>
-                     <TableHead className="text-right">Price per item</TableHead>
-                   </TableRow>
-                 </TableHeader>
-                 <TableBody>
-                   {sortedTiers.map(tier => (
-                     <TableRow key={tier.quantity}>
-                       <TableCell>{tier.quantity}+</TableCell>
-                       <TableCell className="text-right font-medium">{tier.price}</TableCell>
-                     </TableRow>
-                   ))}
-                 </TableBody>
-               </Table>
-            </CardContent>
-          </Card>
-        )}
-
         </div>
 
         <VendorInfoDialog 
