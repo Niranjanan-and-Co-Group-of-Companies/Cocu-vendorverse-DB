@@ -44,9 +44,9 @@ export interface Promotion {
   expiresAt?: any; // Firestore Timestamp
   visibleOnPlatform: boolean;
   appliesTo: {
-    products: TargetableItem[];
-    categories: TargetableItem[];
-    vendors: TargetableItem[];
+    products: string[];
+    categories: string[];
+    vendors: string[];
   };
   conditions: Condition[];
 }
@@ -64,7 +64,7 @@ const MOCK_PROMOTIONS: Omit<Promotion, 'id'>[] = [
     { code: 'SAVE10', type: 'Percentage', value: 10, description: '10% off entire order', status: 'Active', platform: 'Personalized', usageLimit: 1000, usageCount: 452, expiresAt: new Date('2024-12-31'), conditions: [], visibleOnPlatform: true, appliesTo: { products: [], categories: [], vendors: [] } },
     { code: 'CORP500', type: 'Fixed Amount', value: 500, description: '₹500 off for corporate clients', status: 'Active', platform: 'Corporate', usageLimit: 200, usageCount: 89, conditions: [{ type: 'min-purchase', value: 10000 }], visibleOnPlatform: false, appliesTo: { products: [], categories: [], vendors: [] } },
     { code: 'FREESHIP', type: 'Free Shipping', value: 0, description: 'Free standard shipping', status: 'Inactive', platform: 'Both', usageLimit: 5000, usageCount: 2314, conditions: [], visibleOnPlatform: false, appliesTo: { products: [], categories: [], vendors: [] } },
-    { code: 'DIWALI20', type: 'Percentage', value: 20, description: 'Diwali special - 20% off', status: 'Expired', platform: 'Personalized', usageLimit: 2000, usageCount: 1987, expiresAt: new Date('2023-11-15'), conditions: [], visibleOnPlatform: true, appliesTo: { products: [], categories: [{ id: 'Food & Drink', name: 'Food & Drink' }], vendors: [] } },
+    { code: 'DIWALI20', type: 'Percentage', value: 20, description: 'Diwali special - 20% off', status: 'Expired', platform: 'Personalized', usageLimit: 2000, usageCount: 1987, expiresAt: new Date('2023-11-15'), conditions: [], visibleOnPlatform: true, appliesTo: { products: [], categories: ['food-drink'], vendors: [] } },
 ];
 
 async function seedPromotions() {
@@ -106,7 +106,7 @@ export async function getTargetableItems(): Promise<{ products: TargetableItem[]
 
     return {
         products: productsSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name, image: doc.data().image, platform: doc.data().platform })),
-        categories: categoriesSnap.docs.map(doc => ({ id: doc.data().slug, name: doc.data().name })),
+        categories: categoriesSnap.docs.map(doc => ({ id: doc.data().slug, name: doc.data().name, image: doc.data().image })),
         vendors: vendorsSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name, image: doc.data().avatar })),
     };
 }

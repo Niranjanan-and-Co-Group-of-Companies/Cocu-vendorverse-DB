@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -159,35 +160,28 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
     setPromoData(prev => ({ ...prev, [field]: value }));
   };
   
-  const addProductsToSelection = (productsToAdd: TargetableItem[]) => {
-      setPromoData(prev => {
-          const newState = JSON.parse(JSON.stringify(prev)); // Deep clone
-          const currentProducts = newState.appliesTo?.products || [];
-          const currentProductIds = new Set(currentProducts.map((p: TargetableItem) => p.id));
-          
-          const newProducts = productsToAdd.filter(p => !currentProductIds.has(p.id));
-          
-          if (!newState.appliesTo) {
-              newState.appliesTo = { products: [], categories: [], vendors: [] };
-          }
-          newState.appliesTo.products = [...currentProducts, ...newProducts];
-          
-          return newState;
-      });
-  };
-
-  const handleSelect = async (type: 'product' | 'category' | 'vendor', item: TargetableItem) => {
-    if (type === 'product') {
-        addProductsToSelection([item]);
-    }
+  const handleSelect = (type: 'products' | 'categories' | 'vendors', item: TargetableItem) => {
+    setPromoData(prev => {
+        const currentAppliesTo = prev.appliesTo || { products: [], categories: [], vendors: [] };
+        const currentIds = new Set(currentAppliesTo[type]);
+        
+        if (!currentIds.has(item.id)) {
+            const updatedAppliesTo = {
+                ...currentAppliesTo,
+                [type]: [...currentAppliesTo[type], item.id]
+            };
+            return { ...prev, appliesTo: updatedAppliesTo };
+        }
+        return prev; // Item already exists, no change
+    });
   };
   
-  const handleRemoveProduct = (productId: string) => {
+  const handleRemove = (type: 'products' | 'categories' | 'vendors', itemId: string) => {
     setPromoData(prev => {
-        const newState = JSON.parse(JSON.stringify(prev));
-        const updatedProducts = (newState.appliesTo?.products || []).filter((p: TargetableItem) => p.id !== productId);
-        newState.appliesTo.products = updatedProducts;
-        return newState;
+        const currentAppliesTo = prev.appliesTo || { products: [], categories: [], vendors: [] };
+        const updatedItems = currentAppliesTo[type].filter((id: string) => id !== itemId);
+        const updatedAppliesTo = { ...currentAppliesTo, [type]: updatedItems };
+        return { ...prev, appliesTo: updatedAppliesTo };
     });
   };
 
@@ -220,6 +214,11 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
     }
     return targetableItems.products.filter(p => p.platform === platform);
   }, [promoData.platform, targetableItems.products]);
+  
+  const selectedProducts = React.useMemo(() => {
+      const productIds = new Set(promoData.appliesTo?.products || []);
+      return targetableItems.products.filter(p => productIds.has(p.id));
+  }, [promoData.appliesTo?.products, targetableItems.products]);
 
 
   return (
@@ -309,14 +308,14 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                     <h4 className="font-medium">Targeting (Optional)</h4>
                     <p className="text-sm text-muted-foreground">Search for products to apply this promotion to. If no products are selected, it applies to the entire cart.</p>
                     
-                    <SearchAndSelect title="Products" items={filteredTargetableProducts} onSelect={(item) => handleSelect('product', item)} />
+                    <SearchAndSelect title="Products" items={filteredTargetableProducts} onSelect={(item) => handleSelect('products', item)} />
                     
                     <div>
                     <Label>Applied to Products</Label>
                     <div className="h-48 border rounded-md p-2 mt-2 overflow-y-auto">
-                        {(promoData.appliesTo?.products || []).length > 0 ? (
+                        {selectedProducts.length > 0 ? (
                         <div className="space-y-2">
-                            {(promoData.appliesTo?.products || []).map(p => (
+                            {selectedProducts.map(p => (
                             <div key={p.id} className="flex items-center justify-between p-1 rounded-md hover:bg-muted">
                                 <div className="flex items-center gap-2 overflow-hidden">
                                 {p.image ? (
@@ -326,7 +325,7 @@ export function PromotionDialog({ open, onOpenChange, promotion }: PromotionDial
                                 )}
                                 <span className="text-sm truncate">{p.name}</span>
                                 </div>
-                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveProduct(p.id)}>
+                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemove('products', p.id)}>
                                 <X className="h-4 w-4 text-destructive"/>
                                 </Button>
                             </div>

@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { 
@@ -15,23 +16,19 @@ export async function getPromotionsForProduct(productId: string, categorySlug: s
     const now = Timestamp.now();
     const promotions: Record<string, Promotion> = {};
 
-    const productRef = { id: productId };
-    const categoryRef = { id: categorySlug };
-    const vendorRef = { id: vendorId };
-
     const queries = [
-        // Sitewide promotions
+        // Sitewide promotions (where all appliesTo arrays are empty)
         query(collection(db, 'promotions'), 
             where('appliesTo.products', '==', []), 
             where('appliesTo.categories', '==', []), 
             where('appliesTo.vendors', '==', [])
         ),
         // Promotions for this specific product
-        query(collection(db, 'promotions'), where('appliesTo.products', 'array-contains', productRef)),
+        query(collection(db, 'promotions'), where('appliesTo.products', 'array-contains', productId)),
         // Promotions for this category
-        query(collection(db, 'promotions'), where('appliesTo.categories', 'array-contains', categoryRef)),
+        query(collection(db, 'promotions'), where('appliesTo.categories', 'array-contains', categorySlug)),
         // Promotions for this vendor
-        query(collection(db, 'promotions'), where('appliesTo.vendors', 'array-contains', vendorRef)),
+        query(collection(db, 'promotions'), where('appliesTo.vendors', 'array-contains', vendorId)),
     ];
 
     for (const q of queries) {
