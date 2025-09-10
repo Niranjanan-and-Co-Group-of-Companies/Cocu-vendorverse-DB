@@ -39,7 +39,17 @@ export const useComparison = create(
             return { success: false }; // Already in list, do nothing.
         }
         const category = await getCategoryByName(product.category);
-        const displayPrice = await calculateDisplayPrice(product.price, 'corporate', category || undefined, product.discountType, product.discountValue);
+        const productInfo = {
+            id: product.id,
+            vendorSP: product.vendorSP,
+            category: product.category,
+            vendorId: product.vendorId,
+            discountType: product.discountType,
+            discountValue: product.discountValue,
+            price: product.price,
+            tieredPricing: product.tieredPricing,
+        };
+        const displayPrice = await calculateDisplayPrice(productInfo, 'Corporate', category || undefined);
         set({ items: [...currentItems, { ...product, displayPrice }] });
 
         return {

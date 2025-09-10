@@ -77,18 +77,18 @@ export async function calculateDisplayPrice(
     let hasDiscount = false;
     let discountText = '';
     
-    let promotions: PlainPromotion[] = [];
-    if(platform === 'Personalized') {
-      promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
-    }
-    const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
-    
     let discountType = productInfo.discountType;
     let discountValue = productInfo.discountValue;
 
-    if (firstApplicablePromotion) {
-        discountType = firstApplicablePromotion.type as 'Percentage' | 'Fixed Amount';
-        discountValue = firstApplicablePromotion.value;
+    // For personalized platform, automatic promotions can override product-level discounts if better
+    if (platform === 'Personalized') {
+      const promotions = await getPromotionsForProduct(productInfo.id, productInfo.category || '', productInfo.vendorId);
+      const firstApplicablePromotion = promotions.find(p => p.visibleOnPlatform && p.type !== 'Free Shipping');
+      
+      if (firstApplicablePromotion) {
+          discountType = firstApplicablePromotion.type as 'Percentage' | 'Fixed Amount';
+          discountValue = firstApplicablePromotion.value;
+      }
     }
     
     if (discountValue && discountType) {

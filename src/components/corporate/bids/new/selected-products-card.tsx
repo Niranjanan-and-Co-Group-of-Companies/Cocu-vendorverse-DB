@@ -19,7 +19,7 @@ interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
 }
 
-const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
 export function SelectedProductsCard() {
     const { items, removeItem } = useBidRequest();
@@ -32,7 +32,16 @@ export function SelectedProductsCard() {
             const pricedItems = await Promise.all(
                 items.map(async item => {
                     const category = await getCategoryByName(item.category);
-                    const displayPrice = await calculateDisplayPrice(item.price, 'corporate', category || undefined, item.discountType, item.discountValue);
+                    const productInfo = {
+                        id: item.id,
+                        vendorSP: item.vendorSP,
+                        category: item.category,
+                        vendorId: item.vendorId,
+                        discountType: item.discountType,
+                        discountValue: item.discountValue,
+                        price: item.price
+                    };
+                    const displayPrice = await calculateDisplayPrice(productInfo, 'Corporate', category || undefined);
                     return { ...item, displayPrice };
                 })
             );

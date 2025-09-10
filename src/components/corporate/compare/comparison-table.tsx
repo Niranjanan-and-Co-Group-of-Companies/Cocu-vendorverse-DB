@@ -13,6 +13,7 @@ import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service'
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { getCategoryByName } from '@/lib/categories-service';
+import { Badge } from '@/components/ui/badge';
 
 interface ComparisonTableProps {
   products: Product[];
@@ -28,9 +29,14 @@ const featureRows = [
     { 
         label: "Price", 
         getValue: (p: ProductWithPrice) => p.displayPrice ? (
-             <div className="flex flex-col">
+             <div className="flex flex-col gap-1 items-start">
                 <span className="font-bold text-primary">{formatCurrency(p.displayPrice.finalPrice)}</span>
-                {p.displayPrice.hasDiscount && <span className="text-xs text-muted-foreground line-through">{formatCurrency(p.displayPrice.originalPrice)}</span>}
+                {p.displayPrice.hasDiscount && (
+                    <>
+                        <span className="text-xs text-muted-foreground line-through">{formatCurrency(p.displayPrice.originalPrice)}</span>
+                        <Badge variant="destructive">{p.displayPrice.discountText}</Badge>
+                    </>
+                )}
             </div>
         ) : <Skeleton className="h-6 w-16" />
     },
@@ -62,9 +68,19 @@ export function ComparisonTable({ products }: ComparisonTableProps) {
         const pricedProducts = await Promise.all(
             products.map(async p => {
                 const category = await getCategoryByName(p.category);
+                const productInfo = {
+                    id: p.id,
+                    vendorSP: p.vendorSP,
+                    category: p.category,
+                    vendorId: p.vendorId,
+                    discountType: p.discountType,
+                    discountValue: p.discountValue,
+                    price: p.price,
+                    tieredPricing: p.tieredPricing,
+                };
                 return ({
                     ...p,
-                    displayPrice: await calculateDisplayPrice(p.price, 'corporate', category || undefined, p.discountType, p.discountValue)
+                    displayPrice: await calculateDisplayPrice(productInfo, 'Corporate', category || undefined)
                 })
             })
         );
