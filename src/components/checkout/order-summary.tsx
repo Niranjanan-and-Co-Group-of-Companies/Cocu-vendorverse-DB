@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getPromotionsForProduct, getPromotionByCode } from '@/lib/promotions-actions';
 import type { PlainPromotion } from '@/lib/promotions-service';
 import Link from 'next/link';
+import { Badge } from '../ui/badge';
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat('en-IN', {
