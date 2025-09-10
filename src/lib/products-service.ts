@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, getDocs, writeBatch, doc, getDoc, query, where, limit, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -27,7 +28,7 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
 
 async function seedProductsIfEmpty() {
-    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v4'); // Incremented version to force re-seed
+    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v5'); // Incremented version to force re-seed
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
@@ -51,8 +52,9 @@ async function seedProductsIfEmpty() {
         const docRef = doc(productsCollection); // Auto-generate ID
         const vendorInfo = VENDOR_MAP[product.vendor] || { id: 'unknown_vendor', pincode: '000000' };
 
+        // Await fetching the category to ensure buffer calculations are correct
         const category = await getCategoryByName(product.category);
-        const displayPrice = await calculateDisplayPrice(product.vendorSP, product.platform, category, undefined, undefined);
+        const displayPrice = await calculateDisplayPrice(product.vendorSP, product.platform as 'personal' | 'corporate', category || undefined, undefined, undefined);
         
         const fullProductData = {
             ...product,
