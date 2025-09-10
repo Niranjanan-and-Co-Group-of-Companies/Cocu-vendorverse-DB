@@ -17,13 +17,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ShoppingCart, X } from 'lucide-react';
+import { ShoppingCart, X, Plus, Minus } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { LoginDialog } from './login-dialog';
 
 export function CartPreview() {
-  const { items, removeItem } = useCart();
+  const { items, removeItem, updateQuantity } = useCart();
   const { toast } = useToast();
   // In a real app, this would come from an auth hook/context
   const [isLoggedIn] = React.useState(true); 
@@ -37,6 +37,11 @@ export function CartPreview() {
         variant: 'destructive',
     });
   }
+
+  const handleQuantityChange = (e: React.MouseEvent, cartItemId: string, newQuantity: number) => {
+    e.preventDefault();
+    updateQuantity(cartItemId, newQuantity);
+  };
 
   const subtotal = items.reduce((acc, item) => {
     const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', '').replace('₹', ''));
@@ -79,6 +84,7 @@ export function CartPreview() {
                     <div className="pr-2">
                     {items.map(item => {
                         const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', '').replace('₹', ''));
+                        const maxQty = item.maxQuantityPerOrder || item.stock;
                         return (
                             <DropdownMenuItem key={item.cartItemId} asChild className="focus:bg-transparent">
                                 <Link href={`/products/${item.id}`} className="flex gap-3 w-full">
@@ -86,10 +92,14 @@ export function CartPreview() {
                                     <div className="flex-1 overflow-hidden">
                                         <p className="font-medium truncate">{item.name}</p>
                                         {item.selectedVariant && <p className="text-xs text-muted-foreground">{item.selectedVariant.colorName}</p>}
-                                        <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                                        <p className="text-sm font-semibold">{formatCurrency(price * item.quantity)}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(e, item.cartItemId, item.quantity - 1)} disabled={item.quantity <= 1}><Minus className="h-3 w-3"/></Button>
+                                            <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
+                                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(e, item.cartItemId, item.quantity + 1)} disabled={item.quantity >= maxQty}><Plus className="h-3 w-3"/></Button>
+                                        </div>
+                                        <p className="text-sm font-semibold mt-1">{formatCurrency(price * item.quantity)}</p>
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item.cartItemId, item.name)}>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive self-start" onClick={(e) => handleRemove(e, item.cartItemId, item.name)}>
                                         <X className="h-4 w-4" />
                                     </Button>
                                 </Link>

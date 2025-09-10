@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -11,7 +12,7 @@ import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { Tag, X } from 'lucide-react';
+import { Tag, X, Plus, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getPromotionsForProduct } from '@/lib/promotions-actions';
 import type { PlainPromotion } from '@/lib/promotions-service';
@@ -24,7 +25,7 @@ function formatCurrency(amount: number) {
 }
 
 export function OrderSummary() {
-  const { items, removeItem } = useCart();
+  const { items, removeItem, updateQuantity } = useCart();
   const { toast } = useToast();
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
@@ -54,7 +55,7 @@ export function OrderSummary() {
             const itemPrice = (item.displayPrice?.originalPrice || parseFloat(item.price.replace('$', ''))) * item.quantity;
 
             for (const promo of promos) {
-                if (promo.type === 'Free Shipping') continue;
+                if (promo.type === 'Free Shipping' || !promo.visibleOnPlatform) continue;
 
                 let currentDiscount = 0;
                 if (promo.type === 'Percentage') {
@@ -85,12 +86,11 @@ export function OrderSummary() {
   const discountAmount = React.useMemo(() => {
     if (!appliedPromotion) return 0;
     
-    // For simplicity, applying discount on subtotal. A real app might be more complex.
     if (appliedPromotion.type === 'Percentage') {
         return subtotal * (appliedPromotion.value / 100);
     }
     if (appliedPromotion.type === 'Fixed Amount') {
-        return Math.min(appliedPromotion.value, subtotal); // Can't discount more than the subtotal
+        return Math.min(appliedPromotion.value, subtotal);
     }
     return 0;
   }, [appliedPromotion, subtotal]);
@@ -121,17 +121,24 @@ export function OrderSummary() {
             <div className="space-y-4">
                 {items.map(item => {
                   const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
+                  const maxQty = item.maxQuantityPerOrder || item.stock;
                   return (
-                    <div key={item.cartItemId} className="flex items-center gap-4">
+                    <div key={item.cartItemId} className="flex items-start gap-4">
                         <Image src={item.selectedVariant?.image || item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
                         <div className="flex-grow overflow-hidden">
                             <p className="font-semibold truncate">{item.name}</p>
-                            <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
-                            <p className="font-medium">{formatCurrency(price * item.quantity)}</p>
+                             <div className="flex items-center gap-2 mt-1">
+                                <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)} disabled={item.quantity <= 1}><Minus className="h-3 w-3"/></Button>
+                                <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
+                                <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)} disabled={item.quantity >= maxQty}><Plus className="h-3 w-3"/></Button>
+                            </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleRemove(item.cartItemId, item.name)}>
-                            <X className="h-4 w-4" />
-                        </Button>
+                        <div className="flex flex-col items-end gap-1">
+                             <p className="font-semibold">{formatCurrency(price * item.quantity)}</p>
+                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleRemove(item.cartItemId, item.name)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 )})}
             </div>
