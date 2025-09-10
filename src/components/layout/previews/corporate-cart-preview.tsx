@@ -17,17 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShoppingCart, X } from 'lucide-react';
-import { useCorporateCart } from '@/hooks/use-corporate-cart';
+import { useCorporateCart, type CartItem as CartItemType } from '@/hooks/use-corporate-cart';
 import { useToast } from '@/hooks/use-toast';
-import type { Product } from '@/lib/products';
-import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
-import { getCategoryByName } from '@/lib/categories-service';
-
-interface CartItemWithPrice extends Product {
-  quantity: number;
-  displayPrice?: DisplayPrice;
-}
-
 
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
@@ -36,28 +27,8 @@ const formatCurrency = (value: number) => {
 export function CorporateCartPreview() {
   const { items, removeItem } = useCorporateCart();
   const { toast } = useToast();
-  const [cartItemsWithPrices, setCartItemsWithPrices] = React.useState<CartItemWithPrice[]>([]);
 
-  React.useEffect(() => {
-    const fetchPrices = async () => {
-        const pricedItems = await Promise.all(
-            items.map(async item => {
-                const category = await getCategoryByName(item.category);
-                const displayPrice = await calculateDisplayPrice(
-                    {...item, vendorSP: parseFloat(item.price)},
-                    'Corporate',
-                    category || undefined,
-                    item.quantity
-                );
-                return { ...item, displayPrice };
-            })
-        );
-        setCartItemsWithPrices(pricedItems);
-    }
-    fetchPrices();
-  }, [items]);
-
-  const handleRemove = (e: React.MouseEvent, productId: number, productName: string) => {
+  const handleRemove = (e: React.MouseEvent, productId: string, productName: string) => {
     e.preventDefault();
     removeItem(productId);
     toast({
@@ -66,8 +37,8 @@ export function CorporateCartPreview() {
     });
   }
 
-  const subtotal = cartItemsWithPrices.reduce((acc, item) => {
-    const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', '').replace('₹', ''));
+  const subtotal = items.reduce((acc, item) => {
+    const price = item.displayPrice?.finalPrice || 0;
     return acc + (price * item.quantity);
   }, 0);
 
@@ -91,9 +62,9 @@ export function CorporateCartPreview() {
             <>
                 <ScrollArea className="h-64">
                     <div className="pr-2">
-                    {cartItemsWithPrices.map(item => {
-                        const finalPrice = item.displayPrice?.finalPrice || parseFloat(item.price);
-                        const originalPrice = item.displayPrice?.originalPrice || finalPrice;
+                    {items.map(item => {
+                        const finalPrice = item.displayPrice?.finalPrice || 0;
+                        const originalPrice = item.displayPrice?.originalPrice || 0;
 
                         return (
                         <DropdownMenuItem key={item.id} asChild className="focus:bg-transparent">

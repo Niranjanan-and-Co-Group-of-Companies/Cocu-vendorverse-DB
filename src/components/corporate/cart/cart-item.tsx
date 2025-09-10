@@ -93,7 +93,7 @@ export function CartItem({ item }: CartItemProps) {
                 </div>
                  <div className="flex flex-col items-end gap-2">
                      {isUpdating || totalPrice === undefined ? (
-                         <Loader2 className="h-5 w-5 animate-spin" />
+                         <Skeleton className="h-6 w-28" />
                      ) : (
                         <p className="font-semibold">
                             {formatCurrency(totalPrice)}

@@ -76,7 +76,7 @@ export function CartSummary({ items }: CartSummaryProps) {
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
-      const price = item.displayPrice?.originalPrice || parseFloat(item.price.replace('$', '').replace('₹', ''));
+      const price = item.displayPrice?.finalPrice || 0;
       return total + price * item.quantity;
     }, 0);
   }, [items]);
