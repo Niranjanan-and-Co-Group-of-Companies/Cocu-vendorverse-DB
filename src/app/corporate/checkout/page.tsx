@@ -8,6 +8,8 @@ import { ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { CartSummary } from '@/components/corporate/cart/cart-summary';
+import { CheckoutItem } from '@/components/corporate/checkout/checkout-item';
+import { Separator } from '@/components/ui/separator';
 
 function CorporateCheckoutPageContent() {
     const { items } = useCorporateCart();
@@ -36,6 +38,19 @@ function CorporateCheckoutPageContent() {
                 <div className="space-y-6">
                    <Card>
                        <CardHeader>
+                           <CardTitle>Items in Your Order</CardTitle>
+                       </CardHeader>
+                       <CardContent className="space-y-4">
+                           {items.map((item, index) => (
+                               <React.Fragment key={item.id}>
+                                   <CheckoutItem item={item} />
+                                   {index < items.length - 1 && <Separator />}
+                               </React.Fragment>
+                           ))}
+                       </CardContent>
+                   </Card>
+                   <Card>
+                       <CardHeader>
                            <CardTitle>Company & Shipping Details</CardTitle>
                        </CardHeader>
                        <CardContent>
@@ -56,7 +71,7 @@ function CorporateCheckoutPageContent() {
                 </div>
 
                 {/* Right Column */}
-                <div className="sticky top-20">
+                <div className="lg:sticky top-20">
                    <CartSummary items={items} />
                 </div>
             </div>
