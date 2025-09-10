@@ -62,7 +62,6 @@ export type Product = {
   customizable: boolean;
   featured?: boolean;
   description?: string;
-  creatorStory?: string;
   category?: string;
   categorySlug?: string;
   status: ProductStatus;

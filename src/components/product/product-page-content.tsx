@@ -71,9 +71,6 @@ export function ProductPageContent({ product }: { product: PlainProduct }) {
             <div className="mt-12 lg:mt-20">
                 <ProductDetailsAccordion
                     description={product.description || ''}
-                    creatorStory={product.creatorStory || ''}
-                    categoryName={product.category}
-                    platform='personal'
                 />
             </div>
             <div className="mt-12 lg:mt-20">

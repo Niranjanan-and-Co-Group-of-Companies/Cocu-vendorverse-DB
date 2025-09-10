@@ -11,14 +11,9 @@ import {
 
 interface ProductDetailsAccordionProps {
   description: string;
-  creatorStory: string;
-  categoryName?: string;
-  platform: 'personal' | 'corporate';
 }
 
-export function ProductDetailsAccordion({ description, creatorStory, categoryName, platform }: ProductDetailsAccordionProps) {
-  const showCreatorStory = creatorStory && platform === 'personal' && categoryName === 'Made by Sunshine';
-  
+export function ProductDetailsAccordion({ description }: ProductDetailsAccordionProps) {
   return (
     <Accordion type="single" collapsible defaultValue="description" className="w-full">
       <AccordionItem value="description">
@@ -27,14 +22,6 @@ export function ProductDetailsAccordion({ description, creatorStory, categoryNam
           {description}
         </AccordionContent>
       </AccordionItem>
-      {showCreatorStory && (
-        <AccordionItem value="creator-story">
-            <AccordionTrigger className="text-xl font-bold font-headline">Creator Story</AccordionTrigger>
-            <AccordionContent className="text-base text-muted-foreground">
-            {creatorStory}
-            </AccordionContent>
-        </AccordionItem>
-      )}
       <AccordionItem value="reviews">
         <AccordionTrigger className="text-xl font-bold font-headline">Reviews</AccordionTrigger>
         <AccordionContent className="text-base text-muted-foreground">

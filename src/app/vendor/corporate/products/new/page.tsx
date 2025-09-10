@@ -171,7 +171,7 @@ function ProductEditorContent() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
-                    <ProductDetailsCard name={product.name || ''} description={product.description || ''} creatorStory={product.creatorStory} onFieldChange={handleFieldChange} />
+                    <ProductDetailsCard name={product.name || ''} description={product.description || ''} onFieldChange={handleFieldChange} />
                     <B2BPricingCard product={product as Product} onFieldChange={handleFieldChange} />
                      <ProductVariantsCard 
                         variants={product.variants || []}
