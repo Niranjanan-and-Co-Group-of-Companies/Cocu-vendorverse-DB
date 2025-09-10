@@ -93,6 +93,14 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
     onOpenChange(isOpen);
   }
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers and limit to 10 digits
+    const numericValue = value.replace(/\D/g, '').slice(0, 10);
+    setPhone(numericValue);
+  };
+
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
         {children}
@@ -122,7 +130,10 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
                 <Label htmlFor="phone" className="text-right">
                   Phone
                 </Label>
-                <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="col-span-3" placeholder="+91 98765 43210" />
+                 <div className="relative col-span-3">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">+91</span>
+                    <Input id="phone" type="tel" value={phone} onChange={handlePhoneChange} className="pl-10" placeholder="98765 43210" />
+                </div>
               </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="role" className="text-right">

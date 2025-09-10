@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -48,7 +49,7 @@ export function AddVendorDialog({ open, onOpenChange, vendor, children }: AddVen
             setFormData({
                 name: vendor.name,
                 email: vendor.email,
-                phone: vendor.phone,
+                phone: vendor.phone.replace('+91', '').replace(/\s/g, ''),
                 street: vendor.pickupAddresses?.[0]?.street || '',
                 city: vendor.pickupAddresses?.[0]?.city || '',
                 state: vendor.pickupAddresses?.[0]?.state || '',
@@ -63,7 +64,12 @@ export function AddVendorDialog({ open, onOpenChange, vendor, children }: AddVen
     }, [vendor, isEditMode, open]);
 
     const handleInputChange = (field: keyof typeof formData, value: string) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        if (field === 'phone') {
+            const numericValue = value.replace(/\D/g, '').slice(0, 10);
+            setFormData(prev => ({ ...prev, [field]: numericValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [field]: value }));
+        }
     };
 
     const handleSubmit = async () => {
@@ -71,7 +77,7 @@ export function AddVendorDialog({ open, onOpenChange, vendor, children }: AddVen
         const dataToSave = {
             name: formData.name,
             email: formData.email,
-            phone: formData.phone,
+            phone: `+91 ${formData.phone}`,
             pickupAddresses: [{
                 id: vendor?.pickupAddresses?.[0]?.id || 'addr_main',
                 label: 'Default Address',
@@ -134,7 +140,10 @@ export function AddVendorDialog({ open, onOpenChange, vendor, children }: AddVen
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="phone">Contact Phone</Label>
-                    <Input id="phone" type="tel" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                     <div className="relative">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">+91</span>
+                        <Input id="phone" type="tel" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className="pl-10" />
+                    </div>
                 </div>
             </div>
              <div className="space-y-2">

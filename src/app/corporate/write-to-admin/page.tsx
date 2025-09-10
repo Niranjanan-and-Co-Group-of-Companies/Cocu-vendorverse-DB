@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -34,7 +35,14 @@ export default function WriteToAdminPage() {
     const [files, setFiles] = React.useState<File[]>([]);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [formData, setFormData] = React.useState<SourcingRequestData | null>(null);
+    const [phone, setPhone] = React.useState('');
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const numericValue = value.replace(/\D/g, '').slice(0, 10);
+        setPhone(numericValue);
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newFiles = Array.from(e.target.files || []);
@@ -77,10 +85,9 @@ export default function WriteToAdminPage() {
             budget: { value: string };
             'additional-notes': { value: string };
             'contact-name': { value: string };
-            'contact-phone': { value: string };
         };
         
-        const contactPhone = formElements['contact-phone'].value;
+        const contactPhone = phone;
         if (!contactPhone) {
             toast({
                 title: "Phone number required",
@@ -96,7 +103,7 @@ export default function WriteToAdminPage() {
             budget: parseFloat(formElements.budget.value) || 0,
             notes: formElements['additional-notes'].value,
             contactName: formElements['contact-name'].value,
-            contactPhone,
+            contactPhone: `+91 ${contactPhone}`,
             files: files,
             requiredBy: date
         });
@@ -146,7 +153,10 @@ export default function WriteToAdminPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="contact-phone">Contact Phone</Label>
-                                    <Input id="contact-phone" type="tel" placeholder="e.g., +91 98765 43210" required />
+                                    <div className="relative">
+                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">+91</span>
+                                        <Input id="contact-phone" type="tel" placeholder="98765 43210" value={phone} onChange={handlePhoneChange} className="pl-10" required/>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>

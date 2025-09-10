@@ -29,9 +29,16 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
   const [isSending, setIsSending] = React.useState(false);
   const { toast } = useToast();
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers and limit to 10 digits
+    const numericValue = value.replace(/\D/g, '').slice(0, 10);
+    setPhone(numericValue);
+  };
+
   const handleSendOtp = () => {
     if (phone.length < 10) {
-      toast({ title: "Invalid Phone Number", variant: "destructive" });
+      toast({ title: "Invalid Phone Number", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
       return;
     }
     setIsSending(true);
@@ -71,7 +78,10 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" />
+               <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">+91</span>
+                  <Input id="phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder="98765 43210" className="pl-10" />
+              </div>
             </div>
             <Button onClick={handleSendOtp} disabled={isSending}>
               {isSending && <Loader2 className="mr-2 animate-spin" />}

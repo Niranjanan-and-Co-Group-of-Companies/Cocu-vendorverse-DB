@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -19,6 +20,13 @@ export function ShippingAddress() {
     const [addresses, setAddresses] = React.useState(MOCK_ADDRESSES);
     const [selectedAddress, setSelectedAddress] = React.useState(addresses[0]?.id || '');
     const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
+    const [phone, setPhone] = React.useState('');
+
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const numericValue = value.replace(/\D/g, '').slice(0, 10);
+        setPhone(numericValue);
+    };
 
     return (
         <>
@@ -67,7 +75,10 @@ export function ShippingAddress() {
                             <Input placeholder="PIN Code" />
                             <Input placeholder="Country" />
                          </div>
-                        <Input placeholder="Phone Number (e.g. +91 98765 43210)" />
+                         <div className="relative">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">+91</span>
+                            <Input type="tel" placeholder="Phone Number" value={phone} onChange={handlePhoneChange} className="pl-10"/>
+                        </div>
                     </div>
                     <DialogFooter>
                          <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
