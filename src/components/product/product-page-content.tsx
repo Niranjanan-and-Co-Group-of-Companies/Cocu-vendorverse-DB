@@ -67,7 +67,7 @@ export function ProductPageContent({ product }: { product: PlainProduct }) {
                         </div>
                     )}
 
-                    <ProductInteractions product={product as Product} categoryName={product.category} />
+                    <ProductInteractions product={product as Product} categoryName={product.category} selectedVariant={selectedVariant} />
                 </div>
             </div>
             <div className="mt-12 lg:mt-20">

@@ -1,7 +1,8 @@
 
+
 import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Product, CustomizationSide } from './products';
+import type { Product, CustomizationSide, ProductVariant } from './products';
 import type { VendorOrder } from '@/app/vendor/personalized/orders/page';
 import { createNotification } from './notifications-actions';
 
@@ -14,6 +15,7 @@ export interface CustomizationDetails {
 export interface OrderItem extends Product {
     quantity: number;
     customizations?: CustomizationDetails[];
+    selectedVariant?: ProductVariant; // Add selected variant
 }
 
 export type OrderStatus = 'Pending' | 'Preparing' | 'Packaging' | 'Dispatched' | 'Shipped' | 'Delivered' | 'Cancelled';
@@ -168,7 +170,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
                 userId: orderData.customer.id,
                 type: 'ORDER_STATUS_UPDATE',
                 text: `Your order #${orderId.slice(0, 8)} has been updated to "${status}".`,
-                link: `/customer/orders/${orderId}`,
+                link: `/account/orders/${orderId}`,
             });
 
             // Notify the admin

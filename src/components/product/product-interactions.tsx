@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import * as React from 'react';
-import type { Product } from '@/lib/products';
+import type { Product, ProductVariant } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ShoppingCart, MessageSquare, Heart, Bell, Minus, Plus, Brush } from 'lucide-react';
@@ -16,9 +17,10 @@ import Link from 'next/link';
 interface ProductInteractionsProps {
   product: Product;
   categoryName?: string;
+  selectedVariant: ProductVariant | null;
 }
 
-export function ProductInteractions({ product, categoryName }: ProductInteractionsProps) {
+export function ProductInteractions({ product, categoryName, selectedVariant }: ProductInteractionsProps) {
   const [pincode, setPincode] = React.useState('');
   const [deliveryInfo, setDeliveryInfo] = React.useState('');
   const [checking, setChecking] = React.useState(false);
@@ -50,7 +52,7 @@ export function ProductInteractions({ product, categoryName }: ProductInteractio
   };
 
   const handleAddToCart = async () => {
-    const result = await addItem(product, quantity);
+    const result = await addItem(product, quantity, selectedVariant);
     toast({
       title: 'Added to Cart',
       description: result.message
@@ -58,7 +60,7 @@ export function ProductInteractions({ product, categoryName }: ProductInteractio
   };
 
   const handleBuyNow = async () => {
-    await addItem(product, quantity);
+    await addItem(product, quantity, selectedVariant);
     router.push('/checkout');
   };
 
@@ -95,7 +97,7 @@ export function ProductInteractions({ product, categoryName }: ProductInteractio
         return (
             <div className="space-y-4">
                  <Button asChild size="lg" className="w-full">
-                    <Link href={`/customize/${product.id}`}>
+                    <Link href={`/customize/${product.id}?variant=${selectedVariant?.id}`}>
                         <Brush className="mr-2" />
                         Customize Now
                     </Link>

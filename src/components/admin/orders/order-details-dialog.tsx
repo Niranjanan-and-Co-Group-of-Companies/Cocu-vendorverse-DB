@@ -94,9 +94,10 @@ export function OrderDetailsDialog({ open, onOpenChange, order }: OrderDetailsDi
                                     <TableRow key={item.id}>
                                         <TableCell>
                                             <div className="flex items-center gap-3">
-                                                <Image src={item.image} alt={item.name} width={40} height={40} className="rounded-md object-cover" />
+                                                <Image src={item.selectedVariant?.image || item.image} alt={item.name} width={40} height={40} className="rounded-md object-cover" />
                                                 <div>
                                                     <p className="font-medium">{item.name}</p>
+                                                    {item.selectedVariant && <p className="text-xs text-muted-foreground">{item.selectedVariant.colorName}</p>}
                                                     <div className="text-xs text-muted-foreground">
                                                         <span>{formatCurrency(parseFloat(item.price.replace('₹', '').replace('$', '')))}</span>
                                                     </div>

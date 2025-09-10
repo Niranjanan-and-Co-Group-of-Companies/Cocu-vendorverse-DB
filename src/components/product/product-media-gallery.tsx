@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -45,9 +46,14 @@ export function ProductMediaGallery({ name, galleryImages = [], videoUrl, varian
     
     React.useEffect(() => {
         if (media.length > 0) {
-            setActiveMedia(media[0]);
+            // If the active media isn't in the new media list, reset to the first item
+            if (!activeMedia || !media.some(m => m.url === activeMedia.url)) {
+                 setActiveMedia(media[0]);
+            }
+        } else {
+            setActiveMedia(null);
         }
-    }, [media]);
+    }, [media, activeMedia]);
 
     const getYouTubeThumbnail = (url: string) => {
         const videoId = url.split('v=')[1]?.split('&')[0];

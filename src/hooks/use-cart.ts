@@ -1,22 +1,25 @@
 
+
 'use client';
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Product } from '@/lib/products';
+import type { Product, ProductVariant } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
 
 export interface CartItem extends Product {
+  cartItemId: string; // Unique ID for this specific item in the cart (product.id + variant.id)
   quantity: number;
   displayPrice?: DisplayPrice;
+  selectedVariant: ProductVariant | null;
 }
 
 interface CartState {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number) => Promise<{ success: boolean; message: string }>;
-  removeItem: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  addItem: (product: Product, quantity?: number, selectedVariant?: ProductVariant | null) => Promise<{ success: boolean; message: string }>;
+  removeItem: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
 }
 
@@ -24,33 +27,37 @@ export const useCart = create(
   persist<CartState>(
     (set, get) => ({
       items: [],
-      addItem: async (product, quantity = 1) => {
+      addItem: async (product, quantity = 1, selectedVariant = null) => {
         const category = await getCategoryByName(product.category);
         const displayPrice = await calculateDisplayPrice(product.price, 'personal', category || undefined, product.discountType, product.discountValue);
         const currentItems = get().items;
-        const existingItem = currentItems.find(item => item.id === product.id);
+        
+        const variantId = selectedVariant ? selectedVariant.id : 'default';
+        const cartItemId = `${product.id}-${variantId}`;
+        
+        const existingItem = currentItems.find(item => item.cartItemId === cartItemId);
 
         if (existingItem) {
           const newQuantity = existingItem.quantity + quantity;
           set({
             items: currentItems.map(item =>
-              item.id === product.id ? { ...item, quantity: newQuantity, displayPrice } : item
+              item.cartItemId === cartItemId ? { ...item, quantity: newQuantity, displayPrice } : item
             ),
           });
           return { success: true, message: `Added ${quantity} more of "${product.name}" to your cart.` };
         } else {
-          set({ items: [...currentItems, { ...product, quantity: quantity, displayPrice }] });
+          set({ items: [...currentItems, { ...product, cartItemId, quantity: quantity, displayPrice, selectedVariant }] });
           return { success: true, message: `"${product.name}" (x${quantity}) added to cart.` };
         }
       },
-      removeItem: (productId) => {
+      removeItem: (cartItemId) => {
         set(state => ({
-          items: state.items.filter(item => item.id !== productId),
+          items: state.items.filter(item => item.cartItemId !== cartItemId),
         }));
       },
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (cartItemId, quantity) => {
         set(state => {
-          const itemToUpdate = state.items.find(item => item.id === productId);
+          const itemToUpdate = state.items.find(item => item.cartItemId === cartItemId);
           if (!itemToUpdate) return state;
 
           const maxQty = itemToUpdate.maxQuantityPerOrder || itemToUpdate.stock;
@@ -58,7 +65,7 @@ export const useCart = create(
 
           return {
             items: state.items.map(item =>
-              item.id === productId ? { ...item, quantity: newQuantity } : item
+              item.cartItemId === cartItemId ? { ...item, quantity: newQuantity } : item
             ),
           };
         });
