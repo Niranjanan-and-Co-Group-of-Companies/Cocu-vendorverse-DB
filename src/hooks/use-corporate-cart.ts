@@ -25,7 +25,7 @@ const updateItemPrice = async (item: Product, quantity: number): Promise<Display
     const category = await getCategoryByName(item.category);
     const productInfo = {
         id: item.id,
-        vendorSP: parseFloat(item.price.replace('$', '').replace('₹', '')), // Corrected this line
+        vendorSP: item.vendorSP, // CORRECT: Use the numeric vendorSP directly
         category: item.category,
         vendorId: item.vendorId,
         tieredPricing: item.tieredPricing,
