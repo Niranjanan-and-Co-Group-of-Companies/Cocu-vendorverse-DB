@@ -31,6 +31,7 @@ export function OrderSummary() {
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
   const [couponCode, setCouponCode] = React.useState('');
   const [appliedPromotion, setAppliedPromotion] = React.useState<PlainPromotion | null>(null);
+  const [eligibleItemPrice, setEligibleItemPrice] = React.useState(0);
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
@@ -49,6 +50,7 @@ export function OrderSummary() {
 
         let bestPromo: PlainPromotion | null = null;
         let maxDiscount = 0;
+        let bestItemPrice = 0;
 
         for (const item of items) {
             const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId);
@@ -67,6 +69,7 @@ export function OrderSummary() {
                 if (currentDiscount > maxDiscount) {
                     maxDiscount = currentDiscount;
                     bestPromo = promo;
+                    bestItemPrice = itemPrice;
                 }
             }
         }
@@ -74,9 +77,11 @@ export function OrderSummary() {
         if (bestPromo) {
             setAppliedPromotion(bestPromo);
             setCouponCode(bestPromo.code);
+            setEligibleItemPrice(bestItemPrice);
         } else {
             setAppliedPromotion(null);
             setCouponCode('');
+            setEligibleItemPrice(0);
         }
     };
 
@@ -84,16 +89,16 @@ export function OrderSummary() {
   }, [items]);
   
   const discountAmount = React.useMemo(() => {
-    if (!appliedPromotion) return 0;
+    if (!appliedPromotion || eligibleItemPrice === 0) return 0;
     
     if (appliedPromotion.type === 'Percentage') {
-        return subtotal * (appliedPromotion.value / 100);
+        return eligibleItemPrice * (appliedPromotion.value / 100);
     }
     if (appliedPromotion.type === 'Fixed Amount') {
-        return Math.min(appliedPromotion.value, subtotal);
+        return Math.min(appliedPromotion.value, eligibleItemPrice);
     }
     return 0;
-  }, [appliedPromotion, subtotal]);
+  }, [appliedPromotion, eligibleItemPrice]);
 
 
   const handleRemove = (cartItemId: string, name: string) => {
