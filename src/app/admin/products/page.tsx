@@ -87,7 +87,6 @@ function ProductsPageContent() {
                     const productInfo = {
                         id: p.id,
                         vendorSP: p.vendorSP,
-                        price: p.price,
                         category: p.category,
                         vendorId: p.vendorId,
                         tieredPricing: p.tieredPricing,
@@ -99,6 +98,7 @@ function ProductsPageContent() {
                         productInfo,
                         platform,
                         category || undefined,
+                        platform === 'Corporate' ? p.moq : 1 // Pass MOQ for corporate products
                     );
                     return { ...p, displayPrice: displayPrice.finalPrice };
                 })
