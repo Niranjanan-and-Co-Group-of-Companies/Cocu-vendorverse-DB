@@ -65,10 +65,18 @@ export default function Header() {
                 <TermsUpdateDialog userType="customer" />
             </>
            ) : (
-            <Button onClick={() => setIsLoginOpen(true)}>
-                <User className="mr-2" />
-                Login / Sign Up
-            </Button>
+            <>
+              {/* Button for desktop */}
+              <Button onClick={() => setIsLoginOpen(true)} className="hidden md:flex">
+                  <User className="mr-2" />
+                  Login / Sign Up
+              </Button>
+              {/* Icon button for mobile */}
+              <Button onClick={() => setIsLoginOpen(true)} variant="ghost" size="icon" className="md:hidden">
+                  <User />
+                  <span className="sr-only">Login / Sign Up</span>
+              </Button>
+            </>
            )}
         </nav>
       </div>
