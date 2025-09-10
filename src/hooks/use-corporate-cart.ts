@@ -16,8 +16,8 @@ export interface CartItem extends Product {
 interface CartState {
   items: CartItem[];
   addItem: (product: Product, quantity?: number) => Promise<{ success: boolean; message: string }>;
-  removeItem: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => Promise<void>;
+  removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => Promise<void>;
   clearCart: () => void;
 }
 
@@ -25,7 +25,7 @@ const updateItemPrice = async (item: Product, quantity: number): Promise<Display
     const category = await getCategoryByName(item.category);
     const productInfo = {
         id: item.id,
-        vendorSP: item.vendorSP,
+        vendorSP: parseFloat(item.price.replace('$', '').replace('₹', '')), // Corrected this line
         category: item.category,
         vendorId: item.vendorId,
         tieredPricing: item.tieredPricing,
