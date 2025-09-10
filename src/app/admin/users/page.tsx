@@ -122,7 +122,7 @@ export default function UsersPage() {
               onOpenChange={setIsAddUserOpen}
               onUserAdded={handleUserAdded}
           >
-            <Button>
+            <Button disabled>
                 <PlusCircle className="mr-2" />
                 Add Customer
             </Button>
