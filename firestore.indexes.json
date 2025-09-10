@@ -11,7 +11,7 @@
         },
         {
           "fieldPath": "platform",
-          "order": "ASCENDING"
+          "arrayConfig": "CONTAINS"
         },
         {
           "fieldPath": "status",
