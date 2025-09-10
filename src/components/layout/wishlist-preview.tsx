@@ -78,7 +78,7 @@ export function WishlistPreview() {
                                 <div className="relative shrink-0">
                                     <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
                                     {item.displayPrice?.hasDiscount && (
-                                        <Badge variant="destructive" className="absolute top-1 left-1 text-[10px] px-1.5 py-0">
+                                        <Badge variant="destructive" className="absolute top-1 left-1 text-[9px] px-1 py-0">
                                             {item.displayPrice.discountText}
                                         </Badge>
                                     )}
