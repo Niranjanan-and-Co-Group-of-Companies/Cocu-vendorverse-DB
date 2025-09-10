@@ -17,6 +17,10 @@ import { getCategoryBySlug, getProductsByCategory, onCategoriesWithCommissionsUp
 import type { Category } from '@/lib/categories-service';
 import React from 'react';
 import { calculateDisplayPrice, DisplayPrice } from '@/lib/pricing-service';
+import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
@@ -26,6 +30,11 @@ function CategoryPageContent({ slug }: { slug: string }) {
   const [products, setProducts] = useState<ProductWithPrice[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
+  const { addItem: addToCart } = useCart();
+  const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
+  const { toast } = useToast();
+  const router = useRouter();
+
 
   useEffect(() => {
     let categoriesUnsubscribe: () => void;
@@ -60,7 +69,23 @@ function CategoryPageContent({ slug }: { slug: string }) {
     };
   }, [slug]);
   
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
+
+  const handleAddToCart = async (product: Product) => {
+    const result = await addToCart(product);
+    toast({ title: result.message });
+  };
+  
+  const handleBuyNow = async (product: Product) => {
+    await handleAddToCart(product);
+    router.push('/checkout');
+  };
+  
+  const handleWishlistToggle = async (product: Product) => {
+    const result = await toggleWishlist(product);
+    toast({ title: result.message });
+  };
+
 
   if (loading) {
     return (
@@ -100,7 +125,9 @@ function CategoryPageContent({ slug }: { slug: string }) {
             
             {products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.map((product) => (
+                {products.map((product) => {
+                  const inWishlist = isItemInWishlist(product.id);
+                  return (
                 <Card key={product.id} className="overflow-hidden group h-full flex flex-col">
                     <CardHeader className="p-0 relative">
                         <Link href={`/products/${product.id}`} className="block w-full h-full">
@@ -116,8 +143,8 @@ function CategoryPageContent({ slug }: { slug: string }) {
                                 />
                             </div>
                         </Link>
-                        <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
-                            <Heart className="h-4 w-4" />
+                        <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background" onClick={() => handleWishlistToggle(product)}>
+                            <Heart className={inWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4"} />
                             <span className="sr-only">Add to Wishlist</span>
                         </Button>
                     </CardHeader>
@@ -149,8 +176,8 @@ function CategoryPageContent({ slug }: { slug: string }) {
                     </div>
                     <div className="mt-4 flex flex-col gap-2">
                         <div className="flex gap-2">
-                        <Button size="sm" className="w-full">Buy Now</Button>
-                        <Button size="sm" variant="secondary" className="w-full">
+                        <Button size="sm" className="w-full" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                        <Button size="sm" variant="secondary" className="w-full" onClick={() => handleAddToCart(product)}>
                             <ShoppingCart className="mr-2 h-4 w-4" />
                             Add to Cart
                         </Button>
@@ -161,7 +188,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
                     </div>
                     </CardContent>
                 </Card>
-                ))}
+                )})}
             </div>
             ) : (
             <div className="text-center py-16">

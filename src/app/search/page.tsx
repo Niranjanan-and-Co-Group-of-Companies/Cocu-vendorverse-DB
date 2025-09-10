@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Product } from '@/lib/products';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { calculateDisplayPrice, DisplayPrice } from '@/lib/pricing-service';
 import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
+import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
@@ -27,6 +30,11 @@ function SearchResultsContent() {
   const query = searchParams.get('q') || '';
   const [searchResults, setSearchResults] = useState<ProductWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addItem: addToCart } = useCart();
+  const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
+  const { toast } = useToast();
+  const router = useRouter();
+
 
   useEffect(() => {
     let categoriesUnsubscribe: () => void;
@@ -69,7 +77,23 @@ function SearchResultsContent() {
     }
   }, [query]);
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
+
+  const handleAddToCart = async (product: Product) => {
+    const result = await addToCart(product);
+    toast({ title: result.message });
+  };
+  
+  const handleBuyNow = async (product: Product) => {
+    await handleAddToCart(product);
+    router.push('/checkout');
+  };
+  
+  const handleWishlistToggle = async (product: Product) => {
+    const result = await toggleWishlist(product);
+    toast({ title: result.message });
+  };
+
 
   if (loading) {
     return (
@@ -109,7 +133,9 @@ function SearchResultsContent() {
         
         {searchResults.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {searchResults.map((product) => (
+            {searchResults.map((product) => {
+               const inWishlist = isItemInWishlist(product.id);
+               return (
               <Card key={product.id} className="overflow-hidden group h-full flex flex-col">
                 <CardHeader className="p-0 relative">
                     <Link href={`/products/${product.id}`} className="block w-full h-full">
@@ -125,8 +151,8 @@ function SearchResultsContent() {
                             />
                         </div>
                     </Link>
-                  <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
-                    <Heart className="h-4 w-4" />
+                  <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background" onClick={() => handleWishlistToggle(product)}>
+                    <Heart className={inWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4"} />
                     <span className="sr-only">Add to Wishlist</span>
                   </Button>
                 </CardHeader>
@@ -158,8 +184,8 @@ function SearchResultsContent() {
                   </div>
                   <div className="mt-4 flex flex-col gap-2">
                     <div className="flex gap-2">
-                      <Button size="sm" className="w-full">Buy Now</Button>
-                      <Button size="sm" variant="secondary" className="w-full">
+                      <Button size="sm" className="w-full" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                      <Button size="sm" variant="secondary" className="w-full" onClick={() => handleAddToCart(product)}>
                         <ShoppingCart className="mr-2 h-4 w-4" />
                         Add to Cart
                       </Button>
@@ -170,7 +196,7 @@ function SearchResultsContent() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )})}
           </div>
         ) : (
           <div className="text-center py-16">

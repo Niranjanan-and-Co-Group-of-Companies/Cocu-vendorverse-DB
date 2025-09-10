@@ -20,26 +20,25 @@ import { Heart, X } from 'lucide-react';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
 import { LoginDialog } from './login-dialog';
+import type { Product } from '@/lib/products';
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
 export function WishlistPreview() {
-  const { items, removeItem } = useWishlist();
+  const { items, addItem } = useWishlist();
   const { toast } = useToast();
   // In a real app, this would come from an auth hook/context
   const [isLoggedIn] = React.useState(true); 
   const [isLoginOpen, setIsLoginOpen] = React.useState(false);
 
 
-  const handleRemove = (e: React.MouseEvent, productId: number) => {
+  const handleRemove = async (e: React.MouseEvent, product: Product) => {
     e.preventDefault(); // Prevent dropdown from closing
-    const result = removeItem(productId);
-    if(result.success){
-        toast({
-            title: result.message,
-            variant: 'destructive',
-        });
-    }
+    const result = await addItem(product); // addItem toggles
+    toast({
+        title: result.message,
+        variant: 'destructive',
+    });
   }
 
   if (!isLoggedIn) {
@@ -89,7 +88,7 @@ export function WishlistPreview() {
                                         <p className="text-sm font-semibold">{item.price}</p>
                                     )}
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item.id)}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item)}>
                                     <X className="h-4 w-4" />
                                 </Button>
                             </Link>

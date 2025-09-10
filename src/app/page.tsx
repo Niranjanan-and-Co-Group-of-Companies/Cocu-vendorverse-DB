@@ -18,6 +18,10 @@ import type { Product } from '@/lib/products';
 import { Skeleton } from '@/components/ui/skeleton';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getFeaturedPersonalProducts } from '@/lib/featured-service';
+import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
@@ -120,6 +124,11 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<ProductWithPrice[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addItem: addToCart } = useCart();
+  const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
+  const { toast } = useToast();
+  const router = useRouter();
+
 
   useEffect(() => {
     let categoriesUnsubscribe: () => void;
@@ -152,6 +161,20 @@ export default function Home() {
     };
   }, []);
 
+  const handleAddToCart = async (product: Product) => {
+    const result = await addToCart(product);
+    toast({ title: result.message });
+  };
+  
+  const handleBuyNow = async (product: Product) => {
+    await handleAddToCart(product);
+    router.push('/checkout');
+  };
+  
+  const handleWishlistToggle = async (product: Product) => {
+    const result = await toggleWishlist(product);
+    toast({ title: result.message });
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -178,7 +201,9 @@ export default function Home() {
               className="w-full mt-12"
             >
               <CarouselContent>
-                {featuredProducts.map((product) => (
+                {featuredProducts.map((product) => {
+                  const inWishlist = isItemInWishlist(product.id);
+                  return (
                   <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3">
                     <Card className="overflow-hidden group h-full flex flex-col">
                       <CardHeader className="p-0 relative">
@@ -195,8 +220,8 @@ export default function Home() {
                             />
                             </div>
                         </Link>
-                        <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background">
-                            <Heart className="h-4 w-4" />
+                        <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background" onClick={() => handleWishlistToggle(product)}>
+                            <Heart className={inWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4"} />
                             <span className="sr-only">Add to Wishlist</span>
                         </Button>
                       </CardHeader>
@@ -228,8 +253,8 @@ export default function Home() {
                         </div>
                          <div className="mt-4 flex flex-col gap-2">
                           <div className="flex gap-2">
-                            <Button size="sm" className="w-full">Buy Now</Button>
-                            <Button size="sm" variant="secondary" className="w-full">
+                            <Button size="sm" className="w-full" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                            <Button size="sm" variant="secondary" className="w-full" onClick={() => handleAddToCart(product)}>
                               <ShoppingCart className="mr-2 h-4 w-4" />
                               Add to Cart
                             </Button>
@@ -241,7 +266,7 @@ export default function Home() {
                       </CardContent>
                     </Card>
                   </CarouselItem>
-                ))}
+                )})}
               </CarouselContent>
               <CarouselPrevious className="ml-14" />
               <CarouselNext className="mr-14"/>

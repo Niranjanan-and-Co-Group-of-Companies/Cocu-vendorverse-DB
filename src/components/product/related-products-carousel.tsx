@@ -9,13 +9,16 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import Image from 'next/image';
 import { Button } from '../ui/button';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { Badge } from '../ui/badge';
 import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
+import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
+import { useToast } from '@/hooks/use-toast';
 
 interface RelatedProductsCarouselProps {
   type: 'category' | 'vendor';
@@ -32,6 +35,11 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
   const [relatedProducts, setRelatedProducts] = React.useState<ProductWithPrice[]>([]);
   const [loading, setLoading] = React.useState(true);
   const pathname = usePathname();
+  const { addItem: addToCart } = useCart();
+  const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
+  const { toast } = useToast();
+  const router = useRouter();
+
 
   const basePath = pathname.includes('/corporate') ? '/corporate' : '';
   const platform = basePath === '/corporate' ? 'Corporate' : 'Personalized';
@@ -51,7 +59,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                 const category = categories.find(c => c.name === p.category);
                 return {
                     ...p,
-                    displayPrice: await calculateDisplayPrice(p.price, platform, category, p.discountType, p.discountValue),
+                    displayPrice: await calculateDisplayPrice(p.price, 'personal', category, p.discountType, p.discountValue),
                 }
             })
         );
@@ -70,7 +78,22 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
     }
   }, [type, value, currentProductId, platform]);
   
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
+  
+  const handleAddToCart = async (product: Product) => {
+    const result = await addToCart(product);
+    toast({ title: result.message });
+  };
+
+  const handleBuyNow = async (product: Product) => {
+    await handleAddToCart(product);
+    router.push('/checkout');
+  };
+  
+  const handleWishlistToggle = async (product: Product) => {
+    const result = await toggleWishlist(product);
+    toast({ title: result.message });
+  };
 
 
   if (loading) {
@@ -94,7 +117,9 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
         <h2 className="text-2xl font-bold font-headline mb-6">{title}</h2>
         <Carousel opts={{ align: "start" }} className="w-full">
         <CarouselContent>
-            {relatedProducts.map((product) => (
+            {relatedProducts.map((product) => {
+              const inWishlist = isItemInWishlist(product.id);
+              return (
             <CarouselItem key={product.id} className="md:basis-1/3 lg:basis-1/4">
                 <Card className="overflow-hidden group h-full flex flex-col">
                 <CardHeader className="p-0 relative">
@@ -113,6 +138,10 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                     {product.featured && <Badge className="absolute top-2 right-2 z-10">Featured</Badge>}
                     </div>
                   </Link>
+                   <Button size="icon" variant="outline" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background" onClick={() => handleWishlistToggle(product)}>
+                        <Heart className={inWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4"} />
+                        <span className="sr-only">Add to Wishlist</span>
+                    </Button>
                 </CardHeader>
                 <CardContent className="p-4 flex flex-col flex-grow">
                     <Link href={`${basePath}/products/${product.id}`} className="block">
@@ -134,8 +163,8 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                     </div>
                      <div className="mt-4 flex flex-col gap-2">
                         <div className="flex gap-2">
-                            <Button size="sm" className="w-full">Buy Now</Button>
-                            <Button size="sm" variant="secondary" className="w-full">
+                            <Button size="sm" className="w-full" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                            <Button size="sm" variant="secondary" className="w-full" onClick={() => handleAddToCart(product)}>
                             <ShoppingCart className="mr-2 h-4 w-4" />
                             Add to Cart
                             </Button>
@@ -149,7 +178,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                 </CardContent>
                 </Card>
             </CarouselItem>
-            ))}
+            )})}
         </CarouselContent>
         <CarouselPrevious className="-left-4" />
         <CarouselNext className="-right-4" />
