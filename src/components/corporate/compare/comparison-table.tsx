@@ -41,10 +41,7 @@ const featureRows = [
         ) : <Skeleton className="h-6 w-16" />
     },
     { label: "Rating", getValue: (p: Product) => (
-        <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-            <span>{p.rating}</span>
-        </div>
+        <span className="text-muted-foreground text-xs">Coming soon</span>
     )},
     { label: "Min. Order Qty (MOQ)", getValue: (p: Product) => p.moq || '1' },
     { label: "Customizable", getValue: (p: Product) => p.customizable ? <Check className="text-green-600"/> : <XIcon className="text-destructive"/> },
