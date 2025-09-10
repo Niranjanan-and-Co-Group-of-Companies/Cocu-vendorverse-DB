@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { getPromotionByCode, getPromotionsForProduct } from '@/lib/promotions-actions';
 import type { PlainPromotion } from '@/lib/promotions-service';
 import Link from 'next/link';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface CartSummaryProps {
   items: CartItem[];
@@ -22,6 +24,8 @@ export function CartSummary({ items }: CartSummaryProps) {
   const [couponInput, setCouponInput] = React.useState('');
   const [appliedPromotions, setAppliedPromotions] = React.useState<PlainPromotion[]>([]);
   const [isApplying, setIsApplying] = React.useState(false);
+  const [isConfirmed, setIsConfirmed] = React.useState(false);
+  const [agreedToTerms, setAgreedToTerms] = React.useState(false);
 
   React.useEffect(() => {
     const findAndApplyBestPromotion = async () => {
@@ -151,6 +155,7 @@ export function CartSummary({ items }: CartSummaryProps) {
   };
   
   const total = subtotal - discountAmount;
+  const canProceed = isConfirmed && agreedToTerms;
 
   return (
     <Card>
@@ -200,8 +205,27 @@ export function CartSummary({ items }: CartSummaryProps) {
           <span>{formatCurrency(total)}</span>
         </div>
       </CardContent>
-      <CardFooter>
-        <Button className="w-full" size="lg" asChild>
+      <CardFooter className="flex flex-col gap-4 items-start">
+         <div className="flex items-center space-x-2">
+            <Checkbox id="design-confirm" checked={isConfirmed} onCheckedChange={(checked) => setIsConfirmed(!!checked)} />
+            <Label htmlFor="design-confirm" className="text-sm font-normal">I confirm my corporate branding & design is correct.</Label>
+         </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox id="terms-confirm" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(!!checked)} />
+            <div className="text-sm">
+                 <Label htmlFor="terms-confirm" className="font-normal">
+                    I agree to the{' '}
+                    <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">
+                        Terms & Conditions
+                    </Link>
+                    .
+                </Label>
+            </div>
+         </div>
+         <p className="text-xs text-muted-foreground">
+            Once an order is confirmed, it cannot be cancelled. For more details, please refer to our <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">Terms & Conditions</Link>.
+         </p>
+        <Button className="w-full" size="lg" asChild disabled={!canProceed}>
             <Link href="/corporate/checkout">Proceed to Checkout</Link>
         </Button>
       </CardFooter>
