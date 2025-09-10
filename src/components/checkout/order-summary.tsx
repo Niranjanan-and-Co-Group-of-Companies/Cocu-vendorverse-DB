@@ -31,8 +31,6 @@ export function OrderSummary() {
   const [couponInput, setCouponInput] = React.useState('');
   const [appliedPromotions, setAppliedPromotions] = React.useState<PlainPromotion[]>([]);
   const [isApplying, setIsApplying] = React.useState(false);
-  
-  const [eligibleCartItemId, setEligibleCartItemId] = React.useState<string | null>(null);
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
@@ -40,18 +38,16 @@ export function OrderSummary() {
       return total + price * item.quantity;
     }, 0);
   }, [items]);
-  
+
   React.useEffect(() => {
     const findAndApplyBestPromotion = async () => {
         if (items.length === 0) {
             setAppliedPromotions([]);
-            setEligibleCartItemId(null);
             return;
         }
 
         let bestPromo: PlainPromotion | null = null;
         let maxDiscount = 0;
-        let bestCartItemId: string | null = null;
 
         for (const item of items) {
             const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId);
@@ -69,12 +65,9 @@ export function OrderSummary() {
                 if (currentDiscount > maxDiscount) {
                     maxDiscount = currentDiscount;
                     bestPromo = promo;
-                    bestCartItemId = item.cartItemId;
                 }
             }
         }
-        
-        setEligibleCartItemId(bestCartItemId);
         
         setAppliedPromotions(prev => {
             const manualPromos = prev.filter(p => !p.visibleOnPlatform);
@@ -87,23 +80,34 @@ export function OrderSummary() {
 
 
   const discountAmount = React.useMemo(() => {
-      const eligibleItem = items.find(item => item.cartItemId === eligibleCartItemId);
-      if (!eligibleItem) return 0;
-      
-      const bestPromo = appliedPromotions.find(p => p.visibleOnPlatform);
-      if (!bestPromo) return 0;
+    return appliedPromotions.reduce((totalDiscount, promo) => {
+        let discount = 0;
+        
+        // Product-specific discounts
+        if (promo.appliesTo?.products?.length > 0) {
+            const applicableItems = items.filter(item => promo.appliesTo.products.includes(item.id));
+            const applicableSubtotal = applicableItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price)) * item.quantity, 0);
 
-      const eligibleItemPrice = (eligibleItem.displayPrice?.originalPrice || parseFloat(eligibleItem.price.replace('$', ''))) * eligibleItem.quantity;
-      
-      if (bestPromo.type === 'Percentage') {
-          return eligibleItemPrice * (bestPromo.value / 100);
-      }
-      if (bestPromo.type === 'Fixed Amount') {
-          return Math.min(bestPromo.value, eligibleItemPrice);
-      }
-      return 0;
+            if (promo.type === 'Percentage') {
+                discount = applicableSubtotal * (promo.value / 100);
+            } else if (promo.type === 'Fixed Amount') {
+                discount = Math.min(promo.value, applicableSubtotal);
+            }
+        } 
+        // Cart-wide discounts (no specific products/categories/vendors targeted)
+        else if (promo.appliesTo?.categories?.length === 0 && promo.appliesTo?.vendors?.length === 0) {
+            if (promo.type === 'Percentage') {
+                discount = subtotal * (promo.value / 100);
+            } else if (promo.type === 'Fixed Amount') {
+                discount = Math.min(promo.value, subtotal);
+            }
+        }
+        // TODO: Add logic for category and vendor specific discounts if needed
 
-  }, [appliedPromotions, items, eligibleCartItemId]);
+        return totalDiscount + discount;
+
+    }, 0);
+  }, [appliedPromotions, items, subtotal]);
 
 
   const handleRemove = (cartItemId: string, name: string) => {
@@ -131,12 +135,15 @@ export function OrderSummary() {
         return;
     }
     
-    if (promo.visibleOnPlatform && appliedPromotions.some(p => p.visibleOnPlatform)) {
-        toast({ title: "Cannot Apply Coupon", description: "A better site-wide promotion is already applied.", variant: "destructive" });
+    const visiblePromoCount = appliedPromotions.filter(p => p.visibleOnPlatform).length;
+    const manualPromoCount = appliedPromotions.filter(p => !p.visibleOnPlatform).length;
+
+    if (promo.visibleOnPlatform && visiblePromoCount > 0) {
+        toast({ title: "Cannot Apply Coupon", description: "A site-wide promotion is already applied.", variant: "destructive" });
         return;
     }
 
-    if (!promo.visibleOnPlatform && appliedPromotions.filter(p => !p.visibleOnPlatform).length >= 1) {
+    if (!promo.visibleOnPlatform && manualPromoCount >= 1) {
         toast({ title: "Limit Reached", description: "You can only apply one manual coupon code.", variant: "destructive" });
         return;
     }
@@ -154,11 +161,6 @@ export function OrderSummary() {
   const handleRemoveCoupon = (promoId: string) => {
     const promoToRemove = appliedPromotions.find(p => p.id === promoId);
     if (!promoToRemove) return;
-
-    if (promoToRemove.visibleOnPlatform) {
-        // This is handled by the useEffect that manages auto-applied promos
-        setEligibleCartItemId(null); 
-    }
     
     setAppliedPromotions(prev => prev.filter(p => p.id !== promoId));
 
