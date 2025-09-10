@@ -30,7 +30,7 @@ async function getCommissionRules(): Promise<CommissionRule[]> {
 }
 
 export async function calculateFinalPrice(
-    basePrice: number,
+    basePrice: number, // This is the Vendor SP
     platform: 'Personalized' | 'Corporate',
     category: Category | undefined,
     discountType?: 'Percentage' | 'Fixed Amount',
@@ -43,34 +43,35 @@ export async function calculateFinalPrice(
     const rules = await getCommissionRules();
     const ruleType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
     const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
-
-    // First, apply any discount to the base price
-    let discountedBasePrice = basePrice;
+    
+    // Layer 1: Vendor SP (basePrice)
+    
+    // Layer 2: Calculate Customer Price (pre-discount) by adding buffer
+    let buffer = 0;
+    if (rule) {
+        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : basePrice * (rule.bufferValue / 100);
+    }
+    const customerPrice = basePrice + buffer;
+    
+    // Layer 3: Apply discount to the Customer Price
+    let finalPrice = customerPrice;
     let hasDiscount = false;
     let discountText = '';
     
     if (discountValue && discountType) {
         hasDiscount = true;
         if (discountType === 'Percentage') {
-            discountedBasePrice = basePrice * (1 - (discountValue / 100));
+            finalPrice = customerPrice * (1 - (discountValue / 100));
             discountText = `${discountValue}% OFF`;
         } else { // Fixed Amount
-            discountedBasePrice = basePrice - discountValue;
+            finalPrice = customerPrice - discountValue;
             discountText = `₹${discountValue} OFF`;
         }
     }
     
-    let buffer = 0;
-    if (rule) {
-        // IMPORTANT: Buffer is calculated on the discounted price, not the original base price.
-        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : discountedBasePrice * (rule.bufferValue / 100);
-    }
-    
-    const finalPrice = discountedBasePrice + buffer;
-    
     return {
         finalPrice: Math.max(0, finalPrice),
-        originalPrice: basePrice, // Original price is always the pre-discount, pre-buffer price
+        originalPrice: customerPrice, // The original price shown to customer is the pre-discount price
         hasDiscount,
         discountText,
     };
