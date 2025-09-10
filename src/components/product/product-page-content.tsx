@@ -39,11 +39,8 @@ export function ProductPageContent({ product }: { product: PlainProduct }) {
         <div className="container py-8 md:py-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
                 <ProductMediaGallery
-                    name={product.name}
-                    variants={product.variants}
+                    product={product as Product}
                     selectedVariant={selectedVariant}
-                    galleryImages={product.galleryImages}
-                    videoUrl={product.videoUrl}
                 />
                 <div className="flex flex-col gap-6">
                     <ProductInfo product={product as Product} />

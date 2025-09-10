@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { PlayCircle } from 'lucide-react';
-import type { ProductVariant } from '@/lib/products';
+import type { Product, ProductVariant } from '@/lib/products';
 
 type MediaItem = {
     type: 'image' | 'video';
@@ -15,34 +15,48 @@ type MediaItem = {
 };
 
 interface ProductMediaGalleryProps {
-  name: string;
-  galleryImages?: string[];
-  videoUrl?: string;
-  variants: ProductVariant[];
+  product: Product;
   selectedVariant: ProductVariant | null;
 }
 
-export function ProductMediaGallery({ name, galleryImages = [], videoUrl, variants, selectedVariant }: ProductMediaGalleryProps) {
+export function ProductMediaGallery({ product, selectedVariant }: ProductMediaGalleryProps) {
     const [activeMedia, setActiveMedia] = React.useState<MediaItem | null>(null);
 
     const media: MediaItem[] = React.useMemo(() => {
-        if (!variants || variants.length === 0) return []; // Guard against undefined or empty variants
-        const currentVariant = selectedVariant || variants[0];
-        if (!currentVariant) return [];
+        const items: MediaItem[] = [];
         
-        const variantImages = [
-            currentVariant.image,
-            ...Object.values(currentVariant.customizationSides).map(s => s.image)
-        ].filter(Boolean) as string[];
+        const mainImage = product.image;
+        const galleryImages = product.galleryImages || [];
+        const videoUrl = product.videoUrl;
 
-        const allImages = [...new Set([...variantImages, ...galleryImages])];
+        // Determine which variant's images to use
+        const currentVariant = selectedVariant || (product.variants && product.variants.length > 0 ? product.variants[0] : null);
 
-        const mediaItems = allImages.map(url => ({ type: 'image' as const, url }));
-        if (videoUrl) {
-            mediaItems.push({ type: 'video' as const, url: videoUrl });
+        // Collect all unique image URLs
+        const imageUrls = new Set<string>();
+
+        if (currentVariant) {
+            if (currentVariant.image) imageUrls.add(currentVariant.image);
+            Object.values(currentVariant.customizationSides).forEach(side => {
+                if (side.image) imageUrls.add(side.image);
+            });
         }
-        return mediaItems;
-    }, [selectedVariant, variants, galleryImages, videoUrl]);
+        
+        // Always include the main product image as a primary option if it exists
+        if (mainImage) {
+            imageUrls.add(mainImage);
+        }
+
+        galleryImages.forEach(url => imageUrls.add(url));
+
+        imageUrls.forEach(url => items.push({ type: 'image', url }));
+
+        if (videoUrl) {
+            items.push({ type: 'video', url: videoUrl });
+        }
+        
+        return items;
+    }, [product, selectedVariant]);
     
     React.useEffect(() => {
         if (media.length > 0) {
@@ -78,7 +92,7 @@ export function ProductMediaGallery({ name, galleryImages = [], videoUrl, varian
                         {activeMedia.type === 'image' ? (
                             <Image
                                 src={activeMedia.url}
-                                alt={name}
+                                alt={product.name}
                                 fill
                                 className="object-cover"
                                 data-ai-hint="product image"
@@ -110,7 +124,7 @@ export function ProductMediaGallery({ name, galleryImages = [], videoUrl, varian
                         <div className="relative w-full h-full">
                              <Image
                                 src={item.type === 'image' ? item.url : getYouTubeThumbnail(item.url)}
-                                alt={`${name} thumbnail ${index + 1}`}
+                                alt={`${product.name} thumbnail ${index + 1}`}
                                 fill
                                 className="object-cover"
                             />
