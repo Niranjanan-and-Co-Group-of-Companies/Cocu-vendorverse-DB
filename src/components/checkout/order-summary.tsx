@@ -15,6 +15,7 @@ import { Tag, X, Plus, Minus, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getPromotionsForProduct, getPromotionByCode } from '@/lib/promotions-actions';
 import type { PlainPromotion } from '@/lib/promotions-service';
+import Link from 'next/link';
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat('en-IN', {
@@ -31,6 +32,8 @@ export function OrderSummary() {
   const [couponInput, setCouponInput] = React.useState('');
   const [appliedPromotions, setAppliedPromotions] = React.useState<PlainPromotion[]>([]);
   const [isApplying, setIsApplying] = React.useState(false);
+  
+  const [eligibleCartItemId, setEligibleCartItemId] = React.useState<string | null>(null);
 
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
@@ -48,6 +51,7 @@ export function OrderSummary() {
 
         let bestPromo: PlainPromotion | null = null;
         let maxDiscount = 0;
+        let bestCartItemId: string | null = null;
 
         for (const item of items) {
             const promos = await getPromotionsForProduct(item.id, item.category || '', item.vendorId);
@@ -65,6 +69,7 @@ export function OrderSummary() {
                 if (currentDiscount > maxDiscount) {
                     maxDiscount = currentDiscount;
                     bestPromo = promo;
+                    bestCartItemId = item.cartItemId;
                 }
             }
         }
@@ -73,42 +78,38 @@ export function OrderSummary() {
             const manualPromos = prev.filter(p => !p.visibleOnPlatform);
             return bestPromo ? [bestPromo, ...manualPromos] : manualPromos;
         });
+
+        setEligibleCartItemId(bestCartItemId);
     };
 
     findAndApplyBestPromotion();
   }, [items]);
 
-
   const discountAmount = React.useMemo(() => {
     return appliedPromotions.reduce((totalDiscount, promo) => {
-        let discount = 0;
-        
-        // Product-specific discounts
-        if (promo.appliesTo?.products?.length > 0) {
-            const applicableItems = items.filter(item => promo.appliesTo.products.includes(item.id));
-            const applicableSubtotal = applicableItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price)) * item.quantity, 0);
+      let discount = 0;
+      
+      const isProductSpecific = promo.appliesTo?.products?.length > 0;
+      
+      if (isProductSpecific) {
+          const applicableItems = items.filter(item => promo.appliesTo.products.includes(item.id));
+          const applicableSubtotal = applicableItems.reduce((sum, item) => sum + (item.displayPrice?.originalPrice || parseFloat(item.price)) * item.quantity, 0);
 
-            if (promo.type === 'Percentage') {
-                discount = applicableSubtotal * (promo.value / 100);
-            } else if (promo.type === 'Fixed Amount') {
-                discount = Math.min(promo.value, applicableSubtotal);
-            }
-        } 
-        // Cart-wide discounts (no specific products/categories/vendors targeted)
-        else if (promo.appliesTo?.categories?.length === 0 && promo.appliesTo?.vendors?.length === 0) {
-            if (promo.type === 'Percentage') {
-                discount = subtotal * (promo.value / 100);
-            } else if (promo.type === 'Fixed Amount') {
-                discount = Math.min(promo.value, subtotal);
-            }
-        }
-        // TODO: Add logic for category and vendor specific discounts if needed
-
-        return totalDiscount + discount;
-
+          if (promo.type === 'Percentage') {
+              discount = applicableSubtotal * (promo.value / 100);
+          } else if (promo.type === 'Fixed Amount') {
+              discount = Math.min(promo.value, applicableSubtotal);
+          }
+      } else { // Cart-wide promotions
+          if (promo.type === 'Percentage') {
+              discount = subtotal * (promo.value / 100);
+          } else if (promo.type === 'Fixed Amount') {
+              discount = Math.min(promo.value, subtotal);
+          }
+      }
+      return totalDiscount + discount;
     }, 0);
   }, [appliedPromotions, items, subtotal]);
-
 
   const handleRemove = (cartItemId: string, name: string) => {
     removeItem(cartItemId);
@@ -162,8 +163,11 @@ export function OrderSummary() {
     const promoToRemove = appliedPromotions.find(p => p.id === promoId);
     if (!promoToRemove) return;
     
+    if (!promoToRemove.visibleOnPlatform) {
+        setEligibleCartItemId(null);
+    }
+    
     setAppliedPromotions(prev => prev.filter(p => p.id !== promoId));
-
     toast({ title: "Coupon Removed", description: `"${promoToRemove.code}" has been removed.`, variant: "destructive" });
   };
 
@@ -259,7 +263,15 @@ export function OrderSummary() {
          </div>
           <div className="flex items-center space-x-2">
             <Checkbox id="terms-confirm" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(!!checked)} />
-            <Label htmlFor="terms-confirm" className="text-sm font-normal">I agree to the Terms & Conditions.</Label>
+            <div className="text-sm">
+                 <Label htmlFor="terms-confirm" className="font-normal">
+                    I agree to the{' '}
+                    <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">
+                        Terms & Conditions
+                    </Link>
+                    .
+                </Label>
+            </div>
          </div>
         <Button className="w-full" size="lg" disabled={!canPlaceOrder}>
           Place Order & Pay
