@@ -31,9 +31,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    serverExternalPackages: ['@firebase/auth'],
-  },
 };
 
 export default nextConfig;
