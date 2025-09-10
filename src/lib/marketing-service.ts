@@ -3,6 +3,7 @@ import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, get
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { CampaignCreative } from '@/app/admin/marketing/new/page';
+import type { Platform } from './products';
 
 export type CampaignType = 'Sale' | 'Promotion' | 'Flash Sale' | 'Content';
 export type CampaignStatus = 'Active' | 'Draft' | 'Scheduled' | 'Finished';
@@ -18,6 +19,7 @@ export interface Campaign {
   endDate: any; // Firestore Timestamp
   description?: string;
   audience?: CampaignAudience;
+  platform: Platform | 'Both';
   placement: Placement;
   creatives: Omit<CampaignCreative, 'imageFile'>[];
 }

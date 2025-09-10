@@ -32,10 +32,11 @@ const createDefaultCampaign = (): Omit<Campaign, 'id'> => ({
   endDate: new Date(new Date().setDate(new Date().getDate() + 7)),
   description: '',
   audience: 'All',
+  platform: 'Personalized',
   placement: 'homepage-hero',
   creatives: [
     {
-      id: 'creative_initial', // Use a static ID to prevent hydration errors
+      id: 'creative_initial',
       title: 'New Exciting Offer',
       description: 'Check out our latest promotion.',
       ctaText: 'Shop Now',
@@ -87,7 +88,7 @@ function NewCampaignPageContent() {
     
     const handleAddCreative = () => {
         const newCreative: CampaignCreative = {
-            id: `creative_${Date.now()}`, // Use timestamp for unique client-side IDs
+            id: `creative_${Date.now()}`,
             title: 'New Creative', description: '', ctaText: 'Learn More', ctaLink: '#',
         };
         setCampaign(prev => ({ ...prev, creatives: [...(prev.creatives || []), newCreative]}));

@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import type { Campaign, Placement } from '@/lib/marketing-service';
+import type { Platform } from '@/lib/products';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -69,6 +70,21 @@ export function CampaignDetailsCard({ campaign, onFieldChange }: CampaignDetails
                 </Select>
             </div>
         </div>
+        
+        <div className="space-y-2">
+            <Label htmlFor="platform">Platform</Label>
+            <Select value={campaign.platform} onValueChange={(value: Platform | 'Both') => onFieldChange('platform', value)}>
+                <SelectTrigger id="platform">
+                    <SelectValue placeholder="Select a platform" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="Personalized">Personalized</SelectItem>
+                    <SelectItem value="Corporate">Corporate</SelectItem>
+                    <SelectItem value="Both">Both</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
