@@ -25,8 +25,11 @@ interface LoginDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+type PortalType = 'personalized' | 'corporate';
+
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [showPassword, setShowPassword] = React.useState(false);
+  const [portalType, setPortalType] = React.useState<PortalType>('personalized');
   const { toast } = useToast();
   const router = useRouter();
 
@@ -36,12 +39,14 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     onOpenChange(false);
     // This is a simplified login, in a real app authentication would happen here
     // before redirecting.
-    router.push('/login');
+    const redirectPath = portalType === 'corporate' ? '/corporate/dashboard' : '/account';
+    router.push(redirectPath);
   };
   
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     onOpenChange(false);
+    // For now, both signups go to the same page. This can be changed later.
     router.push('/signup');
   };
 
@@ -62,6 +67,23 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             </TabsList>
             <TabsContent value="login">
                 <form className="grid gap-4 py-4" onSubmit={handleLogin}>
+                    <div className="space-y-2">
+                        <Label>Account Type</Label>
+                        <RadioGroup value={portalType} onValueChange={(value: PortalType) => setPortalType(value)} className="grid grid-cols-2 gap-4">
+                            <div>
+                                <RadioGroupItem value="personalized" id="login-personal" className="peer sr-only" />
+                                <Label htmlFor="login-personal" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <User className="mb-2"/> Personalized
+                                </Label>
+                            </div>
+                            <div>
+                                <RadioGroupItem value="corporate" id="login-corporate" className="peer sr-only" />
+                                <Label htmlFor="login-corporate" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <Briefcase className="mb-2"/> Corporate
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
                     <div className="grid gap-2">
                         <Label htmlFor="email-login">Email or Phone</Label>
                         <Input id="email-login" type="text" placeholder="m@example.com or +91..." required />
@@ -83,24 +105,41 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                     </div>
                     <Button type="submit" className="w-full">Login</Button>
                     <Button variant="outline" className="w-full">Login with Google</Button>
+                     <div className="text-center text-sm">
+                        Are you a vendor?{' '}
+                        <Link href="/vendor/login" onClick={() => onOpenChange(false)} className="underline font-semibold">
+                            Login to Vendor Portal
+                        </Link>
+                    </div>
                 </form>
             </TabsContent>
              <TabsContent value="signup">
-                <div className="text-center py-8">
-                     <p className="mb-4">Are you a customer or a vendor?</p>
-                     <div className="grid grid-cols-2 gap-4">
-                        <Button asChild variant="outline" size="lg" className="h-20 flex-col" onClick={() => onOpenChange(false)}>
-                            <Link href="/signup">
-                                <User className="mb-2"/> Customer
-                            </Link>
-                        </Button>
-                         <Button asChild variant="outline" size="lg" className="h-20 flex-col" onClick={() => onOpenChange(false)}>
-                            <Link href="/vendor/signup">
-                                <Briefcase className="mb-2"/> Vendor
-                            </Link>
-                        </Button>
-                     </div>
-                </div>
+                 <form className="grid gap-4 py-4" onSubmit={handleSignup}>
+                    <div className="space-y-2">
+                        <Label>Account Type</Label>
+                        <RadioGroup value={portalType} onValueChange={(value: PortalType) => setPortalType(value)} className="grid grid-cols-2 gap-4">
+                            <div>
+                                <RadioGroupItem value="personalized" id="signup-personal" className="peer sr-only" />
+                                <Label htmlFor="signup-personal" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <User className="mb-2"/> Personalized
+                                </Label>
+                            </div>
+                            <div>
+                                <RadioGroupItem value="corporate" id="signup-corporate" className="peer sr-only" />
+                                <Label htmlFor="signup-corporate" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <Briefcase className="mb-2"/> Corporate
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                    <Button type="submit" className="w-full">Create Account</Button>
+                    <div className="text-center text-sm">
+                        Are you a vendor?{' '}
+                        <Link href="/vendor/signup" onClick={() => onOpenChange(false)} className="underline font-semibold">
+                            Register as a Vendor
+                        </Link>
+                    </div>
+                 </form>
             </TabsContent>
         </Tabs>
       </DialogContent>
