@@ -17,6 +17,7 @@ import {
     onSnapshot,
     updateDoc,
     increment,
+    setDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { createNotification } from '../notifications-actions';
@@ -102,7 +103,8 @@ export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
 // Create a new support ticket
 export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor' | 'ticketId'>): Promise<string> {
     const timestamp = serverTimestamp();
-    const ticketId = `TKT-${Date.now().toString().slice(-6)}`;
+    const ticketRef = doc(collection(db, 'supportTickets')); // Generate a new document reference with an auto-generated ID
+    const ticketId = `TKT-${ticketRef.id.substring(0, 6).toUpperCase()}`;
 
     const ticketData = {
         ...data,
@@ -112,7 +114,7 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
         isReadByVendor: true,
         adminUnreadCount: 1, // Initialize unread count for admin
     };
-    const ticketRef = await addDoc(collection(db, 'supportTickets'), ticketData);
+    await setDoc(ticketRef, ticketData); // Use setDoc with the new reference
 
     // After creating the ticket, notify the admin
     const vendorDoc = await getDoc(doc(db, 'vendors', data.vendorId));
