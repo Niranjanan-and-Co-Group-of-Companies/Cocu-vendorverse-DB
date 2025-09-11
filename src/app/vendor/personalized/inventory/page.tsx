@@ -13,14 +13,14 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
-import { onVendorProductsUpdate, updateProductInventory } from '@/lib/products-client-service';
+import { onVendorProductsUpdate, type ProductWithStatus } from '@/lib/products-client-service';
+import { updateProductInventory } from '@/lib/products-service';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { Product } from '@/lib/products';
 import { InventoryActions } from '@/components/vendor/inventory/inventory-actions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
-import type { ProductWithStatus } from '@/lib/products-client-service';
 
 type EditingState = {
     [productId: string]: {
