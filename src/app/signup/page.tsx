@@ -7,14 +7,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Gift, Loader2 } from 'lucide-react';
+import { Gift, Loader2, Briefcase, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useRouter } from 'next/navigation';
+
+type PortalType = 'personalized' | 'corporate';
+
 
 export default function SignupPage() {
   const [step, setStep] = React.useState(1);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [portalType, setPortalType] = React.useState<PortalType>('personalized');
   const { toast } = useToast();
+  const router = useRouter();
+
 
   // Form state
   const [firstName, setFirstName] = React.useState('');
@@ -63,7 +71,9 @@ export default function SignupPage() {
      setTimeout(() => {
       setIsLoading(false);
       toast({ title: 'Account Created!', description: 'Welcome to VendorVerse.' });
-      // Here you would redirect the user, e.g., router.push('/dashboard');
+      // Redirect based on selected portal type
+      const redirectPath = portalType === 'corporate' ? '/corporate/dashboard' : '/account';
+      router.push(redirectPath);
     }, 1000);
   }
   
@@ -98,11 +108,23 @@ export default function SignupPage() {
           <CardContent>
             {step === 1 ? (
                 <form className="grid gap-4" onSubmit={handleSignup}>
-                    <Alert>
-                        <AlertDescription className="text-xs">
-                            An email or phone number can only be used for one account type (Personalized or Corporate).
-                        </AlertDescription>
-                    </Alert>
+                    <div className="space-y-2">
+                        <Label>Account Type</Label>
+                        <RadioGroup value={portalType} onValueChange={(value: PortalType) => setPortalType(value)} className="grid grid-cols-2 gap-4">
+                            <div>
+                                <RadioGroupItem value="personalized" id="signup-personal" className="peer sr-only" />
+                                <Label htmlFor="signup-personal" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <User className="mb-2"/> Personalized
+                                </Label>
+                            </div>
+                            <div>
+                                <RadioGroupItem value="corporate" id="signup-corporate" className="peer sr-only" />
+                                <Label htmlFor="signup-corporate" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <Briefcase className="mb-2"/> Corporate
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                         <Label htmlFor="first-name">First name</Label>
