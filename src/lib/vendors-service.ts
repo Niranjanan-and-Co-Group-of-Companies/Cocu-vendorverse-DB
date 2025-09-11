@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -107,7 +106,7 @@ export async function createVendorApplication(vendorData: VendorSignupData): Pro
     const newVendorRef = await addDoc(collection(db, 'vendors'), {
         name: vendorData.storeName,
         email: vendorData.email,
-        phone: '', // Placeholder
+        phone: '', // Placeholder, will be updated after KYC
         avatar: `https://i.pravatar.cc/40?u=${vendorData.email}`,
         status: 'Pending',
         joinedDate: serverTimestamp(),
@@ -124,8 +123,10 @@ export async function createVendorApplication(vendorData: VendorSignupData): Pro
         forAdmin: true,
         type: 'NEW_VENDOR_SUBMISSION',
         text: `New vendor application from ${vendorData.storeName}.`,
-        link: `/admin/vendors`
+        link: `/admin/vendors?new_id=${newVendorRef.id}`
     });
 
     return newVendorRef.id;
 }
+
+    
