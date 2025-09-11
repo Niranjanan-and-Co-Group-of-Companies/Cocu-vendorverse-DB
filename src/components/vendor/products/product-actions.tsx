@@ -55,8 +55,7 @@ export function ProductActions({ product, isCorporate = false, isHybrid = false 
   };
 
   const handleDelete = () => {
-    // In a real app, this would call a delete function from the service
-    // For now, we simulate it with a status change.
+    // In a real app, this would be a hard delete. For now, we archive.
     handleStatusChange('Archived'); 
     setIsDeleteDialogOpen(false);
     toast({
@@ -66,7 +65,7 @@ export function ProductActions({ product, isCorporate = false, isHybrid = false 
     });
   };
   
-  let basePath = '/vendor/personalized';
+  let basePath = '/vendor/personalized/products';
   if (isHybrid) {
     basePath = isCorporate ? '/vendor/both/products/corporate' : '/vendor/both/products/personalized';
   } else if (isCorporate) {
