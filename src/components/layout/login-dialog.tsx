@@ -104,16 +104,14 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
     const [password, setPassword] = React.useState('');
     const [emailOtp, setEmailOtp] = React.useState('');
     const [phoneOtp, setPhoneOtp] = React.useState('');
+    
+    const isStep1Valid = firstName && lastName && password && (email || phone);
 
     const handleSignup = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!firstName || !lastName || !password) {
-        toast({ title: 'Missing Fields', description: 'Please fill out your name and password.', variant: 'destructive' });
-        return;
-        }
-        if (!email && !phone) {
-        toast({ title: 'Contact Info Required', description: 'Please provide either an email or a phone number.', variant: 'destructive' });
-        return;
+        if (!isStep1Valid) {
+            toast({ title: 'Missing Fields', description: 'Please fill out all required fields.', variant: 'destructive' });
+            return;
         }
 
         setIsLoading(true);
@@ -203,11 +201,14 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
                         <Input id="dialog-phone" type="tel" placeholder="98765 43210" value={phone} onChange={handlePhoneChange} className="pl-10" />
                     </div>
                 </div>
+                {!email && !phone && (
+                    <p className="text-xs text-muted-foreground text-center">Please provide an email or a phone number to create an account.</p>
+                )}
                 <div className="grid gap-2">
                     <Label htmlFor="dialog-password">Password</Label>
                     <Input id="dialog-password" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading || !isStep1Valid}>
                         {isLoading && <Loader2 className="mr-2 animate-spin" />}
                         Create Account
                 </Button>

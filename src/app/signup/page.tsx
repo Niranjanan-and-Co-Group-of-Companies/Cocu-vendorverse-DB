@@ -33,15 +33,13 @@ export default function SignupPage() {
   const [emailOtp, setEmailOtp] = React.useState('');
   const [phoneOtp, setPhoneOtp] = React.useState('');
 
+  const isStep1Valid = firstName && lastName && password && (email || phone);
+
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName || !lastName || !password) {
-      toast({ title: 'Missing Fields', description: 'Please fill out your name and password.', variant: 'destructive' });
-      return;
-    }
-    if (!email && !phone) {
-      toast({ title: 'Contact Info Required', description: 'Please provide either an email or a phone number.', variant: 'destructive' });
+    if (!isStep1Valid) {
+      toast({ title: 'Missing Fields', description: 'Please fill out all required fields.', variant: 'destructive' });
       return;
     }
 
@@ -139,7 +137,7 @@ export default function SignupPage() {
                         <Label htmlFor="email">Email</Label>
                         <Input id="email" type="email" placeholder="m@example.com" value={email} onChange={e => setEmail(e.target.value)} />
                     </div>
-                     <div className="relative">
+                     <div className="relative my-2">
                       <div className="absolute inset-0 flex items-center">
                         <span className="w-full border-t" />
                       </div>
@@ -156,11 +154,14 @@ export default function SignupPage() {
                             <Input id="phone" type="tel" placeholder="98765 43210" value={phone} onChange={handlePhoneChange} className="pl-10" />
                         </div>
                     </div>
+                     {!email && !phone && (
+                        <p className="text-xs text-muted-foreground text-center">Please provide an email or a phone number to create an account.</p>
+                    )}
                     <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>
                         <Input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full" disabled={isLoading || !isStep1Valid}>
                          {isLoading && <Loader2 className="mr-2 animate-spin" />}
                          Create Account
                     </Button>
