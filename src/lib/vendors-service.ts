@@ -1,9 +1,11 @@
 
+
 'use server';
 
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 import { createNotification } from './notifications-actions';
+import { generateReadableId } from './id-service';
 
 export interface VendorKYC {
     currentStep: number; // e.g., 1 for PAN, 2 for Bank, etc.
@@ -30,6 +32,7 @@ export type VendorType = 'personalized' | 'corporate' | 'both';
 
 export interface Vendor {
   id: string;
+  vendorId: string; // Human-readable ID
   name: string;
   email: string;
   phone: string;
@@ -55,7 +58,7 @@ export interface Vendor {
   kyc: VendorKYC;
 }
 
-const MOCK_VENDORS: Omit<Vendor, 'id' | 'joinedDate'>[] = [
+const MOCK_VENDORS: Omit<Vendor, 'id' | 'joinedDate' | 'vendorId'>[] = [
     { name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', phone: '+919876543210', avatar: 'https://i.pravatar.cc/40?u=vendor001', type: 'both', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Main Kitchen', street: '123 Foodie Lane', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', country: 'India', isDefault: true }], gstProfile: { gstin: '27AAAAA0000A1Z5', legalName: 'Gourmet Delights Pvt Ltd', stateCode: '27' }, banking: { beneficiary: 'Gourmet Delights Pvt Ltd', ifsc: 'HDFC0000001', accountNoMasked: '********1234' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
     { name: 'Serene Moments', email: 'support@serenemoments.co', phone: '+919876543211', avatar: 'https://i.pravatar.cc/40?u=vendor002', type: 'personalized', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Warehouse A', street: '456 Wellness Way', city: 'Bangalore', state: 'Karnataka', pincode: '560001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: 'Serene Moments Inc', ifsc: 'ICIC0000002', accountNoMasked: '********5678' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'vendor'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } },
     { name: 'Heritage Wares', email: 'info@heritagewares.com', phone: '+919876543212', avatar: 'https://i.pravatar.cc/40?u=vendor003', type: 'corporate', status: 'Pending', pickupAddresses: [{ id: 'addr1', label: 'Workshop', street: '789 Craft Circle', city: 'Jaipur', state: 'Rajasthan', pincode: '302001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: '', ifsc: '', accountNoMasked: '' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 1, status: 'In Progress', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } },
@@ -70,7 +73,7 @@ async function seedVendors() {
         const batch = writeBatch(db);
         MOCK_VENDORS.forEach(vendor => {
             const docRef = doc(vendorsRef);
-            batch.set(docRef, { ...vendor, joinedDate: serverTimestamp() });
+            batch.set(docRef, { ...vendor, vendorId: generateReadableId('VDR'), joinedDate: serverTimestamp() });
         });
         await batch.commit();
     }
@@ -133,6 +136,7 @@ export async function createVendorApplication(vendorData: VendorSignupData): Pro
         email: vendorData.email,
         phone: vendorData.phone,
         type: vendorData.vendorType,
+        vendorId: generateReadableId('VDR'),
         avatar: `https://i.pravatar.cc/40?u=${vendorData.email}`,
         status: 'Pending',
         joinedDate: serverTimestamp(),

@@ -52,7 +52,7 @@ export default function VendorsPage() {
     const filtered = allVendors.filter(vendor => 
         vendor.name.toLowerCase().includes(lowerCaseQuery) ||
         vendor.email.toLowerCase().includes(lowerCaseQuery) ||
-        vendor.id.toLowerCase().includes(lowerCaseQuery)
+        vendor.vendorId?.toLowerCase().includes(lowerCaseQuery)
     );
     setFilteredVendors(filtered);
   }, [searchQuery, allVendors]);
@@ -189,7 +189,7 @@ export default function VendorsPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">{vendor.id}</TableCell>
+                    <TableCell className="font-mono text-xs">{vendor.vendorId}</TableCell>
                     <TableCell>
                         <div className="font-medium">{vendor.email}</div>
                     </TableCell>
