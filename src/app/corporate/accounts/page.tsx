@@ -18,6 +18,7 @@ import { useCorporateAccount } from '@/hooks/use-corporate-account-store.tsx';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { EditableProfileField } from '@/components/corporate/accounts/editable-profile-field';
+import { ChangePasswordDialog } from '@/components/corporate/accounts/change-password-dialog';
 
 // In a real app, this would come from an auth context.
 const MOCK_USER_ID = 'corp-123';
@@ -116,8 +117,11 @@ function CorporateOrdersTab() {
 }
 
 function ProfileSettingsTab() {
+    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = React.useState(false);
+
     return (
-       <Card>
+       <>
+         <Card>
            <CardHeader>
                <CardTitle>Profile Settings</CardTitle>
                 <CardDescription>Update your personal information and password.</CardDescription>
@@ -140,17 +144,18 @@ function ProfileSettingsTab() {
                     userId={MOCK_USER_ID}
                  />
                  <div className="space-y-2 pt-4 border-t">
-                     <div className="flex items-center gap-2">
-                        <KeyRound className="text-muted-foreground" />
-                        <h4 className="font-medium">Change Password</h4>
+                     <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-2">
+                            <KeyRound className="text-muted-foreground" />
+                            <h4 className="font-medium">Password</h4>
+                         </div>
+                        <Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>Change Password</Button>
                      </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input type="password" placeholder="Current Password" />
-                        <Input type="password" placeholder="New Password" />
-                    </div>
                 </div>
            </CardContent>
        </Card>
+       <ChangePasswordDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen} />
+       </>
    );
 }
 
