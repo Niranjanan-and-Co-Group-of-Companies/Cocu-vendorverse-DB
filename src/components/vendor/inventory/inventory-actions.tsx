@@ -38,9 +38,12 @@ export function InventoryActions({ product, isEditing, isSaving, onSave, isHybri
     )
   }
   
-  const editPath = isHybrid
-    ? `/vendor/both/products/${isCorporate ? 'corporate' : 'personalized'}/new?id=${product.id}`
-    : `/vendor/personalized/products/new?id=${product.id}`;
+  let editPath = `/vendor/personalized/products/new?id=${product.id}`;
+  if (isHybrid) {
+    editPath = `/vendor/both/products/${isCorporate ? 'corporate' : 'personalized'}/new?id=${product.id}`;
+  } else if (isCorporate) {
+    editPath = `/vendor/corporate/products/new?id=${product.id}`;
+  }
 
   return (
     <DropdownMenu>
