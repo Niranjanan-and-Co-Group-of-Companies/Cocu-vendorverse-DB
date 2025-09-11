@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddVendorDialog } from '@/components/admin/vendors/add-vendor-dialog';
 import { VendorActions } from '@/components/admin/vendors/vendor-actions';
@@ -22,13 +22,16 @@ import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from 
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { Vendor, VendorType } from '@/lib/vendors-service';
+import { Input } from '@/components/ui/input';
 
 
 export default function VendorsPage() {
-  const [vendors, setVendors] = React.useState<Vendor[]>([]);
+  const [allVendors, setAllVendors] = React.useState<Vendor[]>([]);
+  const [filteredVendors, setFilteredVendors] = React.useState<Vendor[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isAddUserOpen, setIsAddUserOpen] = React.useState(false);
   const [editingVendor, setEditingVendor] = React.useState<Vendor | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState('');
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -37,12 +40,22 @@ export default function VendorsPage() {
         id: doc.id,
         ...doc.data()
       } as Vendor));
-      setVendors(vendorsData);
+      setAllVendors(vendorsData);
       setLoading(false);
     });
     // Cleanup subscription on unmount
     return () => unsub();
   }, []);
+
+  React.useEffect(() => {
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    const filtered = allVendors.filter(vendor => 
+        vendor.name.toLowerCase().includes(lowerCaseQuery) ||
+        vendor.email.toLowerCase().includes(lowerCaseQuery) ||
+        vendor.id.toLowerCase().includes(lowerCaseQuery)
+    );
+    setFilteredVendors(filtered);
+  }, [searchQuery, allVendors]);
   
   const handleEdit = (vendor: Vendor) => {
     setEditingVendor(vendor);
@@ -100,16 +113,28 @@ export default function VendorsPage() {
             Here you can view, edit, and manage all vendors.
             </p>
         </div>
-        <AddVendorDialog
-            open={isAddUserOpen}
-            onOpenChange={setIsAddUserOpen}
-            vendor={editingVendor}
-        >
-            <Button onClick={() => { setEditingVendor(null); setIsAddUserOpen(true); }}>
-                <PlusCircle className="mr-2" />
-                Add Vendor
-            </Button>
-        </AddVendorDialog>
+         <div className="flex items-center gap-2">
+             <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search by name, email, ID..."
+                    className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+            <AddVendorDialog
+                open={isAddUserOpen}
+                onOpenChange={setIsAddUserOpen}
+                vendor={editingVendor}
+            >
+                <Button onClick={() => { setEditingVendor(null); setIsAddUserOpen(true); }}>
+                    <PlusCircle className="mr-2" />
+                    Add Vendor
+                </Button>
+            </AddVendorDialog>
+         </div>
       </div>
 
       <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
@@ -118,6 +143,7 @@ export default function VendorsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Vendor</TableHead>
+                <TableHead>Vendor ID</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Type</TableHead>
@@ -137,6 +163,7 @@ export default function VendorsPage() {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
@@ -149,7 +176,7 @@ export default function VendorsPage() {
                   </TableRow>
                 ))
               ) : (
-                vendors.map((vendor) => (
+                filteredVendors.map((vendor) => (
                   <TableRow key={vendor.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -162,6 +189,7 @@ export default function VendorsPage() {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell className="font-mono text-xs">{vendor.id}</TableCell>
                     <TableCell>
                         <div className="font-medium">{vendor.email}</div>
                     </TableCell>
@@ -189,4 +217,3 @@ export default function VendorsPage() {
     </div>
   );
 }
-
