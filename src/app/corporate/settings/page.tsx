@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useCorporateAccount } from '@/hooks/use-corporate-account-store';
+import { useCorporateAccount } from '@/hooks/use-corporate-account-store.tsx';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle } from 'lucide-react';

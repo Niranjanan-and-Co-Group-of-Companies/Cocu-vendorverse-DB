@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileText, Loader2 } from 'lucide-react';
-import { useCorporateAccount } from '@/hooks/use-corporate-account-store';
+import { useCorporateAccount } from '@/hooks/use-corporate-account-store.tsx';
 
 export function GstVerificationDialog() {
   const { account, isLoading, updateGstProfile } = useCorporateAccount();
