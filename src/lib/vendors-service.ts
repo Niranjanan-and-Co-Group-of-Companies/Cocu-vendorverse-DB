@@ -2,7 +2,7 @@
 
 'use server';
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 import { createNotification } from './notifications-actions';
 
@@ -57,9 +57,9 @@ export interface Vendor {
 }
 
 const MOCK_VENDORS: Omit<Vendor, 'id' | 'joinedDate'>[] = [
-    { name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', phone: '9876543210', avatar: 'https://i.pravatar.cc/40?u=vendor001', type: 'both', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Main Kitchen', street: '123 Foodie Lane', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', country: 'India', isDefault: true }], gstProfile: { gstin: '27AAAAA0000A1Z5', legalName: 'Gourmet Delights Pvt Ltd', stateCode: '27' }, banking: { beneficiary: 'Gourmet Delights Pvt Ltd', ifsc: 'HDFC0000001', accountNoMasked: '********1234' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
-    { name: 'Serene Moments', email: 'support@serenemoments.co', phone: '9876543211', avatar: 'https://i.pravatar.cc/40?u=vendor002', type: 'personalized', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Warehouse A', street: '456 Wellness Way', city: 'Bangalore', state: 'Karnataka', pincode: '560001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: 'Serene Moments Inc', ifsc: 'ICIC0000002', accountNoMasked: '********5678' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'vendor'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } },
-    { name: 'Heritage Wares', email: 'info@heritagewares.com', phone: '9876543212', avatar: 'https://i.pravatar.cc/40?u=vendor003', type: 'corporate', status: 'Pending', pickupAddresses: [{ id: 'addr1', label: 'Workshop', street: '789 Craft Circle', city: 'Jaipur', state: 'Rajasthan', pincode: '302001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: '', ifsc: '', accountNoMasked: '' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 1, status: 'In Progress', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } },
+    { name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', phone: '+919876543210', avatar: 'https://i.pravatar.cc/40?u=vendor001', type: 'both', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Main Kitchen', street: '123 Foodie Lane', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', country: 'India', isDefault: true }], gstProfile: { gstin: '27AAAAA0000A1Z5', legalName: 'Gourmet Delights Pvt Ltd', stateCode: '27' }, banking: { beneficiary: 'Gourmet Delights Pvt Ltd', ifsc: 'HDFC0000001', accountNoMasked: '********1234' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
+    { name: 'Serene Moments', email: 'support@serenemoments.co', phone: '+919876543211', avatar: 'https://i.pravatar.cc/40?u=vendor002', type: 'personalized', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Warehouse A', street: '456 Wellness Way', city: 'Bangalore', state: 'Karnataka', pincode: '560001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: 'Serene Moments Inc', ifsc: 'ICIC0000002', accountNoMasked: '********5678' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'vendor'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } },
+    { name: 'Heritage Wares', email: 'info@heritagewares.com', phone: '+919876543212', avatar: 'https://i.pravatar.cc/40?u=vendor003', type: 'corporate', status: 'Pending', pickupAddresses: [{ id: 'addr1', label: 'Workshop', street: '789 Craft Circle', city: 'Jaipur', state: 'Rajasthan', pincode: '302001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: '', ifsc: '', accountNoMasked: '' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 1, status: 'In Progress', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } },
 ];
 
 
@@ -104,14 +104,34 @@ export type VendorSignupData = {
     firstName: string;
     lastName: string;
     email: string;
+    phone: string;
     vendorType: VendorType;
 };
 
 export async function createVendorApplication(vendorData: VendorSignupData): Promise<string> {
+    const vendorsRef = collection(db, 'vendors');
+
+    // Check for existing email or phone
+    const emailQuery = query(vendorsRef, where('email', '==', vendorData.email));
+    const phoneQuery = query(vendorsRef, where('phone', '==', vendorData.phone));
+
+    const [emailSnapshot, phoneSnapshot] = await Promise.all([
+        getDocs(emailQuery),
+        getDocs(phoneQuery)
+    ]);
+
+    if (!emailSnapshot.empty) {
+        throw new Error("An account with this email address already exists.");
+    }
+    if (!phoneSnapshot.empty) {
+        throw new Error("An account with this phone number already exists.");
+    }
+
+
     const newVendorRef = await addDoc(collection(db, 'vendors'), {
         name: vendorData.storeName,
         email: vendorData.email,
-        phone: '', // Placeholder, will be updated after KYC
+        phone: vendorData.phone,
         type: vendorData.vendorType,
         avatar: `https://i.pravatar.cc/40?u=${vendorData.email}`,
         status: 'Pending',
@@ -134,5 +154,3 @@ export async function createVendorApplication(vendorData: VendorSignupData): Pro
 
     return newVendorRef.id;
 }
-
-    

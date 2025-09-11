@@ -78,19 +78,25 @@ export default function VendorSignupPage() {
 
     setIsLoading(true);
     try {
-        await createVendorApplication({ storeName, firstName, lastName, email, vendorType });
+        await createVendorApplication({ storeName, firstName, lastName, email, phone: `+91${phone}`, vendorType });
         toast({
             title: "Application Submitted!",
             description: "Your application is under review. We'll be in touch within 2-3 business days.",
             duration: 5000,
         });
         router.push('/vendor/login');
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
-        toast({ title: 'Registration Failed', description: 'Could not submit your application. Please try again.', variant: 'destructive'});
+        toast({ title: 'Registration Failed', description: error.message || 'Could not submit your application. Please try again.', variant: 'destructive'});
     } finally {
         setIsLoading(false);
     }
+  };
+  
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const numericValue = value.replace(/\D/g, '').slice(0, 10);
+    setPhone(numericValue);
   };
 
 
@@ -155,7 +161,10 @@ export default function VendorSignupPage() {
                     </div>
                      <div className="grid gap-2">
                         <Label htmlFor="phone">Phone Number</Label>
-                        <Input id="phone" name="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="9876543210" required />
+                         <div className="relative">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">+91</span>
+                            <Input id="phone" type="tel" placeholder="98765 43210" value={phone} onChange={handlePhoneChange} className="pl-10" required/>
+                        </div>
                     </div>
                      <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>
