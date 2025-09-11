@@ -72,7 +72,7 @@ function CorporateCheckoutPageContent() {
 
                 {/* Right Column */}
                 <div className="lg:sticky top-20">
-                   <CartSummary items={items} />
+                   <CartSummary items={items} isCheckoutPage={true} />
                 </div>
             </div>
         </div>

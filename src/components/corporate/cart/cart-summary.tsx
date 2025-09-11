@@ -17,9 +17,10 @@ import { Label } from '@/components/ui/label';
 
 interface CartSummaryProps {
   items: CartItem[];
+  isCheckoutPage?: boolean;
 }
 
-export function CartSummary({ items }: CartSummaryProps) {
+export function CartSummary({ items, isCheckoutPage = false }: CartSummaryProps) {
   const { toast } = useToast();
   const [couponInput, setCouponInput] = React.useState('');
   const [appliedPromotions, setAppliedPromotions] = React.useState<PlainPromotion[]>([]);
@@ -157,6 +158,14 @@ export function CartSummary({ items }: CartSummaryProps) {
   const total = subtotal - discountAmount;
   const canProceed = isConfirmed && agreedToTerms;
 
+  const ActionButton = isCheckoutPage ? (
+    <Button className="w-full" size="lg" disabled={!canProceed}>Place Order</Button>
+  ) : (
+    <Button className="w-full" size="lg" asChild disabled={!canProceed}>
+        <Link href="/corporate/checkout">Proceed to Checkout</Link>
+    </Button>
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -193,11 +202,11 @@ export function CartSummary({ items }: CartSummaryProps) {
         )}
         <div className="flex justify-between">
           <span className="text-muted-foreground">Shipping</span>
-          <span className="text-muted-foreground">Calculated at next step</span>
+          <span className="text-xs text-muted-foreground">Calculated after address entry</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Taxes</span>
-          <span className="text-muted-foreground">Calculated at next step</span>
+          <span className="text-muted-foreground">GST</span>
+          <span className="text-xs text-muted-foreground">Calculated after address entry</span>
         </div>
         <Separator />
         <div className="flex justify-between font-bold text-lg">
@@ -225,9 +234,7 @@ export function CartSummary({ items }: CartSummaryProps) {
          <p className="text-xs text-muted-foreground">
             Once an order is confirmed, it cannot be cancelled. For more details, please refer to our <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">Terms & Conditions</Link>.
          </p>
-        <Button className="w-full" size="lg" asChild disabled={!canProceed}>
-            <Link href="/corporate/checkout">Proceed to Checkout</Link>
-        </Button>
+         {ActionButton}
       </CardFooter>
     </Card>
   );
