@@ -2,141 +2,221 @@
 'use client';
 
 import * as React from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { useSearchParams } from 'next/navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { PlusCircle, User as UserIcon } from 'lucide-react';
+import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCorporateAccount } from '@/hooks/use-corporate-account-store.tsx';
-import { onCorporateUsersUpdate } from '@/lib/corporate-users-service';
-import type { User, UserRole } from '@/lib/user-service';
-import { AddUserDialog } from '@/components/corporate/accounts/add-user-dialog';
-import { UserActions } from '@/components/corporate/accounts/user-actions';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { onSnapshot, query, collection, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Order } from '@/lib/orders-service';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Eye, Building, User, KeyRound } from 'lucide-react';
+import { useCorporateAccount } from '@/hooks/use-corporate-account-store';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
+// In a real app, this would come from an auth context.
+const MOCK_USER_ID = 'corp-123';
+const MOCK_USER_NAME = 'John Smith';
 
-export default function CorporateAccountsPage() {
-    const { account } = useCorporateAccount();
-    const [users, setUsers] = React.useState<User[]>([]);
+// --- Tab Components ---
+
+function CorporateOrdersTab() {
+    const [orders, setOrders] = React.useState<Order[]>([]);
     const [loading, setLoading] = React.useState(true);
-    const [isAddUserOpen, setIsAddUserOpen] = React.useState(false);
-    const [editingUser, setEditingUser] = React.useState<User | null>(null);
 
     React.useEffect(() => {
-        if (account) {
-            const unsubscribe = onCorporateUsersUpdate(account.id, (fetchedUsers) => {
-                setUsers(fetchedUsers);
-                setLoading(false);
-            });
-            return () => unsubscribe();
-        } else {
-            setUsers([]);
+        const q = query(collection(db, 'orders'), where('customer.id', '==', MOCK_USER_ID));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+            setOrders(fetchedOrders);
             setLoading(false);
-        }
-    }, [account]);
+        });
+        return () => unsubscribe();
+    }, []);
+    
+    const formatDate = (timestamp: any) => {
+        if (!timestamp?.toDate) return 'N/A';
+        return timestamp.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
 
-    const handleEditUser = (user: User) => {
-        setEditingUser(user);
-        setIsAddUserOpen(true);
-    };
-    
-    const handleAddUserClick = () => {
-        setEditingUser(null);
-        setIsAddUserOpen(true);
-    };
-    
-    const getStatusVariant = (status: User['status']) => {
-        switch(status) {
-            case 'Active': return 'default';
+    const getStatusVariant = (status: Order['status']) => {
+        switch (status) {
+            case 'Delivered': return 'default';
+            case 'Shipped': return 'default';
+            case 'Processing':
+            case 'Preparing':
+            case 'Packaging':
+            case 'Dispatched': return 'secondary';
             case 'Pending': return 'secondary';
-            case 'Suspended': return 'destructive';
+            case 'Cancelled': return 'destructive';
             default: return 'outline';
         }
     };
     
-    const getRoleVariant = (role: UserRole): 'default' | 'secondary' | 'outline' => {
-        switch(role) {
-            case 'corporate-admin': return 'default';
-            case 'corporate-user': return 'secondary';
-            default: return 'outline';
-        }
-    };
+    const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
     return (
-        <>
-            <div className="flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold">Manage Accounts</h1>
-                        <p className="text-muted-foreground">
-                            Here you can manage your company's users and permissions.
-                        </p>
+        <Card>
+            <CardHeader>
+                <CardTitle>My Order History</CardTitle>
+                <CardDescription>Your corporate order history is displayed below.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loading ? (
+                    <div className="space-y-4">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
                     </div>
-                    <Button onClick={handleAddUserClick}>
-                        <PlusCircle className="mr-2" />
-                        Invite User
-                    </Button>
-                </div>
-                <Card>
-                    <CardContent className="p-0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>User</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                ) : orders.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">
+                        <p>You haven't placed any corporate orders yet.</p>
+                        <Button asChild className="mt-4">
+                            <Link href="/corporate/products">Start Shopping</Link>
+                        </Button>
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Order ID</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {orders.map(order => (
+                                <TableRow key={order.id}>
+                                    <TableCell className="font-mono text-xs">#{order.id.substring(0, 8)}...</TableCell>
+                                    <TableCell>{formatDate(order.date)}</TableCell>
+                                    <TableCell><Badge variant={getStatusVariant(order.status)}>{order.status}</Badge></TableCell>
+                                    <TableCell className="font-medium">{formatCurrency(order.total)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="icon">
+                                            <Link href={`/account/orders/${order.id}`}>
+                                                <Eye className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                     Array.from({length: 3}).map((_, i) => (
-                                        <TableRow key={i}>
-                                            <TableCell><div className="flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-full" /><div className="space-y-1"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-40" /></div></div></TableCell>
-                                            <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
-                                            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                                            <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : users.map(user => (
-                                    <TableRow key={user.id}>
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar>
-                                                    <AvatarImage src={user.avatar} alt={user.name} />
-                                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-medium">{user.name}</p>
-                                                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell><Badge variant={getRoleVariant(user.role)}>{user.role.replace('corporate-', '')}</Badge></TableCell>
-                                        <TableCell><Badge variant={getStatusVariant(user.status)}>{user.status}</Badge></TableCell>
-                                        <TableCell className="text-right">
-                                            <UserActions user={user} onEdit={() => handleEditUser(user)} />
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </div>
-            <AddUserDialog 
-                isOpen={isAddUserOpen}
-                onOpenChange={setIsAddUserOpen}
-                editingUser={editingUser}
-            />
-        </>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+            </CardContent>
+        </Card>
     );
+}
+
+function ProfileSettingsTab() {
+    return (
+       <Card>
+           <CardHeader>
+               <CardTitle>Profile Settings</CardTitle>
+                <CardDescription>Update your personal information and password.</CardDescription>
+           </CardHeader>
+           <CardContent className="space-y-6">
+                <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input id="name" defaultValue={MOCK_USER_NAME} />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input id="email" type="email" defaultValue="john.smith@globex.com" />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input id="phone" type="tel" defaultValue="+91 98765 43210" />
+                </div>
+                 <div className="space-y-2 pt-4 border-t">
+                     <div className="flex items-center gap-2">
+                        <KeyRound className="text-muted-foreground" />
+                        <h4 className="font-medium">Change Password</h4>
+                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input type="password" placeholder="Current Password" />
+                        <Input type="password" placeholder="New Password" />
+                    </div>
+                </div>
+           </CardContent>
+       </Card>
+   );
+}
+
+
+function CompanyDetailsTab() {
+    const { account, isLoading } = useCorporateAccount();
+    
+    if (isLoading) {
+        return <Skeleton className="h-64 w-full" />
+    }
+
+    return (
+       <Card>
+           <CardHeader>
+               <CardTitle>Company Details</CardTitle>
+                <CardDescription>This information is managed by your company admin.</CardDescription>
+           </CardHeader>
+           <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label>Company Name</Label>
+                    <p className="font-semibold text-muted-foreground">{account?.name || 'N/A'}</p>
+                </div>
+                <div className="space-y-2">
+                    <Label>GSTIN</Label>
+                    <p className="font-semibold text-muted-foreground">{account?.gstProfile?.gstin || 'Not Provided'}</p>
+                </div>
+                 <Button asChild variant="outline">
+                    <Link href="/corporate/settings">View Full Company Settings</Link>
+                </Button>
+           </CardContent>
+       </Card>
+   );
+}
+
+
+function CorporateAccountPageContent() {
+    const searchParams = useSearchParams();
+    const defaultTab = searchParams.get('tab') || 'orders';
+
+    return (
+        <div className="flex flex-col gap-8">
+            <div>
+                <h1 className="text-3xl font-bold font-headline">My Corporate Account</h1>
+                <p className="text-muted-foreground mt-2">
+                    Welcome back, {MOCK_USER_NAME}! Manage your corporate orders and settings.
+                </p>
+            </div>
+            <Tabs defaultValue={defaultTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="orders"><ShoppingCart className="mr-2" />Orders</TabsTrigger>
+                    <TabsTrigger value="profile"><User className="mr-2"/>Profile Settings</TabsTrigger>
+                    <TabsTrigger value="company"><Building className="mr-2"/>Company Details</TabsTrigger>
+                </TabsList>
+                <TabsContent value="orders" className="mt-6">
+                    <CorporateOrdersTab />
+                </TabsContent>
+                <TabsContent value="profile" className="mt-6">
+                    <ProfileSettingsTab />
+                </TabsContent>
+                <TabsContent value="company" className="mt-6">
+                    <CompanyDetailsTab />
+                </TabsContent>
+            </Tabs>
+        </div>
+    );
+}
+
+export default function CorporateAccountsPage() {
+    return (
+        <React.Suspense fallback={<Skeleton className="h-screen w-full"/>}>
+            <CorporateAccountPageContent />
+        </React.Suspense>
+    )
 }
