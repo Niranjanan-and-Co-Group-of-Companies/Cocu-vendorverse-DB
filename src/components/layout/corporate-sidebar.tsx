@@ -56,7 +56,7 @@ export function CorporateSidebar() {
     };
 
     return (
-        <Sidebar onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+        <Sidebar>
             <div className="relative h-full flex flex-col">
               <SidebarHeader className="items-center gap-4">
                 <Avatar className="size-8">

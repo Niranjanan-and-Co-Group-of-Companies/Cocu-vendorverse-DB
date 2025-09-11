@@ -3,19 +3,14 @@
 
 import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getAllProducts } from '@/lib/products-service';
-import { getProductsByCategory, onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
+import { onAllProductsUpdate, onProductsByCategoryUpdate, type ProductWithPrice } from '@/lib/products-client-service';
 import type { Product } from '@/lib/products';
 import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
+import type { DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryBySlug, type Category } from '@/lib/categories-service';
-
-interface ProductWithPrice extends Product {
-    displayPrice: DisplayPrice;
-}
 
 function CorporateProductsPageContent() {
   const searchParams = useSearchParams();
@@ -29,54 +24,26 @@ function CorporateProductsPageContent() {
   const { toast } = useToast();
 
   React.useEffect(() => {
-    let categoriesUnsubscribe: () => void;
+    setLoading(true);
+    let unsubscribe: () => void;
 
-    const fetchData = async (categories: Category[]) => {
-      setLoading(true);
-      let products;
-      let currentCategory = null;
-      if (categorySlug) {
-        currentCategory = await getCategoryBySlug(categorySlug);
-        products = await getProductsByCategory(categorySlug);
-        setTitle(currentCategory?.name || 'Corporate Products');
-      } else {
-        products = await getAllProducts();
+    if (categorySlug) {
+        getCategoryBySlug(categorySlug).then(cat => {
+            setTitle(cat?.name || 'Corporate Products');
+        });
+        unsubscribe = onProductsByCategoryUpdate(categorySlug, 'Corporate', (products) => {
+            setAllProducts(products.filter(p => p.moq && p.moq > 0));
+            setLoading(false);
+        });
+    } else {
         setTitle('Corporate Product Catalog');
-      }
-      
-      const b2bProducts = products.filter(p => p.moq && p.moq > 0);
-
-      const pricedProducts = await Promise.all(
-        b2bProducts.map(async (p) => {
-          const categoryForPrice = categories.find(c => c.name === p.category) || currentCategory;
-           const productInfo = {
-              id: p.id,
-              vendorSP: p.vendorSP,
-              category: p.category,
-              vendorId: p.vendorId,
-              tieredPricing: p.tieredPricing,
-              price: p.price,
-            };
-          return {
-            ...p,
-            displayPrice: await calculateDisplayPrice(productInfo, 'Corporate', categoryForPrice || undefined),
-          }
-        })
-      );
-      
-      setAllProducts(pricedProducts);
-      setLoading(false);
-    };
-
-    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Corporate', (categories) => {
-        fetchData(categories);
-    });
-
-    return () => {
-        if(categoriesUnsubscribe) {
-            categoriesUnsubscribe();
-        }
+        unsubscribe = onAllProductsUpdate('Corporate', (products) => {
+            setAllProducts(products);
+            setLoading(false);
+        });
     }
+    
+    return () => unsubscribe();
   }, [categorySlug]);
 
   React.useEffect(() => {

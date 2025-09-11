@@ -3,19 +3,14 @@
 
 import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getAllProducts } from '@/lib/products-service';
-import { onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
+import { onAllProductsUpdate, type ProductWithPrice } from '@/lib/products-client-service';
 import type { Product } from '@/lib/products';
 import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
-import { getCategoryBySlug, type Category } from '@/lib/categories-service';
-
-interface ProductWithPrice extends Product {
-    displayPrice: DisplayPrice;
-}
+import type { DisplayPrice } from '@/lib/pricing-service';
+import type { Category } from '@/lib/categories-service';
 
 function CorporateSearchPageContent() {
   const searchParams = useSearchParams();
@@ -28,51 +23,19 @@ function CorporateSearchPageContent() {
   const { toast } = useToast();
 
   React.useEffect(() => {
-    let categoriesUnsubscribe: () => void;
-
-    const fetchData = async (categories: Category[]) => {
-      setLoading(true);
-      const products = await getAllProducts();
-      
-      const b2bProducts = products.filter(p => {
-          const lowerCaseQuery = query.toLowerCase();
-          const matchesQuery = p.name.toLowerCase().includes(lowerCaseQuery) ||
-                               p.vendor.toLowerCase().includes(lowerCaseQuery) ||
-                               p.description?.toLowerCase().includes(lowerCaseQuery);
-          return p.moq && p.moq > 0 && matchesQuery;
-      });
-
-      const pricedProducts = await Promise.all(
-        b2bProducts.map(async (p) => {
-          const categoryForPrice = categories.find(c => c.name === p.category);
-           const productInfo = {
-              id: p.id,
-              vendorSP: p.vendorSP,
-              category: p.category,
-              vendorId: p.vendorId,
-              tieredPricing: p.tieredPricing,
-              price: p.price,
-            };
-          return {
-            ...p,
-            displayPrice: await calculateDisplayPrice(productInfo, 'Corporate', categoryForPrice || undefined),
-          }
-        })
-      );
-      
-      setAllProducts(pricedProducts);
-      setLoading(false);
-    };
-
-    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Corporate', (categories) => {
-        fetchData(categories);
+    setLoading(true);
+    const unsubscribe = onAllProductsUpdate('Corporate', (products) => {
+        const lowerCaseQuery = query.toLowerCase();
+        const results = products.filter(p => 
+             p.name.toLowerCase().includes(lowerCaseQuery) ||
+             p.vendor.toLowerCase().includes(lowerCaseQuery) ||
+             p.description?.toLowerCase().includes(lowerCaseQuery)
+        );
+        setAllProducts(results);
+        setLoading(false);
     });
 
-    return () => {
-        if(categoriesUnsubscribe) {
-            categoriesUnsubscribe();
-        }
-    }
+    return () => unsubscribe();
   }, [query]);
 
   React.useEffect(() => {
