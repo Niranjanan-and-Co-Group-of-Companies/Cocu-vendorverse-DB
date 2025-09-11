@@ -153,6 +153,12 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
     if (step === 1) {
         return (
              <form className="grid gap-4 py-4" onSubmit={handleSignup}>
+                <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription className="text-xs">
+                        An email or phone number can only be used to register one type of account (either Personalized or Corporate).
+                    </AlertDescription>
+                </Alert>
                 <div className="space-y-2">
                     <Label>Account Type</Label>
                     <RadioGroup value={portalType} onValueChange={(value: PortalType) => setPortalType(value)} className="grid grid-cols-2 gap-4">
@@ -201,9 +207,6 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
                         <Input id="dialog-phone" type="tel" placeholder="98765 43210" value={phone} onChange={handlePhoneChange} className="pl-10" />
                     </div>
                 </div>
-                {!email && !phone && (
-                    <p className="text-xs text-muted-foreground text-center">Please provide an email or a phone number to create an account.</p>
-                )}
                 <div className="grid gap-2">
                     <Label htmlFor="dialog-password">Password</Label>
                     <Input id="dialog-password" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
