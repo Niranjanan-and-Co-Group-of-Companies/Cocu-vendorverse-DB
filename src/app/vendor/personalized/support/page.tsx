@@ -19,7 +19,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import type { SupportTicket, KnowledgeBaseArticle } from '@/lib/vendor/support-service';
-import { getPopularArticles, onRecentTicketsUpdate } from '@/lib/vendor/support-service';
+import { getPopularArticles } from '@/lib/vendor/support-service';
+import { onRecentTicketsUpdate } from '@/lib/vendor/support-client-service';
 import { CreateTicketDialog } from '@/components/vendor/support/create-ticket-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';

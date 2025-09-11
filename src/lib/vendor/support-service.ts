@@ -119,23 +119,3 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
 
     return ticketRef.id;
 }
-
-
-// This function can now be used on the client
-export function onRecentTicketsUpdate(vendorId: string, callback: (tickets: SupportTicket[]) => void): Unsubscribe {
-  const ticketsRef = collection(db, 'supportTickets');
-  const q = query(
-    ticketsRef,
-    where('vendorId', '==', vendorId),
-    orderBy('lastUpdated', 'desc'),
-    limit(3)
-  );
-
-  return onSnapshot(q, (snapshot) => {
-    const tickets = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as SupportTicket));
-    callback(tickets);
-  });
-}

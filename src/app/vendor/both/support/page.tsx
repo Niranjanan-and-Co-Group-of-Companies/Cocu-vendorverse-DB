@@ -19,14 +19,13 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import type { SupportTicket, KnowledgeBaseArticle } from '@/lib/vendor/support-service';
-import { getPopularArticles, onRecentTicketsUpdate } from '@/lib/vendor/support-service';
+import { getPopularArticles } from '@/lib/vendor/support-service';
+import { onRecentTicketsUpdate } from '@/lib/vendor/support-client-service';
 import { CreateTicketDialog } from '@/components/vendor/support/create-ticket-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
-import { collection, onSnapshot, query, where, orderBy, limit, type Unsubscribe } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 // In a real app, this would come from an auth context
