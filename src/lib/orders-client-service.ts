@@ -1,13 +1,16 @@
 
+
 'use client';
 
 import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Order, OrderItem, OrderStatus } from './orders-service';
 import type { VendorOrder } from '@/app/vendor/personalized/orders/page';
+import { generateReadableId } from './id-service';
 
 const MOCK_ORDERS: Omit<Order, 'id'>[] = [
     {
+        orderId: generateReadableId('ORD'),
         customer: {
             id: 'user001',
             name: 'Alice Johnson',
@@ -17,8 +20,8 @@ const MOCK_ORDERS: Omit<Order, 'id'>[] = [
             pincode: '62704'
         },
         items: [
-            { id: '1', name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', price: '₹45.00', image: 'https://picsum.photos/600/400?random=1', rating: 4.8, customizable: true, quantity: 1, category: "Food & Drink", featured: true, vendorId: 'vendor001', status: 'Live', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], mainVariantId: null, allowedCustomizations: ['Text', 'Image Upload'], packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }, preparationTime: { min: 3, max: 4}, preparationTimeUnit: 'days', name_lowercase: 'artisanal chocolate box' },
-            { id: '2', name: 'Luxury Spa Set', vendor: 'Serene Moments', price: '₹85.00', image: 'https://picsum.photos/600/400?random=2', rating: 4.9, customizable: false, quantity: 1, category: 'Wellness', featured: true, vendorId: 'vendor002', status: 'Live', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], mainVariantId: null, allowedCustomizations: [], packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }, preparationTime: { min: 3, max: 4}, preparationTimeUnit: 'days', name_lowercase: 'luxury spa set' },
+            { id: '1', name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', price: '₹45.00', image: 'https://picsum.photos/seed/choco/600/400', rating: 4.8, customizable: true, quantity: 1, category: "Food & Drink", featured: true, vendorId: 'vendor001', status: 'Live', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], mainVariantId: null, allowedCustomizations: ['Text', 'Image Upload'], packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }, preparationTime: { min: 3, max: 4}, preparationTimeUnit: 'days', name_lowercase: 'artisanal chocolate box' },
+            { id: '2', name: 'Luxury Spa Set', vendor: 'Serene Moments', price: '₹85.00', image: 'https://picsum.photos/seed/spa/600/400', rating: 4.9, customizable: false, quantity: 1, category: 'Wellness', featured: true, vendorId: 'vendor002', status: 'Live', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], mainVariantId: null, allowedCustomizations: [], packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }, preparationTime: { min: 3, max: 4}, preparationTimeUnit: 'days', name_lowercase: 'luxury spa set' },
         ],
         status: 'Delivered',
         statusTimeline: [{ status: 'Delivered', at: Timestamp.fromDate(new Date(2023, 10, 5)) }],
@@ -29,9 +32,38 @@ const MOCK_ORDERS: Omit<Order, 'id'>[] = [
         payment: { method: 'Visa **** 4242', transactionId: 'txn_1', status: 'Paid' },
         commission: 13.00,
     },
+    {
+        orderId: generateReadableId('ORD'),
+        customer: {
+            id: 'user001',
+            name: 'Alice Johnson',
+            email: 'alice.j@example.com',
+            avatar: 'https://i.pravatar.cc/40?u=user001',
+            shippingAddress: '123 Maple St, Springfield, IL',
+            pincode: '62704'
+        },
+        items: [
+            { id: '1', name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', price: '₹45.00', image: 'https://picsum.photos/seed/choco/600/400', rating: 4.8, customizable: true, quantity: 1, category: "Food & Drink", featured: true, vendorId: 'vendor001', status: 'Live', customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] }, variants: [], mainVariantId: null, allowedCustomizations: ['Text', 'Image Upload'], packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }, preparationTime: { min: 3, max: 4}, preparationTimeUnit: 'days', name_lowercase: 'artisanal chocolate box' },
+        ],
+        status: 'Delivered',
+        statusTimeline: [{ status: 'Delivered', at: Timestamp.fromDate(new Date(2023, 10, 5)) }],
+        date: Timestamp.fromDate(new Date(2023, 10, 5)),
+        subtotal: 45.00,
+        shipping: 5.00,
+        total: 50.00,
+        payment: { method: 'Visa **** 4242', transactionId: 'txn_2', status: 'Paid' },
+        commission: 4.50,
+    },
 ];
 
 async function seedOrders() {
+    const seedFlagRef = doc(db, 'internal_flags', 'ordersSeeded_v2');
+    const seedFlagSnap = await getDoc(seedFlagRef);
+
+    if (seedFlagSnap.exists()) {
+        return; 
+    }
+    
     const ordersRef = collection(db, "orders");
     const snapshot = await getDocs(ordersRef);
     if (snapshot.empty) {
@@ -42,6 +74,7 @@ async function seedOrders() {
         });
         await batch.commit();
     }
+    await setDoc(seedFlagRef, { completed: true });
 }
 
 
