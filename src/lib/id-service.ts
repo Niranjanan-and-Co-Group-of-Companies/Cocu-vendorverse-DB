@@ -1,5 +1,4 @@
 
-'use server';
 
 const ID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ123456789';
 const ID_LENGTH = 6;
