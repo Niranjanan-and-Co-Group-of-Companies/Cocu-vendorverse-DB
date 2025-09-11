@@ -159,14 +159,14 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
                     <Label>Account Type</Label>
                     <RadioGroup value={portalType} onValueChange={(value: PortalType) => setPortalType(value)} className="grid grid-cols-2 gap-4">
                         <div>
-                            <RadioGroupItem value="personalized" id="signup-personal" className="peer sr-only" />
-                            <Label htmlFor="signup-personal" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                            <RadioGroupItem value="personalized" id="dialog-signup-personal" className="peer sr-only" />
+                            <Label htmlFor="dialog-signup-personal" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                                 <User className="mb-2"/> Personalized
                             </Label>
                         </div>
                         <div>
-                            <RadioGroupItem value="corporate" id="signup-corporate" className="peer sr-only" />
-                            <Label htmlFor="signup-corporate" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                            <RadioGroupItem value="corporate" id="dialog-signup-corporate" className="peer sr-only" />
+                            <Label htmlFor="dialog-signup-corporate" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                                 <Briefcase className="mb-2"/> Corporate
                             </Label>
                         </div>
@@ -174,28 +174,38 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
                 </div>
                  <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="first-name">First name</Label>
-                        <Input id="first-name" placeholder="Max" required value={firstName} onChange={e => setFirstName(e.target.value)} />
+                        <Label htmlFor="dialog-first-name">First name</Label>
+                        <Input id="dialog-first-name" placeholder="Max" required value={firstName} onChange={e => setFirstName(e.target.value)} />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="last-name">Last name</Label>
-                        <Input id="last-name" placeholder="Robinson" required value={lastName} onChange={e => setLastName(e.target.value)} />
+                        <Label htmlFor="dialog-last-name">Last name</Label>
+                        <Input id="dialog-last-name" placeholder="Robinson" required value={lastName} onChange={e => setLastName(e.target.value)} />
                     </div>
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="m@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+                    <Label htmlFor="dialog-email">Email</Label>
+                    <Input id="dialog-email" type="email" placeholder="m@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+                </div>
+                <div className="relative my-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or
+                    </span>
+                  </div>
                 </div>
                     <div className="grid gap-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="dialog-phone">Phone Number</Label>
                     <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">+91</span>
-                        <Input id="phone" type="tel" placeholder="98765 43210" value={phone} onChange={handlePhoneChange} className="pl-10" />
+                        <Input id="dialog-phone" type="tel" placeholder="98765 43210" value={phone} onChange={handlePhoneChange} className="pl-10" />
                     </div>
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
+                    <Label htmlFor="dialog-password">Password</Label>
+                    <Input id="dialog-password" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                         {isLoading && <Loader2 className="mr-2 animate-spin" />}
@@ -211,14 +221,14 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
             <p className="text-sm text-center text-muted-foreground">We've sent a code to your {email ? 'email' : ''}{email && phone ? ' and ' : ''}{phone ? 'phone' : ''}. (Hint: 123456)</p>
             {email && (
             <div className="grid gap-2">
-                <Label htmlFor="email-otp">Email OTP</Label>
-                <Input id="email-otp" placeholder="123456" required value={emailOtp} onChange={e => setEmailOtp(e.target.value)} />
+                <Label htmlFor="dialog-email-otp">Email OTP</Label>
+                <Input id="dialog-email-otp" placeholder="123456" required value={emailOtp} onChange={e => setEmailOtp(e.target.value)} />
             </div>
             )}
             {phone && (
             <div className="grid gap-2">
-                <Label htmlFor="phone-otp">Phone OTP</Label>
-                <Input id="phone-otp" placeholder="123456" required value={phoneOtp} onChange={e => setPhoneOtp(e.target.value)} />
+                <Label htmlFor="dialog-phone-otp">Phone OTP</Label>
+                <Input id="dialog-phone-otp" placeholder="123456" required value={phoneOtp} onChange={e => setPhoneOtp(e.target.value)} />
             </div>
             )}
             <Button type="submit" className="w-full" disabled={isLoading}>
