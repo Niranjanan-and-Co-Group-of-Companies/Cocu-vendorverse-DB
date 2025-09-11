@@ -37,17 +37,21 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(`Logging in to ${portalType} portal...`);
     onOpenChange(false);
      if (portalType === 'vendor') {
-        router.push('/vendor/personalized/dashboard');
+        router.push('/vendor/login');
     } else {
-        router.push('/account');
+        router.push('/login');
     }
   };
   
   const handleSignupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (portalType === 'vendor') {
+        onOpenChange(false);
+        router.push('/vendor/signup');
+        return;
+    }
     // In a real app, you'd check if passwords match and if email exists, then send an OTP.
     console.log(`Initiating sign up for ${portalType} portal...`);
     setSignupStep(2);
@@ -170,14 +174,14 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                             <Label>Sign up with</Label>
                             <RadioGroup value={signupMethod} onValueChange={(value) => setSignupMethod(value as any)} className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <RadioGroupItem value="email" id="email-radio" className="peer sr-only" />
-                                    <Label htmlFor="email-radio" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <RadioGroupItem value="email" id="email-radio-dialog" className="peer sr-only" />
+                                    <Label htmlFor="email-radio-dialog" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                                         <Mail className="mr-2 h-4 w-4" /> Email
                                     </Label>
                                 </div>
                                 <div>
-                                    <RadioGroupItem value="phone" id="phone-radio" className="peer sr-only" />
-                                    <Label htmlFor="phone-radio" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <RadioGroupItem value="phone" id="phone-radio-dialog" className="peer sr-only" />
+                                    <Label htmlFor="phone-radio-dialog" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                                         <Phone className="mr-2 h-4 w-4" /> Phone
                                     </Label>
                                 </div>

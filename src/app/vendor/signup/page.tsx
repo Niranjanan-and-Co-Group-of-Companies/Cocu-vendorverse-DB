@@ -81,7 +81,7 @@ export default function VendorSignupPage() {
             description: "Your application is under review. We'll be in touch within 2-3 business days.",
             duration: 5000,
         });
-        router.push('/login');
+        router.push('/vendor/login');
     } catch (error) {
         console.error(error);
         toast({ title: 'Registration Failed', description: 'Could not submit your application. Please try again.', variant: 'destructive'});
@@ -187,7 +187,7 @@ export default function VendorSignupPage() {
             )}
             <div className="mt-4 text-center text-sm">
               Already have an account?{' '}
-              <Link href="/login" className="underline">
+              <Link href="/vendor/login" className="underline">
                 Log in
               </Link>
             </div>
@@ -197,5 +197,3 @@ export default function VendorSignupPage() {
     </div>
   );
 }
-
-    

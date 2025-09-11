@@ -10,13 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Gift } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
+export default function VendorLoginPage() {
     const router = useRouter();
     
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, you would authenticate here.
-        router.push('/account'); // Redirect customer to their account page
+        // In a real app, you would authenticate here, check vendor type,
+        // and redirect to the appropriate dashboard.
+        router.push('/vendor/personalized/dashboard');
     };
 
   return (
@@ -30,9 +31,9 @@ export default function LoginPage() {
         </div>
         <Card>
             <CardHeader>
-            <CardTitle className="text-2xl font-headline">Customer Login</CardTitle>
+            <CardTitle className="text-2xl font-headline">Vendor Portal Login</CardTitle>
             <CardDescription>
-                Enter your credentials to access your account.
+                Enter your credentials to access your dashboard.
             </CardDescription>
             </CardHeader>
             <CardContent>
@@ -55,14 +56,14 @@ export default function LoginPage() {
                 </Button>
                 <div className="text-center text-sm">
                     Don't have an account?{' '}
-                    <Link href={'/signup'} className="underline">
-                        Sign up
+                    <Link href={'/vendor/signup'} className="underline">
+                        Register as a Vendor
                     </Link>
                 </div>
                  <div className="text-center text-sm mt-4">
-                    Are you a vendor?{' '}
-                    <Link href="/vendor/login" className="underline font-semibold">
-                        Login to Vendor Portal
+                    Not a vendor?{' '}
+                    <Link href="/login" className="underline font-semibold">
+                        Login to Customer Portal
                     </Link>
                 </div>
             </form>
