@@ -17,6 +17,7 @@ import { OrganizeCard } from '@/components/vendor/products/new/organize-card';
 import { AllowedCustomizationsCard } from '@/components/vendor/products/new/allowed-customizations-card';
 import type { CustomizationSide, AllowedCustomizationType, CustomizationArea, ProductVariant } from '@/lib/products';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ProductVariantsCard } from '@/components/vendor/products/new/product-variants-card';
 
 const createDefaultProduct = (): Partial<Product> => ({
   name: '',
@@ -43,7 +44,7 @@ const createDefaultProduct = (): Partial<Product> => ({
   },
   galleryImages: [],
   videoUrl: '',
-  packaging: { weight: 0, dimensions: {l: 0, w: 0, h: 0 }},
+  packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } },
   inventoryBuffer: 0,
   category: '',
   tags: [],
@@ -139,7 +140,7 @@ function ProductEditorContent() {
         
         setIsSaving(true);
         const finalStatus = publish ? 'Pending Review' : 'Draft';
-        const productToSave = { ...product, status: finalStatus } as Product;
+        const productToSave = { ...product, status: finalStatus, mainVariantId } as Product;
         
         try {
             await saveProduct(productToSave, imageFiles, galleryImageFiles);
@@ -189,7 +190,7 @@ function ProductEditorContent() {
                     </Button>
                      <Button onClick={() => handleSave(true)} disabled={isSaving || !isVerified}>
                         <UploadCloud className="mr-2" />
-                        {isSaving ? 'Publishing...' : 'Publish Product'}
+                        {isSaving ? 'Publishing...' : 'Submit for Review'}
                     </Button>
                  </div>
             </div>
@@ -209,6 +210,12 @@ function ProductEditorContent() {
                         description={product.description || ''}
                         onFieldChange={handleFieldChange}
                     />
+                    <ProductVariantsCard 
+                        variants={product.variants || []}
+                        onFieldChange={handleFieldChange}
+                        mainVariantId={mainVariantId}
+                        onMainVariantChange={setMainVariantId}
+                     />
                     <MediaAndCustomizationCard 
                         product={product as Product}
                         onFieldChange={handleFieldChange}
@@ -257,3 +264,4 @@ export default function NewProductPage() {
         </React.Suspense>
     );
 }
+
