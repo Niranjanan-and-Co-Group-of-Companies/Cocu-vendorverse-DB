@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
@@ -154,4 +153,10 @@ export async function createVendorApplication(vendorData: VendorSignupData): Pro
     });
 
     return newVendorRef.id;
+}
+
+
+export async function updateVendorSettings(vendorId: string, data: Partial<Vendor>) {
+    const vendorRef = doc(db, 'vendors', vendorId);
+    await updateDoc(vendorRef, data);
 }
