@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -56,7 +55,7 @@ export function PricingAndInventoryCard({
           </div>
         </div>
 
-        <div className="space-y-4 rounded-lg border p-4">
+        {/* <div className="space-y-4 rounded-lg border p-4">
              <h4 className="font-medium">Discount (Optional)</h4>
              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -83,7 +82,7 @@ export function PricingAndInventoryCard({
                     />
                 </div>
             </div>
-        </div>
+        </div> */}
 
         <div className="space-y-2">
           <Label htmlFor="stock">Stock Quantity</Label>
