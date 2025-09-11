@@ -29,7 +29,7 @@ export function VendorOrderActions({ order, onViewDetails }: VendorOrderActionsP
         </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        <DropdownMenuLabel>Actions for {order.orderId}</DropdownMenuLabel>
         <DropdownMenuItem onClick={onViewDetails}>
             <FileText className="mr-2 h-4 w-4" />
             View Details

@@ -90,7 +90,7 @@ function OrdersTab() {
                         <TableBody>
                             {orders.map(order => (
                                 <TableRow key={order.id}>
-                                    <TableCell className="font-mono text-xs">#{order.id.substring(0, 8)}...</TableCell>
+                                    <TableCell className="font-mono">{order.orderId}</TableCell>
                                     <TableCell>{formatDate(order.date)}</TableCell>
                                     <TableCell><Badge variant={getStatusVariant(order.status)}>{order.status}</Badge></TableCell>
                                     <TableCell className="font-medium">{formatCurrency(order.total)}</TableCell>

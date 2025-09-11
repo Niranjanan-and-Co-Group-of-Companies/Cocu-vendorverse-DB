@@ -94,7 +94,7 @@ function OrderDetailsPageContent({ id }: { id: string }) {
 
              <div>
                 <h1 className="text-2xl font-bold font-headline">Order Details</h1>
-                <p className="text-muted-foreground">Order ID: <span className="font-mono">{order.id}</span></p>
+                <p className="text-muted-foreground">Order ID: <span className="font-mono">{order.orderId}</span></p>
             </div>
 
             <Card>
@@ -167,4 +167,3 @@ export default function CustomerOrderDetailsPage({ params }: { params: { id: str
         </React.Suspense>
     );
 }
-

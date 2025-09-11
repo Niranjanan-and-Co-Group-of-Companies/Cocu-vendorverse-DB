@@ -18,7 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order, OrderStatus } from '@/lib/orders-service';
-import { onVendorOrdersUpdate, updateOrderStatus } from '@/lib/orders-service';
+import { onVendorOrdersUpdate } from '@/lib/orders-client-service';
+import { updateOrderStatus } from '@/lib/orders-service';
 import { VendorOrderActions } from '@/components/vendor/orders/vendor-order-actions';
 import { VendorOrderDetailsDialog } from '@/components/vendor/orders/vendor-order-details-dialog';
 import Image from 'next/image';
@@ -136,7 +137,7 @@ export default function VendorOrdersPage() {
                              const totalQuantity = vendorItems.reduce((sum, item) => sum + item.quantity, 0);
                             return (
                                 <TableRow key={order.id}>
-                                    <TableCell className="font-mono text-xs">#{order.id.slice(0, 8)}...</TableCell>
+                                    <TableCell className="font-mono">{order.orderId}</TableCell>
                                      <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Image src={primaryItem.image} alt={primaryItem.name} width={40} height={40} className="rounded-md object-cover" />

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -119,7 +118,7 @@ export function VendorOrderDetailsDialog({ open, onOpenChange, order, vendorName
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>Order Details for #{order.id.slice(0,8)}...</span>
+            <span>Order Details for {order.orderId}</span>
             <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
           </DialogTitle>
           <DialogDescription>

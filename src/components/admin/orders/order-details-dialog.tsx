@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -71,7 +70,7 @@ export function OrderDetailsDialog({ open, onOpenChange, order }: OrderDetailsDi
             <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
           </DialogTitle>
           <div className="text-sm text-muted-foreground">
-             <p>Order ID: <span className="font-mono">{order.id}</span></p>
+             <p>Order ID: <span className="font-mono">{order.orderId}</span></p>
              <p>Placed on: {formatDate(order.date)}</p>
           </div>
         </DialogHeader>

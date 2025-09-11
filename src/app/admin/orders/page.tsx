@@ -58,7 +58,7 @@ export default function OrdersPage() {
         if (searchQuery) {
             const lowerCaseQuery = searchQuery.toLowerCase();
             orders = orders.filter(order => 
-                order.id.toLowerCase().includes(lowerCaseQuery) ||
+                order.orderId.toLowerCase().includes(lowerCaseQuery) ||
                 order.customer.name.toLowerCase().includes(lowerCaseQuery) ||
                 order.customer.email.toLowerCase().includes(lowerCaseQuery)
             );
@@ -208,7 +208,7 @@ export default function OrdersPage() {
                                         </TableRow>
                                     )) : filteredOrders.map(order => (
                                         <TableRow key={order.id}>
-                                            <TableCell className="font-mono text-xs">#{order.id.slice(0, 8)}...</TableCell>
+                                            <TableCell className="font-mono">{order.orderId}</TableCell>
                                             <TableCell className="font-medium">{order.customer.name}</TableCell>
                                             <TableCell>{formatDate(order.date)}</TableCell>
                                             <TableCell>
