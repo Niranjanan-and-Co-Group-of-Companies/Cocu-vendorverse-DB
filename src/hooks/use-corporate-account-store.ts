@@ -54,7 +54,7 @@ const useCorporateAccountStore = create<CorporateAccountState>((set, get) => ({
 }));
 
 // This provider component fetches the data and hydrates the store.
-export const CorporateAccountProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const CorporateAccountProvider: React.FC<{ children: React.ReactNode }> = ({ children }): React.ReactElement => {
   const setAccount = useCorporateAccountStore(state => state.setAccount);
 
   React.useEffect(() => {
