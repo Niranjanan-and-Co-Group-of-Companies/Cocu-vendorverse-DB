@@ -1,6 +1,6 @@
 
 
-import { doc, getDoc, collection, onSnapshot, Unsubscribe, setDoc, serverTimestamp, getDocs, writeBatch, query, where, limit } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, Unsubscribe, setDoc, serverTimestamp, getDocs, writeBatch, query, where, limit, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 export type UserRole = 'customer' | 'vendor' | 'admin' | 'corporate-admin' | 'corporate-user';
@@ -9,6 +9,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   avatar: string;
   role: UserRole;
   status: 'Active' | 'Suspended' | 'Pending'; // Added 'Pending' for invited users
@@ -18,44 +19,48 @@ export interface User {
 }
 
 const MOCK_USERS: Omit<User, 'id' | 'joinedDate'>[] = [
-    { name: 'Alice Johnson', email: 'alice.j@example.com', avatar: 'https://i.pravatar.cc/40?u=user001', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: false } },
-    { name: 'Admin User', email: 'admin@vendorverse.com', avatar: 'https://i.pravatar.cc/40?u=admin', role: 'admin', status: 'Active', communicationPrefs: { email: true, sms: true } },
-    { name: 'Bob Williams', email: 'bob.w@example.com', avatar: 'https://i.pravatar.cc/40?u=user002', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: true } },
-    { name: 'Charlie Brown', email: 'charlie.b@example.com', avatar: 'https://i.pravatar.cc/40?u=user003', role: 'customer', status: 'Suspended', communicationPrefs: { email: false, sms: false } },
-    { name: 'Diana Prince', email: 'diana.p@example.com', avatar: 'https://i.pravatar.cc/40?u=user004', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: true } },
+    { name: 'Alice Johnson', email: 'alice.j@example.com', phone: '+919876543210', avatar: 'https://i.pravatar.cc/40?u=user001', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: false } },
+    { name: 'Admin User', email: 'admin@vendorverse.com', phone: '+919999999999', avatar: 'https://i.pravatar.cc/40?u=admin', role: 'admin', status: 'Active', communicationPrefs: { email: true, sms: true } },
+    { name: 'Bob Williams', email: 'bob.w@example.com', phone: '+919876543211', avatar: 'https://i.pravatar.cc/40?u=user002', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: true } },
+    { name: 'Charlie Brown', email: 'charlie.b@example.com', phone: '+919876543212', avatar: 'https://i.pravatar.cc/40?u=user003', role: 'customer', status: 'Suspended', communicationPrefs: { email: false, sms: false } },
+    { name: 'Diana Prince', email: 'diana.p@example.com', phone: '+919876543213', avatar: 'https://i.pravatar.cc/40?u=user004', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: true } },
     // Corporate Users for Globex
-    { name: 'John Smith', email: 'john.smith@globex.com', avatar: 'https://i.pravatar.cc/40?u=corp1', role: 'corporate-admin', status: 'Active', communicationPrefs: { email: true, sms: true }, corporateAccountId: 'zR2K8aaI11ueHqC3K24r' },
-    { name: 'Sarah Connor', email: 'sarah.connor@globex.com', avatar: 'https://i.pravatar.cc/40?u=corp2', role: 'corporate-user', status: 'Active', communicationPrefs: { email: true, sms: false }, corporateAccountId: 'zR2K8aaI11ueHqC3K24r' },
-    { name: 'Kyle Reese', email: 'kyle.reese@globex.com', avatar: 'https://i.pravatar.cc/40?u=corp3', role: 'corporate-user', status: 'Pending', communicationPrefs: { email: true, sms: true }, corporateAccountId: 'zR2K8aaI11ueHqC3K24r' },
+    { name: 'John Smith', email: 'john.smith@globex.com', phone: '+91 98765 43210', avatar: 'https://i.pravatar.cc/40?u=corp1', role: 'corporate-admin', status: 'Active', communicationPrefs: { email: true, sms: true }, corporateAccountId: 'zR2K8aaI11ueHqC3K24r' },
+    { name: 'Sarah Connor', email: 'sarah.connor@globex.com', phone: '+919876543214', avatar: 'https://i.pravatar.cc/40?u=corp2', role: 'corporate-user', status: 'Active', communicationPrefs: { email: true, sms: false }, corporateAccountId: 'zR2K8aaI11ueHqC3K24r' },
+    { name: 'Kyle Reese', email: 'kyle.reese@globex.com', phone: '+919876543215', avatar: 'https://i.pravatar.cc/40?u=corp3', role: 'corporate-user', status: 'Pending', communicationPrefs: { email: true, sms: true }, corporateAccountId: 'zR2K8aaI11ueHqC3K24r' },
 ];
 
 async function seedUsers() {
-    const seedFlagRef = doc(db, 'internal_flags', 'usersSeeded_v3');
+    const seedFlagRef = doc(db, 'internal_flags', 'usersSeeded_v4');
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return;
     }
 
-    console.log("Seeding mock users v3...");
+    console.log("Seeding mock users v4...");
     const usersRef = collection(db, 'users');
     const snapshot = await getDocs(usersRef);
-    const existingEmails = new Set(snapshot.docs.map(d => d.data().email));
+    
+    // Clear existing users to ensure clean seed
+    if (!snapshot.empty) {
+        const deleteBatch = writeBatch(db);
+        snapshot.docs.forEach(doc => deleteBatch.delete(doc.ref));
+        await deleteBatch.commit();
+    }
 
     const batch = writeBatch(db);
     MOCK_USERS.forEach(user => {
-        if (!existingEmails.has(user.email)) {
-            const userRef = doc(usersRef);
-            batch.set(userRef, {
-                ...user,
-                joinedDate: serverTimestamp()
-            });
-        }
+        const userRef = doc(usersRef);
+        batch.set(userRef, {
+            ...user,
+            joinedDate: serverTimestamp()
+        });
     });
     await batch.commit();
 
     await setDoc(seedFlagRef, { completed: true });
-    console.log("Mock users seeding v3 complete.");
+    console.log("Mock users seeding v4 complete.");
 }
 seedUsers();
 
@@ -88,4 +93,9 @@ export function onUsersUpdate(callback: (users: User[]) => void): Unsubscribe {
         callback(users);
     });
     return unsubscribe;
+}
+
+export async function updateUserContact(userId: string, field: 'email' | 'phone', value: string) {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, { [field]: value });
 }

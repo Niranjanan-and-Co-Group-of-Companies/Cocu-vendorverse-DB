@@ -17,6 +17,7 @@ import { Eye, Building, User, KeyRound, ShoppingCart } from 'lucide-react';
 import { useCorporateAccount } from '@/hooks/use-corporate-account-store.tsx';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { EditableProfileField } from '@/components/corporate/accounts/editable-profile-field';
 
 // In a real app, this would come from an auth context.
 const MOCK_USER_ID = 'corp-123';
@@ -126,14 +127,18 @@ function ProfileSettingsTab() {
                     <Label htmlFor="name">Full Name</Label>
                     <Input id="name" defaultValue={MOCK_USER_NAME} />
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" type="email" defaultValue="john.smith@globex.com" />
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" defaultValue="+91 98765 43210" />
-                </div>
+                 <EditableProfileField
+                    label="Email Address"
+                    fieldType="email"
+                    initialValue="john.smith@globex.com"
+                    userId={MOCK_USER_ID}
+                 />
+                <EditableProfileField
+                    label="Phone Number"
+                    fieldType="tel"
+                    initialValue="+91 98765 43210"
+                    userId={MOCK_USER_ID}
+                 />
                  <div className="space-y-2 pt-4 border-t">
                      <div className="flex items-center gap-2">
                         <KeyRound className="text-muted-foreground" />
