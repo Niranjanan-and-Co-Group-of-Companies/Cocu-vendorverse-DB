@@ -120,14 +120,6 @@ function VendorSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/personalized/analytics')} tooltip={{ children: 'Analytics' }}>
-                            <Link href="/vendor/personalized/analytics">
-                                <LineChart />
-                                <span>Analytics</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/personalized/support')} tooltip={{ children: 'Support' }}>
                             <Link href="/vendor/personalized/support">
                                 <LifeBuoy />

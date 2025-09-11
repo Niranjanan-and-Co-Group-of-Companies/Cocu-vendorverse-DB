@@ -130,11 +130,6 @@ function CorporateVendorSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/analytics')} tooltip={{ children: 'Analytics' }}>
-                            <Link href="/vendor/corporate/analytics"><LineChart /><span>Analytics</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/messages')} tooltip={{ children: 'Messages' }}>
                             <Link href="/vendor/corporate/messages"><MessageSquare /><span>Messages</span></Link>
                         </SidebarMenuButton>

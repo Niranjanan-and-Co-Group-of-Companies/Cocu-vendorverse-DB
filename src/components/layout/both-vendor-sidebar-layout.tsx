@@ -156,7 +156,7 @@ function BothVendorSidebar() {
 
                     <SidebarMenuItem>
                         <InventorySwitcher>
-                            <SidebarMenuButton isActive={isActive('/vendor/both/inventory')} tooltip={{ children: 'Inventory' }}>
+                            <SidebarMenuButton isActive={isActive('/vendor/both/inventory') || isActive('/vendor/corporate/inventory')} tooltip={{ children: 'Inventory' }}>
                                 <Warehouse /><span>Inventory</span>
                             </SidebarMenuButton>
                         </InventorySwitcher>
@@ -172,14 +172,6 @@ function BothVendorSidebar() {
                         <SidebarMenuButton asChild isActive={isActive('/vendor/both/quotes')} tooltip={{ children: 'Quotes (Corporate)' }}>
                             <Link href="/vendor/both/quotes"><FileText /><span>Quotes</span></Link>
                         </SidebarMenuButton>
-                    </SidebarMenuItem>
-
-                     <SidebarMenuItem>
-                        <PlatformSwitcher path="analytics">
-                            <SidebarMenuButton isActive={isActive('/vendor/both/analytics')} tooltip={{ children: 'Analytics' }}>
-                                <LineChart /><span>Analytics</span>
-                            </SidebarMenuButton>
-                        </PlatformSwitcher>
                     </SidebarMenuItem>
                     
                      <SidebarMenuItem>
