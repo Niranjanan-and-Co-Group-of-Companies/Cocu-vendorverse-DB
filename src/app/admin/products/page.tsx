@@ -24,7 +24,7 @@ import { AdminProductActions } from '@/components/admin/products/product-actions
 import { calculateAdminDisplayPrice } from '@/lib/admin/admin-pricing-service';
 import { onCategoriesUpdate } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
-import { onSnapshot, query, collection, where } from 'firebase/firestore';
+import { onSnapshot, query, collection, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 
@@ -34,6 +34,7 @@ type ProductView = 'all' | 'personal' | 'corporate';
 function ProductsPageContent() {
     const searchParams = useSearchParams();
     const categorySlugFilter = searchParams.get('category');
+    const vendorIdFilter = searchParams.get('vendorId');
     
     const [rawProducts, setRawProducts] = React.useState<Product[]>([]);
     const [categories, setCategories] = React.useState<Category[]>([]);
@@ -47,14 +48,26 @@ function ProductsPageContent() {
         setLoading(true);
 
         const productsRef = collection(db, 'products');
-        const q = categorySlugFilter
-            ? query(productsRef, where('categorySlug', '==', categorySlugFilter))
-            : query(productsRef);
+        let q = query(productsRef);
+
+        if (categorySlugFilter) {
+            q = query(q, where('categorySlug', '==', categorySlugFilter));
+            setTitle(`Products in: ${categorySlugFilter.replace(/-/g, ' ')}`);
+        } else if (vendorIdFilter) {
+            q = query(q, where('vendorId', '==', vendorIdFilter));
+            // Fetch vendor name to update title
+            getDoc(doc(db, 'vendors', vendorIdFilter)).then(docSnap => {
+                if (docSnap.exists()) {
+                    setTitle(`Products by: ${docSnap.data().name}`);
+                }
+            });
+        } else {
+            setTitle('All Products');
+        }
 
         const unsubProducts = onSnapshot(q, (snapshot) => {
             const productsData = snapshot.docs.map(doc => ({...doc.data(), id: doc.id} as Product));
             setRawProducts(productsData);
-            setTitle(categorySlugFilter ? `Products in: ${categorySlugFilter.replace(/-/g, ' ')}` : 'All Products');
         });
 
         const unsubCategories = onCategoriesUpdate((cats) => {
@@ -65,7 +78,7 @@ function ProductsPageContent() {
             unsubProducts();
             unsubCategories();
         };
-    }, [categorySlugFilter]);
+    }, [categorySlugFilter, vendorIdFilter]);
     
     // Effect to recalculate prices when products or categories change
     React.useEffect(() => {
@@ -97,15 +110,15 @@ function ProductsPageContent() {
         let productsToFilter = [...allProducts];
         if (view === 'personal') {
             productsToFilter = productsToFilter.filter(p => p.platform === 'Personalized');
-            setTitle('Personalized Retail Products');
+            if(!categorySlugFilter && !vendorIdFilter) setTitle('Personalized Retail Products');
         } else if (view === 'corporate') {
             productsToFilter = productsToFilter.filter(p => p.platform === 'Corporate');
-            setTitle('Corporate & Bulk Products');
-        } else if (!categorySlugFilter) {
+            if(!categorySlugFilter && !vendorIdFilter) setTitle('Corporate & Bulk Products');
+        } else if (!categorySlugFilter && !vendorIdFilter) {
             setTitle('All Products');
         }
         return productsToFilter;
-    }, [view, allProducts, categorySlugFilter]);
+    }, [view, allProducts, categorySlugFilter, vendorIdFilter]);
 
     const getStatusVariant = (status: ProductStatus) => {
         switch (status) {
