@@ -10,7 +10,7 @@ import {
     increment
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { SupportTicket } from '../vendor/support-service';
+import type { SupportTicket, TicketStatus } from '../vendor/support-service';
 import { createNotification } from '../notifications-actions';
 import { getVendorById } from '../vendors-service';
 
@@ -42,7 +42,10 @@ export async function sendAdminSupportMessage(ticket: SupportTicket, text: strin
     // Create a contextual notification link
     const vendor = await getVendorById(ticket.vendorId);
     const vendorPortalType = vendor?.type || 'personalized';
-    const basePath = vendorPortalType === 'both' ? '/vendor/both' : `/vendor/${vendorPortalType}`;
+    let basePath = `/vendor/${vendorPortalType}`;
+    if (vendorPortalType === 'both') {
+      basePath = '/vendor/both';
+    }
     const link = `${basePath}/support?ticketId=${ticket.id}`;
     
     // Send notification to vendor
@@ -52,4 +55,25 @@ export async function sendAdminSupportMessage(ticket: SupportTicket, text: strin
         text: `You have a new reply on support ticket #${ticket.id.slice(0, 6)}.`,
         link: link
     });
+}
+
+
+/**
+ * Updates the status of a support ticket.
+ * @param ticketId The ID of the ticket to update.
+ * @param status The new status for the ticket.
+ */
+export async function updateSupportTicketStatus(ticketId: string, status: TicketStatus): Promise<void> {
+    const ticketRef = doc(db, 'supportTickets', ticketId);
+    await updateDoc(ticketRef, {
+        status: status,
+        lastUpdated: serverTimestamp()
+    });
+    
+    // Optional: Notify vendor about status change if it's not part of a reply
+    // const ticketSnap = await getDoc(ticketRef);
+    // if (ticketSnap.exists()) {
+    //     const ticketData = ticketSnap.data() as SupportTicket;
+    //     // Create notification logic here...
+    // }
 }

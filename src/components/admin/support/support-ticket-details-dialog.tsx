@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,13 +16,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Paperclip, Send } from 'lucide-react';
-import type { SupportTicket, SupportTicketMessage } from '@/lib/vendor/support-service';
-import { sendAdminSupportMessage } from '@/lib/admin/support-service';
+import type { SupportTicket, SupportTicketMessage, TicketStatus } from '@/lib/vendor/support-service';
+import { sendAdminSupportMessage, updateSupportTicketStatus } from '@/lib/admin/support-service';
 import { sendVendorSupportMessage, markConversationAsReadByVendor } from '@/lib/vendor/support-service';
 import { onMessagesUpdate } from '@/lib/admin/support-client-service';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SupportTicketDetailsDialogProps {
   ticket: SupportTicket | null;
@@ -30,15 +33,19 @@ interface SupportTicketDetailsDialogProps {
   userType: 'admin' | 'vendor';
 }
 
+const TICKET_STATUS_OPTIONS: TicketStatus[] = ['Open', 'In Progress', 'Waiting on Vendor', 'Resolved'];
+
 export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange, userType }: SupportTicketDetailsDialogProps) {
   const [messages, setMessages] = React.useState<SupportTicketMessage[]>([]);
   const [replyText, setReplyText] = React.useState('');
+  const [currentStatus, setCurrentStatus] = React.useState<TicketStatus | undefined>(undefined);
   const [isSending, setIsSending] = React.useState(false);
   const { toast } = useToast();
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (ticket && isOpen) {
+      setCurrentStatus(ticket.status);
       const unsubscribe = onMessagesUpdate(ticket.id, (newMessages) => {
         setMessages(newMessages);
       });
@@ -52,7 +59,6 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange, userT
   }, [ticket, isOpen, userType]);
 
   React.useEffect(() => {
-    // Scroll to bottom when new messages arrive
     if (scrollAreaRef.current) {
         const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
         if (viewport) {
@@ -60,6 +66,22 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange, userT
         }
     }
   }, [messages]);
+  
+  const handleStatusUpdate = async () => {
+      if(!ticket || !currentStatus || currentStatus === ticket.status) return;
+
+      setIsSending(true);
+      try {
+          await updateSupportTicketStatus(ticket.id, currentStatus);
+          toast({ title: "Status Updated", description: `Ticket status set to "${currentStatus}".`});
+          // Optimistic update in UI
+          if (ticket) ticket.status = currentStatus;
+      } catch (error) {
+          toast({ title: 'Error', description: 'Failed to update status.', variant: 'destructive' });
+      } finally {
+          setIsSending(false);
+      }
+  }
 
   const handleSendReply = async () => {
     if (!ticket || !replyText.trim()) return;
@@ -68,8 +90,10 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange, userT
     try {
       if (userType === 'admin') {
         await sendAdminSupportMessage(ticket, replyText);
+        setCurrentStatus('Waiting on Vendor');
       } else {
         await sendVendorSupportMessage(ticket, replyText);
+        setCurrentStatus('In Progress');
       }
       setReplyText('');
       toast({ title: 'Reply Sent' });
@@ -139,19 +163,46 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange, userT
 
           <Separator className="my-4" />
 
+            {userType === 'admin' && (
+                 <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="status-select">Ticket Status</Label>
+                        <Select value={currentStatus} onValueChange={(value) => setCurrentStatus(value as TicketStatus)}>
+                            <SelectTrigger id="status-select">
+                                <SelectValue placeholder="Change status..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {TICKET_STATUS_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="flex items-end">
+                        <Button
+                            variant="secondary"
+                            onClick={handleStatusUpdate}
+                            disabled={isSending || currentStatus === ticket?.status}
+                            className="w-full"
+                        >
+                             {isSending ? <Loader2 className="mr-2 animate-spin" /> : null}
+                            Update Status Only
+                        </Button>
+                    </div>
+                </div>
+            )}
+
           <div className="space-y-2">
             <Textarea
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder="Type your reply..."
               rows={4}
-              disabled={isSending}
+              disabled={isSending || ticket?.status === 'Resolved'}
             />
             <div className="flex justify-between items-center">
                 <Button variant="ghost" size="icon" disabled>
                     <Paperclip className="h-4 w-4" />
                 </Button>
-                <Button onClick={handleSendReply} disabled={isSending || !replyText.trim()}>
+                <Button onClick={handleSendReply} disabled={isSending || !replyText.trim() || ticket?.status === 'Resolved'}>
                     {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Send Reply
                 </Button>
