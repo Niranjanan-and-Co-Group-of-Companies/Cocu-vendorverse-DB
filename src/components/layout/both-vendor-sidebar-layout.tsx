@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -98,14 +99,13 @@ const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
 function BothVendorSidebar() {
     const pathname = usePathname();
     const [totalUnreadMessages, setTotalUnreadMessages] = React.useState(0);
-    const [isChatReady, setIsChatReady] = React.useState(false);
+    const { open, setOpen } = useSidebar();
 
     React.useEffect(() => {
         const unsubscribe = onVendorConversationsUpdate(VENDOR_ID, (conversations) => {
             const corporateConversations = conversations.filter(c => c.type === 'Corporate');
             const totalUnread = corporateConversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
             setTotalUnreadMessages(totalUnread);
-            setIsChatReady(true);
         });
 
         return () => unsubscribe();
@@ -117,7 +117,7 @@ function BothVendorSidebar() {
     };
 
     return (
-        <Sidebar>
+        <Sidebar onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
             <div className="relative h-full flex flex-col">
               <CustomSidebarTrigger />
               <SidebarHeader className="items-center gap-4">
@@ -157,7 +157,7 @@ function BothVendorSidebar() {
 
                     <SidebarMenuItem>
                         <InventorySwitcher>
-                            <SidebarMenuButton isActive={isActive('/vendor/both/inventory') || isActive('/vendor/corporate/inventory')} tooltip={{ children: 'Inventory' }}>
+                            <SidebarMenuButton isActive={isActive('/vendor/both/inventory')} tooltip={{ children: 'Inventory' }}>
                                 <Warehouse /><span>Inventory</span>
                             </SidebarMenuButton>
                         </InventorySwitcher>
@@ -184,10 +184,10 @@ function BothVendorSidebar() {
                     </SidebarMenuItem>
                     
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname.startsWith('/vendor/both/messages')} tooltip={{ children: 'Messages' }}>
+                        <SidebarMenuButton asChild isActive={isActive('/vendor/both/messages')} tooltip={{ children: 'Messages' }}>
                             <Link href="/vendor/both/messages"><MessageSquare /><span>Messages</span></Link>
                         </SidebarMenuButton>
-                        {isChatReady && totalUnreadMessages > 0 && <SidebarMenuBadge>{totalUnreadMessages}</SidebarMenuBadge>}
+                        {totalUnreadMessages > 0 && <SidebarMenuBadge>{totalUnreadMessages}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                     
                      <SidebarMenuItem>

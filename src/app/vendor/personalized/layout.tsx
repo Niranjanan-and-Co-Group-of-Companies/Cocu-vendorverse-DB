@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { VendorSidebarLayout } from '@/components/layout/vendor-sidebar-layout';

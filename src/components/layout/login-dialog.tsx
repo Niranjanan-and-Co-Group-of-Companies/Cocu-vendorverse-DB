@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -26,11 +27,6 @@ interface LoginDialogProps {
 
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [showPassword, setShowPassword] = React.useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
-  const [portalType, setPortalType] = React.useState<'customer' | 'vendor'>('customer');
-  const [signupStep, setSignupStep] = React.useState(1);
-  const [signupMethod, setSignupMethod] = React.useState<'email' | 'phone'>('email');
-  const [otp, setOtp] = React.useState('');
   const { toast } = useToast();
   const router = useRouter();
 
@@ -38,61 +34,20 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     onOpenChange(false);
-     if (portalType === 'vendor') {
-        router.push('/vendor/login');
-    } else {
-        router.push('/login');
-    }
+    // This is a simplified login, in a real app authentication would happen here
+    // before redirecting.
+    router.push('/login');
   };
   
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    if (portalType === 'vendor') {
-        onOpenChange(false);
-        router.push('/vendor/signup');
-        return;
-    }
-    // In a real app, you'd check if passwords match and if email exists, then send an OTP.
-    console.log(`Initiating sign up for ${portalType} portal...`);
-    setSignupStep(2);
-     toast({
-        title: "Verification Code Sent",
-        description: "A one-time code has been sent to your email or phone.",
-    });
-  };
-
-  const handleVerifyAndCreate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp !== '123456') {
-        toast({
-            title: "Invalid Verification Code",
-            description: "The code you entered is incorrect. Please try again.",
-            variant: "destructive"
-        });
-        return;
-    }
-    console.log('Account verified and created!');
-    toast({
-        title: "Account Created!",
-        description: "You have been successfully signed up."
-    });
     onOpenChange(false);
-  }
-  
-  React.useEffect(() => {
-    // Reset to first step when dialog is closed
-    if (!open) {
-      setTimeout(() => {
-        setSignupStep(1);
-        setOtp('');
-      }, 200);
-    }
-  }, [open]);
-
+    router.push('/signup');
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Welcome to VendorVerse</DialogTitle>
           <DialogDescription>
@@ -100,32 +55,6 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <div className="pt-4">
-             <RadioGroup value={portalType} onValueChange={(value) => setPortalType(value as any)} className="grid grid-cols-2 gap-4">
-                <div>
-                    <RadioGroupItem value="customer" id="customer-dialog" className="peer sr-only" />
-                    <Label
-                    htmlFor="customer-dialog"
-                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                    >
-                    <User className="mb-2"/>
-                    Customer
-                    </Label>
-                </div>
-                <div>
-                    <RadioGroupItem value="vendor" id="vendor-dialog" className="peer sr-only" />
-                    <Label
-                    htmlFor="vendor-dialog"
-                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                    >
-                    <Briefcase className="mb-2"/>
-                    Vendor
-                    </Label>
-                </div>
-            </RadioGroup>
-        </div>
-
-
         <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>
@@ -157,84 +86,21 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                 </form>
             </TabsContent>
              <TabsContent value="signup">
-                {signupStep === 1 && (
-                    <form className="grid gap-4 py-4" onSubmit={handleSignupSubmit}>
-                        <Alert>
-                          <Info className="h-4 w-4" />
-                          <AlertDescription className="text-xs">
-                            An email or phone can only be used for one account type (Customer or Vendor).
-                          </AlertDescription>
-                        </Alert>
-                        <div className="grid gap-2">
-                            <Label htmlFor="name-signup">Name</Label>
-                            <Input id="name-signup" placeholder="John Doe" required />
-                        </div>
-
-                         <div className="space-y-2">
-                            <Label>Sign up with</Label>
-                            <RadioGroup value={signupMethod} onValueChange={(value) => setSignupMethod(value as any)} className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <RadioGroupItem value="email" id="email-radio-dialog" className="peer sr-only" />
-                                    <Label htmlFor="email-radio-dialog" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                        <Mail className="mr-2 h-4 w-4" /> Email
-                                    </Label>
-                                </div>
-                                <div>
-                                    <RadioGroupItem value="phone" id="phone-radio-dialog" className="peer sr-only" />
-                                    <Label htmlFor="phone-radio-dialog" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                        <Phone className="mr-2 h-4 w-4" /> Phone
-                                    </Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-
-                        {signupMethod === 'email' ? (
-                             <div className="grid gap-2">
-                                <Label htmlFor="email-signup">Email</Label>
-                                <Input id="email-signup" type="email" placeholder="m@example.com" required />
-                            </div>
-                        ) : (
-                             <div className="grid gap-2">
-                                <Label htmlFor="phone-signup">Phone Number</Label>
-                                <Input id="phone-signup" type="tel" placeholder="+91 98765 43210" required />
-                            </div>
-                        )}
-                        
-                        <div className="grid gap-2">
-                            <Label htmlFor="password-signup">Password</Label>
-                            <div className="relative">
-                                <Input id="password-signup" type={showPassword ? 'text' : 'password'} required />
-                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
-                                    {showPassword ? <EyeOff /> : <Eye />}
-                                </Button>
-                            </div>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="confirm-password-signup">Confirm Password</Label>
-                            <div className="relative">
-                                <Input id="confirm-password-signup" type={showConfirmPassword ? 'text' : 'password'} required />
-                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                    {showConfirmPassword ? <EyeOff /> : <Eye />}
-                                </Button>
-                            </div>
-                        </div>
-                        <Button type="submit" className="w-full">Create Account</Button>
-                        <Button variant="outline" className="w-full">Sign up with Google</Button>
-                    </form>
-                )}
-                 {signupStep === 2 && (
-                    <form className="grid gap-4 py-4" onSubmit={handleVerifyAndCreate}>
-                        <DialogDescription className="text-center">
-                            We've sent a 6-digit code to your email/phone. Please enter it below to verify your account. (Hint: 123456)
-                        </DialogDescription>
-                        <div className="grid gap-2">
-                            <Label htmlFor="otp-signup">Verification Code</Label>
-                            <Input id="otp-signup" type="text" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value)} required />
-                        </div>
-                        <Button type="submit" className="w-full">Verify & Create Account</Button>
-                         <Button variant="link" size="sm" type="button" onClick={() => setSignupStep(1)}>Back</Button>
-                    </form>
-                 )}
+                <div className="text-center py-8">
+                     <p className="mb-4">Are you a customer or a vendor?</p>
+                     <div className="grid grid-cols-2 gap-4">
+                        <Button asChild variant="outline" size="lg" className="h-20 flex-col" onClick={() => onOpenChange(false)}>
+                            <Link href="/signup">
+                                <User className="mb-2"/> Customer
+                            </Link>
+                        </Button>
+                         <Button asChild variant="outline" size="lg" className="h-20 flex-col" onClick={() => onOpenChange(false)}>
+                            <Link href="/vendor/signup">
+                                <Briefcase className="mb-2"/> Vendor
+                            </Link>
+                        </Button>
+                     </div>
+                </div>
             </TabsContent>
         </Tabs>
       </DialogContent>

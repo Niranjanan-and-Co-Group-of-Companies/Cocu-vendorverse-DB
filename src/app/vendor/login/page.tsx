@@ -9,15 +9,59 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Gift } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { getDoc, query, collection, where, getDocs, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Vendor } from '@/lib/vendors-service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function VendorLoginPage() {
     const router = useRouter();
+    const { toast } = useToast();
     
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, you would authenticate here, check vendor type,
-        // and redirect to the appropriate dashboard.
-        router.push('/vendor/personalized/dashboard');
+        
+        const formData = new FormData(e.target as HTMLFormElement);
+        const email = formData.get('email') as string;
+
+        // In a real app, you would authenticate with password here.
+        // For simulation, we'll fetch the vendor by email to check their type.
+        try {
+            const q = query(collection(db, 'vendors'), where('email', '==', email), limit(1));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                toast({ title: 'Login Failed', description: 'No vendor account found with that email.', variant: 'destructive' });
+                return;
+            }
+
+            const vendor = snapshot.docs[0].data() as Vendor;
+
+            if (vendor.status !== 'Active') {
+                toast({ title: 'Account Not Active', description: 'Your account is still pending approval or has been suspended.', variant: 'destructive' });
+                return;
+            }
+
+            switch (vendor.type) {
+                case 'personalized':
+                    router.push('/vendor/personalized/dashboard');
+                    break;
+                case 'corporate':
+                    router.push('/vendor/corporate/dashboard');
+                    break;
+                case 'both':
+                    router.push('/vendor/both/dashboard');
+                    break;
+                default:
+                    // Fallback to personalized dashboard
+                    router.push('/vendor/personalized/dashboard');
+                    break;
+            }
+
+        } catch (error) {
+            console.error("Login error:", error);
+            toast({ title: 'Error', description: 'An error occurred during login.', variant: 'destructive' });
+        }
     };
 
   return (
@@ -40,7 +84,7 @@ export default function VendorLoginPage() {
             <form className="grid gap-4" onSubmit={handleLogin}>
                 <div className="grid gap-2">
                     <Label htmlFor="email">Email or Phone</Label>
-                    <Input id="email" type="text" placeholder="m@example.com" required />
+                    <Input id="email" name="email" type="text" placeholder="m@example.com" required />
                 </div>
                 <div className="grid gap-2">
                     <div className="flex items-center">
