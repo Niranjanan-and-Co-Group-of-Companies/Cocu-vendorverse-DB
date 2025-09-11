@@ -13,10 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Info, Mail, Phone } from 'lucide-react';
+import { Eye, EyeOff, Info, Mail, Phone, User, Briefcase } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Alert, AlertDescription } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 interface LoginDialogProps {
   open: boolean;
@@ -26,16 +27,23 @@ interface LoginDialogProps {
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
-  const [portalType, setPortalType] = React.useState<'personalized' | 'corporate'>('personalized');
+  const [portalType, setPortalType] = React.useState<'customer' | 'vendor'>('customer');
   const [signupStep, setSignupStep] = React.useState(1);
   const [signupMethod, setSignupMethod] = React.useState<'email' | 'phone'>('email');
   const [otp, setOtp] = React.useState('');
   const { toast } = useToast();
+  const router = useRouter();
+
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     console.log(`Logging in to ${portalType} portal...`);
     onOpenChange(false);
+     if (portalType === 'vendor') {
+        router.push('/vendor/personalized/dashboard');
+    } else {
+        router.push('/account');
+    }
   };
   
   const handleSignupSubmit = (e: React.FormEvent) => {
@@ -89,23 +97,25 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         </DialogHeader>
         
         <div className="pt-4">
-             <RadioGroup defaultValue="personalized" onValueChange={(value) => setPortalType(value as any)} className="grid grid-cols-2 gap-4">
+             <RadioGroup value={portalType} onValueChange={(value) => setPortalType(value as any)} className="grid grid-cols-2 gap-4">
                 <div>
-                    <RadioGroupItem value="personalized" id="personalized" className="peer sr-only" />
+                    <RadioGroupItem value="customer" id="customer-dialog" className="peer sr-only" />
                     <Label
-                    htmlFor="personalized"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    htmlFor="customer-dialog"
+                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
                     >
-                    Personalized Portal
+                    <User className="mb-2"/>
+                    Customer
                     </Label>
                 </div>
                 <div>
-                    <RadioGroupItem value="corporate" id="corporate" className="peer sr-only" />
+                    <RadioGroupItem value="vendor" id="vendor-dialog" className="peer sr-only" />
                     <Label
-                    htmlFor="corporate"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    htmlFor="vendor-dialog"
+                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
                     >
-                    Corporate Portal
+                    <Briefcase className="mb-2"/>
+                    Vendor
                     </Label>
                 </div>
             </RadioGroup>
@@ -148,7 +158,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         <Alert>
                           <Info className="h-4 w-4" />
                           <AlertDescription className="text-xs">
-                            An email or phone can only be used for one account type (Personalized or Corporate).
+                            An email or phone can only be used for one account type (Customer or Vendor).
                           </AlertDescription>
                         </Alert>
                         <div className="grid gap-2">
