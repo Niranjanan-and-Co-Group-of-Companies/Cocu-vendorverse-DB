@@ -1,4 +1,5 @@
 
+'use server';
 
 import { 
     collection, 
@@ -95,10 +96,11 @@ export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
 
 // Create a new support ticket
 export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor'>): Promise<string> {
+    const timestamp = serverTimestamp();
     const ticketData = {
         ...data,
-        createdAt: serverTimestamp(),
-        lastUpdated: serverTimestamp(),
+        createdAt: timestamp,
+        lastUpdated: timestamp,
         isReadByVendor: true,
     };
     const ticketRef = await addDoc(collection(db, 'supportTickets'), ticketData);
@@ -116,4 +118,24 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
     });
 
     return ticketRef.id;
+}
+
+
+// This function can now be used on the client
+export function onRecentTicketsUpdate(vendorId: string, callback: (tickets: SupportTicket[]) => void): Unsubscribe {
+  const ticketsRef = collection(db, 'supportTickets');
+  const q = query(
+    ticketsRef,
+    where('vendorId', '==', vendorId),
+    orderBy('lastUpdated', 'desc'),
+    limit(3)
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const tickets = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as SupportTicket));
+    callback(tickets);
+  });
 }

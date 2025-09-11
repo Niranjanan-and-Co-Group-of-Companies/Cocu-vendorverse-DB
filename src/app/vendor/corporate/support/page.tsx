@@ -15,7 +15,7 @@ import {
   LifeBuoy,
 } from 'lucide-react';
 import type { SupportTicket, KnowledgeBaseArticle } from '@/lib/vendor/support-service';
-import { getPopularArticles } from '@/lib/vendor/support-service';
+import { getPopularArticles, onRecentTicketsUpdate } from '@/lib/vendor/support-service';
 import { CreateTicketDialog } from '@/components/vendor/support/create-ticket-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -26,24 +26,6 @@ import { db } from '@/lib/firebase';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const VENDOR_ID = 'vendor001';
-
-function onRecentTicketsUpdate(vendorId: string, callback: (tickets: SupportTicket[]) => void): Unsubscribe {
-  const ticketsRef = collection(db, 'supportTickets');
-  const q = query(
-    ticketsRef,
-    where('vendorId', '==', vendorId),
-    orderBy('lastUpdated', 'desc'),
-    limit(3)
-  );
-
-  return onSnapshot(q, (snapshot) => {
-    const tickets = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as SupportTicket));
-    callback(tickets);
-  });
-}
 
 export default function VendorSupportPage() {
   const [isTicketDialogOpen, setIsTicketDialogOpen] = React.useState(false);
