@@ -13,8 +13,8 @@ import { db } from '@/lib/firebase';
 import type { Order } from '@/lib/orders-service';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Building, User, KeyRound } from 'lucide-react';
-import { useCorporateAccount } from '@/hooks/use-corporate-account-store';
+import { Eye, Building, User, KeyRound, ShoppingCart } from 'lucide-react';
+import { useCorporateAccount } from '@/hooks/use-corporate-account-store.tsx';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
