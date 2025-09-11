@@ -123,11 +123,11 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange, userT
       <DialogContent className="sm:max-w-2xl h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Ticket: {ticket?.subject}</DialogTitle>
-          <DialogDescription className="flex items-center gap-4 pt-1">
+          <div className="flex items-center gap-4 pt-1 text-sm text-muted-foreground">
             <span>#{ticket?.id.slice(0, 8)}...</span>
             <Badge variant={getStatusVariant(ticket?.status || 'Open')}>{ticket?.status}</Badge>
             <Badge variant={getPriorityVariant(ticket?.priority || 'Normal')}>{ticket?.priority}</Badge>
-          </DialogDescription>
+          </div>
         </DialogHeader>
         
         <div className="flex-grow overflow-hidden flex flex-col">
