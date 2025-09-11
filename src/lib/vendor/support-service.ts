@@ -1,5 +1,4 @@
 
-'use server';
 
 import { 
     collection, 
@@ -117,21 +116,4 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
     });
 
     return ticketRef.id;
-}
-
-
-// CLIENT-SIDE LISTENER for messages in a ticket
-export function onMessagesUpdate(ticketId: string, callback: (messages: SupportTicketMessage[]) => void): Unsubscribe {
-  const messagesRef = collection(db, 'supportTickets', ticketId, 'messages');
-  const q = query(messagesRef, orderBy('timestamp', 'asc'));
-
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const messages = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as SupportTicketMessage));
-    callback(messages);
-  });
-
-  return unsubscribe;
 }

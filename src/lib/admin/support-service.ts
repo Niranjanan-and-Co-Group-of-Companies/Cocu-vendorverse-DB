@@ -15,7 +15,7 @@ import {
     increment
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { SupportTicket } from '../vendor/support-service';
+import type { SupportTicket, SupportTicketMessage } from '../vendor/support-service';
 import { createNotification } from '../notifications-actions';
 
 /**
@@ -93,4 +93,23 @@ export async function sendAdminSupportMessage(ticket: SupportTicket, text: strin
         text: `You have a new reply on support ticket #${ticket.id.slice(0, 6)}.`,
         link: `/vendor/support?ticketId=${ticket.id}`
     });
+}
+
+// CLIENT-SIDE LISTENER for messages in a ticket
+export function onMessagesUpdate(ticketId: string, callback: (messages: SupportTicketMessage[]) => void): Unsubscribe {
+  const messagesRef = collection(db, 'supportTickets', ticketId, 'messages');
+  const q = query(messagesRef, orderBy('timestamp', 'asc'));
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const messages = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as SupportTicketMessage));
+    callback(messages);
+  }, (error) => {
+      console.error(`Error fetching messages for ticket ${ticketId}:`, error);
+      callback([]);
+  });
+
+  return unsubscribe;
 }
