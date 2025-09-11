@@ -134,7 +134,7 @@ export default function VendorOrdersPage() {
                              const totalQuantity = vendorItems.reduce((sum, item) => sum + item.quantity, 0);
                             return (
                                 <TableRow key={order.id}>
-                                    <TableCell className="font-mono text-xs">{order.orderId}</TableCell>
+                                    <TableCell className="font-mono">{order.orderId}</TableCell>
                                      <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Image src={primaryItem.image} alt={primaryItem.name} width={40} height={40} className="rounded-md object-cover" />
