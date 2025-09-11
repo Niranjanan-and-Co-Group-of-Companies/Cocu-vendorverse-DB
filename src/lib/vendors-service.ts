@@ -71,19 +71,16 @@ async function seedVendors() {
         const batch = writeBatch(db);
         MOCK_VENDORS.forEach(vendor => {
             const docRef = doc(vendorsRef);
-            batch.set(docRef, vendor);
+            batch.set(docRef, { ...vendor, joinedDate: serverTimestamp() });
         });
         await batch.commit();
     }
 }
 
+seedVendors();
 
-/**
- * Fetches all vendors from the database.
- * @returns A promise that resolves to an array of Vendor objects.
- */
+
 export async function getVendors(): Promise<Vendor[]> {
-    await seedVendors();
     const vendorsRef = collection(db, "vendors");
     const snapshot = await getDocs(vendorsRef);
     if (snapshot.empty) {
@@ -108,12 +105,10 @@ export type VendorSignupData = {
     vendorType: VendorType;
 };
 
-export async function createVendorApplication(vendorData: VendorSignupData): Promise<string> {
+export async function checkVendorExists(email: string, phone: string): Promise<{ exists: boolean, message?: string }> {
     const vendorsRef = collection(db, 'vendors');
-
-    // Check for existing email or phone
-    const emailQuery = query(vendorsRef, where('email', '==', vendorData.email));
-    const phoneQuery = query(vendorsRef, where('phone', '==', vendorData.phone));
+    const emailQuery = query(vendorsRef, where('email', '==', email));
+    const phoneQuery = query(vendorsRef, where('phone', '==', phone));
 
     const [emailSnapshot, phoneSnapshot] = await Promise.all([
         getDocs(emailQuery),
@@ -121,12 +116,18 @@ export async function createVendorApplication(vendorData: VendorSignupData): Pro
     ]);
 
     if (!emailSnapshot.empty) {
-        throw new Error("An account with this email address already exists.");
+        return { exists: true, message: "An account with this email address already exists." };
     }
     if (!phoneSnapshot.empty) {
-        throw new Error("An account with this phone number already exists.");
+        return { exists: true, message: "An account with this phone number already exists." };
     }
 
+    return { exists: false };
+}
+
+
+export async function createVendorApplication(vendorData: VendorSignupData): Promise<string> {
+    const vendorsRef = collection(db, 'vendors');
 
     const newVendorRef = await addDoc(collection(db, 'vendors'), {
         name: vendorData.storeName,

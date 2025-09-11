@@ -24,7 +24,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useRouter } from 'next/navigation';
-import { createVendorApplication, type VendorType } from '@/lib/vendors-service';
+import { createVendorApplication, type VendorType, checkVendorExists } from '@/lib/vendors-service';
 
 export default function VendorSignupPage() {
   const [step, setStep] = React.useState(1);
@@ -59,7 +59,7 @@ export default function VendorSignupPage() {
     setStep(2);
   }
 
-  const handleStep2Submit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleStep2Submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
@@ -70,13 +70,34 @@ export default function VendorSignupPage() {
         toast({ title: 'Passwords do not match', variant: 'destructive'});
         return;
     }
-    // Simulate sending OTPs
+
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+        const fullPhoneNumber = `+91${phone}`;
+        const { exists, message } = await checkVendorExists(email, fullPhoneNumber);
+
+        if (exists) {
+            toast({
+                title: "Account Already Exists",
+                description: message,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        // Simulate sending OTPs if check passes
+        setTimeout(() => {
+            setStep(3);
+            toast({ title: "Verification Required", description: "OTPs have been sent to your email and phone." });
+        }, 1000);
+
+    } catch (error) {
+        console.error(error);
+        toast({ title: "An Error Occurred", description: "Could not proceed with signup. Please try again.", variant: "destructive" });
+    } finally {
         setIsLoading(false);
-        setStep(3);
-        toast({ title: "Verification Required", description: "OTPs have been sent to your email and phone." });
-    }, 1000);
+    }
   }
 
   const handleFinalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -245,4 +266,3 @@ export default function VendorSignupPage() {
     </div>
   );
 }
-
