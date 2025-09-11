@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Order, OrderItem, OrderStatus } from './orders-service';
 import type { VendorOrder } from '@/app/vendor/personalized/orders/page';
