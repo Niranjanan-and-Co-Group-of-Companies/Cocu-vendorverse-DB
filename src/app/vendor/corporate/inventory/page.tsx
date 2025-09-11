@@ -13,7 +13,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
-import { onVendorProductsUpdate, updateProductInventory } from '@/lib/products-client-service';
+import { onVendorProductsUpdate } from '@/lib/products-client-service';
+import { updateProductInventory } from '@/lib/products-service';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { Product } from '@/lib/products';
@@ -84,7 +85,7 @@ function InventoryTable() {
         }
 
         try {
-            await updateProductInventory(String(productId), stock, inventoryBuffer);
+            await updateProductInventory(Number(productId), stock, inventoryBuffer);
             toast({ title: 'Inventory Updated', description: `Stock for product #${productId.slice(0,6)} has been updated.` });
             // Clear editing state for this product
             setEditingState(prev => {
