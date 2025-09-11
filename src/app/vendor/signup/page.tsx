@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Gift, Loader2 } from 'lucide-react';
+import { Gift, Loader2, Eye, EyeOff, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -17,6 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useRouter } from 'next/navigation';
 import { createVendorApplication, type VendorType } from '@/lib/vendors-service';
 
@@ -35,11 +41,14 @@ export default function VendorSignupPage() {
   const [phone, setPhone] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   
   // OTP state
   const [emailOtp, setEmailOtp] = React.useState('');
   const [phoneOtp, setPhoneOtp] = React.useState('');
 
+  const passwordCriteria = "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.";
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +61,11 @@ export default function VendorSignupPage() {
 
   const handleStep2Submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+        toast({ title: 'Password Not Strong Enough', description: passwordCriteria, variant: 'destructive', duration: 7000});
+        return;
+    }
     if (password !== confirmPassword) {
         toast({ title: 'Passwords do not match', variant: 'destructive'});
         return;
@@ -167,12 +181,34 @@ export default function VendorSignupPage() {
                         </div>
                     </div>
                      <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input id="password" name="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+                         <div className="flex items-center gap-1">
+                            <Label htmlFor="password">Password</Label>
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="max-w-xs">{passwordCriteria}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                             </TooltipProvider>
+                         </div>
+                        <div className="relative">
+                            <Input id="password" name="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required />
+                            <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
+                                {showPassword ? <EyeOff /> : <Eye />}
+                            </Button>
+                        </div>
                     </div>
                      <div className="grid gap-2">
                         <Label htmlFor="confirm-password">Confirm Password</Label>
-                        <Input id="confirm-password" name="confirm-password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
+                         <div className="relative">
+                            <Input id="confirm-password" name="confirm-password" type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
+                             <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                {showConfirmPassword ? <EyeOff /> : <Eye />}
+                            </Button>
+                        </div>
                     </div>
                      <Button type="submit" className="w-full" disabled={isLoading}>
                          {isLoading && <Loader2 className="mr-2 animate-spin" />}
