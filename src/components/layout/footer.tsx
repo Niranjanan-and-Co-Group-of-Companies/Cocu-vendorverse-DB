@@ -66,14 +66,6 @@ export default function Footer() {
                 <p className="text-sm text-muted-foreground">A universe of unique gifts from diverse vendors.</p>
             </div>
           <div>
-            <h4 className="font-headline font-semibold">Company</h4>
-            <ul className="mt-4 space-y-2 text-sm">
-              <li><Link href="/about" className="text-muted-foreground hover:text-foreground">About Us</Link></li>
-              <li><Link href="/careers" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
-              <li><span className="text-muted-foreground/60 cursor-not-allowed">Press</span></li>
-            </ul>
-          </div>
-          <div>
             <h4 className="font-headline font-semibold">Gifting</h4>
             <ul className="mt-4 space-y-2 text-sm">
               <li>
@@ -109,6 +101,12 @@ export default function Footer() {
             <ul className="mt-4 space-y-2 text-sm">
               <li><a href="#" onClick={(e) => openLegalModal(e, 'terms')} className="text-muted-foreground hover:text-foreground">Terms of Service</a></li>
               <li><a href="#" onClick={(e) => openLegalModal(e, 'privacy')} className="text-muted-foreground hover:text-foreground">Privacy Policy</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-headline font-semibold">For Vendors</h4>
+            <ul className="mt-4 space-y-2 text-sm">
+              <li><Link href="/vendor/signup" className="text-muted-foreground hover:text-foreground">Register as a Vendor</Link></li>
             </ul>
           </div>
         </div>
