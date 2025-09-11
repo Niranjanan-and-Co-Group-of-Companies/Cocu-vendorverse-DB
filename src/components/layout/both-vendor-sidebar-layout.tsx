@@ -99,7 +99,6 @@ const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
 function BothVendorSidebar() {
     const pathname = usePathname();
     const [totalUnreadMessages, setTotalUnreadMessages] = React.useState(0);
-    const { open, setOpen } = useSidebar();
 
     React.useEffect(() => {
         const unsubscribe = onVendorConversationsUpdate(VENDOR_ID, (conversations) => {
@@ -117,7 +116,7 @@ function BothVendorSidebar() {
     };
 
     return (
-        <Sidebar onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+        <Sidebar>
             <div className="relative h-full flex flex-col">
               <CustomSidebarTrigger />
               <SidebarHeader className="items-center gap-4">
