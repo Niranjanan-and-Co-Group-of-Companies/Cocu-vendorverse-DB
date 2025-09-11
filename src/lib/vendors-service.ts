@@ -1,6 +1,10 @@
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc } from 'firebase/firestore';
+
+'use server';
+
+import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
+import { createNotification } from './notifications-actions';
 
 export interface VendorKYC {
     currentStep: number; // e.g., 1 for PAN, 2 for Bank, etc.
@@ -90,4 +94,38 @@ export async function getVendorById(id: string): Promise<Vendor | null> {
     const docRef = doc(db, 'vendors', id);
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Vendor : null;
+}
+
+export type VendorSignupData = {
+    storeName: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+};
+
+export async function createVendorApplication(vendorData: VendorSignupData): Promise<string> {
+    const newVendorRef = await addDoc(collection(db, 'vendors'), {
+        name: vendorData.storeName,
+        email: vendorData.email,
+        phone: '', // Placeholder
+        avatar: `https://i.pravatar.cc/40?u=${vendorData.email}`,
+        status: 'Pending',
+        joinedDate: serverTimestamp(),
+        // Initialize empty profiles
+        pickupAddresses: [],
+        gstProfile: { gstin: '', legalName: '', stateCode: ''},
+        banking: { beneficiary: '', ifsc: '', accountNoMasked: ''},
+        payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'},
+        kyc: { currentStep: 1, status: 'Not Started', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' }
+    });
+
+    await createNotification({
+        userId: 'admin',
+        forAdmin: true,
+        type: 'NEW_VENDOR_SUBMISSION',
+        text: `New vendor application from ${vendorData.storeName}.`,
+        link: `/admin/vendors`
+    });
+
+    return newVendorRef.id;
 }

@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useRouter } from 'next/navigation';
+import { createVendorApplication } from '@/lib/vendors-service';
 
 type VendorType = 'personalized' | 'corporate' | 'both';
 
@@ -37,10 +38,16 @@ export default function VendorSignupPage() {
     setStep(2);
   }
 
-  const handleFinalSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFinalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
-    const confirmPassword = (e.currentTarget.elements.namedItem('confirm-password') as HTMLInputElement).value;
+    const formData = new FormData(e.currentTarget);
+    const storeName = formData.get('store-name') as string;
+    const firstName = formData.get('first-name') as string;
+    const lastName = formData.get('last-name') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const confirmPassword = formData.get('confirm-password') as string;
+
 
     if (password !== confirmPassword) {
         toast({ title: 'Passwords do not match', variant: 'destructive'});
@@ -48,16 +55,19 @@ export default function VendorSignupPage() {
     }
 
     setIsLoading(true);
-    // Simulate API call to create vendor account
-    setTimeout(() => {
-        setIsLoading(false);
+    try {
+        await createVendorApplication({ storeName, firstName, lastName, email });
         toast({
             title: "Registration Submitted!",
             description: "Your application is under review. We'll be in touch within 2-3 business days.",
         });
-        // Redirect to a confirmation or login page
         router.push('/login');
-    }, 1500);
+    } catch (error) {
+        console.error(error);
+        toast({ title: 'Registration Failed', description: 'Could not submit your application. Please try again.', variant: 'destructive'});
+    } finally {
+        setIsLoading(false);
+    }
   };
 
 
@@ -101,21 +111,21 @@ export default function VendorSignupPage() {
                  <form className="grid gap-4" onSubmit={handleFinalSubmit}>
                     <div className="grid gap-2">
                         <Label htmlFor="store-name">Store Name</Label>
-                        <Input id="store-name" placeholder="e.g., Creative Crafts Co." required />
+                        <Input id="store-name" name="store-name" placeholder="e.g., Creative Crafts Co." required />
                     </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="first-name">First Name</Label>
-                            <Input id="first-name" placeholder="John" required />
+                            <Input id="first-name" name="first-name" placeholder="John" required />
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="last-name">Last Name</Label>
-                            <Input id="last-name" placeholder="Doe" required />
+                            <Input id="last-name" name="last-name" placeholder="Doe" required />
                         </div>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" placeholder="you@example.com" required />
+                        <Input id="email" name="email" type="email" placeholder="you@example.com" required />
                     </div>
                      <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>
