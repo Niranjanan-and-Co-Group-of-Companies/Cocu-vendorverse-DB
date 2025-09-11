@@ -17,14 +17,15 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { onSnapshot, query, where, collection } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import type { Product, ProductStatus } from '@/lib/products';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminProductActions } from '@/components/admin/products/product-actions';
-import { getCategoryByName } from '@/lib/categories-service';
 import { calculateAdminDisplayPrice } from '@/lib/admin/admin-pricing-service';
+import { onCategoriesUpdate } from '@/lib/categories-service';
+import type { Category } from '@/lib/categories-service';
+import { onSnapshot, query, collection, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 
 type ProductWithPrice = Product & { displayPrice?: number };
@@ -35,49 +36,51 @@ function ProductsPageContent() {
     const categorySlugFilter = searchParams.get('category');
     
     const [rawProducts, setRawProducts] = React.useState<Product[]>([]);
+    const [categories, setCategories] = React.useState<Category[]>([]);
     const [allProducts, setAllProducts] = React.useState<ProductWithPrice[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [title, setTitle] = React.useState('All Products');
     const [view, setView] = React.useState<ProductView>('all');
 
-    // Effect to fetch product updates
+    // Effect to fetch product and category updates
     React.useEffect(() => {
         setLoading(true);
+
         const productsRef = collection(db, 'products');
-        let q = categorySlugFilter
+        const q = categorySlugFilter
             ? query(productsRef, where('categorySlug', '==', categorySlugFilter))
             : query(productsRef);
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubProducts = onSnapshot(q, (snapshot) => {
             const productsData = snapshot.docs.map(doc => ({...doc.data(), id: doc.id} as Product));
             setRawProducts(productsData);
             setTitle(categorySlugFilter ? `Products in: ${categorySlugFilter.replace(/-/g, ' ')}` : 'All Products');
-        }, (error) => {
-            console.error("Error fetching products: ", error);
-            setLoading(false);
         });
 
-        return () => unsubscribe();
+        const unsubCategories = onCategoriesUpdate((cats) => {
+            setCategories(cats);
+        });
+
+        return () => {
+            unsubProducts();
+            unsubCategories();
+        };
     }, [categorySlugFilter]);
     
-    // Effect to recalculate prices when products change
+    // Effect to recalculate prices when products or categories change
     React.useEffect(() => {
         const calculateAllPrices = async () => {
+            if (rawProducts.length === 0 || categories.length === 0) {
+                 if(rawProducts.length > 0) setAllProducts(rawProducts); // set products without price if categories are not yet loaded
+                 setLoading(false);
+                 return;
+            };
+
             const pricedProducts = await Promise.all(
                 rawProducts.map(async (p) => {
-                    const category = await getCategoryByName(p.category);
-                    const platform = p.platform === 'Corporate' ? 'Corporate' : 'Personalized';
-                    
-                    const productInfo = {
-                        vendorSP: p.vendorSP,
-                        category: p.category,
-                    };
-
-                    const displayPrice = await calculateAdminDisplayPrice(
-                        productInfo,
-                        platform,
-                        category || undefined,
-                    );
+                    const category = categories.find(c => c.name === p.category);
+                    const productInfo = { vendorSP: p.vendorSP, category: p.category };
+                    const displayPrice = await calculateAdminDisplayPrice(productInfo, p.platform, category);
                     return { ...p, displayPrice: displayPrice };
                 })
             );
@@ -85,14 +88,9 @@ function ProductsPageContent() {
             setLoading(false);
         };
         
-        if (rawProducts.length > 0) {
-            calculateAllPrices();
-        } else {
-            setAllProducts([]);
-            setLoading(false);
-        }
+        calculateAllPrices();
 
-    }, [rawProducts]);
+    }, [rawProducts, categories]);
 
 
     const filteredProducts = React.useMemo(() => {

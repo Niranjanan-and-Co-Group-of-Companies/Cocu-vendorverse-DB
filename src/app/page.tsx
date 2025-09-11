@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Link from 'next/link';
@@ -11,22 +10,19 @@ import Footer from '@/components/layout/footer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
+import type { Category } from '@/lib/categories-service';
+import { onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
 import { getActiveCampaignByPlacement, type Campaign } from '@/lib/marketing-service';
 import React, { useEffect, useState } from 'react';
 import type { Product } from '@/lib/products';
 import { Skeleton } from '@/components/ui/skeleton';
-import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
-import { getFeaturedPersonalProducts } from '@/lib/featured-service';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { YouTubeEmbed } from '@/components/common/youtube-embed';
+import { onFeaturedProductsUpdate, type ProductWithPrice } from '@/lib/products-client-service';
 
-interface ProductWithPrice extends Product {
-    displayPrice?: DisplayPrice;
-}
 
 const HeroSection = () => {
   const [heroCampaign, setHeroCampaign] = useState<Campaign | null>();
@@ -136,39 +132,18 @@ export default function Home() {
 
 
   useEffect(() => {
-    let categoriesUnsubscribe: () => void;
+    const unsubFeatured = onFeaturedProductsUpdate('Personalized', (products) => {
+        setFeaturedProducts(products);
+        setLoading(false);
+    });
 
-    const fetchFeatured = async (categoriesForPricing: Category[]) => {
-        const featuredData = await getFeaturedPersonalProducts();
-        const pricedFeaturedProducts = await Promise.all(
-            featuredData.map(async p => {
-                const category = categoriesForPricing.find(c => c.name === p.category);
-                const productInfo = {
-                    id: p.id,
-                    vendorSP: p.vendorSP,
-                    category: p.category,
-                    vendorId: p.vendorId,
-                    discountType: p.discountType,
-                    discountValue: p.discountValue,
-                };
-                const priceInfo = await calculateDisplayPrice(productInfo, 'Personalized', category);
-                return { ...p, displayPrice: priceInfo };
-            })
-        );
-        setFeaturedProducts(pricedFeaturedProducts);
-    };
-
-    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Personalized', (categories) => {
+    const unsubCategories = onCategoriesWithCommissionsUpdate('Personalized', (categories) => {
         setCategories(categories);
-        fetchFeatured(categories).then(() => {
-            setLoading(false);
-        });
     });
 
     return () => {
-        if(categoriesUnsubscribe) {
-            categoriesUnsubscribe();
-        }
+        unsubFeatured();
+        unsubCategories();
     };
   }, []);
 
@@ -293,7 +268,7 @@ export default function Home() {
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mt-12">
-              {loading ? (
+              {categories.length === 0 ? (
                 Array.from({length: 8}).map((_, i) => (
                     <Card key={i} className="overflow-hidden relative">
                         <Skeleton className="aspect-[4/3] w-full" />

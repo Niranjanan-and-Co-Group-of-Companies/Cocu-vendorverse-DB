@@ -1,8 +1,6 @@
 
-
 'use client'
 
-import { Product } from '@/lib/products';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -13,18 +11,14 @@ import Footer from '@/components/layout/footer';
 import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { getCategoryBySlug, getProductsByCategory, onCategoriesWithCommissionsUpdate } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 import React from 'react';
-import { calculateDisplayPrice, DisplayPrice } from '@/lib/pricing-service';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-
-interface ProductWithPrice extends Product {
-    displayPrice?: DisplayPrice;
-}
+import { onProductsByCategoryUpdate, type ProductWithPrice } from '@/lib/products-client-service';
+import type { Product } from '@/lib/products';
 
 function CategoryPageContent({ params }: { params: { slug: string } }) {
   const { slug } = params;
@@ -38,44 +32,14 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
 
 
   useEffect(() => {
-    let categoriesUnsubscribe: () => void;
-
-    const fetchData = async (categories: Category[]) => {
-      setLoading(true);
-      const categoryData = await getCategoryBySlug(slug);
-
-      if (categoryData) {
-        const productData = await getProductsByCategory(slug);
-        const pricedProducts = await Promise.all(
-            productData.map(async p => {
-                const productInfo = {
-                    id: p.id,
-                    vendorSP: p.vendorSP,
-                    category: p.category,
-                    vendorId: p.vendorId,
-                    discountType: p.discountType,
-                    discountValue: p.discountValue,
-                };
-                const displayPrice = await calculateDisplayPrice(productInfo, 'Personalized', categories.find(c => c.id === categoryData.id));
-                return { ...p, displayPrice };
-            })
-        );
+    setLoading(true);
+    const unsubscribe = onProductsByCategoryUpdate(slug, 'Personalized', (pricedProducts, categoryData) => {
         setProducts(pricedProducts);
-      }
-      
-      setCategory(categoryData);
-      setLoading(false);
-    };
-
-    categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Personalized', (categories) => {
-        fetchData(categories);
+        setCategory(categoryData);
+        setLoading(false);
     });
     
-    return () => {
-        if(categoriesUnsubscribe) {
-            categoriesUnsubscribe();
-        }
-    };
+    return () => unsubscribe();
   }, [slug]);
   
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);

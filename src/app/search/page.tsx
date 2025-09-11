@@ -1,9 +1,8 @@
 
-
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Product } from '@/lib/products';
+import type { Product } from '@/lib/products';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -12,18 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Suspense, useEffect, useState } from 'react';
-import { getAllProducts } from '@/lib/products-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { calculateDisplayPrice, DisplayPrice } from '@/lib/pricing-service';
-import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categories-service';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
-
-interface ProductWithPrice extends Product {
-    displayPrice?: DisplayPrice;
-}
+import { onAllProductsUpdate, type ProductWithPrice } from '@/lib/products-client-service';
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
@@ -37,52 +30,22 @@ function SearchResultsContent() {
 
 
   useEffect(() => {
-    let categoriesUnsubscribe: () => void;
-
-    const fetchProducts = async (categories: Category[]) => {
-      setLoading(true);
-      const allProducts = await getAllProducts();
-      const filteredProducts = allProducts.filter(product =>
-        product.name.toLowerCase().includes(query.toLowerCase()) ||
-        product.vendor.toLowerCase().includes(query.toLowerCase()) ||
-        product.description?.toLowerCase().includes(query.toLowerCase())
-      );
-      
-      const pricedProducts = await Promise.all(
-          filteredProducts.map(async p => {
-              const category = categories.find(c => c.name === p.category);
-              const productInfo = {
-                id: p.id,
-                vendorSP: p.vendorSP,
-                category: p.category,
-                vendorId: p.vendorId,
-                discountType: p.discountType,
-                discountValue: p.discountValue,
-              };
-              return {
-                ...p,
-                displayPrice: await calculateDisplayPrice(productInfo, 'Personalized', category),
-              }
-          })
-      );
-      setSearchResults(pricedProducts);
-      setLoading(false);
-    }
-    
-    if (query) {
-        categoriesUnsubscribe = onCategoriesWithCommissionsUpdate('Personalized', (categories) => {
-            fetchProducts(categories);
-        });
-    } else {
-        setLoading(false);
-        setSearchResults([]);
-    }
-
-    return () => {
-        if (categoriesUnsubscribe) {
-            categoriesUnsubscribe();
+    setLoading(true);
+    const unsubscribe = onAllProductsUpdate('Personalized', (pricedProducts) => {
+        if (query) {
+            const filtered = pricedProducts.filter(product =>
+                product.name.toLowerCase().includes(query.toLowerCase()) ||
+                product.vendor.toLowerCase().includes(query.toLowerCase()) ||
+                product.description?.toLowerCase().includes(query.toLowerCase())
+            );
+            setSearchResults(filtered);
+        } else {
+            setSearchResults([]);
         }
-    }
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [query]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);

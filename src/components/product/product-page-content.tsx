@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import type { PlainProduct } from '@/lib/products-service';
 import type { Product, ProductVariant } from '@/lib/products';
 import { ProductMediaGallery } from '@/components/product/product-media-gallery';
 import { ProductInfo } from '@/components/product/product-info';
@@ -13,9 +12,9 @@ import { Button } from '@/components/ui/button';
 import { CorporateProductInteractions } from '../corporate/corporate-product-interactions';
 import { usePathname } from 'next/navigation';
 
-export function ProductPageContent({ product }: { product: PlainProduct }) {
+export function ProductPageContent({ product }: { product: Product }) {
     const [selectedVariant, setSelectedVariant] = React.useState<ProductVariant | null>(null);
-    const [priceDetails, setPriceDetails] = React.useState<{ unit: string; total: number; quantity: number } | null>(null);
+    const [priceDetails, setPriceDetails] = React.useState<{ unitPrice: number; total: number; quantity: number } | null>(null);
     const pathname = usePathname();
     const isCorporate = pathname.includes('/corporate');
 
@@ -45,12 +44,12 @@ export function ProductPageContent({ product }: { product: PlainProduct }) {
         <div className="container py-8 md:py-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
                 <ProductMediaGallery
-                    product={product as Product}
+                    product={product}
                     selectedVariant={selectedVariant}
                 />
                 <div className="flex flex-col gap-6">
                     <ProductInfo 
-                        product={product as Product} 
+                        product={product} 
                         totalPrice={priceDetails?.total}
                         quantity={priceDetails?.quantity}
                     />
