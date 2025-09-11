@@ -59,7 +59,7 @@ export default function OrdersPage() {
         if (searchQuery) {
             const lowerCaseQuery = searchQuery.toLowerCase();
             orders = orders.filter(order => 
-                order.orderId.toLowerCase().includes(lowerCaseQuery) ||
+                (order.orderId && order.orderId.toLowerCase().includes(lowerCaseQuery)) ||
                 order.customer.name.toLowerCase().includes(lowerCaseQuery) ||
                 order.customer.email.toLowerCase().includes(lowerCaseQuery)
             );
