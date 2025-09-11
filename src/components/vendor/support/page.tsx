@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import type { SupportTicket, KnowledgeBaseArticle } from '@/lib/vendor/support-service';
 import { getPopularArticles } from '@/lib/vendor/support-service';
-import { onRecentTicketsUpdate } from '@/lib/vendor/support-client-service';
+import { onAllVendorTicketsUpdate } from '@/lib/vendor/support-client-service';
 import { CreateTicketDialog } from '@/components/vendor/support/create-ticket-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { SupportTicketDetailsDialog } from '@/components/admin/support/support-ticket-details-dialog';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
 // In a real app, this would come from an auth context
 const VENDOR_ID = 'vendor001';
@@ -34,14 +35,14 @@ const VENDOR_ID = 'vendor001';
 function VendorSupportPageContent() {
   const searchParams = useSearchParams();
   const [isTicketDialogOpen, setIsTicketDialogOpen] = React.useState(false);
-  const [recentTickets, setRecentTickets] = React.useState<SupportTicket[]>([]);
+  const [allTickets, setAllTickets] = React.useState<SupportTicket[]>([]);
   const [popularArticles, setPopularArticles] = React.useState<KnowledgeBaseArticle[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedTicket, setSelectedTicket] = React.useState<SupportTicket | null>(null);
 
   React.useEffect(() => {
-    const unsub = onRecentTicketsUpdate(VENDOR_ID, (tickets) => {
-      setRecentTickets(tickets);
+    const unsub = onAllVendorTicketsUpdate(VENDOR_ID, (tickets) => {
+      setAllTickets(tickets);
       setLoading(false);
     });
 
@@ -126,39 +127,48 @@ function VendorSupportPageContent() {
           </Card>
         </div>
 
-        {/* Recent Tickets and Popular Articles */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* All Tickets and Popular Articles */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Tickets</CardTitle>
+              <CardTitle>Your Ticket History</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                 {loading ? (
-                    Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="flex justify-between items-center">
-                            <div className="space-y-1">
-                                <Skeleton className="h-5 w-48" />
-                                <Skeleton className="h-4 w-32" />
-                            </div>
-                            <Skeleton className="h-6 w-20 rounded-full" />
-                        </div>
-                    ))
-                ) : recentTickets.length > 0 ? (
-                    recentTickets.map(ticket => (
-                        <button onClick={() => setSelectedTicket(ticket)} key={ticket.id} className="w-full flex justify-between items-center p-2 rounded-md hover:bg-muted">
-                            <div>
-                                <p className="font-medium text-left">{ticket.subject}</p>
-                                <p className="text-sm text-muted-foreground">
-                                    #{ticket.id.slice(0, 6)} &bull; {formatDistanceToNow(ticket.lastUpdated.toDate(), { addSuffix: true })}
-                                </p>
-                            </div>
-                            <Badge variant={getStatusVariant(ticket.status)}>{ticket.status}</Badge>
-                        </button>
-                    ))
-                ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">No recent tickets.</p>
-                )}
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Subject</TableHead>
+                      <TableHead>Last Updated</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loading ? (
+                      Array.from({ length: 3 }).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : allTickets.length > 0 ? (
+                      allTickets.map(ticket => (
+                        <TableRow key={ticket.id} onClick={() => setSelectedTicket(ticket)} className="cursor-pointer">
+                          <TableCell className="font-medium">{ticket.subject}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{formatDistanceToNow(ticket.lastUpdated.toDate(), { addSuffix: true })}</TableCell>
+                          <TableCell><Badge variant={getStatusVariant(ticket.status)}>{ticket.status}</Badge></TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                       <TableRow>
+                          <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                            You haven't created any tickets yet.
+                          </TableCell>
+                       </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
@@ -203,7 +213,7 @@ function VendorSupportPageContent() {
 
 export default function VendorSupportPage() {
     return (
-        <React.Suspense fallback={<div>Loading...</div>}>
+        <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
             <VendorSupportPageContent />
         </React.Suspense>
     );

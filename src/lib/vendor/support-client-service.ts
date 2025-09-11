@@ -13,13 +13,18 @@ import {
 import { db } from '../firebase';
 import type { SupportTicket } from './support-service';
 
-export function onRecentTicketsUpdate(vendorId: string, callback: (tickets: SupportTicket[]) => void): Unsubscribe {
+/**
+ * Sets up a real-time listener for all of a vendor's support tickets.
+ * @param vendorId The ID of the vendor.
+ * @param callback Function to be called with the updated list of tickets.
+ * @returns Unsubscribe function for the listener.
+ */
+export function onAllVendorTicketsUpdate(vendorId: string, callback: (tickets: SupportTicket[]) => void): Unsubscribe {
   const ticketsRef = collection(db, 'supportTickets');
   const q = query(
     ticketsRef,
     where('vendorId', '==', vendorId),
-    orderBy('lastUpdated', 'desc'),
-    limit(3)
+    orderBy('lastUpdated', 'desc')
   );
 
   return onSnapshot(q, (snapshot) => {
