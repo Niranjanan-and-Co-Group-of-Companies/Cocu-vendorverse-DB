@@ -21,6 +21,20 @@ export function onProductUpdate(id: string, callback: (product: Product | null) 
     });
 }
 
+export function onProductsUpdate(productIds: string[], callback: (products: Product[]) => void): Unsubscribe {
+    if (productIds.length === 0) {
+        callback([]);
+        return () => {};
+    }
+    const q = query(collection(db, 'products'), where(documentId(), 'in', productIds));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        callback(products);
+    });
+    return unsubscribe;
+}
+
+
 export function onVendorProductsUpdate(vendorId: string, callback: (products: ProductWithStatus[]) => void): Unsubscribe {
     const q = query(productsCollection, where('vendorId', '==', vendorId));
     
@@ -77,7 +91,7 @@ const productsCollection = collection(db, 'products');
 
 async function priceProducts(products: Product[], platform: 'Personalized' | 'Corporate', categories: Category[]): Promise<ProductWithPrice[]> {
     const pricedProducts = await Promise.all(
-        products.map(async p => {
+        products.map(async (p) => {
             const category = categories.find(c => c.name === p.category);
             const productInfo = {
                 id: p.id,
