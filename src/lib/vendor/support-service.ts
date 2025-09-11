@@ -22,6 +22,7 @@ import {
 import { db } from '../firebase';
 import { createNotification } from '../notifications-actions';
 import { getVendorById } from '../vendors-service';
+import { generateReadableId } from '../id-service';
 
 // --- Data Types ---
 
@@ -104,7 +105,7 @@ export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
 export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor' | 'ticketId'>): Promise<string> {
     const timestamp = serverTimestamp();
     const ticketRef = doc(collection(db, 'supportTickets')); // Generate a new document reference with an auto-generated ID
-    const ticketId = `TKT-${ticketRef.id.substring(0, 6).toUpperCase()}`;
+    const ticketId = generateReadableId('TKT');
 
     const ticketData = {
         ...data,
@@ -117,14 +118,11 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
     await setDoc(ticketRef, ticketData); // Use setDoc with the new reference
 
     // After creating the ticket, notify the admin
-    const vendorDoc = await getDoc(doc(db, 'vendors', data.vendorId));
-    const vendorName = vendorDoc.exists() ? vendorDoc.data().name : 'A vendor';
-
     await createNotification({
         userId: 'admin',
         forAdmin: true,
         type: 'NEW_SUPPORT_TICKET',
-        text: `New support ticket ${ticketId} from ${vendorName}: "${data.subject}"`,
+        text: `New support ticket ${ticketId} from vendor ${data.vendorId}: "${data.subject}"`,
         link: `/admin/support?ticketId=${ticketRef.id}`
     });
 
@@ -155,14 +153,12 @@ export async function sendVendorSupportMessage(ticket: SupportTicket, text: stri
         adminUnreadCount: increment(1)
     });
     
-    const vendor = await getVendorById(ticket.vendorId);
-    
     // Send notification to admin
     await createNotification({
         userId: 'admin',
         forAdmin: true,
         type: 'NEW_MESSAGE',
-        text: `New reply from ${vendor?.name || 'a vendor'} on ticket #${ticket.ticketId}.`,
+        text: `New reply from vendor ${ticket.vendorId} on ticket #${ticket.ticketId}.`,
         link: `/admin/support?ticketId=${ticket.id}`
     });
 }

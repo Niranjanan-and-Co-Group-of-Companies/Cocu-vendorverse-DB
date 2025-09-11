@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Copy } from 'lucide-react';
 import type { Vendor } from '@/lib/vendors-service';
 import { useToast } from '@/hooks/use-toast';
 import { updateVendorSettings } from '@/lib/vendors-service';
@@ -28,6 +28,11 @@ export function VendorProfileCard({ vendor }: VendorProfileCardProps) {
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+  
+  const copyVendorId = () => {
+    navigator.clipboard.writeText(vendor.id);
+    toast({ title: 'Copied!', description: 'Vendor ID copied to clipboard.' });
+  }
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -49,6 +54,13 @@ export function VendorProfileCard({ vendor }: VendorProfileCardProps) {
         <CardDescription>Manage your store name and contact information.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="vendor-id">Vendor ID</Label>
+          <div className="flex items-center gap-2">
+            <Input id="vendor-id" value={vendor.id} readOnly className="font-mono text-muted-foreground" />
+            <Button variant="outline" size="icon" onClick={copyVendorId}><Copy/></Button>
+          </div>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="store-name">Store Name</Label>
           <Input id="store-name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} readOnly={!isEditing} />
