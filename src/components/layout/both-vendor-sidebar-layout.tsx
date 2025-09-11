@@ -102,8 +102,7 @@ function BothVendorSidebar() {
 
     React.useEffect(() => {
         const unsubscribe = onVendorConversationsUpdate(VENDOR_ID, (conversations) => {
-            const corporateConversations = conversations.filter(c => c.type === 'Corporate');
-            const totalUnread = corporateConversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
+            const totalUnread = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
             setTotalUnreadMessages(totalUnread);
         });
 
@@ -255,7 +254,7 @@ function BothVendorSidebarLayoutContent({ children }: { children: React.ReactNod
                     <h1 className="font-headline text-lg font-semibold">{pageTitle}</h1>
                  </div>
                  <div className="flex items-center gap-2">
-                    <VendorNotificationDropdown />
+                    <VendorNotificationDropdown vendorId={VENDOR_ID} />
                  </div>
             </header>
             <main className="flex-1 p-4 md:p-6 bg-muted/40">

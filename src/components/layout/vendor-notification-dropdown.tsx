@@ -21,9 +21,6 @@ import { Badge } from '../ui/badge';
 import { markNotificationAsRead } from '@/lib/notifications-actions';
 import { useToast } from '@/hooks/use-toast';
 
-// In a real app, this ID would come from the auth context
-const VENDOR_ID = "vendor001";
-
 const iconMap: { [key in NotificationType]: React.ElementType } = {
   ORDER_STATUS_UPDATE: Package,
   NEW_MESSAGE: MessageSquare,
@@ -37,18 +34,22 @@ const iconMap: { [key in NotificationType]: React.ElementType } = {
   NEW_BID_REQUEST: Gavel,
 };
 
-export function VendorNotificationDropdown() {
+export function VendorNotificationDropdown({ vendorId }: { vendorId: string }) {
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
 
   React.useEffect(() => {
-    const unsubscribe = onUserNotificationsUpdate(VENDOR_ID, (newNotifications) => {
+    if (!vendorId) {
+        setLoading(false);
+        return;
+    }
+    const unsubscribe = onUserNotificationsUpdate(vendorId, (newNotifications) => {
       setNotifications(newNotifications);
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [vendorId]);
 
   const handleCloseNotification = async (e: React.MouseEvent, notificationId?: string) => {
     e.stopPropagation();

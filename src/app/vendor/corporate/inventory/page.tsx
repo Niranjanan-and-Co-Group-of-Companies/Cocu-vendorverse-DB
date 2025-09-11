@@ -42,7 +42,7 @@ function InventoryTable() {
     const { toast } = useToast();
     
     // In a real app, you would get the vendor's ID from an authentication context.
-    const VENDOR_ID = 'vendor001'; 
+    const VENDOR_ID = 'vendor003'; 
 
     React.useEffect(() => {
         const unsubscribe = onVendorProductsUpdate(VENDOR_ID, (allProducts) => {
@@ -85,7 +85,7 @@ function InventoryTable() {
         }
 
         try {
-            await updateProductInventory(Number(productId), stock, inventoryBuffer);
+            await updateProductInventory(productId, stock, inventoryBuffer);
             toast({ title: 'Inventory Updated', description: `Stock for product #${productId.slice(0,6)} has been updated.` });
             // Clear editing state for this product
             setEditingState(prev => {

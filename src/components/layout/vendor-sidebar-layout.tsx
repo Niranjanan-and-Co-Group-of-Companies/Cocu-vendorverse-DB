@@ -38,9 +38,10 @@ import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Badge } from '../ui/badge';
 import { VendorNotificationDropdown } from './vendor-notification-dropdown';
+import { TermsUpdateDialog } from '../common/terms-update-dialog';
 
 // In a real app, this would come from an auth context.
-const VENDOR_ID = "vendor001";
+const VENDOR_ID = "vendor002";
 
 function CustomSidebarTrigger() {
     'use client';
@@ -80,7 +81,7 @@ function VendorSidebar() {
                     <AvatarFallback>V</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col group-data-[state=collapsed]:hidden">
-                    <span className="text-base font-semibold">Gourmet Delights</span>
+                    <span className="text-base font-semibold">Serene Moments</span>
                     <Badge variant="outline" className="w-fit">Personalized Retail</Badge>
                 </div>
               </SidebarHeader>
@@ -212,7 +213,7 @@ export function VendorSidebarLayout({ children }: { children: React.ReactNode; }
                     <h1 className="font-headline text-lg font-semibold">{pageTitle}</h1>
                  </div>
                  <div className="flex items-center gap-2">
-                    <VendorNotificationDropdown />
+                    <VendorNotificationDropdown vendorId={VENDOR_ID}/>
                  </div>
             </header>
             <main className="flex-1 p-4 md:p-6 bg-muted/40">
