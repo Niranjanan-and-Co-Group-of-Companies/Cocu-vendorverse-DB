@@ -84,6 +84,7 @@ function GstDetailsCard() {
     const { account, updateGstProfile } = useCorporateAccount();
     const [gstin, setGstin] = React.useState('');
     const [legalName, setLegalName] = React.useState('');
+    const [registeredContact, setRegisteredContact] = React.useState('');
     const [isSaving, setIsSaving] = React.useState(false);
     
     // Admin action simulation
@@ -98,12 +99,13 @@ function GstDetailsCard() {
         if (account?.gstProfile) {
             setGstin(account.gstProfile.gstin);
             setLegalName(account.gstProfile.legalName);
+            setRegisteredContact(account.gstProfile.registeredContact || '');
         }
     }, [account]);
 
     const handleSave = async () => {
         setIsSaving(true);
-        await updateGstProfile(gstin, legalName);
+        await updateGstProfile(gstin, legalName, registeredContact);
         setIsSaving(false);
     }
     
@@ -123,6 +125,10 @@ function GstDetailsCard() {
                         <Label htmlFor="legalName">Company Legal Name</Label>
                         <Input id="legalName" value={legalName} onChange={e => setLegalName(e.target.value)} readOnly={isVerified} />
                     </div>
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="registered-contact">Registered Phone or Email</Label>
+                    <Input id="registered-contact" value={registeredContact} onChange={e => setRegisteredContact(e.target.value)} readOnly={isVerified} placeholder="Contact used for GST registration" />
                 </div>
                  {account?.gstStatus && (
                     <div>

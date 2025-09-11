@@ -16,7 +16,7 @@ interface CorporateAccountState {
   isLoading: boolean;
   setAccount: (account: CorporateClient | null) => void;
   updateClientProfile: (data: Partial<Pick<CorporateClient, 'name' | 'contactPerson' | 'email' | 'phone'>>) => Promise<void>;
-  updateGstProfile: (gstin: string, legalName: string) => Promise<void>;
+  updateGstProfile: (gstin: string, legalName: string, registeredContact: string) => Promise<void>;
 }
 
 const useCorporateAccountStore = create<CorporateAccountState>((set, get) => ({
@@ -35,13 +35,13 @@ const useCorporateAccountStore = create<CorporateAccountState>((set, get) => ({
         toast({ title: 'Error', description: 'Could not update your profile.', variant: 'destructive' });
     }
   },
-  updateGstProfile: async (gstin, legalName) => {
+  updateGstProfile: async (gstin, legalName, registeredContact) => {
      const account = get().account;
     if (!account) return;
     try {
         const clientRef = doc(db, 'corporateClients', account.id);
         const updateData = {
-            gstProfile: { gstin, legalName },
+            gstProfile: { gstin, legalName, registeredContact },
             gstStatus: 'Pending',
         };
         await updateDoc(clientRef, updateData as any);

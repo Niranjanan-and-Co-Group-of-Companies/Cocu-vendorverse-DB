@@ -13,6 +13,17 @@ export interface CorporateClient {
   totalSpent: number;
   gstin?: string;
   gstStatus?: 'Verified' | 'Pending' | 'Failed' | 'Not Provided';
+  gstProfile?: {
+      gstin: string;
+      legalName: string;
+      registeredContact: string;
+  };
+  pickupAddresses?: {
+      street: string;
+      city: string;
+      state: string;
+      pincode: string;
+  }[];
 }
 
 const MOCK_CLIENTS: Omit<CorporateClient, 'id' | 'createdAt'>[] = [
@@ -23,7 +34,11 @@ const MOCK_CLIENTS: Omit<CorporateClient, 'id' | 'createdAt'>[] = [
         contactPerson: 'John Smith',
         status: 'Active',
         totalSpent: 12500.50,
-        gstin: '29ABCDE1234F1Z5',
+        gstProfile: {
+            gstin: '29ABCDE1234F1Z5',
+            legalName: 'Globex Corporation Inc.',
+            registeredContact: '9876543210'
+        },
         gstStatus: 'Verified',
     },
     {
@@ -43,6 +58,11 @@ const MOCK_CLIENTS: Omit<CorporateClient, 'id' | 'createdAt'>[] = [
         status: 'Inactive',
         totalSpent: 4500.00,
         gstStatus: 'Verified',
+        gstProfile: {
+            gstin: '07ABCDE1234F1Z5',
+            legalName: 'Wayne Enterprises',
+            registeredContact: 'bruce@wayne.com'
+        },
     },
      {
         name: 'Cyberdyne Systems',
@@ -51,7 +71,11 @@ const MOCK_CLIENTS: Omit<CorporateClient, 'id' | 'createdAt'>[] = [
         contactPerson: 'Miles Dyson',
         status: 'Pending',
         totalSpent: 0,
-        gstin: '27AAAAA0000A1Z5',
+        gstProfile: {
+            gstin: '27AAAAA0000A1Z5',
+            legalName: 'Cyberdyne Systems Corp',
+            registeredContact: '9988776655'
+        },
         gstStatus: 'Pending',
     }
 ];
