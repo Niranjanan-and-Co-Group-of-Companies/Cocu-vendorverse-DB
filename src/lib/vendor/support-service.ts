@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { 
@@ -14,7 +13,8 @@ import {
     Unsubscribe,
     getDocs,
     getDoc,
-    doc
+    doc,
+    onSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { createNotification } from '../notifications-actions';
@@ -35,6 +35,15 @@ export type TicketCategory =
 
 export type TicketStatus = 'Open' | 'In Progress' | 'Waiting on Vendor' | 'Resolved';
 export type TicketPriority = 'Normal' | 'Urgent';
+
+export interface SupportTicketMessage {
+    id: string;
+    senderId: string; // 'admin' or vendorId
+    senderType: 'admin' | 'vendor' | 'system';
+    text: string;
+    timestamp: any;
+}
+
 
 export interface SupportTicket {
     id: string;
@@ -108,4 +117,21 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
     });
 
     return ticketRef.id;
+}
+
+
+// CLIENT-SIDE LISTENER for messages in a ticket
+export function onMessagesUpdate(ticketId: string, callback: (messages: SupportTicketMessage[]) => void): Unsubscribe {
+  const messagesRef = collection(db, 'supportTickets', ticketId, 'messages');
+  const q = query(messagesRef, orderBy('timestamp', 'asc'));
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const messages = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as SupportTicketMessage));
+    callback(messages);
+  });
+
+  return unsubscribe;
 }
