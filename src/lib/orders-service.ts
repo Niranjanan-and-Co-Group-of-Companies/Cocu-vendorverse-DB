@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc, addDoc, serverTimestamp, increment } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product, CustomizationSide, ProductVariant } from './products';
 import { createNotification } from './notifications-actions';
@@ -94,10 +94,25 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 
 
 export async function createOrder(orderData: Omit<Order, 'id' | 'date' | 'status' | 'statusTimeline'>) {
-    await addDoc(collection(db, 'orders'), {
+    const batch = writeBatch(db);
+
+    // 1. Create the new order document
+    const orderRef = doc(collection(db, 'orders'));
+    const newOrderData = {
         ...orderData,
-        status: 'Pending',
+        status: 'Pending' as OrderStatus,
         date: serverTimestamp(),
-        statusTimeline: [{ status: 'Pending', at: serverTimestamp() }],
-    });
+        statusTimeline: [{ status: 'Pending' as OrderStatus, at: serverTimestamp() }],
+    };
+    batch.set(orderRef, newOrderData);
+
+    // 2. Decrement stock for each item in the order
+    for (const item of orderData.items) {
+        const productRef = doc(db, 'products', item.id);
+        // Use the 'increment' utility with a negative value to decrement stock
+        batch.update(productRef, { stock: increment(-item.quantity) });
+    }
+
+    // 3. Commit the batch
+    await batch.commit();
 }
