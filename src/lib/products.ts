@@ -76,7 +76,7 @@ export type Product = {
   inventoryBuffer: number;
   tags: string[];
   preparationTime: { min: number, max: number };
-  preparationTimeUnit: 'days' | 'weeks';
+  preparationTimeUnit: 'days' | 'hours';
   platform: Platform;
   shipsFromPincode: string; 
   sku: string;

@@ -18,7 +18,7 @@ interface PackageAndShippingCardProps {
     dimensions: { l: number, w: number, h: number }; // in cm
   };
   preparationTime: { min: number, max: number };
-  preparationTimeUnit: 'days' | 'weeks';
+  preparationTimeUnit: 'days' | 'hours';
   onFieldChange: (field: keyof Product, value: any) => void;
 }
 
@@ -81,8 +81,8 @@ export function PackageAndShippingCard({
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="hours">Hours</SelectItem>
                         <SelectItem value="days">Days</SelectItem>
-                        <SelectItem value="weeks">Weeks</SelectItem>
                     </SelectContent>
                 </Select>
             </div>

@@ -137,7 +137,7 @@ function NewProductPage() {
             }
         }
         if (product.preparationTime && product.preparationTime.max <= product.preparationTime.min) {
-             setError('The preparation time range is invalid. Max days must be greater than min days.');
+             setError('The preparation time range is invalid. Max prep time must be greater than min prep time.');
              window.scrollTo(0, 0);
              return false;
         }

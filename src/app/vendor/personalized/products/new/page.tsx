@@ -15,7 +15,7 @@ import { PricingAndInventoryCard } from '@/components/vendor/products/new/pricin
 import { PackageAndShippingCard } from '@/components/vendor/products/new/package-and-shipping-card';
 import { OrganizeCard } from '@/components/vendor/products/new/organize-card';
 import { AllowedCustomizationsCard } from '@/components/vendor/products/new/allowed-customizations-card';
-import type { CustomizationSide, AllowedCustomizationType, CustomizationArea } from '@/lib/products';
+import type { CustomizationSide, AllowedCustomizationType, CustomizationArea, ProductVariant } from '@/lib/products';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const createDefaultProduct = (): Partial<Product> => ({
@@ -125,7 +125,7 @@ function ProductEditorContent() {
             }
         }
         if (product.preparationTime && product.preparationTime.max <= product.preparationTime.min) {
-             setError('The preparation time range is invalid. Max days must be greater than min days.');
+             setError('The preparation time range is invalid. Max prep time must be greater than min prep time.');
              window.scrollTo(0, 0);
              return false;
         }

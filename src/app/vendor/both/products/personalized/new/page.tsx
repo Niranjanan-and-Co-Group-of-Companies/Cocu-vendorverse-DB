@@ -120,8 +120,8 @@ function ProductEditorContent() {
                 return false;
             }
         }
-        if (product.preparationTime && product.preparationTime.max !== product.preparationTime.min + 1) {
-             setError('The preparation time range is invalid. Max days must be one greater than min days.');
+        if (product.preparationTime && product.preparationTime.max <= product.preparationTime.min) {
+             setError('The preparation time range is invalid. Max prep time must be greater than min prep time.');
              window.scrollTo(0, 0);
              return false;
         }
@@ -208,10 +208,10 @@ function ProductEditorContent() {
                     <MediaAndCustomizationCard 
                         product={product as Product}
                         onFieldChange={handleFieldChange}
-                        onImageChange={handleImageChange}
-                        onCustomizationAreaChange={handleCustomizationAreaChange}
+                        onImageChange={() => {}}
                         galleryImageFiles={galleryImageFiles}
                         onGalleryFilesChange={setGalleryImageFiles}
+                        mainVariantId={product.mainVariantId || ''}
                     />
                 </div>
                 {/* Right Sidebar */}
@@ -223,10 +223,8 @@ function ProductEditorContent() {
                         onFieldChange={handleFieldChange}
                     />
                      <PackageAndShippingCard
-                        weight={product.weight || 0}
-                        dimensions={product.dimensions || { l: 0, w: 0, h: 0 }}
-                        inventoryBuffer={product.inventoryBuffer || 0}
-                        preparationTime={product.preparationTime || { min: 0, max: 0 }}
+                        packaging={product.packaging || { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }}
+                        preparationTime={product.preparationTime || { min: 3, max: 4 }}
                         preparationTimeUnit={product.preparationTimeUnit || 'days'}
                         onFieldChange={handleFieldChange}
                     />
