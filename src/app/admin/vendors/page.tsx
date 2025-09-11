@@ -21,7 +21,7 @@ import { VendorActions } from '@/components/admin/vendors/vendor-actions';
 import { collection, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import type { Vendor } from '@/lib/vendors-service';
+import type { Vendor, VendorType } from '@/lib/vendors-service';
 
 
 export default function VendorsPage() {
@@ -75,6 +75,15 @@ export default function VendorsPage() {
     }
   };
   
+  const getTypeVariant = (type?: VendorType): 'default' | 'secondary' | 'outline' => {
+      switch(type) {
+          case 'both': return 'default';
+          case 'corporate': return 'secondary';
+          case 'personalized': return 'outline';
+          default: return 'outline';
+      }
+  }
+
   const formatDate = (timestamp: any) => {
     if (timestamp && typeof timestamp.toDate === 'function') {
       return timestamp.toDate().toLocaleDateString();
@@ -110,7 +119,7 @@ export default function VendorsPage() {
               <TableRow>
                 <TableHead>Vendor</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Location</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -129,7 +138,7 @@ export default function VendorsPage() {
                       </div>
                     </TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                     <TableCell>
                       <Skeleton className="h-6 w-20 rounded-full" />
                     </TableCell>
@@ -156,7 +165,9 @@ export default function VendorsPage() {
                       </div>
                     </TableCell>
                     <TableCell>{vendor.phone}</TableCell>
-                    <TableCell>{vendor.pickupAddresses?.[0]?.city || 'N/A'}, {vendor.pickupAddresses?.[0]?.state || 'N/A'}</TableCell>
+                    <TableCell>
+                        <Badge variant={getTypeVariant(vendor.type)} className="capitalize">{vendor.type || 'N/A'}</Badge>
+                    </TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(vendor.status)}>
                         {vendor.status}

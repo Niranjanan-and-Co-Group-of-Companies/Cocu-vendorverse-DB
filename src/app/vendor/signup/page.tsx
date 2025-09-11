@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -17,9 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useRouter } from 'next/navigation';
-import { createVendorApplication } from '@/lib/vendors-service';
-
-type VendorType = 'personalized' | 'corporate' | 'both';
+import { createVendorApplication, type VendorType } from '@/lib/vendors-service';
 
 export default function VendorSignupPage() {
   const [step, setStep] = React.useState(1);
@@ -72,10 +71,14 @@ export default function VendorSignupPage() {
         toast({ title: "Invalid OTP", description: "One or both of your verification codes are incorrect.", variant: "destructive" });
         return;
     }
+    if (!vendorType) {
+        toast({ title: "Vendor type missing", description: "An error occurred, please start over.", variant: "destructive" });
+        return;
+    }
 
     setIsLoading(true);
     try {
-        await createVendorApplication({ storeName, firstName, lastName, email });
+        await createVendorApplication({ storeName, firstName, lastName, email, vendorType });
         toast({
             title: "Application Submitted!",
             description: "Your application is under review. We'll be in touch within 2-3 business days.",
