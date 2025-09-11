@@ -14,35 +14,43 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileText, Loader2 } from 'lucide-react';
+import { useCorporateAccount } from '@/hooks/use-corporate-account-store';
 
 export function GstVerificationDialog() {
+  const { account, isLoading, updateGstProfile } = useCorporateAccount();
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [gstin, setGstin] = React.useState('');
+  const [legalName, setLegalName] = React.useState('');
 
   React.useEffect(() => {
-    // Show dialog only if it hasn't been seen in this session
+    if (isLoading || account?.gstStatus === 'Verified' || account?.gstStatus === 'Pending') {
+      return;
+    }
+    
     const hasSeenPrompt = sessionStorage.getItem('gstPromptSeen');
     if (!hasSeenPrompt) {
-      // Use a timeout to avoid layout shift issues on initial load
       const timer = setTimeout(() => {
         setIsOpen(true);
-      }, 3000);
+      }, 5000); // Wait 5 seconds before showing
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [account, isLoading]);
 
   const handleClose = () => {
     sessionStorage.setItem('gstPromptSeen', 'true');
     setIsOpen(false);
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!gstin || !legalName) {
+        alert('Both GSTIN and Legal Name are required.');
+        return;
+    }
     setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
-      handleClose();
-    }, 1500)
+    await updateGstProfile(gstin, legalName);
+    setIsSaving(false);
+    handleClose();
   }
 
   return (
@@ -59,12 +67,12 @@ export function GstVerificationDialog() {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="gstin">GSTIN Number</Label>
-            <Input id="gstin" placeholder="e.g., 29ABCDE1234F1Z5" />
+            <Label htmlFor="gstin-dialog">GSTIN Number</Label>
+            <Input id="gstin-dialog" value={gstin} onChange={e => setGstin(e.target.value)} placeholder="e.g., 29ABCDE1234F1Z5" />
           </div>
            <div className="grid gap-2">
-            <Label htmlFor="company-name">Company Legal Name</Label>
-            <Input id="company-name" placeholder="Your Company Inc." />
+            <Label htmlFor="company-name-dialog">Company Legal Name</Label>
+            <Input id="company-name-dialog" value={legalName} onChange={e => setLegalName(e.target.value)} placeholder="Your Company Pvt. Ltd." />
           </div>
         </div>
         <DialogFooter className="flex-col gap-2 sm:flex-row">

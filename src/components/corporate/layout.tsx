@@ -17,20 +17,20 @@ export default function CorporateLayout({
 }) {
   return (
     <CorporateAccountProvider>
-        <SidebarProvider>
-            <CorporateSidebar />
-            <SidebarInset>
-              <div className="flex flex-col min-h-screen">
-                <CorporateHeader />
-                <main className="flex-grow p-4 md:p-6 bg-muted/40">
-                    {children}
-                </main>
-                <Footer />
-              </div>
-            </SidebarInset>
-            <GstVerificationDialog />
-            <ChatSafetyDialog />
-        </SidebarProvider>
+      <SidebarProvider>
+          <CorporateSidebar />
+          <SidebarInset>
+            <div className="flex flex-col min-h-screen">
+              <CorporateHeader />
+              <main className="flex-grow p-4 md:p-6 bg-muted/40">
+                  {children}
+              </main>
+              <Footer />
+            </div>
+          </SidebarInset>
+          <GstVerificationDialog />
+          <ChatSafetyDialog />
+      </SidebarProvider>
     </CorporateAccountProvider>
   );
 }
