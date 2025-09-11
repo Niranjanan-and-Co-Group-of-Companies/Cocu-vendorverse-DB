@@ -40,8 +40,7 @@ function InventoryTable() {
     const [savingState, setSavingState] = React.useState<SavingState>({});
     const { toast } = useToast();
     
-    // In a real app, you would get the vendor's ID from an authentication context.
-    const VENDOR_ID = 'vendor001'; 
+    const VENDOR_ID = 'vendor002'; 
 
     React.useEffect(() => {
         const unsubscribe = onVendorProductsUpdate(VENDOR_ID, (products) => {

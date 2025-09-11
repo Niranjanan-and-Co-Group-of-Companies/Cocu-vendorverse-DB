@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -22,6 +21,8 @@ import { type ProductStatus } from '@/lib/products';
 import Link from 'next/link';
 import { ProductActions } from '@/components/vendor/products/product-actions';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+const VENDOR_ID = 'vendor003'; 
 
 function ProductTable({ products, loading }: { products: ProductWithStatus[], loading: boolean }) {
     
@@ -104,8 +105,6 @@ export default function CorporateVendorProductsPage() {
     const [activeTab, setActiveTab] = React.useState<ProductStatus | 'All' | 'B2B Enabled'>('All');
 
     React.useEffect(() => {
-        const VENDOR_ID = 'vendor001'; 
-        
         const unsubscribe = onVendorProductsUpdate(VENDOR_ID, (products) => {
             // Corporate portal only cares about B2B products (those with MOQ > 1)
             setAllProducts(products.filter(p => p.moq && p.moq > 1));

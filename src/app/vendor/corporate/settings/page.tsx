@@ -12,8 +12,7 @@ import { BankingDetailsCard } from '@/components/vendor/settings/banking-details
 import { KycStatusCard } from '@/components/vendor/settings/kyc-status-card';
 import { useToast } from '@/hooks/use-toast';
 
-// In a real app, this would come from an auth context
-const VENDOR_ID = 'vendor001';
+const VENDOR_ID = 'vendor003';
 
 export default function VendorSettingsPage() {
     const [vendor, setVendor] = React.useState<Vendor | null>(null);

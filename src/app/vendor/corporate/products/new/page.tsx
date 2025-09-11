@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -19,13 +18,16 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { B2BPricingCard } from '@/components/vendor/corporate/b2b-pricing-card';
 import { ProductVariantsCard } from '@/components/vendor/products/new/product-variants-card';
 
+const VENDOR_ID = 'vendor003';
+const VENDOR_NAME = 'Heritage Wares';
+
 const createDefaultProduct = (): Partial<Product> => ({
   name: '',
   description: '',
   price: '0.00',
   stock: 0,
-  vendorId: 'vendor001',
-  vendor: 'Gourmet Delights',
+  vendorId: VENDOR_ID,
+  vendor: VENDOR_NAME,
   status: 'Draft',
   platform: 'Corporate',
   customizable: false,

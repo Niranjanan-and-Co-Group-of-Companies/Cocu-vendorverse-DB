@@ -25,8 +25,7 @@ import { VendorOrderDetailsDialog } from '@/components/vendor/orders/vendor-orde
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 
-// In a real app, this would come from an auth context
-const VENDOR_NAME = "Gourmet Delights"; 
+const VENDOR_NAME = "Heritage Wares"; 
 
 export type VendorOrder = Order & {
     vendorTotal: number;
@@ -138,7 +137,7 @@ export default function VendorCorporateOrdersPage() {
                              const totalQuantity = vendorItems.reduce((sum, item) => sum + item.quantity, 0);
                             return (
                                 <TableRow key={order.id}>
-                                    <TableCell className="font-mono text-xs">#{order.id.slice(0, 8)}...</TableCell>
+                                    <TableCell className="font-mono text-xs">{order.orderId}</TableCell>
                                      <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Image src={primaryItem.image} alt={primaryItem.name} width={40} height={40} className="rounded-md object-cover" />

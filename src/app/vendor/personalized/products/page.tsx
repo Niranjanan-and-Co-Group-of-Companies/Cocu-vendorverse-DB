@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -22,6 +21,8 @@ import { type ProductStatus } from '@/lib/products';
 import Link from 'next/link';
 import { ProductActions } from '@/components/vendor/products/product-actions';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+const VENDOR_ID = 'vendor002'; 
 
 function ProductTable({ products, loading }: { products: ProductWithStatus[], loading: boolean }) {
     
@@ -98,9 +99,6 @@ export default function VendorProductsPage() {
     const [activeTab, setActiveTab] = React.useState<ProductStatus | 'All'>('All');
 
     React.useEffect(() => {
-        // In a real app, you would get the vendor's ID from an authentication context.
-        const VENDOR_ID = 'vendor001'; 
-        
         const unsubscribe = onVendorProductsUpdate(VENDOR_ID, (products) => {
             const retailProducts = products.filter(p => !p.moq || p.moq <= 1);
             setAllProducts(retailProducts);

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -19,13 +18,16 @@ import type { CustomizationSide, AllowedCustomizationType, CustomizationArea, Pr
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ProductVariantsCard } from '@/components/vendor/products/new/product-variants-card';
 
+const VENDOR_ID = 'vendor002';
+const VENDOR_NAME = 'Serene Moments';
+
 const createDefaultProduct = (): Partial<Product> => ({
   name: '',
   description: '',
   price: '0.00',
   stock: 0,
-  vendorId: 'vendor001', // This would come from auth context
-  vendor: 'Gourmet Delights', // This would come from auth context
+  vendorId: VENDOR_ID,
+  vendor: VENDOR_NAME, 
   status: 'Draft',
   customizable: false,
   variants: [
@@ -264,4 +266,3 @@ export default function NewProductPage() {
         </React.Suspense>
     );
 }
-

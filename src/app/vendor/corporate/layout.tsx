@@ -43,7 +43,6 @@ import { VendorNotificationDropdown } from '@/components/layout/vendor-notificat
 import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 import { onVendorConversationsUpdate } from '@/lib/vendor/messages-service';
 
-// In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor003";
 
 function CustomSidebarTrigger() {
