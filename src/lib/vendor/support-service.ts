@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { createNotification } from '../notifications-actions';
+import { getVendorById } from '../vendors-service';
 
 // --- Data Types ---
 
@@ -114,7 +115,7 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
     const vendorName = vendorDoc.exists() ? vendorDoc.data().name : 'A vendor';
 
     await createNotification({
-        userId: 'admin', // Generic admin user
+        userId: 'admin',
         forAdmin: true,
         type: 'NEW_SUPPORT_TICKET',
         text: `New support ticket from ${vendorName}: "${data.subject}"`,
@@ -148,12 +149,14 @@ export async function sendVendorSupportMessage(ticket: SupportTicket, text: stri
         adminUnreadCount: increment(1)
     });
     
+    const vendor = await getVendorById(ticket.vendorId);
+    
     // Send notification to admin
     await createNotification({
         userId: 'admin',
         forAdmin: true,
         type: 'NEW_MESSAGE',
-        text: `New reply from ${ticket.vendorId} on ticket #${ticket.id.slice(0, 6)}.`,
+        text: `New reply from ${vendor?.name || 'a vendor'} on ticket #${ticket.id.slice(0, 6)}.`,
         link: `/admin/support?ticketId=${ticket.id}`
     });
 }
