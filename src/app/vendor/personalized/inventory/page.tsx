@@ -13,24 +13,24 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
-import { onVendorProductsUpdate, updateProductInventory } from '@/lib/products-service';
-import type { ProductWithStatus } from '@/lib/products-client-service';
+import { onVendorProductsUpdate, updateProductInventory } from '@/lib/products-client-service';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { Product } from '@/lib/products';
 import { InventoryActions } from '@/components/vendor/inventory/inventory-actions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
+import type { ProductWithStatus } from '@/lib/products-client-service';
 
 type EditingState = {
-    [productId: number]: {
+    [productId: string]: {
         stock: string;
         inventoryBuffer: string;
     };
 };
 
 type SavingState = {
-    [productId: number]: boolean;
+    [productId: string]: boolean;
 }
 
 function InventoryTable() {
@@ -51,7 +51,7 @@ function InventoryTable() {
         return () => unsubscribe();
     }, [VENDOR_ID]);
 
-    const handleInputChange = (productId: number, field: 'stock' | 'inventoryBuffer', value: string) => {
+    const handleInputChange = (productId: string, field: 'stock' | 'inventoryBuffer', value: string) => {
         const product = products.find(p => p.id === productId);
         if (!product) return;
 
@@ -66,7 +66,7 @@ function InventoryTable() {
         }));
     };
 
-    const handleSave = async (productId: number) => {
+    const handleSave = async (productId: string) => {
         const editedData = editingState[productId];
         if (!editedData) return;
 
@@ -83,7 +83,7 @@ function InventoryTable() {
 
         try {
             await updateProductInventory(productId, stock, inventoryBuffer);
-            toast({ title: 'Inventory Updated', description: `Stock for product #${productId} has been updated.` });
+            toast({ title: 'Inventory Updated', description: `Stock for product #${productId.slice(0,6)} has been updated.` });
             // Clear editing state for this product
             setEditingState(prev => {
                 const newState = { ...prev };
