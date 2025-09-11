@@ -133,11 +133,10 @@ export default function VendorsPage() {
                         <Skeleton className="h-10 w-10 rounded-full" />
                         <div className="flex flex-col gap-1">
                           <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-40" />
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><div className="flex flex-col gap-1"><Skeleton className="h-4 w-40" /><Skeleton className="h-3 w-24" /></div></TableCell>
                     <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                     <TableCell>
                       <Skeleton className="h-6 w-20 rounded-full" />
@@ -158,13 +157,13 @@ export default function VendorsPage() {
                         </Avatar>
                         <div>
                           <p className="font-medium">{vendor.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {vendor.email}
-                          </p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{vendor.phone}</TableCell>
+                    <TableCell>
+                        <div className="font-medium">{vendor.email}</div>
+                        <div className="text-sm text-muted-foreground">{vendor.phone}</div>
+                    </TableCell>
                     <TableCell>
                         <Badge variant={getTypeVariant(vendor.type)} className="capitalize">{vendor.type || 'N/A'}</Badge>
                     </TableCell>
