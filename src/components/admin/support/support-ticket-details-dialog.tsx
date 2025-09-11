@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2, Paperclip, Send } from 'lucide-react';
 import type { SupportTicket, SupportTicketMessage } from '@/lib/vendor/support-service';
 import { sendAdminSupportMessage } from '@/lib/admin/support-service';
+import { sendVendorSupportMessage, markConversationAsReadByVendor } from '@/lib/vendor/support-service';
 import { onMessagesUpdate } from '@/lib/admin/support-client-service';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -27,9 +27,10 @@ interface SupportTicketDetailsDialogProps {
   ticket: SupportTicket | null;
   isOpen: boolean;
   onOpenChange: () => void;
+  userType: 'admin' | 'vendor';
 }
 
-export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange }: SupportTicketDetailsDialogProps) {
+export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange, userType }: SupportTicketDetailsDialogProps) {
   const [messages, setMessages] = React.useState<SupportTicketMessage[]>([]);
   const [replyText, setReplyText] = React.useState('');
   const [isSending, setIsSending] = React.useState(false);
@@ -41,14 +42,22 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange }: Sup
       const unsubscribe = onMessagesUpdate(ticket.id, (newMessages) => {
         setMessages(newMessages);
       });
+
+      if (userType === 'vendor' && ticket.isReadByVendor === false) {
+        markConversationAsReadByVendor(ticket.id);
+      }
+
       return () => unsubscribe();
     }
-  }, [ticket, isOpen]);
+  }, [ticket, isOpen, userType]);
 
   React.useEffect(() => {
     // Scroll to bottom when new messages arrive
     if (scrollAreaRef.current) {
-        scrollAreaRef.current.children[1].scrollTop = scrollAreaRef.current.children[1].scrollHeight;
+        const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (viewport) {
+             setTimeout(() => viewport.scrollTop = viewport.scrollHeight, 100);
+        }
     }
   }, [messages]);
 
@@ -57,7 +66,11 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange }: Sup
 
     setIsSending(true);
     try {
-      await sendAdminSupportMessage(ticket, replyText);
+      if (userType === 'admin') {
+        await sendAdminSupportMessage(ticket, replyText);
+      } else {
+        await sendVendorSupportMessage(ticket, replyText);
+      }
       setReplyText('');
       toast({ title: 'Reply Sent' });
     } catch (error) {
@@ -86,7 +99,7 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange }: Sup
       <DialogContent className="sm:max-w-2xl h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Ticket: {ticket?.subject}</DialogTitle>
-          <DialogDescription className="flex items-center gap-4">
+          <DialogDescription className="flex items-center gap-4 pt-1">
             <span>#{ticket?.id.slice(0, 8)}...</span>
             <Badge variant={getStatusVariant(ticket?.status || 'Open')}>{ticket?.status}</Badge>
             <Badge variant={getPriorityVariant(ticket?.priority || 'Normal')}>{ticket?.priority}</Badge>
@@ -106,7 +119,7 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange }: Sup
                   key={msg.id}
                   className={cn(
                     'p-3 rounded-lg max-w-[80%]',
-                    msg.senderType === 'admin'
+                    msg.senderType === userType
                       ? 'bg-primary text-primary-foreground self-end ml-auto'
                       : 'bg-muted self-start mr-auto'
                   )}
@@ -114,7 +127,7 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange }: Sup
                   <p className="whitespace-pre-wrap">{msg.text}</p>
                   <p className={cn(
                       "text-xs mt-1",
-                      msg.senderType === 'admin' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                      msg.senderType === userType ? 'text-primary-foreground/70' : 'text-muted-foreground'
                     )}
                   >
                     {format(msg.timestamp.toDate(), 'PP p')}

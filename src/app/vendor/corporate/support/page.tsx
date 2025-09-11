@@ -23,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { SupportTicketDetailsDialog } from '@/components/admin/support/support-ticket-details-dialog';
+
 
 const VENDOR_ID = 'vendor001';
 
@@ -31,6 +33,7 @@ export default function VendorSupportPage() {
   const [recentTickets, setRecentTickets] = React.useState<SupportTicket[]>([]);
   const [popularArticles, setPopularArticles] = React.useState<KnowledgeBaseArticle[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [selectedTicket, setSelectedTicket] = React.useState<SupportTicket | null>(null);
 
   React.useEffect(() => {
     const unsub = onRecentTicketsUpdate(VENDOR_ID, (tickets) => {
@@ -62,11 +65,17 @@ export default function VendorSupportPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card><CardHeader><CardTitle>Recent Tickets</CardTitle></CardHeader><CardContent><div className="space-y-4">{loading ? (Array.from({ length: 3 }).map((_, i) => (<div key={i} className="flex justify-between items-center"><div className="space-y-1"><Skeleton className="h-5 w-48" /><Skeleton className="h-4 w-32" /></div><Skeleton className="h-6 w-20 rounded-full" /></div>))) : recentTickets.length > 0 ? (recentTickets.map(ticket => (<Link href="#" key={ticket.id} className="flex justify-between items-center p-2 rounded-md hover:bg-muted"><div><p className="font-medium">{ticket.subject}</p><p className="text-sm text-muted-foreground">#{ticket.id.slice(0, 6)} &bull; {formatDistanceToNow(ticket.lastUpdated.toDate(), { addSuffix: true })}</p></div><Badge variant={getStatusVariant(ticket.status)}>{ticket.status}</Badge></Link>))) : (<p className="text-sm text-muted-foreground text-center py-4">No recent tickets.</p>)}</div></CardContent></Card>
+          <Card><CardHeader><CardTitle>Recent Tickets</CardTitle></CardHeader><CardContent><div className="space-y-4">{loading ? (Array.from({ length: 3 }).map((_, i) => (<div key={i} className="flex justify-between items-center"><div className="space-y-1"><Skeleton className="h-5 w-48" /><Skeleton className="h-4 w-32" /></div><Skeleton className="h-6 w-20 rounded-full" /></div>))) : recentTickets.length > 0 ? (recentTickets.map(ticket => (<button onClick={() => setSelectedTicket(ticket)} key={ticket.id} className="w-full flex justify-between items-center p-2 rounded-md hover:bg-muted"><div><p className="font-medium text-left">{ticket.subject}</p><p className="text-sm text-muted-foreground">#{ticket.id.slice(0, 6)} &bull; {formatDistanceToNow(ticket.lastUpdated.toDate(), { addSuffix: true })}</p></div><Badge variant={getStatusVariant(ticket.status)}>{ticket.status}</Badge></button>))) : (<p className="text-sm text-muted-foreground text-center py-4">No recent tickets.</p>)}</div></CardContent></Card>
           <Card><CardHeader><CardTitle>Popular Articles</CardTitle></CardHeader><CardContent>{popularArticles.length > 0 ? (<Accordion type="single" collapsible className="w-full">{popularArticles.map(article => (<AccordionItem value={article.id} key={article.id}><AccordionTrigger>{article.title}</AccordionTrigger><AccordionContent>{article.content}</AccordionContent></AccordionItem>))}</Accordion>) : (<p className="text-sm text-muted-foreground text-center py-4">No articles found.</p>)}</CardContent></Card>
         </div>
       </div>
       <CreateTicketDialog open={isTicketDialogOpen} onOpenChange={setIsTicketDialogOpen} vendorId={VENDOR_ID} />
+       <SupportTicketDetailsDialog 
+        ticket={selectedTicket}
+        isOpen={!!selectedTicket}
+        onOpenChange={() => setSelectedTicket(null)}
+        userType="vendor"
+      />
     </>
   );
 }

@@ -14,7 +14,9 @@ import {
     getDocs,
     getDoc,
     doc,
-    onSnapshot
+    onSnapshot,
+    updateDoc,
+    increment,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { createNotification } from '../notifications-actions';
@@ -62,6 +64,7 @@ export interface SupportTicket {
     createdAt: Timestamp;
     lastUpdated: Timestamp;
     isReadByVendor: boolean;
+    adminUnreadCount?: number;
 }
 
 export interface KnowledgeBaseArticle {
@@ -102,6 +105,7 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
         createdAt: timestamp,
         lastUpdated: timestamp,
         isReadByVendor: true,
+        adminUnreadCount: 1, // Initialize unread count for admin
     };
     const ticketRef = await addDoc(collection(db, 'supportTickets'), ticketData);
 
@@ -118,4 +122,46 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
     });
 
     return ticketRef.id;
+}
+
+
+/**
+ * Sends a message from the vendor to a support ticket.
+ */
+export async function sendVendorSupportMessage(ticket: SupportTicket, text: string): Promise<void> {
+    const ticketRef = doc(db, 'supportTickets', ticket.id);
+    const messagesRef = collection(ticketRef, 'messages');
+
+    // Add new message
+    await addDoc(messagesRef, {
+        senderId: ticket.vendorId,
+        senderType: 'vendor',
+        text,
+        timestamp: serverTimestamp(),
+    });
+
+    // Update ticket metadata
+    await updateDoc(ticketRef, {
+        lastUpdated: serverTimestamp(),
+        status: 'In Progress', // Vendor replied, so it's back in admin's court
+        isReadByVendor: true, // The vendor just sent a message, so they've "read" it
+        adminUnreadCount: increment(1)
+    });
+    
+    // Send notification to admin
+    await createNotification({
+        userId: 'admin',
+        forAdmin: true,
+        type: 'NEW_MESSAGE',
+        text: `New reply from ${ticket.vendorId} on ticket #${ticket.id.slice(0, 6)}.`,
+        link: `/admin/support?ticketId=${ticket.id}`
+    });
+}
+
+
+export async function markConversationAsReadByVendor(ticketId: string): Promise<void> {
+    const ticketRef = doc(db, 'supportTickets', ticketId);
+    await updateDoc(ticketRef, {
+        isReadByVendor: true
+    });
 }

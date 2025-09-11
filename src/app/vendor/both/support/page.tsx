@@ -27,6 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { SupportTicketDetailsDialog } from '@/components/admin/support/support-ticket-details-dialog';
 
 // In a real app, this would come from an auth context
 const VENDOR_ID = 'vendor001';
@@ -36,6 +37,7 @@ export default function VendorSupportPage() {
   const [recentTickets, setRecentTickets] = React.useState<SupportTicket[]>([]);
   const [popularArticles, setPopularArticles] = React.useState<KnowledgeBaseArticle[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [selectedTicket, setSelectedTicket] = React.useState<SupportTicket | null>(null);
 
   React.useEffect(() => {
     const unsub = onRecentTicketsUpdate(VENDOR_ID, (tickets) => {
@@ -130,15 +132,15 @@ export default function VendorSupportPage() {
                     ))
                 ) : recentTickets.length > 0 ? (
                     recentTickets.map(ticket => (
-                        <Link href="#" key={ticket.id} className="flex justify-between items-center p-2 rounded-md hover:bg-muted">
+                        <button onClick={() => setSelectedTicket(ticket)} key={ticket.id} className="w-full flex justify-between items-center p-2 rounded-md hover:bg-muted">
                             <div>
-                                <p className="font-medium">{ticket.subject}</p>
+                                <p className="font-medium text-left">{ticket.subject}</p>
                                 <p className="text-sm text-muted-foreground">
                                     #{ticket.id.slice(0, 6)} &bull; {formatDistanceToNow(ticket.lastUpdated.toDate(), { addSuffix: true })}
                                 </p>
                             </div>
                             <Badge variant={getStatusVariant(ticket.status)}>{ticket.status}</Badge>
-                        </Link>
+                        </button>
                     ))
                 ) : (
                     <p className="text-sm text-muted-foreground text-center py-4">No recent tickets.</p>
@@ -174,6 +176,12 @@ export default function VendorSupportPage() {
         open={isTicketDialogOpen}
         onOpenChange={setIsTicketDialogOpen}
         vendorId={VENDOR_ID}
+      />
+       <SupportTicketDetailsDialog 
+        ticket={selectedTicket}
+        isOpen={!!selectedTicket}
+        onOpenChange={() => setSelectedTicket(null)}
+        userType="vendor"
       />
     </>
   );

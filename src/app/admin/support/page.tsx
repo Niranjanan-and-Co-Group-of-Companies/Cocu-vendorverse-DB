@@ -192,6 +192,7 @@ export default function AdminSupportPage() {
                 ticket={selectedTicket}
                 isOpen={!!selectedTicket}
                 onOpenChange={() => setSelectedTicket(null)}
+                userType="admin"
             />
         </>
     );
