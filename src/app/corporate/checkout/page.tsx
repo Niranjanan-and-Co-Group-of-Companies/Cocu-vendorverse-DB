@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { CartSummary } from '@/components/corporate/cart/cart-summary';
 import { CheckoutItem } from '@/components/corporate/checkout/checkout-item';
 import { Separator } from '@/components/ui/separator';
+import { ShippingDetailsForm } from '@/components/corporate/checkout/shipping-details-form';
+import { PaymentOptions } from '@/components/corporate/checkout/payment-options';
 
 function CorporateCheckoutPageContent() {
     const { items } = useCorporateCart();
@@ -49,25 +51,8 @@ function CorporateCheckoutPageContent() {
                            ))}
                        </CardContent>
                    </Card>
-                   <Card>
-                       <CardHeader>
-                           <CardTitle>Company & Shipping Details</CardTitle>
-                       </CardHeader>
-                       <CardContent>
-                           <p className="text-muted-foreground">Form for company details, shipping address, and GSTIN will go here.</p>
-                       </CardContent>
-                   </Card>
-                   <Card>
-                       <CardHeader>
-                           <CardTitle>Payment & Billing</CardTitle>
-                           <CardDescription>All transactions are secure and encrypted.</CardDescription>
-                       </CardHeader>
-                       <CardContent>
-                           <div className="text-center text-muted-foreground py-8">
-                               <p>Payment and purchase order options will be available here.</p>
-                           </div>
-                       </CardContent>
-                   </Card>
+                   <ShippingDetailsForm />
+                   <PaymentOptions />
                 </div>
 
                 {/* Right Column */}
