@@ -50,6 +50,7 @@ export interface SupportTicketMessage {
 
 export interface SupportTicket {
     id: string;
+    ticketId: string; // Human-readable ID
     vendorId: string;
     category: TicketCategory;
     subject: string;
@@ -99,10 +100,13 @@ export async function getPopularArticles(): Promise<KnowledgeBaseArticle[]> {
 }
 
 // Create a new support ticket
-export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor'>): Promise<string> {
+export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'createdAt' | 'lastUpdated' | 'isReadByVendor' | 'ticketId'>): Promise<string> {
     const timestamp = serverTimestamp();
+    const ticketId = `TKT-${Date.now().toString().slice(-6)}`;
+
     const ticketData = {
         ...data,
+        ticketId,
         createdAt: timestamp,
         lastUpdated: timestamp,
         isReadByVendor: true,
@@ -118,7 +122,7 @@ export async function createSupportTicket(data: Omit<SupportTicket, 'id' | 'crea
         userId: 'admin',
         forAdmin: true,
         type: 'NEW_SUPPORT_TICKET',
-        text: `New support ticket from ${vendorName}: "${data.subject}"`,
+        text: `New support ticket ${ticketId} from ${vendorName}: "${data.subject}"`,
         link: `/admin/support?ticketId=${ticketRef.id}`
     });
 
@@ -156,7 +160,7 @@ export async function sendVendorSupportMessage(ticket: SupportTicket, text: stri
         userId: 'admin',
         forAdmin: true,
         type: 'NEW_MESSAGE',
-        text: `New reply from ${vendor?.name || 'a vendor'} on ticket #${ticket.id.slice(0, 6)}.`,
+        text: `New reply from ${vendor?.name || 'a vendor'} on ticket #${ticket.ticketId}.`,
         link: `/admin/support?ticketId=${ticket.id}`
     });
 }

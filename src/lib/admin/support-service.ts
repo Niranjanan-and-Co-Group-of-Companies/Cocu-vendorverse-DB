@@ -52,7 +52,7 @@ export async function sendAdminSupportMessage(ticket: SupportTicket, text: strin
     await createNotification({
         userId: ticket.vendorId,
         type: 'NEW_MESSAGE',
-        text: `You have a new reply on support ticket #${ticket.id.slice(0, 6)}.`,
+        text: `You have a new reply on support ticket #${ticket.ticketId}.`,
         link: link
     });
 }

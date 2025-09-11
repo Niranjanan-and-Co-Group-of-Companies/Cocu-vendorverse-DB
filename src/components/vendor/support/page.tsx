@@ -138,6 +138,7 @@ function VendorSupportPageContent() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Ticket ID</TableHead>
                       <TableHead>Subject</TableHead>
                       <TableHead>Last Updated</TableHead>
                       <TableHead>Status</TableHead>
@@ -147,6 +148,7 @@ function VendorSupportPageContent() {
                     {loading ? (
                       Array.from({ length: 3 }).map((_, i) => (
                         <TableRow key={i}>
+                          <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                           <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                           <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                           <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
@@ -155,6 +157,7 @@ function VendorSupportPageContent() {
                     ) : allTickets.length > 0 ? (
                       allTickets.map(ticket => (
                         <TableRow key={ticket.id} onClick={() => setSelectedTicket(ticket)} className="cursor-pointer">
+                          <TableCell className="font-mono text-xs">{ticket.ticketId}</TableCell>
                           <TableCell className="font-medium">{ticket.subject}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{formatDistanceToNow(ticket.lastUpdated.toDate(), { addSuffix: true })}</TableCell>
                           <TableCell><Badge variant={getStatusVariant(ticket.status)}>{ticket.status}</Badge></TableCell>
@@ -162,7 +165,7 @@ function VendorSupportPageContent() {
                       ))
                     ) : (
                        <TableRow>
-                          <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                          <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
                             You haven't created any tickets yet.
                           </TableCell>
                        </TableRow>

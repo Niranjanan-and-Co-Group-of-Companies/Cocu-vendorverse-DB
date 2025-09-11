@@ -66,7 +66,8 @@ export default function AdminSupportPage() {
             tickets = tickets.filter(ticket => 
                 ticket.subject.toLowerCase().includes(lowerCaseQuery) ||
                 ticket.vendorId.toLowerCase().includes(lowerCaseQuery) || // Assuming vendor name is not stored, search by ID
-                ticket.id.toLowerCase().includes(lowerCaseQuery)
+                ticket.id.toLowerCase().includes(lowerCaseQuery) ||
+                ticket.ticketId?.toLowerCase().includes(lowerCaseQuery)
             );
         }
 
@@ -157,6 +158,7 @@ export default function AdminSupportPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead>Ticket ID</TableHead>
                                         <TableHead>Vendor</TableHead>
                                         <TableHead>Subject</TableHead>
                                         <TableHead>Priority</TableHead>
@@ -167,6 +169,7 @@ export default function AdminSupportPage() {
                                 <TableBody>
                                     {loading ? Array.from({length: 10}).map((_, i) => (
                                         <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                             <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                             <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                                             <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
@@ -175,6 +178,7 @@ export default function AdminSupportPage() {
                                         </TableRow>
                                     )) : filteredTickets.map(ticket => (
                                         <TableRow key={ticket.id} className="cursor-pointer" onClick={() => setSelectedTicket(ticket)}>
+                                            <TableCell className="font-mono text-xs">{ticket.ticketId}</TableCell>
                                             <TableCell className="font-medium">{ticket.vendorId}</TableCell>
                                             <TableCell>{ticket.subject}</TableCell>
                                             <TableCell><Badge variant={getPriorityVariant(ticket.priority)}>{ticket.priority}</Badge></TableCell>

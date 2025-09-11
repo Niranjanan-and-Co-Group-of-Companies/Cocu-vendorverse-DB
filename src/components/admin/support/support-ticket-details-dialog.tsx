@@ -122,9 +122,9 @@ export function SupportTicketDetailsDialog({ ticket, isOpen, onOpenChange, userT
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Ticket: {ticket?.subject}</DialogTitle>
-          <div className="flex items-center gap-4 pt-1 text-sm text-muted-foreground">
-            <span>#{ticket?.id.slice(0, 8)}...</span>
+          <DialogTitle>{ticket?.subject}</DialogTitle>
+          <div className="text-sm text-muted-foreground flex items-center gap-4">
+            <span className="font-mono bg-muted px-2 py-1 rounded-md">{ticket?.ticketId}</span>
             <Badge variant={getStatusVariant(ticket?.status || 'Open')}>{ticket?.status}</Badge>
             <Badge variant={getPriorityVariant(ticket?.priority || 'Normal')}>{ticket?.priority}</Badge>
           </div>
