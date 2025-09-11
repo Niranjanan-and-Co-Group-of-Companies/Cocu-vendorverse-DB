@@ -1,9 +1,9 @@
 
 
-import { doc, getDoc, collection, onSnapshot, Unsubscribe, setDoc, serverTimestamp, getDocs, writeBatch, query, where } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, Unsubscribe, setDoc, serverTimestamp, getDocs, writeBatch, query, where, limit } from 'firebase/firestore';
 import { db } from './firebase';
 
-export type UserRole = 'customer' | 'vendor' | 'admin';
+export type UserRole = 'customer' | 'vendor' | 'admin' | 'corporate-admin' | 'corporate-user';
 
 export interface User {
   id: string;
@@ -11,9 +11,10 @@ export interface User {
   email: string;
   avatar: string;
   role: UserRole;
-  status: 'Active' | 'Suspended';
+  status: 'Active' | 'Suspended' | 'Pending'; // Added 'Pending' for invited users
   joinedDate: any; 
   communicationPrefs: { email: boolean; sms: boolean; };
+  corporateAccountId?: string; // Link to the corporate client
 }
 
 const MOCK_USERS: Omit<User, 'id' | 'joinedDate'>[] = [
@@ -22,17 +23,21 @@ const MOCK_USERS: Omit<User, 'id' | 'joinedDate'>[] = [
     { name: 'Bob Williams', email: 'bob.w@example.com', avatar: 'https://i.pravatar.cc/40?u=user002', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: true } },
     { name: 'Charlie Brown', email: 'charlie.b@example.com', avatar: 'https://i.pravatar.cc/40?u=user003', role: 'customer', status: 'Suspended', communicationPrefs: { email: false, sms: false } },
     { name: 'Diana Prince', email: 'diana.p@example.com', avatar: 'https://i.pravatar.cc/40?u=user004', role: 'customer', status: 'Active', communicationPrefs: { email: true, sms: true } },
+    // Corporate Users for Globex
+    { name: 'John Smith', email: 'john.smith@globex.com', avatar: 'https://i.pravatar.cc/40?u=corp1', role: 'corporate-admin', status: 'Active', communicationPrefs: { email: true, sms: true }, corporateAccountId: 'zR2K8aaI11ueHqC3K24r' },
+    { name: 'Sarah Connor', email: 'sarah.connor@globex.com', avatar: 'https://i.pravatar.cc/40?u=corp2', role: 'corporate-user', status: 'Active', communicationPrefs: { email: true, sms: false }, corporateAccountId: 'zR2K8aaI11ueHqC3K24r' },
+    { name: 'Kyle Reese', email: 'kyle.reese@globex.com', avatar: 'https://i.pravatar.cc/40?u=corp3', role: 'corporate-user', status: 'Pending', communicationPrefs: { email: true, sms: true }, corporateAccountId: 'zR2K8aaI11ueHqC3K24r' },
 ];
 
 async function seedUsers() {
-    const seedFlagRef = doc(db, 'internal_flags', 'usersSeeded_v2');
+    const seedFlagRef = doc(db, 'internal_flags', 'usersSeeded_v3');
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return;
     }
 
-    console.log("Seeding mock users v2...");
+    console.log("Seeding mock users v3...");
     const usersRef = collection(db, 'users');
     const snapshot = await getDocs(usersRef);
     const existingEmails = new Set(snapshot.docs.map(d => d.data().email));
@@ -50,13 +55,12 @@ async function seedUsers() {
     await batch.commit();
 
     await setDoc(seedFlagRef, { completed: true });
-    console.log("Mock users seeding complete.");
+    console.log("Mock users seeding v3 complete.");
 }
 seedUsers();
 
 const MOCK_USER_ID = 'user001'; 
 export async function getMockUser(): Promise<User | null> {
-    // This function now needs to find the user by a property, not a specific ID
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where("email", "==", "alice.j@example.com"), limit(1));
     try {
