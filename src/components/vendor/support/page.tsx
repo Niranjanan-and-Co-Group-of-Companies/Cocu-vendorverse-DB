@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  MessageSquare,
   LifeBuoy,
 } from 'lucide-react';
 import type { SupportTicket, KnowledgeBaseArticle } from '@/lib/vendor/support-service';
@@ -87,12 +86,12 @@ function VendorSupportPageContent() {
         <div className="text-center">
           <h1 className="text-3xl font-bold">How can we help?</h1>
           <p className="mt-2 text-muted-foreground">
-            Find answers, create support tickets, or chat with our team.
+            Find answers in our knowledge base or create a support ticket.
           </p>
         </div>
 
         {/* Main Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="max-w-lg mx-auto w-full">
           <Card className="flex flex-col">
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -107,22 +106,6 @@ function VendorSupportPageContent() {
             </CardHeader>
             <CardContent className="flex-grow flex items-end">
               <Button onClick={() => setIsTicketDialogOpen(true)} className="w-full md:w-auto">Create a Ticket</Button>
-            </CardContent>
-          </Card>
-          <Card className="flex flex-col">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <MessageSquare className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle className="text-xl">Message Support</CardTitle>
-              </div>
-               <CardDescription className="pt-2">
-                For quick questions and clarifications. Get fast help for non-critical issues. Chat history is deleted after 10 days.
-              </CardDescription>
-            </CardHeader>
-             <CardContent className="flex-grow flex items-end">
-              <Button variant="secondary" className="w-full md:w-auto">Start a Chat</Button>
             </CardContent>
           </Card>
         </div>
