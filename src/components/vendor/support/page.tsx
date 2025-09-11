@@ -201,7 +201,7 @@ function VendorSupportPageContent() {
   );
 }
 
-export default function WrappedVendorSupportPage() {
+export default function VendorSupportPage() {
     return (
         <React.Suspense fallback={<div>Loading...</div>}>
             <VendorSupportPageContent />
