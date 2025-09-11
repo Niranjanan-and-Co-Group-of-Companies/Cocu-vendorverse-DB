@@ -27,11 +27,11 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
-// In a real app, this would come from an auth context
-const VENDOR_ID = 'vendor001';
+interface VendorSupportPageContentProps {
+    vendorId: string;
+}
 
-
-function VendorSupportPageContent() {
+function VendorSupportPageContent({ vendorId }: VendorSupportPageContentProps) {
   const searchParams = useSearchParams();
   const [isTicketDialogOpen, setIsTicketDialogOpen] = React.useState(false);
   const [allTickets, setAllTickets] = React.useState<SupportTicket[]>([]);
@@ -40,7 +40,7 @@ function VendorSupportPageContent() {
   const [selectedTicket, setSelectedTicket] = React.useState<SupportTicket | null>(null);
 
   React.useEffect(() => {
-    const unsub = onAllVendorTicketsUpdate(VENDOR_ID, (tickets) => {
+    const unsub = onAllVendorTicketsUpdate(vendorId, (tickets) => {
       setAllTickets(tickets);
       setLoading(false);
     });
@@ -48,7 +48,7 @@ function VendorSupportPageContent() {
     getPopularArticles().then(setPopularArticles);
 
     return () => unsub();
-  }, []);
+  }, [vendorId]);
 
   React.useEffect(() => {
     const ticketIdFromUrl = searchParams.get('ticketId');
@@ -185,7 +185,7 @@ function VendorSupportPageContent() {
       <CreateTicketDialog
         open={isTicketDialogOpen}
         onOpenChange={setIsTicketDialogOpen}
-        vendorId={VENDOR_ID}
+        vendorId={vendorId}
       />
        <SupportTicketDetailsDialog 
         ticket={selectedTicket}
@@ -197,10 +197,10 @@ function VendorSupportPageContent() {
   );
 }
 
-export default function VendorSupportPage() {
+export default function VendorSupportPage({ vendorId = 'vendor001' }: { vendorId?: string }) {
     return (
         <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
-            <VendorSupportPageContent />
+            <VendorSupportPageContent vendorId={vendorId} />
         </React.Suspense>
     );
 }
