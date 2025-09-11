@@ -37,8 +37,16 @@ export default function VendorSignupPage() {
     setStep(2);
   }
 
-  const handleFinalSubmit = (e: React.FormEvent) => {
+  const handleFinalSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
+    const confirmPassword = (e.currentTarget.elements.namedItem('confirm-password') as HTMLInputElement).value;
+
+    if (password !== confirmPassword) {
+        toast({ title: 'Passwords do not match', variant: 'destructive'});
+        return;
+    }
+
     setIsLoading(true);
     // Simulate API call to create vendor account
     setTimeout(() => {
@@ -111,7 +119,11 @@ export default function VendorSignupPage() {
                     </div>
                      <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>
-                        <Input id="password" type="password" required />
+                        <Input id="password" name="password" type="password" required />
+                    </div>
+                     <div className="grid gap-2">
+                        <Label htmlFor="confirm-password">Confirm Password</Label>
+                        <Input id="confirm-password" name="confirm-password" type="password" required />
                     </div>
                      <Button type="submit" className="w-full" disabled={isLoading}>
                          {isLoading && <Loader2 className="mr-2 animate-spin" />}
