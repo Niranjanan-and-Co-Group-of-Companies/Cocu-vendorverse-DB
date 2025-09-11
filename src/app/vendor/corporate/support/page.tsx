@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -21,14 +22,16 @@ import { CreateTicketDialog } from '@/components/vendor/support/create-ticket-di
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { SupportTicketDetailsDialog } from '@/components/admin/support/support-ticket-details-dialog';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 
 const VENDOR_ID = 'vendor001';
 
-export default function VendorSupportPage() {
+function SupportPageContent() {
+  const searchParams = useSearchParams();
   const [isTicketDialogOpen, setIsTicketDialogOpen] = React.useState(false);
   const [recentTickets, setRecentTickets] = React.useState<SupportTicket[]>([]);
   const [popularArticles, setPopularArticles] = React.useState<KnowledgeBaseArticle[]>([]);
@@ -45,6 +48,20 @@ export default function VendorSupportPage() {
 
     return () => unsub();
   }, []);
+
+  React.useEffect(() => {
+    const ticketIdFromUrl = searchParams.get('ticketId');
+    if (ticketIdFromUrl) {
+      const getTicket = async () => {
+        const ticketRef = doc(db, 'supportTickets', ticketIdFromUrl);
+        const ticketSnap = await getDoc(ticketRef);
+        if (ticketSnap.exists()) {
+          setSelectedTicket({ id: ticketSnap.id, ...ticketSnap.data() } as SupportTicket);
+        }
+      }
+      getTicket();
+    }
+  }, [searchParams]);
   
   const getStatusVariant = (status: SupportTicket['status']) => {
     switch (status) {
@@ -78,4 +95,12 @@ export default function VendorSupportPage() {
       />
     </>
   );
+}
+
+export default function VendorSupportPage() {
+    return (
+        <React.Suspense fallback={<div>Loading...</div>}>
+            <SupportPageContent />
+        </React.Suspense>
+    );
 }

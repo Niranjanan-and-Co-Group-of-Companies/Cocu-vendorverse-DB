@@ -12,6 +12,7 @@ import {
 import { db } from '../firebase';
 import type { SupportTicket } from '../vendor/support-service';
 import { createNotification } from '../notifications-actions';
+import { getVendorById } from '../vendors-service';
 
 /**
  * Sends a message from the admin to a support ticket.
@@ -38,11 +39,17 @@ export async function sendAdminSupportMessage(ticket: SupportTicket, text: strin
         unreadVendorCount: increment(1)
     });
     
+    // Create a contextual notification link
+    const vendor = await getVendorById(ticket.vendorId);
+    const vendorPortalType = vendor?.type || 'personalized';
+    const basePath = vendorPortalType === 'both' ? '/vendor/both' : `/vendor/${vendorPortalType}`;
+    const link = `${basePath}/support?ticketId=${ticket.id}`;
+    
     // Send notification to vendor
     await createNotification({
         userId: ticket.vendorId,
         type: 'NEW_MESSAGE',
         text: `You have a new reply on support ticket #${ticket.id.slice(0, 6)}.`,
-        link: `/vendor/support?ticketId=${ticket.id}`
+        link: link
     });
 }
