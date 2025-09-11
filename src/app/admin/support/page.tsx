@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { LifeBuoy, Clock, AlertTriangle, CheckCircle, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { SupportTicket } from '@/lib/vendor/support-service';
-import { onAllTicketsUpdate } from '@/lib/admin/support-service';
+import { onAllTicketsUpdate } from '@/lib/admin/support-client-service';
 import { formatDistanceToNow } from 'date-fns';
 import { SupportTicketDetailsDialog } from '@/components/admin/support/support-ticket-details-dialog';
 

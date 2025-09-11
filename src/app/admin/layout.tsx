@@ -50,7 +50,7 @@ import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import React from 'react';
 import { getPendingProductCount } from '@/lib/products-client-service';
-import { getOpenTicketCount } from '@/lib/admin/support-service';
+import { getOpenTicketCount } from '@/lib/admin/support-client-service';
 import { AdminNotificationDropdown } from '@/components/admin/layout/admin-notification-dropdown';
 
 function CustomSidebarTrigger() {
