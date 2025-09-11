@@ -25,7 +25,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { createSupportTicket, type TicketCategory, type TicketPriority } from '@/lib/vendor/support-service';
 import { Loader2, UploadCloud } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface CreateTicketDialogProps {
   open: boolean;
@@ -181,11 +180,6 @@ export function CreateTicketDialog({ open, onOpenChange, vendorId }: CreateTicke
               </div>
             </RadioGroup>
           </div>
-            <Alert variant="destructive">
-                <AlertDescription>
-                    This is not a real-time chat. For urgent issues that are blocking orders, please use the live chat option when available. Support tickets and their chat history will be automatically deleted after 10 days of being marked as 'Resolved'.
-                </AlertDescription>
-            </Alert>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
