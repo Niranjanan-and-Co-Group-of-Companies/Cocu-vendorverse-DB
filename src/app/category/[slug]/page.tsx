@@ -8,7 +8,7 @@ import { Heart, ShoppingCart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import type { Category } from '@/lib/categories-service';
@@ -19,11 +19,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { onProductsByCategoryUpdate, type ProductWithPrice } from '@/lib/products-client-service';
 import type { Product } from '@/lib/products';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 function CategoryPageContent({ slug }: { slug: string }) {
   const [products, setProducts] = useState<ProductWithPrice[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showOutOfStock, setShowOutOfStock] = useState(false);
   const { addItem: addToCart } = useCart();
   const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
   const { toast } = useToast();
@@ -59,6 +62,13 @@ function CategoryPageContent({ slug }: { slug: string }) {
     toast({ title: result.message });
   };
 
+  const filteredProducts = useMemo(() => {
+    if (showOutOfStock) {
+      return products;
+    }
+    return products.filter(p => p.stock > 0);
+  }, [products, showOutOfStock]);
+
 
   if (loading) {
     return (
@@ -92,11 +102,15 @@ function CategoryPageContent({ slug }: { slug: string }) {
         {category ? (
             <>
             <h1 className="text-3xl font-bold font-headline mb-2">{category.name}</h1>
-            <p className="text-muted-foreground mb-8">{products.length} products</p>
+            <p className="text-muted-foreground mb-4">{filteredProducts.length} products</p>
+            <div className="flex items-center space-x-2 mb-8">
+                <Switch id="out-of-stock-toggle" checked={showOutOfStock} onCheckedChange={setShowOutOfStock} />
+                <Label htmlFor="out-of-stock-toggle">Include out of stock</Label>
+            </div>
             
-            {products.length > 0 ? (
+            {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {products.map((product) => {
+                {filteredProducts.map((product) => {
                   const inWishlist = isItemInWishlist(product.id);
                   return (
                 <Card key={product.id} className="overflow-hidden group h-full flex flex-col">
@@ -180,7 +194,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
 
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+  const { slug } = React.use(params);
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />

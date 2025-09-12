@@ -134,7 +134,7 @@ export default function Home() {
 
   useEffect(() => {
     const unsubFeatured = onFeaturedProductsUpdate('Personalized', (products) => {
-        setFeaturedProducts(products);
+        setFeaturedProducts(products.filter(p => p.stock > 0));
         setLoading(false);
     });
 

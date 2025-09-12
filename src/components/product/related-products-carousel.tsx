@@ -70,7 +70,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                 }
             })
         );
-        setRelatedProducts(pricedProducts);
+        setRelatedProducts(pricedProducts.filter(p => p.stock > 0));
         setLoading(false);
     }
 

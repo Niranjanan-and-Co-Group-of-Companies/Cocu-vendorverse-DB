@@ -10,13 +10,15 @@ import { Heart, ShoppingCart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
 import { onAllProductsUpdate, type ProductWithPrice } from '@/lib/products-client-service';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
@@ -24,6 +26,7 @@ function SearchResultsContent() {
   const query = searchParams.get('q') || '';
   const [searchResults, setSearchResults] = useState<ProductWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showOutOfStock, setShowOutOfStock] = useState(false);
   const { addItem: addToCart } = useCart();
   const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
   const { toast } = useToast();
@@ -47,6 +50,13 @@ function SearchResultsContent() {
 
     return () => unsubscribe();
   }, [query]);
+
+  const filteredProducts = useMemo(() => {
+    if (showOutOfStock) {
+      return searchResults;
+    }
+    return searchResults.filter(p => p.stock > 0);
+  }, [searchResults, showOutOfStock]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
@@ -96,13 +106,18 @@ function SearchResultsContent() {
 
   return (
     <main className="flex-grow container py-8">
-        <h1 className="text-2xl font-bold mb-4">
+        <h1 className="text-2xl font-bold mb-2">
           Search results for &quot;{query}&quot;
         </h1>
+         <p className="text-muted-foreground mb-4">{filteredProducts.length} products found</p>
+         <div className="flex items-center space-x-2 mb-8">
+            <Switch id="out-of-stock-toggle" checked={showOutOfStock} onCheckedChange={setShowOutOfStock} />
+            <Label htmlFor="out-of-stock-toggle">Include out of stock</Label>
+        </div>
         
-        {searchResults.length > 0 ? (
+        {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {searchResults.map((product) => {
+            {filteredProducts.map((product) => {
                const inWishlist = isItemInWishlist(product.id);
                return (
               <Card key={product.id} className="overflow-hidden group h-full flex flex-col">
