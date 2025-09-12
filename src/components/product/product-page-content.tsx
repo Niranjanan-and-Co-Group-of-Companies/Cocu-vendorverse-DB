@@ -89,7 +89,7 @@ export function ProductPageContent({ product }: { product: Product }) {
                 <RelatedProductsCarousel
                     type="category"
                     value={product.category}
-                    currentProductId={product.id}
+                    currentProductId={String(product.id)}
                     title="Similar Products"
                 />
             </div>
@@ -97,7 +97,7 @@ export function ProductPageContent({ product }: { product: Product }) {
                 <RelatedProductsCarousel
                     type="vendor"
                     value={product.vendorId}
-                    currentProductId={product.id}
+                    currentProductId={String(product.id)}
                     title="More from the same vendor"
                 />
             </div>

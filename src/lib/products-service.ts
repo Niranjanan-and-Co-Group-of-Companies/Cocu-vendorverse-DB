@@ -24,13 +24,27 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
   if (product.createdAt && typeof product.createdAt.toDate === 'function') {
     plainProduct.createdAt = product.createdAt.toDate().toISOString();
+  } else if (product.createdAt) {
+    plainProduct.createdAt = new Date(product.createdAt).toISOString();
   }
+
   if (product.updatedAt && typeof product.updatedAt.toDate === 'function') {
     plainProduct.updatedAt = product.updatedAt.toDate().toISOString();
+  } else if (product.updatedAt) {
+    plainProduct.updatedAt = new Date(product.updatedAt).toISOString();
+  }
+  
+  if (product.variants) {
+      plainProduct.variants = product.variants.map(v => makePlain(v));
+  }
+  
+  if (product.customizationAreas) {
+      plainProduct.customizationAreas = makePlain(product.customizationAreas);
   }
 
   return plainProduct as PlainProduct;
 }
+
 
 
 async function seedProductsIfEmpty() {
@@ -190,27 +204,29 @@ export async function saveProduct(
 }
 
 
-export async function getAllProducts(): Promise<Product[]> {
+export async function getAllProducts(): Promise<PlainProduct[]> {
   const snapshot = await getDocs(productsCollection);
-  return snapshot.docs.map((doc) => ({...doc.data()} as Product));
+  const products = snapshot.docs.map((doc) => ({ ...doc.data() } as Product));
+  return Promise.all(products.map(serializeProduct));
 }
 
-export async function getProductsByVendor(vendorId: string): Promise<Product[]> {
+export async function getProductsByVendor(vendorId: string): Promise<PlainProduct[]> {
     const q = query(productsCollection, where('vendorId', '==', vendorId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data() as Product);
+    const products = snapshot.docs.map(doc => doc.data() as Product);
+    return Promise.all(products.map(serializeProduct));
 }
 
-export async function getProductById(id: string): Promise<Product | null> {
+export async function getProductById(id: string): Promise<PlainProduct | null> {
     const docRef = doc(db, 'products', id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-        return docSnap.data() as Product;
+        return serializeProduct(docSnap.data() as Product);
     }
     return null;
 }
 
-export async function getRelatedProducts(type: 'category' | 'vendor', value?: string, currentProductId?: string): Promise<Product[]> {
+export async function getRelatedProducts(type: 'category' | 'vendor', value?: string, currentProductId?: string): Promise<PlainProduct[]> {
     if (!value || currentProductId === undefined) return [];
 
     let q;
@@ -231,10 +247,12 @@ export async function getRelatedProducts(type: 'category' | 'vendor', value?: st
     }
 
     const snapshot = await getDocs(q);
-    return snapshot.docs
+    const products = snapshot.docs
         .map(doc => doc.data() as Product)
         .filter(p => String(p.id) !== currentProductId)
         .slice(0, 4);
+    
+    return Promise.all(products.map(serializeProduct));
 }
 
 
