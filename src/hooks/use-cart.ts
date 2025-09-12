@@ -34,7 +34,7 @@ export const useCart = create(
         const displayPrice = await calculateDisplayPrice({ id: product.id, vendorId: product.vendorId, vendorSP: product.vendorSP, category: product.category, discountType: product.discountValue }, 'Personalized', category || undefined);
         const currentItems = get().items;
         
-        const variantId = selectedVariant ? selectedVariant.id : 'default';
+        const variantId = product.hasVariants && selectedVariant ? selectedVariant.id : 'default';
         const cartItemId = `${product.id}-${variantId}`;
         
         const existingItem = currentItems.find(item => item.cartItemId === cartItemId);
@@ -87,5 +87,3 @@ export const useCart = create(
     }
   )
 );
-
-    

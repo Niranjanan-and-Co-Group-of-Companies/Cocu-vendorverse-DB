@@ -65,6 +65,7 @@ export type Product = {
   category?: string;
   categorySlug?: string;
   status: ProductStatus;
+  hasVariants: boolean;
   customizationAreas: Record<CustomizationSide, CustomizationArea[]>;
   variants: ProductVariant[];
   mainVariantId: string | null; // ID of the variant whose image should be the main product image

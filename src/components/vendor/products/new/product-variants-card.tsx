@@ -11,15 +11,17 @@ import { Plus, Trash2, Star } from 'lucide-react';
 import type { Product, ProductVariant } from '@/lib/products';
 import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TooltipContent } from '@radix-ui/react-tooltip';
+import { Switch } from '@/components/ui/switch';
 
 interface ProductVariantsCardProps {
-  variants: ProductVariant[];
-  onFieldChange: (field: 'variants', value: ProductVariant[]) => void;
+  product: Product;
+  onFieldChange: (field: keyof Product, value: any) => void;
   mainVariantId: string | null;
   onMainVariantChange: (variantId: string) => void;
 }
 
-export function ProductVariantsCard({ variants, onFieldChange, mainVariantId, onMainVariantChange }: ProductVariantsCardProps) {
+export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onMainVariantChange }: ProductVariantsCardProps) {
+  const variants = product.variants || [];
 
   const handleVariantChange = (index: number, field: keyof Omit<ProductVariant, 'id' | 'image' | 'customizationSides'>, value: string) => {
     const newVariants = [...variants];
@@ -50,68 +52,96 @@ export function ProductVariantsCard({ variants, onFieldChange, mainVariantId, on
         onMainVariantChange(newVariants[0].id);
     }
   };
+  
+  const handleHasVariantsToggle = (checked: boolean) => {
+    onFieldChange('hasVariants', checked);
+    if(!checked && variants.length > 1) {
+        // When toggling off, keep only the main variant or the first one
+        const mainVariant = variants.find(v => v.id === mainVariantId) || variants[0];
+        if (mainVariant) {
+            onFieldChange('variants', [mainVariant]);
+            onMainVariantChange(mainVariant.id);
+        }
+    }
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Product Variants</CardTitle>
-        <CardDescription>Add color or other variants for your product. Designate one as the main variant for the primary product image.</CardDescription>
+        <CardDescription>Manage color or style options for your product.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {variants.map((variant, index) => {
-            const isMain = mainVariantId === variant.id;
-            return (
-              <div key={variant.id} className="flex items-end gap-2 p-3 border rounded-md">
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant={isMain ? 'default' : 'ghost'}
-                                size="icon"
-                                onClick={() => onMainVariantChange(variant.id)}
-                                className="self-center"
-                            >
-                                <Star className={isMain ? 'text-white fill-white' : ''}/>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                           <p>Set as main variant</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id="has-variants"
+            checked={product.hasVariants}
+            onCheckedChange={handleHasVariantsToggle}
+          />
+          <Label htmlFor="has-variants">This product has multiple variants (e.g., colors)</Label>
+        </div>
 
-                <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor={`variant-name-${index}`}>Variant Name</Label>
-                        <Input
-                            id={`variant-name-${index}`}
-                            placeholder="e.g., Black"
-                            value={variant.colorName}
-                            onChange={(e) => handleVariantChange(index, 'colorName', e.target.value)}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor={`variant-color-${index}`}>Color</Label>
-                        <Input
-                            id={`variant-color-${index}`}
-                            type="color"
-                            value={variant.colorHex}
-                            onChange={(e) => handleVariantChange(index, 'colorHex', e.target.value)}
-                            className="p-1 h-10"
-                        />
-                    </div>
+        {product.hasVariants && (
+            <>
+                <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md">
+                   Add variants for each color or style. Designate one as the main variant for the primary product image using the star icon.
                 </div>
-                {variants.length > 1 && (
-                    <Button variant="ghost" size="icon" onClick={() => removeVariant(index)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                )}
-              </div>
-            )
-        })}
-        <Button variant="outline" className="w-full" onClick={addVariant}>
-          <Plus className="mr-2" /> Add Variant
-        </Button>
+                {variants.map((variant, index) => {
+                    const isMain = mainVariantId === variant.id;
+                    return (
+                    <div key={variant.id} className="flex items-end gap-2 p-3 border rounded-md">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant={isMain ? 'default' : 'ghost'}
+                                        size="icon"
+                                        onClick={() => onMainVariantChange(variant.id)}
+                                        className="self-center"
+                                    >
+                                        <Star className={isMain ? 'text-white fill-white' : ''}/>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                <p>Set as main variant</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+
+                        <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor={`variant-name-${index}`}>Variant Name</Label>
+                                <Input
+                                    id={`variant-name-${index}`}
+                                    placeholder="e.g., Black"
+                                    value={variant.colorName}
+                                    onChange={(e) => handleVariantChange(index, 'colorName', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor={`variant-color-${index}`}>Color</Label>
+                                <Input
+                                    id={`variant-color-${index}`}
+                                    type="color"
+                                    value={variant.colorHex}
+                                    onChange={(e) => handleVariantChange(index, 'colorHex', e.target.value)}
+                                    className="p-1 h-10"
+                                />
+                            </div>
+                        </div>
+                        {variants.length > 1 && (
+                            <Button variant="ghost" size="icon" onClick={() => removeVariant(index)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        )}
+                    </div>
+                    )
+                })}
+                <Button variant="outline" className="w-full" onClick={addVariant}>
+                <Plus className="mr-2" /> Add Variant
+                </Button>
+            </>
+        )}
       </CardContent>
     </Card>
   );

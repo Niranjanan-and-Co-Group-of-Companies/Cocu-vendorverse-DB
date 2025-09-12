@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -54,7 +55,7 @@ export function ProductPageContent({ product }: { product: Product }) {
                         quantity={priceDetails?.quantity}
                     />
                     
-                    {product.variants && product.variants.length > 1 && (
+                    {product.hasVariants && product.variants && product.variants.length > 1 && (
                         <div>
                             <h3 className="font-semibold text-lg mb-2">Color: <span className="text-muted-foreground">{selectedVariant?.colorName}</span></h3>
                             <div className="flex gap-2">
