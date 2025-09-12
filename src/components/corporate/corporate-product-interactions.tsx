@@ -5,7 +5,7 @@ import * as React from 'react';
 import type { Product } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Gavel, Scale, FileText, Brush, MessageSquare, Bell } from 'lucide-react';
+import { ShoppingCart, Gavel, Scale, FileText, Brush, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useBidRequest } from '@/hooks/use-bid-request';
@@ -14,7 +14,6 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { BulkPricingCalculator } from './bulk-pricing-calculator';
-import { useCorporateChat } from '@/hooks/use-corporate-chat-store';
 import type { DisplayPrice } from '@/lib/pricing-service';
 
 interface CorporateProductInteractionsProps {
@@ -28,7 +27,6 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   const { addItem: addToBid, items: bidItems } = useBidRequest();
   const { addItem: addToCompare, removeItem: removeFromCompare, items: compareItems } = useComparison();
   const router = useRouter();
-  const { openChat } = useCorporateChat();
 
   const [pincode, setPincode] = React.useState('');
   const [deliveryInfo, setDeliveryInfo] = React.useState('');
@@ -128,9 +126,8 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
               <ShoppingCart className="mr-2" />
               Add to Cart
             </Button>
-            <Button size="lg" variant="secondary" onClick={() => openChat(product)} className="w-full">
-                <MessageSquare className="mr-2" />
-                Message Vendor
+            <Button size="lg" variant="default" className="w-full" onClick={handleBuyNow}>
+              Buy Now
             </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -143,9 +140,6 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
               {isInCompare ? 'In Compare' : 'Compare'}
             </Button>
         </div>
-        <Button size="lg" variant="default" className="w-full" onClick={handleBuyNow}>
-          Buy Now
-        </Button>
       </>
     );
   }
