@@ -28,7 +28,7 @@ export function makePlain<T>(obj: T): T {
   }
   
   // Handle Objects recursively
-  if (typeof obj === 'object') {
+  if (typeof obj === 'object' && obj.constructor === Object) {
     const newObj: { [key: string]: any } = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -41,5 +41,3 @@ export function makePlain<T>(obj: T): T {
   // Return primitive values as is
   return obj;
 }
-
-    

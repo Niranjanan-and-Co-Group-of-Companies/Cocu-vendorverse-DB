@@ -11,6 +11,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getCategoryByName } from './categories-service';
 import { calculateDisplayPrice } from './pricing-service';
 import type { CommissionRule } from './commissions-service';
+import { makePlain } from './utils';
 
 const productsCollection = collection(db, 'products');
 
@@ -21,12 +22,7 @@ export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt' | 'preparatio
 };
 
 export async function serializeProduct(product: Product): Promise<PlainProduct> {
-  return {
-    ...product,
-    createdAt: product.createdAt?.toDate?.().toISOString() || null,
-    updatedAt: product.updatedAt?.toDate?.().toISOString() || null,
-    preparationTime: product.preparationTime || { min: 3, max: 4}, // Ensure it's not a Timestamp
-  };
+  return makePlain(product);
 }
 
 async function seedProductsIfEmpty() {
