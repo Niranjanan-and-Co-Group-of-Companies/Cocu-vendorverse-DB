@@ -17,20 +17,21 @@ export function makePlain(obj: any): any {
     return obj;
   }
 
-  // Handle Firestore Timestamp
+  // Handle Firestore Timestamp specifically
   if (typeof obj.toDate === 'function') {
     return obj.toDate().toISOString();
   }
 
-  // Handle Arrays
+  // Handle Arrays by mapping over them and calling makePlain recursively
   if (Array.isArray(obj)) {
     return obj.map(item => makePlain(item));
   }
   
-  // Handle Objects
+  // Handle plain Objects by iterating over their properties
   if (typeof obj === 'object' && obj.constructor === Object) {
     const newObj: { [key: string]: any } = {};
     for (const key in obj) {
+      // Ensure we only process own properties
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         newObj[key] = makePlain(obj[key]);
       }
