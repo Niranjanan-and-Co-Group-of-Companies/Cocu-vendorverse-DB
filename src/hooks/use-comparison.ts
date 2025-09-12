@@ -7,8 +7,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
-import { makePlain } from '@/lib/utils';
-import type { PlainProduct } from '@/lib/products-service';
+import { serializeProduct, type PlainProduct } from '@/lib/products-service';
 
 export interface ComparisonItem extends PlainProduct {
     displayPrice?: DisplayPrice;
@@ -53,7 +52,7 @@ export const useComparison = create(
             tieredPricing: product.tieredPricing,
         };
         const displayPrice = await calculateDisplayPrice(productInfo, 'Corporate', category || undefined);
-        const plainProduct = product as unknown as PlainProduct;
+        const plainProduct = await serializeProduct(product as Product);
         set({ items: [...currentItems, { ...plainProduct, displayPrice }] });
 
         return {
