@@ -23,7 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from '@/components/ui/input';
 import { DollarSign, Package, PlusCircle, Search as SearchIcon, ShoppingCart } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Order } from '@/lib/orders-service';
+import type { Order, OrderItem } from '@/lib/orders-service';
 import { onOrdersUpdate } from '@/lib/orders-client-service';
 import { updateOrderStatus } from '@/lib/orders-service';
 import Link from 'next/link';
@@ -46,6 +46,12 @@ export default function OrdersPage() {
         });
         return () => unsubscribe();
     }, []);
+
+    const getOrderPlatform = (items: OrderItem[]): 'Personalized' | 'Corporate' => {
+        // If any item has an MOQ > 1, it's a corporate order.
+        const isCorporate = items.some(item => item.moq && item.moq > 1);
+        return isCorporate ? 'Corporate' : 'Personalized';
+    };
 
     React.useEffect(() => {
         let orders = [...allOrders];
@@ -192,6 +198,7 @@ export default function OrdersPage() {
                                         <TableHead>Order</TableHead>
                                         <TableHead>Customer</TableHead>
                                         <TableHead>Date</TableHead>
+                                        <TableHead>Platform</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Total</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -203,15 +210,21 @@ export default function OrdersPage() {
                                             <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                             <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                             <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                            <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                                             <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                                             <TableCell className="text-right"><Skeleton className="h-4 w-16" /></TableCell>
                                             <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                         </TableRow>
-                                    )) : filteredOrders.map(order => (
+                                    )) : filteredOrders.map(order => {
+                                        const platform = getOrderPlatform(order.items);
+                                        return (
                                         <TableRow key={order.id}>
                                             <TableCell className="font-mono">{order.orderId}</TableCell>
                                             <TableCell className="font-medium">{order.customer.name}</TableCell>
                                             <TableCell>{formatDate(order.date)}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={platform === 'Corporate' ? 'secondary' : 'outline'}>{platform}</Badge>
+                                            </TableCell>
                                             <TableCell>
                                                 <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                                             </TableCell>
@@ -224,7 +237,7 @@ export default function OrdersPage() {
                                                 />
                                             </TableCell>
                                         </TableRow>
-                                    ))}
+                                    )})}
                                 </TableBody>
                             </Table>
                         </CardContent>
