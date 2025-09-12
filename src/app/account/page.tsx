@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -30,7 +29,7 @@ function OrdersTab() {
     React.useEffect(() => {
         if (!currentUser) return;
 
-        const q = query(collection(db, 'orders'), where('customer.id', '==', currentUser.id));
+        const q = query(collection(db, 'orders'), where('customer.id', '==', currentUser.id), where('platform', '==', 'Personalized'));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const fetchedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
@@ -250,3 +249,5 @@ export default function AccountPage() {
         </React.Suspense>
     )
 }
+
+    

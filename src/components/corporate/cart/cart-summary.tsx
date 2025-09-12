@@ -186,6 +186,7 @@ export function CartSummary({ items, isCheckoutPage = false }: CartSummaryProps)
                 status: "Pending" as const,
                 transactionId: `po_${Date.now()}`
             },
+            platform: 'Corporate' as const,
         };
 
         const result = await createOrder(orderData);
@@ -193,7 +194,7 @@ export function CartSummary({ items, isCheckoutPage = false }: CartSummaryProps)
         if (result.success) {
             toast({ title: "Order Placed!", description: "Your order has been successfully placed." });
             clearCart();
-            router.push('/checkout/success');
+            router.push('/corporate/checkout/success');
         } else {
             throw new Error("Order creation failed");
         }
@@ -300,3 +301,5 @@ export function CartSummary({ items, isCheckoutPage = false }: CartSummaryProps)
     </Card>
   );
 }
+
+    

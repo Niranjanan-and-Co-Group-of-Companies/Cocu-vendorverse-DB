@@ -31,7 +31,7 @@ function CorporateOrdersTab() {
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        const q = query(collection(db, 'orders'), where('customer.id', '==', MOCK_USER_ID));
+        const q = query(collection(db, 'orders'), where('customer.id', '==', MOCK_USER_ID), where('platform', '==', 'Corporate'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const fetchedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
             setOrders(fetchedOrders);
@@ -230,3 +230,5 @@ export default function CorporateAccountsPage() {
         </React.Suspense>
     )
 }
+
+    

@@ -1,10 +1,9 @@
 
-
 'use server';
 
 import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc, addDoc, serverTimestamp, increment, runTransaction } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Product, CustomizationSide, ProductVariant } from './products';
+import type { Product, CustomizationSide, ProductVariant, Platform } from './products';
 import { createNotification } from './notifications-actions';
 import { generateReadableId } from './id-service';
 
@@ -36,6 +35,7 @@ export interface Order {
     };
     items: OrderItem[];
     status: OrderStatus;
+    platform: Platform;
     statusTimeline: { status: OrderStatus; at: Date }[];
     date: any;
     subtotal: number;
@@ -157,3 +157,5 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'dat
         return { success: false, message: error.message };
     }
 }
+
+    
