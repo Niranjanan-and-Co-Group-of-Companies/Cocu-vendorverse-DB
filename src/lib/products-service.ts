@@ -20,7 +20,7 @@ export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt' | 'preparatio
   preparationTime: { min: number, max: number };
 };
 
-export async function serializeProduct(product: Product): Promise<PlainProduct> {
+export function serializeProduct(product: Product): PlainProduct {
   return makePlain(product);
 }
 

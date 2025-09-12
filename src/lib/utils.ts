@@ -12,27 +12,27 @@ export function cn(...inputs: ClassValue[]) {
  * @param obj The object to convert.
  * @returns A new object that is safe to pass to Server Actions.
  */
-export function makePlain<T>(obj: T): any {
+export function makePlain(obj: any): any {
   if (obj === null || obj === undefined) {
     return obj;
   }
 
-  // Handle Firestore Timestamp by checking for toDate method
-  if (typeof (obj as any).toDate === 'function') {
-    return (obj as any).toDate().toISOString();
+  // Handle Firestore Timestamp
+  if (typeof obj.toDate === 'function') {
+    return obj.toDate().toISOString();
   }
 
-  // Handle Arrays by mapping over them and calling makePlain recursively
+  // Handle Arrays
   if (Array.isArray(obj)) {
     return obj.map(item => makePlain(item));
   }
   
-  // Handle Objects by iterating over their properties and calling makePlain recursively
+  // Handle Objects
   if (typeof obj === 'object' && obj.constructor === Object) {
     const newObj: { [key: string]: any } = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        newObj[key] = makePlain((obj as any)[key]);
+        newObj[key] = makePlain(obj[key]);
       }
     }
     return newObj;
