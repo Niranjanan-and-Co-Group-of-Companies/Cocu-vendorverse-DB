@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc, addDoc, serverTimestamp, increment } from 'firebase/firestore';
@@ -106,7 +107,7 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'dat
         orderId,
         status: 'Pending' as OrderStatus,
         date: serverTimestamp(),
-        statusTimeline: [{ status: 'Pending' as OrderStatus, at: serverTimestamp() }],
+        statusTimeline: [{ status: 'Pending' as OrderStatus, at: new Date() }],
     };
     batch.set(orderRef, newOrderData);
 
@@ -122,3 +123,4 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'dat
 
     return { success: true, orderId: orderRef.id };
 }
+
