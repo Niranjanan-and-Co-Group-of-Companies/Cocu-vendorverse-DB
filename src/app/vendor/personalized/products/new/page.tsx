@@ -30,6 +30,7 @@ const createDefaultProduct = (): Partial<Product> => ({
   vendor: VENDOR_NAME, 
   status: 'Draft',
   customizable: false,
+  hasVariants: false,
   variants: [
     {
         id: 'variant_default',
@@ -213,7 +214,7 @@ function ProductEditorContent() {
                         onFieldChange={handleFieldChange}
                     />
                     <ProductVariantsCard 
-                        variants={product.variants || []}
+                        product={product as Product}
                         onFieldChange={handleFieldChange}
                         mainVariantId={mainVariantId}
                         onMainVariantChange={setMainVariantId}

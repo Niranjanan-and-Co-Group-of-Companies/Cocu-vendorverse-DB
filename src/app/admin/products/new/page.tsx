@@ -17,7 +17,7 @@ import { OrganizeCard } from '@/components/vendor/products/new/organize-card';
 import { AllowedCustomizationsCard } from '@/components/vendor/products/new/allowed-customizations-card';
 import type { CustomizationSide, AllowedCustomizationType, CustomizationArea, ProductVariant } from '@/lib/products';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getVendors, type Vendor } from '@/lib/vendors-service';
+import { getVendors, type PlainVendor } from '@/lib/vendors-service';
 import { B2BPricingCard } from '@/components/vendor/corporate/b2b-pricing-card';
 import { ProductVariantsCard } from '@/components/vendor/products/new/product-variants-card';
 
@@ -31,6 +31,7 @@ const createDefaultProduct = (): Partial<Product> => ({
   status: 'Draft',
   platform: 'Personalized',
   customizable: false,
+  hasVariants: false,
   variants: [
     {
         id: 'variant_default',
@@ -70,7 +71,7 @@ function NewProductPage() {
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
-    const [vendors, setVendors] = React.useState<Vendor[]>([]);
+    const [vendors, setVendors] = React.useState<PlainVendor[]>([]);
     const [mainVariantId, setMainVariantId] = React.useState<string | null>(product.variants?.[0]?.id || null);
 
     React.useEffect(() => {
@@ -235,7 +236,7 @@ function NewProductPage() {
                         />
                     )}
                      <ProductVariantsCard 
-                        variants={product.variants || []}
+                        product={product as Product}
                         onFieldChange={handleFieldChange}
                         mainVariantId={mainVariantId}
                         onMainVariantChange={setMainVariantId}
