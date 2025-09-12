@@ -24,12 +24,17 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
   if (product.createdAt?.toDate) {
     plainProduct.createdAt = product.createdAt.toDate().toISOString();
+  } else if (product.createdAt) {
+    // If it's already a string (which can happen), leave it as is.
+    plainProduct.createdAt = String(product.createdAt);
   } else {
     plainProduct.createdAt = null;
   }
   
   if (product.updatedAt?.toDate) {
     plainProduct.updatedAt = product.updatedAt.toDate().toISOString();
+  } else if (product.updatedAt) {
+    plainProduct.updatedAt = String(product.updatedAt);
   } else {
     plainProduct.updatedAt = null;
   }
