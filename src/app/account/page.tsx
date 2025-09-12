@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -20,11 +21,16 @@ import { Eye } from 'lucide-react';
 function OrdersTab() {
     const [orders, setOrders] = React.useState<Order[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [currentUser, setCurrentUser] = React.useState<User | null>(null);
 
     React.useEffect(() => {
-        // In a real app, this would use the current user's ID
-        const userId = 'user001';
-        const q = query(collection(db, 'orders'), where('customer.id', '==', userId));
+        getMockUser().then(setCurrentUser);
+    }, []);
+
+    React.useEffect(() => {
+        if (!currentUser) return;
+
+        const q = query(collection(db, 'orders'), where('customer.id', '==', currentUser.id));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const fetchedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
@@ -33,7 +39,7 @@ function OrdersTab() {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [currentUser]);
     
     const formatDate = (timestamp: any) => {
         if (!timestamp?.toDate) return 'N/A';
