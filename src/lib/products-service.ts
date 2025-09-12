@@ -25,7 +25,6 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
   if (product.createdAt?.toDate) {
     plainProduct.createdAt = product.createdAt.toDate().toISOString();
   } else if (product.createdAt) {
-    // If it's already a string (which can happen), leave it as is.
     plainProduct.createdAt = String(product.createdAt);
   } else {
     plainProduct.createdAt = null;
@@ -283,3 +282,4 @@ export async function approveProduct(productId: string) {
 export async function declineProduct(productId: string) {
     await updateProductStatus(String(productId), 'Declined');
 }
+
