@@ -1,5 +1,4 @@
 
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -14,5 +13,7 @@ export function cn(...inputs: ClassValue[]) {
  * @returns A new object that is guaranteed to be plain and serializable.
  */
 export function makePlain<T>(obj: T): T {
+    // The most robust way to ensure an object is plain is to serialize and then deserialize it.
+    // This handles all nested objects, arrays, and special object types like Timestamps.
     return JSON.parse(JSON.stringify(obj));
 }
