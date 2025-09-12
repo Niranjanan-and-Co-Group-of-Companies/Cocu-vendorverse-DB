@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getVendorById, type Vendor } from './vendors-service';
+import { getVendorById, type PlainVendor } from './vendors-service';
 import type { CartItem } from '@/hooks/use-cart';
 
 // A plain object that can be safely passed to a Server Action
@@ -54,7 +54,7 @@ export async function calculateCustomerShippingCost(items: ShippingCartItem[], c
     }
 
     let totalCustomerCost = 0;
-    const vendorCache = new Map<string, Vendor | null>();
+    const vendorCache = new Map<string, PlainVendor | null>();
 
     for (const item of items) {
         let vendor = vendorCache.get(item.vendorId);

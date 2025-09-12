@@ -5,7 +5,7 @@
 import { collection, onSnapshot, doc, query, where, Unsubscribe, limit, getDocs, orderBy, documentId } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product, ProductStatus } from './products';
-import type { Vendor } from './vendors-service';
+import type { PlainVendor } from './vendors-service';
 import { getVendorById } from './vendors-service';
 import { onCategoriesWithCommissionsUpdate, type Category } from './categories-service';
 import { calculateDisplayPrice, type DisplayPrice } from './pricing-service';
@@ -13,7 +13,7 @@ import { getFeaturedPersonalProducts, getFeaturedCorporateProducts } from './fea
 import { serializeProduct } from './products-service';
 
 export type ProductWithStatus = Product & { status: ProductStatus };
-export type ProductWithVendor = Product & { vendor: Vendor };
+export type ProductWithVendor = Product & { vendor: PlainVendor };
 export type ProductWithPrice = Product & { displayPrice: DisplayPrice };
 
 export function onProductUpdate(id: string, callback: (product: Product | null) => void): () => void {
@@ -63,9 +63,9 @@ export function onPendingProductsUpdate(callback: (products: ProductWithVendor[]
     const q = query(productsCollection, where('status', '==', 'Pending Review'));
     
     const unsubscribe = onSnapshot(q, async (snapshot) => {
-        const vendorCache = new Map<string, Vendor>();
+        const vendorCache = new Map<string, PlainVendor>();
 
-        const getVendor = async (vendorId: string): Promise<Vendor> => {
+        const getVendor = async (vendorId: string): Promise<PlainVendor> => {
             if (vendorCache.has(vendorId)) return vendorCache.get(vendorId)!;
             
             const vendorData = await getVendorById(vendorId);
@@ -74,7 +74,7 @@ export function onPendingProductsUpdate(callback: (products: ProductWithVendor[]
                  return vendorData;
             }
             // Fallback for missing vendor data
-            return { id: vendorId, name: 'Unknown Vendor', email: '', phone: '', avatar: '', status: 'Active', joinedDate: null, pickupAddresses: [], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: '', ifsc: '', accountNoMasked: '' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 1, status: 'Not Started', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } };
+            return { id: vendorId, name: 'Unknown Vendor', email: '', phone: '', avatar: '', status: 'Active', joinedDate: null, pickupAddresses: [], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: '', ifsc: '', accountNoMasked: '' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 1, status: 'Not Started', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } } as unknown as PlainVendor;
         }
 
         const productsPromises = snapshot.docs.map(async (doc) => {

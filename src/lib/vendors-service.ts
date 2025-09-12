@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
@@ -58,6 +57,20 @@ export interface Vendor {
   kyc: VendorKYC;
 }
 
+export type PlainVendor = Omit<Vendor, 'joinedDate'> & {
+  joinedDate: string | null;
+};
+
+export async function serializeVendor(vendor: Vendor): Promise<PlainVendor> {
+  const plainVendor = { ...vendor } as any;
+
+  if (vendor.joinedDate && typeof vendor.joinedDate.toDate === 'function') {
+    plainVendor.joinedDate = vendor.joinedDate.toDate().toISOString();
+  }
+
+  return plainVendor as PlainVendor;
+}
+
 const MOCK_VENDORS: Omit<Vendor, 'id' | 'joinedDate' | 'vendorId'>[] = [
     { name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', phone: '+919876543210', avatar: 'https://i.pravatar.cc/40?u=vendor001', type: 'both', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Main Kitchen', street: '123 Foodie Lane', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', country: 'India', isDefault: true }], gstProfile: { gstin: '27AAAAA0000A1Z5', legalName: 'Gourmet Delights Pvt Ltd', stateCode: '27' }, banking: { beneficiary: 'Gourmet Delights Pvt Ltd', ifsc: 'HDFC0000001', accountNoMasked: '********1234' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
     { name: 'Serene Moments', email: 'support@serenemoments.co', phone: '+919876543211', avatar: 'https://i.pravatar.cc/40?u=vendor002', type: 'personalized', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Warehouse A', street: '456 Wellness Way', city: 'Bangalore', state: 'Karnataka', pincode: '560001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: 'Serene Moments Inc', ifsc: 'ICIC0000002', accountNoMasked: '********5678' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'vendor'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } },
@@ -82,20 +95,25 @@ async function seedVendors() {
 seedVendors();
 
 
-export async function getVendors(): Promise<Vendor[]> {
+export async function getVendors(): Promise<PlainVendor[]> {
     const vendorsRef = collection(db, "vendors");
     const snapshot = await getDocs(vendorsRef);
     if (snapshot.empty) {
         return [];
     }
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vendor));
+    const vendors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vendor));
+    return Promise.all(vendors.map(serializeVendor));
 }
 
-export async function getVendorById(id: string): Promise<Vendor | null> {
+export async function getVendorById(id: string): Promise<PlainVendor | null> {
     if (!id) return null;
     const docRef = doc(db, 'vendors', id);
     const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Vendor : null;
+    if (docSnap.exists()) {
+        const vendor = { id: docSnap.id, ...docSnap.data() } as Vendor;
+        return serializeVendor(vendor);
+    }
+    return null;
 }
 
 export type VendorSignupData = {

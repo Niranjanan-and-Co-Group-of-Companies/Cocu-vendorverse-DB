@@ -11,13 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import type { Product, ProductStatus, Platform } from '@/lib/products';
 import { onCategoriesWithCommissionsUpdate, type Category, type CategoryPlatform } from '@/lib/categories-service';
-import type { Vendor } from '@/lib/vendors-service';
+import type { PlainVendor } from '@/lib/vendors-service';
 
 interface OrganizeCardProps {
   product: Product;
   onFieldChange: (field: keyof Product, value: any) => void;
   isAdmin?: boolean;
-  vendors?: Vendor[];
+  vendors?: PlainVendor[];
 }
 
 export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors = [] }: OrganizeCardProps) {

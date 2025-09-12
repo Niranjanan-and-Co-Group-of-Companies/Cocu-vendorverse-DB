@@ -17,7 +17,7 @@ import { OrganizeCard } from '@/components/vendor/products/new/organize-card';
 import { AllowedCustomizationsCard } from '@/components/vendor/products/new/allowed-customizations-card';
 import type { CustomizationSide, AllowedCustomizationType, CustomizationArea, ProductVariant } from '@/lib/products';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getVendors, type Vendor } from '@/lib/vendors-service';
+import { getVendors, type PlainVendor } from '@/lib/vendors-service';
 import { B2BPricingCard } from '@/components/vendor/corporate/b2b-pricing-card';
 import { ProductVariantsCard } from '@/components/vendor/products/new/product-variants-card';
 
@@ -52,12 +52,13 @@ const createDefaultProduct = (): Partial<Product> => ({
   category: '',
   tags: [],
   allowedCustomizations: [],
-  preparationTime: 3,
+  preparationTime: { min: 3, max: 4 }, // Default preparation time
+  preparationTimeUnit: 'days',
   moq: 1,
   tieredPricing: [],
 });
 
-function ProductEditorContent() {
+function NewProductPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const productId = searchParams.get('id');
@@ -69,7 +70,7 @@ function ProductEditorContent() {
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
-    const [vendors, setVendors] = React.useState<Vendor[]>([]);
+    const [vendors, setVendors] = React.useState<PlainVendor[]>([]);
     const [mainVariantId, setMainVariantId] = React.useState<string | null>(product.variants?.[0]?.id || null);
 
     React.useEffect(() => {
@@ -106,6 +107,20 @@ function ProductEditorContent() {
                 [side]: file
             }
         }));
+
+        if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setProduct(prev => {
+                const newVariants = prev.variants?.map(v => {
+                    if (v.id === variantId) {
+                        const newSides = { ...v.customizationSides, [side]: { image: imageUrl } };
+                        return { ...v, customizationSides: newSides, image: side === 'front' ? imageUrl : v.image };
+                    }
+                    return v;
+                }) || [];
+                return { ...prev, variants: newVariants };
+            });
+        }
     };
 
     const handleAllowedCustomizationChange = (types: AllowedCustomizationType[]) => {
@@ -121,6 +136,12 @@ function ProductEditorContent() {
                 return false;
             }
         }
+        if (product.preparationTime && product.preparationTime.max <= product.preparationTime.min) {
+             setError('The preparation time range is invalid. Max prep time must be greater than min prep time.');
+             window.scrollTo(0, 0);
+             return false;
+        }
+
         setError(null);
         return true;
     };
@@ -238,7 +259,8 @@ function ProductEditorContent() {
                      />
                      <PackageAndShippingCard
                         packaging={product.packaging || { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }}
-                        preparationTime={product.preparationTime || 3}
+                        preparationTime={product.preparationTime || { min: 3, max: 4 }}
+                        preparationTimeUnit={product.preparationTimeUnit || 'days'}
                         onFieldChange={handleFieldChange}
                     />
                      {product.customizable && (
@@ -254,10 +276,10 @@ function ProductEditorContent() {
 }
 
 
-export default function NewProductPage() {
+export default function ProductEditorPage() {
     return (
         <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
-            <ProductEditorContent />
+            <NewProductPage />
         </React.Suspense>
     );
 }
