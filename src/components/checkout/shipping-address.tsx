@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { PlusCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '../ui/input';
-import { calculateCustomerShippingCost } from '@/lib/shipping-service';
+import { calculateCustomerShippingCost, type ShippingCartItem } from '@/lib/shipping-service';
 import { useCart } from '@/hooks/use-cart';
 
 const MOCK_ADDRESSES = [
@@ -32,7 +32,13 @@ export function ShippingAddress() {
         const getShippingCost = async () => {
             if (selectedAddress) {
                 setIsCalculating(true);
-                const cost = await calculateCustomerShippingCost(items, selectedAddress.zip);
+                // Map complex cart items to a plain object array for the server action
+                const shippingItems: ShippingCartItem[] = items.map(item => ({
+                    vendorId: item.vendorId,
+                    quantity: item.quantity,
+                    packaging: item.packaging,
+                }));
+                const cost = await calculateCustomerShippingCost(shippingItems, selectedAddress.zip);
                 setShippingCost(cost);
                 setIsCalculating(false);
             }

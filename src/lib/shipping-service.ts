@@ -4,6 +4,15 @@
 import { getVendorById, type Vendor } from './vendors-service';
 import type { CartItem } from '@/hooks/use-cart';
 
+// A plain object that can be safely passed to a Server Action
+export interface ShippingCartItem {
+    vendorId: string;
+    quantity: number;
+    packaging: {
+        weight: number;
+    }
+}
+
 // --- Types ---
 
 export interface ShippingCost {
@@ -35,11 +44,11 @@ async function getSimulatedShippingRate(fromPincode: string, toPincode: string, 
 
 /**
  * Calculates the shipping cost for a list of cart items based on each vendor's settings.
- * @param items - The items in the customer's cart.
+ * @param items - A plain array of items with only shipping-relevant data.
  * @param customerPincode - The customer's delivery pincode.
  * @returns The total cost the customer has to pay for shipping.
  */
-export async function calculateCustomerShippingCost(items: CartItem[], customerPincode: string): Promise<number> {
+export async function calculateCustomerShippingCost(items: ShippingCartItem[], customerPincode: string): Promise<number> {
     if (!customerPincode || items.length === 0) {
         return 0;
     }
