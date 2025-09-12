@@ -18,8 +18,8 @@ export function makePlain<T>(obj: T): T {
   }
 
   // Handle Firestore Timestamp
-  if ('toDate' in obj && typeof obj.toDate === 'function') {
-    return obj.toDate().toISOString() as any;
+  if (obj && typeof (obj as any).toDate === 'function') {
+    return (obj as any).toDate().toISOString() as any;
   }
 
   // Handle arrays
@@ -31,9 +31,11 @@ export function makePlain<T>(obj: T): T {
   const newObj: { [key: string]: any } = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      newObj[key] = makePlain(obj[key]);
+      newObj[key] = makePlain((obj as any)[key]);
     }
   }
 
   return newObj as T;
 }
+
+    

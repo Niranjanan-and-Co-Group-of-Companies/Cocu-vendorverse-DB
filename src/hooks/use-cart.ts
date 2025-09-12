@@ -31,7 +31,7 @@ export const useCart = create(
       items: [],
       addItem: async (product, quantity = 1, selectedVariant = null) => {
         const category = await getCategoryByName(product.category);
-        const displayPrice = await calculateDisplayPrice({ id: product.id, vendorId: product.vendorId, vendorSP: product.vendorSP, category: product.category, discountType: product.discountType, discountValue: product.discountValue }, 'Personalized', category || undefined);
+        const displayPrice = await calculateDisplayPrice({ id: product.id, vendorId: product.vendorId, vendorSP: product.vendorSP, category: product.category, discountType: product.discountValue }, 'Personalized', category || undefined);
         const currentItems = get().items;
         
         const variantId = selectedVariant ? selectedVariant.id : 'default';
@@ -87,3 +87,5 @@ export const useCart = create(
     }
   )
 );
+
+    

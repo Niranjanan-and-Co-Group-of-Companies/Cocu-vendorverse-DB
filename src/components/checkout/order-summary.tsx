@@ -34,6 +34,7 @@ import { useRouter } from 'next/navigation';
 import { createOrder } from '@/lib/orders-service';
 import { getMockUser } from '@/lib/user-service';
 import type { User } from '@/lib/user-service';
+import { makePlain } from '@/lib/utils';
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat('en-IN', {
@@ -110,8 +111,11 @@ export function OrderSummary() {
         const user: User | null = await getMockUser();
         if (!user) {
             toast({ title: "Please log in to place an order.", variant: "destructive" });
+            setIsPlacingOrder(false);
             return;
         }
+        
+        const plainItems = makePlain(items);
 
         const orderData = {
             customer: {
@@ -121,7 +125,7 @@ export function OrderSummary() {
                 shippingAddress: "123 Maple St, Springfield, IL", // Mock Address
                 pincode: '62704', // Mock Pincode
             },
-            items: items,
+            items: plainItems,
             subtotal,
             shipping: shippingFee,
             total,
@@ -281,3 +285,5 @@ export function OrderSummary() {
     </>
   );
 }
+
+    
