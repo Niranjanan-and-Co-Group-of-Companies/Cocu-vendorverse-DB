@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -18,7 +17,7 @@ function CustomizePageContent({ id }: { id: string }) {
     React.useEffect(() => {
         if (id) {
             setLoading(true);
-            const unsubscribe = onProductUpdate(String(id), (productData) => {
+            const unsubscribe = onProductUpdate(id, (productData) => {
                 setProduct(productData);
                 setLoading(false);
             });
@@ -60,7 +59,8 @@ function CustomizePageContent({ id }: { id: string }) {
 }
 
 
-function CustomizePageWrapper({ id }: { id: string }) {
+function CustomizePageWrapper({ params }: { params: { id: string } }) {
+    const { id } = React.use(params);
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header />
@@ -77,5 +77,5 @@ function CustomizePageWrapper({ id }: { id: string }) {
 }
 
 export default function CustomizePage({ params }: { params: { id: string } }) {
-    return <CustomizePageWrapper id={params.id} />
+    return <CustomizePageWrapper params={params} />
 }

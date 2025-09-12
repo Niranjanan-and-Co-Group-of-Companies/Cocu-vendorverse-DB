@@ -10,19 +10,19 @@ import { onProductUpdate } from '@/lib/products-client-service';
 import type { Product } from '@/lib/products';
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-    
+    const { id } = React.use(params);
     const [product, setProduct] = React.useState<Product | null>(null);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        if (params.id) {
-            const unsubscribe = onProductUpdate(params.id, (productData) => {
+        if (id) {
+            const unsubscribe = onProductUpdate(id, (productData) => {
                 setProduct(productData);
                 setLoading(false);
             });
             return () => unsubscribe();
         }
-    }, [params.id]);
+    }, [id]);
 
 
     return (

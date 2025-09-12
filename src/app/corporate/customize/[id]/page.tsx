@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -16,7 +15,7 @@ function CorporateCustomizePageContent({ id }: { id: string }) {
     React.useEffect(() => {
         if (id) {
             setLoading(true);
-            const unsubscribe = onProductUpdate(String(id), (productData) => {
+            const unsubscribe = onProductUpdate(id, (productData) => {
                 setProduct(productData);
                 setLoading(false);
             });
@@ -63,10 +62,11 @@ function CorporateCustomizePageContent({ id }: { id: string }) {
 
 
 export default function CorporateCustomizePage({ params }: { params: { id: string } }) {
+    const { id } = React.use(params);
     return (
         <main className="flex-grow h-full">
             <React.Suspense fallback={<p>Loading...</p>}>
-                <CorporateCustomizePageContent id={params.id} />
+                <CorporateCustomizePageContent id={id} />
             </React.Suspense>
         </main>
     );

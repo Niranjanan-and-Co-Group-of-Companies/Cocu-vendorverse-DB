@@ -1,17 +1,35 @@
 
+'use client';
+
 import * as React from 'react';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProductPageContent } from '@/components/product/product-page-content';
-import { getProductById, serializeProduct } from '@/lib/products-service';
+import { onProductUpdate } from '@/lib/products-client-service';
+import type { Product } from '@/lib/products';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 
-// This is a Server Component. It can access params directly.
-export default async function CorporateProductPage({ params }: { params: { id: string } }) {
-    const productData = await getProductById(params.id);
 
-    if (!productData) {
+function CorporateProductPageContent({ id }: { id: string }) {
+    const [product, setProduct] = React.useState<Product | null>(null);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        if (id) {
+            const unsubscribe = onProductUpdate(id, (productData) => {
+                setProduct(productData);
+                setLoading(false);
+            });
+            return () => unsubscribe();
+        }
+    }, [id]);
+
+    if (loading) {
+        return <Skeleton className="h-screen w-full" />;
+    }
+
+    if (!product) {
         return (
             <div className="flex flex-col min-h-screen bg-background">
                 <Header />
@@ -26,13 +44,16 @@ export default async function CorporateProductPage({ params }: { params: { id: s
         );
     }
     
-    // Serialize the product data on the server before passing it to the client component.
-    const product = await serializeProduct(productData);
-    
+    return <ProductPageContent product={product} />;
+}
+
+
+export default function CorporateProductPage({ params }: { params: { id: string } }) {
+    const { id } = React.use(params);
     return (
         <main className="flex-grow">
             <Suspense fallback={<Skeleton className="h-screen w-full" />}>
-                 <ProductPageContent product={product} />
+                 <CorporateProductPageContent id={id} />
             </Suspense>
         </main>
     );
