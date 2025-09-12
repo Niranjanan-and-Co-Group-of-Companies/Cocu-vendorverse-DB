@@ -25,10 +25,9 @@ function BidDetailsPageContent({ id }: { id: string }) {
 
 
 export default function BidDetailsPage({ params }: { params: { id: string } }) {
-    const { id } = React.use(params);
     return (
         <React.Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
-            <BidDetailsPageContent id={id} />
+            <BidDetailsPageContent id={params.id} />
         </React.Suspense>
     );
 }

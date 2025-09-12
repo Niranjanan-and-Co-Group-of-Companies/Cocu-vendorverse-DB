@@ -50,11 +50,10 @@ function CorporateProductPageContent({ id }: { id: string }) {
 
 
 export default function CorporateProductPage({ params }: { params: { id: string } }) {
-    const { id } = React.use(params);
     return (
         <main className="flex-grow">
             <Suspense fallback={<Skeleton className="h-screen w-full" />}>
-                 <CorporateProductPageContent id={id} />
+                 <CorporateProductPageContent id={params.id} />
             </Suspense>
         </main>
     );
