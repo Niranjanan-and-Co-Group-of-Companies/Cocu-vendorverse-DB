@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -279,7 +280,7 @@ export function OrderSummary() {
             </AlertDialogHeader>
             <AlertDialogFooter>
                 <AlertDialogAction onClick={() => {
-                    if(outOfStockItem) removeItem(outOfStockItem.cartItemId);
+                    if(outOfStockItem) removeItem(outOfStockItem.cartItemId, outOfStockItem.name);
                     setOutOfStockItem(null);
                 }}>
                     Remove Item & Continue
