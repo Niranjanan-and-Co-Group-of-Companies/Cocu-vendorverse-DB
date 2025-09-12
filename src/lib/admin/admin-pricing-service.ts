@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, getDocs } from 'firebase/firestore';
@@ -23,7 +24,7 @@ async function getCommissionRules(): Promise<CommissionRule[]> {
 
 /**
  * Calculates the base display price for the admin panel.
- * This is a simplified calculation: Vendor SP + Buffer.
+ * This is a simplified calculation: Vendor SP / (1 - Commission Rate).
  * It does NOT include any promotional discounts.
  */
 export async function calculateAdminDisplayPrice(
@@ -41,12 +42,14 @@ export async function calculateAdminDisplayPrice(
     const ruleType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
     const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
     
-    let buffer = 0;
-    if (rule) {
-        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : basePrice * (rule.bufferValue / 100);
+    const commissionRate = rule ? rule.commissionRate / 100 : 0;
+    
+    if (commissionRate >= 1) {
+        // Commission rate of 100% or more is invalid, return a fallback.
+        return basePrice;
     }
     
-    const customerPrice = basePrice + buffer;
+    const customerPrice = basePrice / (1 - commissionRate);
     
     return Math.max(0, customerPrice);
 }

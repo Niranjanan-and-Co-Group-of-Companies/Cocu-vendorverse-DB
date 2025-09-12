@@ -11,8 +11,6 @@ export interface CommissionRule {
     categoryName: string;
     type: 'personalized-retail' | 'corporate-bulk';
     commissionRate: number; // percentage
-    bufferType: 'fixed' | 'percentage';
-    bufferValue: number;
 }
 
 export interface Override {
@@ -20,8 +18,6 @@ export interface Override {
     itemId: string; // Vendor ID or Product ID
     name: string; // Vendor Name or Product Name
     commissionRate: number;
-    bufferType: 'fixed' | 'percentage';
-    bufferValue: number;
 }
 
 export interface CommissionableItem {
@@ -32,14 +28,14 @@ export interface CommissionableItem {
 
 // --- Seeding Logic ---
 async function seedCommissionRules() {
-    const seedFlagRef = doc(db, 'internal_flags', 'commissionsSeeded_v4');
+    const seedFlagRef = doc(db, 'internal_flags', 'commissionsSeeded_v5');
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return; // Seeding already performed.
     }
 
-    console.log("Performing one-time commissions database hard reset...");
+    console.log("Performing one-time commissions database hard reset v5 (no buffer)...");
     
     const commissionsRef = collection(db, "commissions");
     const [commissionsSnapshot, categories] = await Promise.all([
@@ -71,8 +67,6 @@ async function seedCommissionRules() {
                 categoryName: category.name,
                 type: 'personalized-retail',
                 commissionRate: isSunshine ? 0 : 15,
-                bufferType: 'fixed',
-                bufferValue: isSunshine ? 0 : 1.50
             });
         }
         
@@ -84,14 +78,12 @@ async function seedCommissionRules() {
                 categoryName: category.name,
                 type: 'corporate-bulk',
                 commissionRate: 12,
-                bufferType: 'percentage',
-                bufferValue: 5
             });
         }
     });
 
     await batch.commit();
-    console.log("Commissions database reset and seeding complete.");
+    console.log("Commissions database reset and seeding complete (no buffer).");
 
     // Set the flag to prevent this from running again
     await setDoc(seedFlagRef, { completed: true });
@@ -132,8 +124,6 @@ export async function addOverride(type: 'vendor' | 'product', itemId: string, na
         itemId,
         name,
         commissionRate: 10,
-        bufferType: 'fixed',
-        bufferValue: 0
     });
 }
 

@@ -64,13 +64,6 @@ export default function CommissionsPage() {
         setIsDialogOpen(true);
     };
 
-    const formatBuffer = (rule: { bufferType: 'fixed' | 'percentage', bufferValue: number }) => {
-        if (rule.bufferType === 'fixed') {
-            return `₹${rule.bufferValue.toFixed(2)}`;
-        }
-        return `${rule.bufferValue}%`;
-    }
-
     const CommissionTable = ({ rules, type }: { rules: CommissionRule[], type: 'personalized-retail' | 'corporate-bulk' }) => {
         const filteredRules = rules.filter(r => r.type === type);
         
@@ -82,7 +75,6 @@ export default function CommissionsPage() {
                             <TableRow>
                                 <TableHead>Category Name</TableHead>
                                 <TableHead>Commission Rate</TableHead>
-                                <TableHead>Buffer</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -91,7 +83,6 @@ export default function CommissionsPage() {
                                 <TableRow key={i}>
                                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                                     <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                 </TableRow>
                             )) : filteredRules.map(rule => {
@@ -100,7 +91,6 @@ export default function CommissionsPage() {
                                 <TableRow key={rule.id}>
                                     <TableCell className="font-medium">{rule.categoryName}</TableCell>
                                     <TableCell>{isSunshine ? <span className="text-muted-foreground">N/A</span> : `${rule.commissionRate}%`}</TableCell>
-                                    <TableCell>{formatBuffer(rule)}</TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(rule, 'category')}>
                                             <Edit className="h-4 w-4" />
@@ -123,7 +113,7 @@ export default function CommissionsPage() {
                 <div>
                     <h1 className="text-2xl font-bold">Commission Engine</h1>
                     <p className="text-muted-foreground">
-                        Define commission rates and pricing buffers for all sales channels.
+                        Define commission rates for all sales channels.
                     </p>
                 </div>
             </div>

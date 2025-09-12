@@ -14,7 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import type { CommissionRule, Override } from '@/lib/commissions-service';
 import { updateCommissionRule } from '@/lib/commissions-service';
@@ -29,8 +28,6 @@ interface CommissionDialogProps {
 
 export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionDialogProps) {
   const [commissionRate, setCommissionRate] = React.useState(0);
-  const [bufferType, setBufferType] = React.useState<'fixed' | 'percentage'>('fixed');
-  const [bufferValue, setBufferValue] = React.useState(0);
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
 
@@ -40,12 +37,8 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
   React.useEffect(() => {
     if (rule) {
       setCommissionRate(rule.commissionRate);
-      setBufferType(rule.bufferType);
-      setBufferValue(rule.bufferValue);
     } else {
       setCommissionRate(0);
-      setBufferType('fixed');
-      setBufferValue(0);
     }
   }, [rule, open]);
 
@@ -56,8 +49,6 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
       const finalCommissionRate = isSunshineCategory ? 0 : commissionRate;
       await updateCommissionRule(type, rule.id, {
         commissionRate: finalCommissionRate,
-        bufferType,
-        bufferValue,
       });
       toast({ title: "Commission Rule Updated", description: `The rule for "${'name' in rule ? rule.name : (rule as CommissionRule).categoryName}" has been updated.` });
       onOpenChange(false);
@@ -77,11 +68,11 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{getTitle()}</DialogTitle>
           <DialogDescription>
-            Set the commission rate and pricing buffer for this item.
+            Set the commission rate for this item.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 py-4">
@@ -108,36 +99,6 @@ export function CommissionDialog({ open, onOpenChange, rule, type }: CommissionD
                     </AlertDescription>
                 </Alert>
             )}
-
-            {/* Buffer */}
-            <div className="grid grid-cols-3 items-start gap-4">
-                <Label className="text-right pt-2">Pricing Buffer</Label>
-                <div className="col-span-2 space-y-3">
-                    <RadioGroup value={bufferType} onValueChange={(value) => setBufferType(value as any)} className="flex gap-4">
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="fixed" id="fixed" />
-                            <Label htmlFor="fixed">Fixed (₹)</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="percentage" id="percentage" />
-                            <Label htmlFor="percentage">Percentage (%)</Label>
-                        </div>
-                    </RadioGroup>
-
-                    <div className="relative">
-                       <Input 
-                            id="buffer-value" 
-                            type="number" 
-                            value={bufferValue}
-                            onChange={(e) => setBufferValue(parseFloat(e.target.value))}
-                            className="pr-8"
-                        />
-                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                            {bufferType === 'fixed' ? '₹' : '%'}
-                         </span>
-                    </div>
-                </div>
-            </div>
         </div>
         <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancel</Button>

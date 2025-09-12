@@ -66,13 +66,19 @@ export async function calculateDisplayPrice(
     const ruleType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
     const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
     
-    let buffer = 0;
+    const commissionRate = rule ? rule.commissionRate / 100 : 0;
 
-    if (rule) {
-        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : basePrice * (rule.bufferValue / 100);
+    if (commissionRate >= 1) {
+        // Commission rate of 100% or more is invalid.
+        return {
+            finalPrice: basePrice,
+            originalPrice: basePrice,
+            hasDiscount: false,
+        };
     }
     
-    const customerPrice = basePrice + buffer;
+    // Reverse calculate the customer price from vendor SP and commission
+    const customerPrice = basePrice / (1 - commissionRate);
     
     let finalPrice = customerPrice;
     let hasDiscount = false;
@@ -120,12 +126,18 @@ export async function calculateDisplayPriceFromQuote(
     const ruleType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
     const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
     
-    let buffer = 0;
-    if (rule) {
-        buffer = rule.bufferType === 'fixed' ? rule.bufferValue : quotedPrice * (rule.bufferValue / 100);
+    const commissionRate = rule ? rule.commissionRate / 100 : 0;
+    
+    if (commissionRate >= 1) {
+        return {
+            finalPrice: quotedPrice,
+            originalPrice: quotedPrice,
+            hasDiscount: false,
+        };
     }
     
-    const customerPrice = quotedPrice + buffer;
+    // Reverse calculate the customer price
+    const customerPrice = quotedPrice / (1 - commissionRate);
     
     return {
         finalPrice: customerPrice,

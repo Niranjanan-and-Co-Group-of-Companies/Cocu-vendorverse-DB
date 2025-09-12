@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -75,12 +76,6 @@ export function OverrideCard({
     }
   }
 
-  const formatBuffer = (rule: { bufferType: 'fixed' | 'percentage', bufferValue: number }) => {
-    if (rule.bufferType === 'fixed') {
-        return `₹${rule.bufferValue.toFixed(2)}`;
-    }
-    return `${rule.bufferValue}%`;
-  }
 
   return (
     <Card>
@@ -120,7 +115,7 @@ export function OverrideCard({
                   <TableCell>
                     <p className="font-medium truncate">{override.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {override.commissionRate}% | {formatBuffer(override)}
+                      {override.commissionRate}%
                     </p>
                   </TableCell>
                   <TableCell className="text-right">
