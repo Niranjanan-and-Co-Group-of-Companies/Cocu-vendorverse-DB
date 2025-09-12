@@ -14,10 +14,9 @@ import { makePlain } from './utils';
 
 const productsCollection = collection(db, 'products');
 
-export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt' | 'preparationTime'> & {
+export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
   createdAt: string | null;
   updatedAt: string | null;
-  preparationTime: { min: number, max: number };
 };
 
 export async function serializeProduct(product: Product): Promise<PlainProduct> {
@@ -106,7 +105,7 @@ seedProductsIfEmpty();
 
 
 async function uploadFile(path: string, file: File): Promise<string> {
-    const storageRef = ref(storage, path);
+    const storageRef = ref(storage, `products/${path}`);
     await uploadBytes(storageRef, file);
     return getDownloadURL(storageRef);
 }
@@ -264,5 +263,3 @@ export async function approveProduct(productId: string) {
 export async function declineProduct(productId: string) {
     await updateProductStatus(String(productId), 'Declined');
 }
-
-    

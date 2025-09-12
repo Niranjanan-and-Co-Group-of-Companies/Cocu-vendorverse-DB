@@ -17,7 +17,7 @@ export function makePlain(obj: any): any {
     return obj;
   }
 
-  // Handle Firestore Timestamp specifically
+  // Handle Firestore Timestamp specifically by checking for toDate method
   if (typeof obj.toDate === 'function') {
     return obj.toDate().toISOString();
   }
@@ -31,7 +31,6 @@ export function makePlain(obj: any): any {
   if (typeof obj === 'object' && obj.constructor === Object) {
     const newObj: { [key: string]: any } = {};
     for (const key in obj) {
-      // Ensure we only process own properties
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         newObj[key] = makePlain(obj[key]);
       }
@@ -39,6 +38,6 @@ export function makePlain(obj: any): any {
     return newObj;
   }
 
-  // Return primitive values as is
+  // Return primitive values and other types as is
   return obj;
 }
