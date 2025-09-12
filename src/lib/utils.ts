@@ -17,33 +17,30 @@ export function makePlain(obj: any): any {
   if (obj === null || obj === undefined) {
     return obj;
   }
-
-  // Robustly identify Firestore Timestamps (or similar objects) and convert to ISO string.
-  if (typeof obj.toDate === 'function') {
-    return obj.toDate().toISOString();
-  }
   
-  if (obj instanceof Date) {
-    return obj.toISOString();
-  }
+  // Create a deep copy to avoid modifying the original object.
+  let newObj = JSON.parse(JSON.stringify(obj));
 
-  // Handle Arrays by mapping over them and calling makePlain recursively
-  if (Array.isArray(obj)) {
-    return obj.map(item => makePlain(item));
-  }
-  
-  // Handle Objects by iterating over their properties recursively
-  // This check ensures we are only processing plain objects.
-  if (typeof obj === 'object' && obj.constructor === Object) {
-    const newObj: { [key: string]: any } = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        newObj[key] = makePlain(obj[key]);
+  // Recursive function to traverse and convert timestamps.
+  function traverse(currentObj: any) {
+    if (currentObj === null || typeof currentObj !== 'object') {
+      return;
+    }
+    
+    for (const key in currentObj) {
+      if (Object.prototype.hasOwnProperty.call(currentObj, key)) {
+        const value = currentObj[key];
+        // Check for Firestore Timestamp-like structure.
+        if (value && typeof value === 'object' && value.seconds !== undefined && value.nanoseconds !== undefined && typeof value.toDate === 'function') {
+           currentObj[key] = value.toDate().toISOString();
+        } else if (value && typeof value === 'object') {
+          // If it's another object or an array, recurse.
+          traverse(value);
+        }
       }
     }
-    return newObj;
   }
 
-  // Return primitive values (string, number, boolean, etc.) as is
-  return obj;
+  traverse(newObj);
+  return newObj;
 }
