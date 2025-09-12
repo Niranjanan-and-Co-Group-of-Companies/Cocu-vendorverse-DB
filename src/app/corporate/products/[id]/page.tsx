@@ -16,13 +16,14 @@ function CorporateProductPageContent({ id }: { id: string }) {
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        if (id) {
-            const unsubscribe = onProductUpdate(id, (productData) => {
-                setProduct(productData);
-                setLoading(false);
-            });
-            return () => unsubscribe();
-        }
+        if (!id) return;
+        
+        const unsubscribe = onProductUpdate(id, (productData) => {
+            setProduct(productData);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+        
     }, [id]);
 
     if (loading) {

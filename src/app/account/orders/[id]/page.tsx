@@ -19,18 +19,19 @@ function OrderDetailsPageContent({ id }: { id: string }) {
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        if (id) {
-            setLoading(true);
-            const unsubscribe = onSnapshot(doc(db, 'orders', id), (docSnap) => {
-                if (docSnap.exists()) {
-                    setOrder({ id: docSnap.id, ...docSnap.data() } as Order);
-                } else {
-                    setOrder(null);
-                }
-                setLoading(false);
-            });
-            return () => unsubscribe();
-        }
+        if (!id) return;
+        
+        setLoading(true);
+        const unsubscribe = onSnapshot(doc(db, 'orders', id), (docSnap) => {
+            if (docSnap.exists()) {
+                setOrder({ id: docSnap.id, ...docSnap.data() } as Order);
+            } else {
+                setOrder(null);
+            }
+            setLoading(false);
+        });
+        return () => unsubscribe();
+        
     }, [id]);
 
     const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);

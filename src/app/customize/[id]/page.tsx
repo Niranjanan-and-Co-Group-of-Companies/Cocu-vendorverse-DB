@@ -15,14 +15,14 @@ function CustomizePageContent({ id }: { id: string }) {
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        if (id) {
-            setLoading(true);
-            const unsubscribe = onProductUpdate(id, (productData) => {
-                setProduct(productData);
-                setLoading(false);
-            });
-            return () => unsubscribe();
-        }
+        if (!id) return;
+        
+        setLoading(true);
+        const unsubscribe = onProductUpdate(id, (productData) => {
+            setProduct(productData);
+            setLoading(false);
+        });
+        return () => unsubscribe();
     }, [id]);
 
     if (loading) {

@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 function BidDetailsPageContent({ id }: { id: string }) {
+    if (!id) {
+        return <Skeleton className="h-[600px] w-full" />;
+    }
     return (
         <div className="flex flex-col gap-6">
             <Link href="/corporate/bids" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
