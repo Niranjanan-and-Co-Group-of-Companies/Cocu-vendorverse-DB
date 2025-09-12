@@ -24,14 +24,10 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
   if (product.createdAt && typeof product.createdAt.toDate === 'function') {
     plainProduct.createdAt = product.createdAt.toDate().toISOString();
-  } else if (product.createdAt) {
-    plainProduct.createdAt = new Date(product.createdAt).toISOString();
   }
 
   if (product.updatedAt && typeof product.updatedAt.toDate === 'function') {
     plainProduct.updatedAt = product.updatedAt.toDate().toISOString();
-  } else if (product.updatedAt) {
-    plainProduct.updatedAt = new Date(product.updatedAt).toISOString();
   }
   
   if (product.variants) {
