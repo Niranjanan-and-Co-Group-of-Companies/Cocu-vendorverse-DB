@@ -20,8 +20,7 @@ import { useRouter } from 'next/navigation';
 import { onProductsByCategoryUpdate, type ProductWithPrice } from '@/lib/products-client-service';
 import type { Product } from '@/lib/products';
 
-function CategoryPageContent({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+function CategoryPageContent({ slug }: { slug: string }) {
   const [products, setProducts] = useState<ProductWithPrice[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,6 +31,7 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
 
 
   useEffect(() => {
+    if (!slug) return;
     setLoading(true);
     const unsubscribe = onProductsByCategoryUpdate(slug, 'Personalized', (pricedProducts, categoryData) => {
         setProducts(pricedProducts);
@@ -180,11 +180,12 @@ function CategoryPageContent({ params }: { params: { slug: string } }) {
 
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
+  const { slug } = React.use(params);
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
        <Suspense fallback={<div>Loading...</div>}>
-         <CategoryPageContent params={params} />
+         <CategoryPageContent slug={slug} />
        </Suspense>
       <Footer />
     </div>
