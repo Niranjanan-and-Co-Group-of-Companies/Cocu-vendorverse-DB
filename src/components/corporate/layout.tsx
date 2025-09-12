@@ -8,7 +8,6 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { CorporateSidebar } from '@/components/layout/corporate-sidebar';
 import { GstVerificationDialog } from '@/components/corporate/gst-verification-dialog';
 import { CorporateAccountProvider } from '@/hooks/use-corporate-account-store';
-import { ChatSafetyDialog } from '@/components/corporate/messages/chat-safety-dialog';
 
 export default function CorporateLayout({
   children,
@@ -29,7 +28,6 @@ export default function CorporateLayout({
             </div>
           </SidebarInset>
           <GstVerificationDialog />
-          <ChatSafetyDialog />
       </SidebarProvider>
     </CorporateAccountProvider>
   );
