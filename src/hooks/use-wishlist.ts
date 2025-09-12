@@ -9,6 +9,7 @@ import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service'
 import { getCategoryByName } from '@/lib/categories-service';
 import { makePlain } from '@/lib/utils';
 import type { PlainProduct } from '@/lib/products-service';
+import { serializeProduct } from '@/lib/products-service';
 
 export interface WishlistItem extends PlainProduct {
     displayPrice?: DisplayPrice;
@@ -48,7 +49,7 @@ export const useWishlist = create(
                 tieredPricing: product.tieredPricing
             };
           const displayPrice = await calculateDisplayPrice(productInfo, 'Personalized', category || undefined);
-          const plainProduct = product as unknown as PlainProduct;
+          const plainProduct = await serializeProduct(product);
           set({ items: [...currentItems, { ...plainProduct, displayPrice }] });
           return { success: true, message: `"${product.name}" added to your wishlist.` };
         }

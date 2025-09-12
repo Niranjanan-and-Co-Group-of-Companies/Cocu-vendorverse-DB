@@ -9,6 +9,7 @@ import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service'
 import { getCategoryByName } from '@/lib/categories-service';
 import { makePlain } from '@/lib/utils';
 import type { PlainProduct } from '@/lib/products-service';
+import { serializeProduct } from '@/lib/products-service';
 
 export interface CartItem extends PlainProduct {
   cartItemId: string; // Unique ID for this specific item in the cart (product.id + variant.id)
@@ -39,7 +40,7 @@ export const useCart = create(
         
         const existingItem = currentItems.find(item => item.cartItemId === cartItemId);
 
-        const plainProduct = product as unknown as PlainProduct;
+        const plainProduct = await serializeProduct(product);
 
         if (existingItem) {
           const newQuantity = existingItem.quantity + quantity;
