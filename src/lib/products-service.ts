@@ -28,14 +28,14 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 }
 
 async function seedProductsIfEmpty() {
-    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v18'); 
+    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v19'); 
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return; // The correct seeding has already been performed.
     }
     
-    console.log("Performing one-time product database hard reset (v18)...");
+    console.log("Performing one-time product database hard reset (v19)...");
     
     // Hard reset logic: Delete all existing products first.
     const existingProductsSnapshot = await getDocs(productsCollection);
@@ -50,9 +50,9 @@ async function seedProductsIfEmpty() {
 
 
     const MOCK_PRODUCTS_RAW = [
-        { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 45.00, image: 'https://picsum.photos/seed/choco/600/400', galleryImages: ['https://picsum.photos/seed/choco1/600/400', 'https://picsum.photos/seed/choco2/600/400', 'https://picsum.photos/seed/choco3/600/400'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", category: "Food & Drink", platform: 'Personalized'},
-        { name: 'Luxury Spa Set', vendor: 'Serene Moments', vendorSP: 85.00, image: 'https://picsum.photos/seed/spa/600/400', galleryImages: ['https://picsum.photos/seed/spa1/600/400', 'https://picsum.photos/seed/spa2/600/400'], rating: 4.9, stock: 5, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", category: "Wellness", platform: 'Personalized' },
-        { name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', vendorSP: 75.00, tieredPricing: [{ quantity: 25, price: '70.00' }, { quantity: 50, price: '65.00' }, { quantity: 100, price: '60.00' }], image: 'https://picsum.photos/seed/wallet/600/400', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Office & Corporate", moq: 25, platform: 'Corporate'},
+        { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 450.00, image: 'https://picsum.photos/seed/choco/600/400', galleryImages: ['https://picsum.photos/seed/choco1/600/400', 'https://picsum.photos/seed/choco2/600/400', 'https://picsum.photos/seed/choco3/600/400'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", category: "Food & Drink", platform: 'Personalized'},
+        { name: 'Luxury Spa Set', vendor: 'Serene Moments', vendorSP: 850.00, image: 'https://picsum.photos/seed/spa/600/400', galleryImages: ['https://picsum.photos/seed/spa1/600/400', 'https://picsum.photos/seed/spa2/600/400'], rating: 4.9, stock: 5, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", category: "Wellness", platform: 'Personalized' },
+        { name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', vendorSP: 750.00, tieredPricing: [{ quantity: 25, price: '700.00' }, { quantity: 50, price: '650.00' }, { quantity: 100, price: '600.00' }], image: 'https://picsum.photos/seed/wallet/600/400', rating: 4.7, stock: 15, customizable: true, featured: true, category: "Office & Corporate", moq: 25, platform: 'Corporate'},
     ];
     
     const VENDOR_MAP: { [key: string]: { id: string, pincode: string } } = { 
@@ -67,12 +67,10 @@ async function seedProductsIfEmpty() {
         const vendorInfo = VENDOR_MAP[product.vendor] || { id: 'unknown_vendor', pincode: '000000' };
         
         const platform = product.platform as 'Personalized' | 'Corporate';
-        const category = await getCategoryByName(product.category);
-        const displayPrice = await calculateDisplayPrice({vendorSP: product.vendorSP}, platform, category);
         
         const fullProductData: Product = {
             ...product,
-            price: displayPrice.finalPrice.toFixed(2),
+            price: product.vendorSP.toFixed(2), // Price is now directly the vendor SP
             vendorSP: product.vendorSP,
             id: docRef.id,
             name_lowercase: product.name.toLowerCase(),
@@ -105,7 +103,7 @@ async function seedProductsIfEmpty() {
     await seedBatch.commit();
     
     await setDoc(seedFlagRef, { seeded: true, at: serverTimestamp() });
-    console.log(`${MOCK_PRODUCTS_RAW.length} products seeded successfully. This operation will not run again.`);
+    console.log(`${MOCK_PRODUCTS_RAW.length} products seeded successfully (v19). This operation will not run again.`);
 }
 seedProductsIfEmpty();
 
@@ -130,22 +128,13 @@ export async function saveProduct(
 
     const categorySlug = productData.category ? productData.category.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-') : '';
 
-    const category = await getCategoryByName(productData.category);
+    // With the new model, the base customer-facing price IS the Vendor SP.
+    const price = productData.vendorSP || 0;
     
-    const displayPrice = await calculateDisplayPrice(
-        {
-            vendorSP: productData.vendorSP || 0,
-            discountType: productData.discountType,
-            discountValue: productData.discountValue,
-        }, 
-        productData.platform, 
-        category
-    );
-
     const finalProductData = { 
         ...productData, 
         id: productId, 
-        price: displayPrice.finalPrice.toFixed(2),
+        price: price.toFixed(2), // Set price directly from vendorSP
         vendorSP: productData.vendorSP || 0,
         name_lowercase: productData.name?.toLowerCase(),
         shipsFromPincode,
@@ -266,7 +255,7 @@ export async function updateProductStatus(productId: string, status: ProductStat
     await updateDoc(productRef, { status: status, updatedAt: serverTimestamp() });
 }
 
-export async function updateProductInventory(productId: number, stock: number, inventoryBuffer: number) {
+export async function updateProductInventory(productId: string, stock: number, inventoryBuffer: number) {
     const productRef = doc(db, 'products', String(productId));
     await updateDoc(productRef, { stock, inventoryBuffer, updatedAt: serverTimestamp() });
 }

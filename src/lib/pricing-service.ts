@@ -49,36 +49,17 @@ export async function calculateDisplayPrice(
     quantity: number = 1
 ): Promise<DisplayPrice> {
     
-    let basePrice = productInfo.vendorSP;
-    if (isNaN(basePrice)) {
-      basePrice = 0;
-    }
+    let vendorSP = productInfo.vendorSP || 0;
 
     if (platform === 'Corporate' && productInfo.tieredPricing && productInfo.tieredPricing.length > 0) {
         const sortedTiers = [...productInfo.tieredPricing].sort((a, b) => b.quantity - a.quantity);
         const applicableTier = sortedTiers.find(tier => quantity >= tier.quantity);
         if (applicableTier && applicableTier.price) {
-            basePrice = parseFloat(applicableTier.price.replace('$', '').replace('₹', ''));
+            vendorSP = parseFloat(applicableTier.price.replace(/[₹$,]/g, ''));
         }
     }
-
-    const rules = await getCommissionRules();
-    const ruleType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
-    const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
     
-    const commissionRate = rule ? rule.commissionRate / 100 : 0;
-
-    if (commissionRate >= 1) {
-        // Commission rate of 100% or more is invalid.
-        return {
-            finalPrice: basePrice,
-            originalPrice: basePrice,
-            hasDiscount: false,
-        };
-    }
-    
-    // Reverse calculate the customer price from vendor SP and commission
-    const customerPrice = basePrice / (1 - commissionRate);
+    const customerPrice = vendorSP; // The customer price is the vendor's selling price.
     
     let finalPrice = customerPrice;
     let hasDiscount = false;
@@ -121,23 +102,9 @@ export async function calculateDisplayPriceFromQuote(
     category?: Category,
     platform: 'Personalized' | 'Corporate' = 'Corporate'
 ): Promise<DisplayPrice> {
-
-    const rules = await getCommissionRules();
-    const ruleType = platform === 'Corporate' ? 'corporate-bulk' : 'personalized-retail';
-    const rule = rules.find(r => r.categoryName === category?.name && r.type === ruleType);
-    
-    const commissionRate = rule ? rule.commissionRate / 100 : 0;
-    
-    if (commissionRate >= 1) {
-        return {
-            finalPrice: quotedPrice,
-            originalPrice: quotedPrice,
-            hasDiscount: false,
-        };
-    }
-    
-    // Reverse calculate the customer price
-    const customerPrice = quotedPrice / (1 - commissionRate);
+    // With the new model, the quoted price is the final customer price.
+    // The commission is handled on the backend during payout.
+    const customerPrice = quotedPrice;
     
     return {
         finalPrice: customerPrice,
