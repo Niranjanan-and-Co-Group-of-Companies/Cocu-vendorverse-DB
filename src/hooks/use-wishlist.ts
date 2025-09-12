@@ -14,8 +14,8 @@ export interface WishlistItem extends Product {
 interface WishlistState {
   items: WishlistItem[];
   addItem: (product: Product) => Promise<{ success: boolean; message: string }>;
-  removeItem: (productId: number) => { success: boolean; message: string };
-  isItemInWishlist: (productId: number) => boolean;
+  removeItem: (productId: string) => { success: boolean; message: string };
+  isItemInWishlist: (productId: string) => boolean;
 }
 
 export const useWishlist = create(
@@ -34,7 +34,17 @@ export const useWishlist = create(
         } else {
           // Add item to wishlist after fetching its price
           const category = await getCategoryByName(product.category);
-          const displayPrice = await calculateDisplayPrice(product.price, 'personal', category || undefined, product.discountType, product.discountValue);
+          const productInfo = {
+                id: product.id,
+                vendorSP: product.vendorSP,
+                category: product.category,
+                vendorId: product.vendorId,
+                discountType: product.discountType,
+                discountValue: product.discountValue,
+                price: product.price,
+                tieredPricing: product.tieredPricing
+            };
+          const displayPrice = await calculateDisplayPrice(productInfo, 'Personalized', category || undefined);
           set({ items: [...currentItems, { ...product, displayPrice }] });
           return { success: true, message: `"${product.name}" added to your wishlist.` };
         }
@@ -47,7 +57,7 @@ export const useWishlist = create(
         }
         return { success: false, message: 'Item not found in wishlist.' };
       },
-      isItemInWishlist: (productId: number) => {
+      isItemInWishlist: (productId: string) => {
         return get().items.some(item => item.id === productId);
       },
     }),
