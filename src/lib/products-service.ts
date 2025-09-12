@@ -11,6 +11,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getCategoryByName } from './categories-service';
 import { calculateDisplayPrice } from './pricing-service';
 import type { CommissionRule } from './commissions-service';
+import { makePlain } from './utils';
 
 const productsCollection = collection(db, 'products');
 
@@ -20,25 +21,7 @@ export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
 };
 
 export async function serializeProduct(product: Product): Promise<PlainProduct> {
-  const plainProduct = { ...product } as Partial<PlainProduct>;
-
-  if (product.createdAt?.toDate) {
-    plainProduct.createdAt = product.createdAt.toDate().toISOString();
-  } else if (product.createdAt) {
-    plainProduct.createdAt = String(product.createdAt);
-  } else {
-    plainProduct.createdAt = null;
-  }
-  
-  if (product.updatedAt?.toDate) {
-    plainProduct.updatedAt = product.updatedAt.toDate().toISOString();
-  } else if (product.updatedAt) {
-    plainProduct.updatedAt = String(product.updatedAt);
-  } else {
-    plainProduct.updatedAt = null;
-  }
-  
-  return plainProduct as PlainProduct;
+  return makePlain(product);
 }
 
 
@@ -282,4 +265,3 @@ export async function approveProduct(productId: string) {
 export async function declineProduct(productId: string) {
     await updateProductStatus(String(productId), 'Declined');
 }
-
