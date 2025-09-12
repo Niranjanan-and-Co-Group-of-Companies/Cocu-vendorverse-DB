@@ -121,9 +121,11 @@ function OrderDetailsPageContent({ id }: { id: string }) {
                             {order.items.map((item, index) => (
                                 <div key={item.id}>
                                     <div className="flex items-center gap-4">
-                                        <Image src={item.image} alt={item.name} width={80} height={80} className="rounded-md aspect-square object-cover"/>
+                                        <Link href={`/products/${item.id}`}>
+                                            <Image src={item.image} alt={item.name} width={80} height={80} className="rounded-md aspect-square object-cover"/>
+                                        </Link>
                                         <div className="flex-grow">
-                                            <p className="font-semibold">{item.name}</p>
+                                            <Link href={`/products/${item.id}`} className="font-semibold hover:underline">{item.name}</Link>
                                             <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                                         </div>
                                         <p className="font-semibold">{formatCurrency(parseFloat(item.price) * item.quantity)}</p>
