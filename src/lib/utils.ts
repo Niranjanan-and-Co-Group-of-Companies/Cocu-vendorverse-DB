@@ -13,27 +13,30 @@ export function cn(...inputs: ClassValue[]) {
  * @returns A new object with Timestamps converted to strings.
  */
 export function makePlain<T>(obj: T): T {
-  if (obj === null || typeof obj !== 'object') {
+  if (obj === null || obj === undefined) {
     return obj;
   }
-
+  
   // Handle Firestore Timestamp
-  if (obj && typeof (obj as any).toDate === 'function') {
+  if (typeof (obj as any).toDate === 'function') {
     return (obj as any).toDate().toISOString() as any;
   }
 
-  // Handle arrays
+  // Handle arrays by mapping over them
   if (Array.isArray(obj)) {
     return obj.map(item => makePlain(item)) as any;
   }
   
-  // Handle objects
-  const newObj: { [key: string]: any } = {};
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      newObj[key] = makePlain((obj as any)[key]);
+  // Handle objects by recursively converting their properties
+  if (typeof obj === 'object') {
+    const newObj: { [key: string]: any } = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        newObj[key] = makePlain((obj as any)[key]);
+      }
     }
+    return newObj as T;
   }
 
-  return newObj as T;
+  return obj;
 }
