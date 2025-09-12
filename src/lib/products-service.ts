@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, getDocs, writeBatch, doc, getDoc, query, where, limit, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -68,7 +67,7 @@ async function seedProductsIfEmpty() {
         
         const fullProductData: Product = {
             ...product,
-            price: product.vendorSP.toFixed(2), // Price is now directly the vendor SP
+            price: product.vendorSP.toFixed(2), // Price is now directly the vendorSP
             vendorSP: product.vendorSP,
             id: docRef.id,
             name_lowercase: product.name.toLowerCase(),
