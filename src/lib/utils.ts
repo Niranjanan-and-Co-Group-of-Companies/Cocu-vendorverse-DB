@@ -6,28 +6,27 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Converts any object that may contain Firestore Timestamps into a plain object
- * with ISO date strings. This is necessary to pass data from the client to
- * server components/actions without causing serialization errors.
+ * Recursively converts any object that may contain Firestore Timestamps or other
+ * non-plain objects into a plain, serializable object.
  * @param obj The object to convert.
- * @returns A new object with Timestamps converted to strings.
+ * @returns A new object that is safe to pass to Server Actions.
  */
 export function makePlain<T>(obj: T): T {
   if (obj === null || obj === undefined) {
     return obj;
   }
-  
+
   // Handle Firestore Timestamp
   if (typeof (obj as any).toDate === 'function') {
     return (obj as any).toDate().toISOString() as any;
   }
 
-  // Handle arrays by mapping over them
+  // Handle Arrays
   if (Array.isArray(obj)) {
     return obj.map(item => makePlain(item)) as any;
   }
   
-  // Handle objects by recursively converting their properties
+  // Handle Objects
   if (typeof obj === 'object') {
     const newObj: { [key: string]: any } = {};
     for (const key in obj) {
@@ -38,5 +37,6 @@ export function makePlain<T>(obj: T): T {
     return newObj as T;
   }
 
+  // Return primitive values as is
   return obj;
 }
