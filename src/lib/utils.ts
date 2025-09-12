@@ -16,8 +16,13 @@ export function makePlain(obj: any): any {
   if (obj === null || obj === undefined) {
     return obj;
   }
+  
+  // Handle Date objects
+  if (obj instanceof Date) {
+    return obj.toISOString();
+  }
 
-  // Handle Firestore Timestamp specifically by checking for toDate method
+  // Handle Firestore Timestamp objects
   if (typeof obj.toDate === 'function') {
     return obj.toDate().toISOString();
   }
@@ -31,7 +36,6 @@ export function makePlain(obj: any): any {
   if (typeof obj === 'object' && obj.constructor === Object) {
     const newObj: { [key: string]: any } = {};
     for (const key in obj) {
-      // Use hasOwnProperty to ensure we don't copy properties from the prototype chain
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         newObj[key] = makePlain(obj[key]);
       }
@@ -39,6 +43,6 @@ export function makePlain(obj: any): any {
     return newObj;
   }
 
-  // Return primitive values (string, number, boolean) and other types as is
+  // Return primitive values and other types as is
   return obj;
 }
