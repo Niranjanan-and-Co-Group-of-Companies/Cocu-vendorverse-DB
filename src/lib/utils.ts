@@ -17,14 +17,12 @@ export function makePlain(obj: any): any {
     return obj;
   }
   
-  // Handle Date objects
-  if (obj instanceof Date) {
-    return obj.toISOString();
-  }
-
-  // Handle Firestore Timestamp objects
+  // Handle Firestore Timestamp objects (and JS Date objects)
   if (typeof obj.toDate === 'function') {
     return obj.toDate().toISOString();
+  }
+  if (obj instanceof Date) {
+    return obj.toISOString();
   }
 
   // Handle Arrays by mapping over them and calling makePlain recursively
