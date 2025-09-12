@@ -119,4 +119,6 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'dat
 
     // 3. Commit the batch
     await batch.commit();
+
+    return { success: true, orderId: orderRef.id };
 }

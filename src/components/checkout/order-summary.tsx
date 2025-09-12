@@ -30,6 +30,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useRouter } from 'next/navigation';
+import { createOrder } from '@/lib/orders-service';
+import { getMockUser } from '@/lib/user-service';
+import type { User } from '@/lib/user-service';
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat('en-IN', {
@@ -39,8 +43,9 @@ function formatCurrency(amount: number) {
 }
 
 export function OrderSummary() {
-  const { items, removeItem, updateQuantity } = useCart();
+  const { items, removeItem, updateQuantity, clearCart } = useCart();
   const { toast } = useToast();
+  const router = useRouter();
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
   const [couponInput, setCouponInput] = React.useState('');
@@ -50,6 +55,7 @@ export function OrderSummary() {
   const [liveProductData, setLiveProductData] = React.useState<Map<string, Product>>(new Map());
   const [isCheckoutBlocked, setIsCheckoutBlocked] = React.useState(false);
   const [outOfStockItem, setOutOfStockItem] = React.useState<CartItem | null>(null);
+  const [isPlacingOrder, setIsPlacingOrder] = React.useState(false);
 
   // Real-time listener for product stock and price updates
   React.useEffect(() => {
@@ -59,7 +65,6 @@ export function OrderSummary() {
         const productMap = new Map(updatedProducts.map(p => [p.id, p]));
         setLiveProductData(productMap);
         
-        // Check for stock issues
         let blockCheckout = false;
         for (const item of items) {
           const liveProduct = productMap.get(item.id);
@@ -88,7 +93,6 @@ export function OrderSummary() {
     })
   }
 
-  // --- OMITTED FOR BREVITY: Existing functions like subtotal calculation, promotions, etc. ---
   const subtotal = React.useMemo(() => {
     return items.reduce((total, item) => {
       const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
@@ -100,7 +104,53 @@ export function OrderSummary() {
    const convenienceFee = (subtotal - discountAmount) * 0.03;
    const total = subtotal - discountAmount + convenienceFee + shippingFee;
   
-  const canPlaceOrder = isConfirmed && agreedToTerms && !isCheckoutBlocked;
+  const handlePlaceOrder = async () => {
+    setIsPlacingOrder(true);
+    try {
+        const user: User | null = await getMockUser();
+        if (!user) {
+            toast({ title: "Please log in to place an order.", variant: "destructive" });
+            return;
+        }
+
+        const orderData = {
+            customer: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                shippingAddress: "123 Maple St, Springfield, IL", // Mock Address
+                pincode: '62704', // Mock Pincode
+            },
+            items: items,
+            subtotal,
+            shipping: shippingFee,
+            total,
+            payment: {
+                method: "Simulated Payment",
+                status: "Paid" as const,
+                transactionId: `sim_${Date.now()}`
+            },
+        };
+
+        const result = await createOrder(orderData);
+
+        if (result.success) {
+            toast({ title: "Order Placed!", description: "Your order has been successfully placed." });
+            clearCart();
+            router.push('/checkout/success');
+        } else {
+            throw new Error("Order creation failed");
+        }
+
+    } catch (error) {
+        console.error("Failed to place order:", error);
+        toast({ title: "Error", description: "Could not place your order. Please try again.", variant: "destructive" });
+    } finally {
+        setIsPlacingOrder(false);
+    }
+  };
+
+  const canPlaceOrder = isConfirmed && agreedToTerms && !isCheckoutBlocked && !isPlacingOrder;
 
   return (
     <>
@@ -203,8 +253,9 @@ export function OrderSummary() {
          <p className="text-xs text-muted-foreground">
             Once an order is confirmed, it cannot be cancelled. For more details, please refer to our <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">Terms & Conditions</Link>.
          </p>
-        <Button className="w-full" size="lg" disabled={!canPlaceOrder}>
-          Place Order & Pay
+        <Button className="w-full" size="lg" disabled={!canPlaceOrder} onClick={handlePlaceOrder}>
+          {isPlacingOrder ? <Loader2 className="mr-2 animate-spin" /> : null}
+          {isPlacingOrder ? 'Placing Order...' : 'Place Order & Pay'}
         </Button>
       </CardFooter>
     </Card>
