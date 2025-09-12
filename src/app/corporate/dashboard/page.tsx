@@ -128,8 +128,11 @@ export default function CorporateDashboardPage() {
     
     const fetchFeatured = async (categoriesForPricing: Category[]) => {
       const featuredData = await getFeaturedCorporateProducts();
+      // Filter out products where stock is less than MOQ
+      const inStockFeaturedData = featuredData.filter(p => p.stock >= (p.moq || 1));
+
       const pricedProducts = await Promise.all(
-        featuredData.map(async (p) => {
+        inStockFeaturedData.map(async (p) => {
           const category = categoriesForPricing.find(c => c.name === p.category);
           const productInfo = {
               id: p.id,

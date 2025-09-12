@@ -27,9 +27,10 @@ function CorporateSearchPageContent() {
     const unsubscribe = onAllProductsUpdate('Corporate', (products) => {
         const lowerCaseQuery = query.toLowerCase();
         const results = products.filter(p => 
-             p.name.toLowerCase().includes(lowerCaseQuery) ||
+             (p.name.toLowerCase().includes(lowerCaseQuery) ||
              p.vendor.toLowerCase().includes(lowerCaseQuery) ||
-             p.description?.toLowerCase().includes(lowerCaseQuery)
+             p.description?.toLowerCase().includes(lowerCaseQuery))
+             && p.stock >= (p.moq || 1) // Filter out-of-stock items
         );
         setAllProducts(results);
         setLoading(false);

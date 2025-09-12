@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { create } from 'zustand';
@@ -21,6 +20,14 @@ export const useBidRequest = create(
       items: [],
       addItem: (product) => {
         const currentItems = get().items;
+
+        if (product.stock < (product.moq || 1)) {
+            return {
+                success: false,
+                message: "This product is out of stock and cannot be added to a bid.",
+                variant: 'destructive',
+            };
+        }
 
         if (currentItems.length >= MAX_ITEMS) {
           return {

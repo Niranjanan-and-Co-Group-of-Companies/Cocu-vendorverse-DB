@@ -27,20 +27,23 @@ function CorporateProductsPageContent() {
     setLoading(true);
     let unsubscribe: () => void;
 
+    const filterAndSetProducts = (products: ProductWithPrice[]) => {
+      const inStockProducts = products.filter(p => p.stock >= (p.moq || 1));
+      setAllProducts(inStockProducts);
+      setLoading(false);
+    };
+
     if (categorySlug) {
         getCategoryBySlug(categorySlug).then(cat => {
             setTitle(cat?.name || 'Corporate Products');
         });
         unsubscribe = onProductsByCategoryUpdate(categorySlug, 'Corporate', (products) => {
-            setAllProducts(products.filter(p => p.moq && p.moq > 0));
-            setLoading(false);
+            const corporateProducts = products.filter(p => p.moq && p.moq > 0);
+            filterAndSetProducts(corporateProducts);
         });
     } else {
         setTitle('Corporate Product Catalog');
-        unsubscribe = onAllProductsUpdate('Corporate', (products) => {
-            setAllProducts(products);
-            setLoading(false);
-        });
+        unsubscribe = onAllProductsUpdate('Corporate', filterAndSetProducts);
     }
     
     return () => unsubscribe();

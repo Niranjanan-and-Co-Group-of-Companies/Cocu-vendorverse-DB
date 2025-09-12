@@ -34,8 +34,12 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   
   const isAddedToBid = bidItems.some((item) => item.id === product.id);
   const isInCompare = compareItems.some((item) => item.id === product.id);
+  
+  const isOutOfStock = product.stock < (product.moq || 1);
+
 
   const handleAddToCart = async () => {
+    if (isOutOfStock) return;
     const result = await addToCart(product);
     toast({
       title: result.success ? 'Success' : 'Could Not Add to Cart',
@@ -45,9 +49,10 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   };
 
   const handleBuyNow = async () => {
+    if (isOutOfStock) return;
     const result = await addToCart(product);
     if (result.success) {
-      router.push('/corporate/cart');
+      router.push('/corporate/checkout');
     } else {
         toast({
             title: 'Could Not Add to Cart',
@@ -58,6 +63,7 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   };
 
   const handleAddToBid = () => {
+    if (isOutOfStock) return;
     const result = addToBid(product);
     if(result.message) {
         toast({
@@ -92,14 +98,14 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   };
   
   const primaryAction = product.customizable ? (
-    <Button asChild size="lg" className="w-full">
+    <Button asChild size="lg" className="w-full" disabled={isOutOfStock}>
       <Link href={`/corporate/customize/${product.id}`}>
         <Brush className="mr-2" />
         Customize & Quote
       </Link>
     </Button>
   ) : (
-    <Button asChild size="lg" className="w-full">
+    <Button asChild size="lg" className="w-full" disabled={isOutOfStock}>
       <Link href={`/corporate/quote/${product.id}`}>
         <FileText className="mr-2" />
         Request a Quote
@@ -108,9 +114,9 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   );
 
   const renderActions = () => {
-    if (product.stock === 0) {
+    if (isOutOfStock) {
       return (
-        <Button size="lg" className="w-full">
+        <Button size="lg" className="w-full" disabled>
             <Bell className="mr-2" />
             Notify Me When Available
         </Button>
@@ -148,7 +154,7 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
     <div className="space-y-4">
       <div className="space-y-3">{renderActions()}</div>
       
-      {product.stock > 0 && (
+      {!isOutOfStock && (
         <div className="rounded-lg border p-4 space-y-3">
             <h4 className="font-semibold">Check Delivery</h4>
             <div className="flex gap-2">
