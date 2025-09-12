@@ -18,7 +18,7 @@ export interface CartItem extends Product {
 interface CartState {
   items: CartItem[];
   addItem: (product: Product, quantity?: number, selectedVariant?: ProductVariant | null) => Promise<{ success: boolean; message: string }>;
-  removeItem: (cartItemId: string) => void;
+  removeItem: (cartItemId: string) => { success: boolean; message: string };
   updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
 }
@@ -51,9 +51,14 @@ export const useCart = create(
         }
       },
       removeItem: (cartItemId) => {
-        set(state => ({
-          items: state.items.filter(item => item.cartItemId !== cartItemId),
-        }));
+        const itemToRemove = get().items.find(item => item.cartItemId === cartItemId);
+        if (itemToRemove) {
+            set(state => ({
+                items: state.items.filter(item => item.cartItemId !== cartItemId),
+            }));
+            return { success: true, message: `"${itemToRemove.name}" removed from cart.` };
+        }
+        return { success: false, message: 'Item not found.' };
       },
       updateQuantity: (cartItemId, quantity) => {
         set(state => {

@@ -180,7 +180,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
 
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = React.use(params);
+  const { slug } = params;
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />

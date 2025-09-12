@@ -29,11 +29,11 @@ export function CartPreview() {
   const [isLoggedIn] = React.useState(true); 
   const [isLoginOpen, setIsLoginOpen] = React.useState(false);
 
-  const handleRemove = (e: React.MouseEvent, cartItemId: string, productName: string) => {
+  const handleRemove = (e: React.MouseEvent, cartItemId: string) => {
     e.preventDefault(); // Prevent dropdown from closing
-    removeItem(cartItemId);
+    const result = removeItem(cartItemId);
     toast({
-        title: `"${productName}" removed from cart.`,
+        title: result.message,
         variant: 'destructive',
     });
   }
@@ -113,7 +113,7 @@ export function CartPreview() {
                                             <Button variant="outline" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(e, item.cartItemId, item.quantity + 1)} disabled={item.quantity >= maxQty}><Plus className="h-3 w-3"/></Button>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive self-start" onClick={(e) => handleRemove(e, item.cartItemId, item.name)}>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive self-start" onClick={(e) => handleRemove(e, item.cartItemId)}>
                                         <X className="h-4 w-4" />
                                     </Button>
                                 </Link>
