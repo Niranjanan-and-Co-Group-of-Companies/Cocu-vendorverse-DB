@@ -34,8 +34,8 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
   const isInCompare = compareItems.some((item) => item.id === product.id);
   const isInCart = cartItems.some((item) => item.id === product.id);
 
-  const handleAddToCart = () => {
-    const result = addCartItem(product);
+  const handleAddToCart = async () => {
+    const result = await addCartItem(product);
     toast({
       title: result.success ? 'Success' : 'Could Not Add to Cart',
       description: result.message,
@@ -43,15 +43,16 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
     });
   };
 
-  const handleBuyNow = () => {
-    const result = addCartItem(product);
-    toast({
-        title: result.success ? 'Success' : 'Could Not Add to Cart',
-        description: result.message,
-        variant: result.success ? 'default' : 'destructive',
-    });
+  const handleBuyNow = async () => {
+    const result = await addCartItem(product);
     if (result.success) {
       router.push('/corporate/cart');
+    } else {
+        toast({
+            title: 'Could Not Add to Cart',
+            description: result.message,
+            variant: 'destructive',
+        });
     }
   };
 
