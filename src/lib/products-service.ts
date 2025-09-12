@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, getDocs, writeBatch, doc, getDoc, query, where, limit, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -10,7 +11,6 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getCategoryByName } from './categories-service';
 import { calculateDisplayPrice } from './pricing-service';
 import type { CommissionRule } from './commissions-service';
-import { makePlain } from './utils';
 
 const productsCollection = collection(db, 'products');
 
@@ -20,7 +20,21 @@ export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
 };
 
 export async function serializeProduct(product: Product): Promise<PlainProduct> {
-  return makePlain(product);
+  const plainProduct = { ...product } as Partial<PlainProduct>;
+
+  if (product.createdAt?.toDate) {
+    plainProduct.createdAt = product.createdAt.toDate().toISOString();
+  } else {
+    plainProduct.createdAt = null;
+  }
+  
+  if (product.updatedAt?.toDate) {
+    plainProduct.updatedAt = product.updatedAt.toDate().toISOString();
+  } else {
+    plainProduct.updatedAt = null;
+  }
+  
+  return plainProduct as PlainProduct;
 }
 
 
