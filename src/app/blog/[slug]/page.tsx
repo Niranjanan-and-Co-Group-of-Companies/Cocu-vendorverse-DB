@@ -22,7 +22,8 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
-    return timestamp.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   return (
