@@ -53,7 +53,7 @@ export const useComparison = create(
             tieredPricing: product.tieredPricing,
         };
         const displayPrice = await calculateDisplayPrice(productInfo, 'Corporate', category || undefined);
-        const plainProduct = makePlain(product) as PlainProduct;
+        const plainProduct = product as unknown as PlainProduct;
         set({ items: [...currentItems, { ...plainProduct, displayPrice }] });
 
         return {
@@ -81,4 +81,3 @@ export const useComparison = create(
     }
   )
 );
-

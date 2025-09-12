@@ -48,7 +48,7 @@ export const useWishlist = create(
                 tieredPricing: product.tieredPricing
             };
           const displayPrice = await calculateDisplayPrice(productInfo, 'Personalized', category || undefined);
-          const plainProduct = makePlain(product) as PlainProduct;
+          const plainProduct = product as unknown as PlainProduct;
           set({ items: [...currentItems, { ...plainProduct, displayPrice }] });
           return { success: true, message: `"${product.name}" added to your wishlist.` };
         }

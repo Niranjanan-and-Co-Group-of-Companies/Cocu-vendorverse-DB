@@ -58,7 +58,7 @@ export const useCorporateCart = create(
         const existingItem = currentItems.find(item => item.id === product.id);
         const newQuantity = Math.max(product.moq || 1, quantity);
         
-        const plainProduct = makePlain(product) as PlainProduct;
+        const plainProduct = product as unknown as PlainProduct;
 
         if (existingItem) {
           const updatedQuantity = existingItem.quantity + newQuantity;
