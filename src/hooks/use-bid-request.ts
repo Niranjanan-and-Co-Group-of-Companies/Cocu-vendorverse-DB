@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { create } from 'zustand';
@@ -10,7 +11,7 @@ const MAX_ITEMS = 4;
 interface BidRequestState {
   items: Product[];
   addItem: (product: Product) => { success: boolean, message?: string, variant?: 'destructive' };
-  removeItem: (productId: number) => void;
+  removeItem: (productId: string) => void;
   clearBid: () => void;
 }
 

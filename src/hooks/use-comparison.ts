@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { create } from 'zustand';
@@ -6,8 +7,9 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
+import { serializeProduct, type PlainProduct } from '@/lib/products-service';
 
-export interface ComparisonItem extends Product {
+export interface ComparisonItem extends PlainProduct {
     displayPrice?: DisplayPrice;
 }
 
@@ -16,7 +18,7 @@ const MAX_COMPARE_ITEMS = 4;
 interface ComparisonState {
   items: ComparisonItem[];
   addItem: (product: Product) => Promise<{ success: boolean, message?: string, variant?: 'destructive' }>;
-  removeItem: (productId: number) => { success: boolean, message?: string, variant?: 'destructive' };
+  removeItem: (productId: string) => { success: boolean, message?: string, variant?: 'destructive' };
   clearAll: () => void;
 }
 
@@ -50,7 +52,8 @@ export const useComparison = create(
             tieredPricing: product.tieredPricing,
         };
         const displayPrice = await calculateDisplayPrice(productInfo, 'Corporate', category || undefined);
-        set({ items: [...currentItems, { ...product, displayPrice }] });
+        const plainProduct = await serializeProduct(product);
+        set({ items: [...currentItems, { ...plainProduct, displayPrice }] });
 
         return {
             success: true,

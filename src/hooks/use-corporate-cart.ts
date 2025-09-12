@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { create } from 'zustand';
@@ -6,9 +7,10 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
+import { serializeProduct, type PlainProduct } from '@/lib/products-service';
 
 
-export interface CartItem extends Product {
+export interface CartItem extends PlainProduct {
   quantity: number;
   displayPrice?: DisplayPrice;
 }
@@ -56,13 +58,15 @@ export const useCorporateCart = create(
         const existingItem = currentItems.find(item => item.id === product.id);
         const newQuantity = Math.max(product.moq || 1, quantity);
 
+        const plainProduct = await serializeProduct(product);
+
         if (existingItem) {
           const updatedQuantity = existingItem.quantity + newQuantity;
           await get().updateQuantity(product.id, updatedQuantity);
           return { success: true, message: `Added ${newQuantity} more of "${product.name}" to your cart.` };
         } else {
           const displayPrice = await updateItemPrice(product, newQuantity);
-          set({ items: [...currentItems, { ...product, quantity: newQuantity, displayPrice }] });
+          set({ items: [...currentItems, { ...plainProduct, quantity: newQuantity, displayPrice }] });
           return { success: true, message: `"${product.name}" (x${newQuantity}) added to cart.` };
         }
       },

@@ -7,8 +7,10 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, ProductVariant } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
+import { serializeProduct, type PlainProduct } from '@/lib/products-service';
 
-export interface CartItem extends Product {
+
+export interface CartItem extends PlainProduct {
   cartItemId: string; // Unique ID for this specific item in the cart (product.id + variant.id)
   quantity: number;
   displayPrice?: DisplayPrice;
@@ -37,6 +39,8 @@ export const useCart = create(
         
         const existingItem = currentItems.find(item => item.cartItemId === cartItemId);
 
+        const plainProduct = await serializeProduct(product);
+
         if (existingItem) {
           const newQuantity = existingItem.quantity + quantity;
           set({
@@ -46,7 +50,7 @@ export const useCart = create(
           });
           return { success: true, message: `Added ${quantity} more of "${product.name}" to your cart.` };
         } else {
-          set({ items: [...currentItems, { ...product, cartItemId, quantity: quantity, displayPrice, selectedVariant }] });
+          set({ items: [...currentItems, { ...plainProduct, cartItemId, quantity: quantity, displayPrice, selectedVariant }] });
           return { success: true, message: `"${product.name}" (x${quantity}) added to cart.` };
         }
       },

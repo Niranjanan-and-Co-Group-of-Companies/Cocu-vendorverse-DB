@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { create } from 'zustand';
@@ -6,8 +7,9 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
+import { serializeProduct, type PlainProduct } from '@/lib/products-service';
 
-export interface WishlistItem extends Product {
+export interface WishlistItem extends PlainProduct {
     displayPrice?: DisplayPrice;
 }
 
@@ -45,11 +47,12 @@ export const useWishlist = create(
                 tieredPricing: product.tieredPricing
             };
           const displayPrice = await calculateDisplayPrice(productInfo, 'Personalized', category || undefined);
-          set({ items: [...currentItems, { ...product, displayPrice }] });
+          const plainProduct = await serializeProduct(product);
+          set({ items: [...currentItems, { ...plainProduct, displayPrice }] });
           return { success: true, message: `"${product.name}" added to your wishlist.` };
         }
       },
-      removeItem: (productId) => {
+      removeItem: (productId: string) => {
         const itemToRemove = get().items.find(p => p.id === productId);
         if (itemToRemove) {
           set((state) => ({ items: state.items.filter((item) => item.id !== productId) }));
