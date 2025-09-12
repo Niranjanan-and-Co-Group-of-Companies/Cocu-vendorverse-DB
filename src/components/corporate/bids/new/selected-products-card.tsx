@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, PackageSearch } from 'lucide-react';
+import { X, PackageSearch, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useBidRequest } from '@/hooks/use-bid-request';
 import Link from 'next/link';
@@ -14,6 +15,8 @@ import type { Product } from '@/lib/products';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getCategoryByName } from '@/lib/categories-service';
+import { onProductsUpdate } from '@/lib/products-client-service';
+import { cn } from '@/lib/utils';
 
 interface ProductWithPrice extends Product {
     displayPrice?: DisplayPrice;
@@ -22,9 +25,23 @@ interface ProductWithPrice extends Product {
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
 export function SelectedProductsCard() {
-    const { items, removeItem } = useBidRequest();
+    const { items, removeItem, setStockStatus } = useBidRequest();
     const [productsWithPrices, setProductsWithPrices] = React.useState<ProductWithPrice[]>([]);
     const [loadingPrices, setLoadingPrices] = React.useState(true);
+
+    // Real-time listener for stock updates
+    React.useEffect(() => {
+        const productIds = items.map(item => item.id);
+        if (productIds.length > 0) {
+            const unsubscribe = onProductsUpdate(productIds, (updatedProducts) => {
+                updatedProducts.forEach(p => {
+                    const isOutOfStock = p.stock < (p.moq || 1);
+                    setStockStatus(p.id, isOutOfStock);
+                });
+            });
+            return () => unsubscribe();
+        }
+    }, [items, setStockStatus]);
 
     React.useEffect(() => {
         const fetchPrices = async () => {
@@ -70,8 +87,10 @@ export function SelectedProductsCard() {
                 <ScrollArea className="h-48 pr-4">
                     {items.length > 0 ? (
                         <div className="space-y-3">
-                            {productsWithPrices.map(product => (
-                                <div key={product.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                            {productsWithPrices.map(product => {
+                                const isOutOfStock = product.isOutOfStock;
+                                return (
+                                <div key={product.id} className={cn("flex items-center justify-between p-2 rounded-md bg-muted/50", isOutOfStock && "opacity-60")}>
                                     <div className="flex items-center gap-3 overflow-hidden">
                                         <Image src={product.image} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
                                         <div>
@@ -90,13 +109,18 @@ export function SelectedProductsCard() {
                                                     <span className="text-sm font-semibold">{product.price}</span>
                                                 )}
                                             </div>
+                                             {isOutOfStock && (
+                                                <Badge variant="destructive" className="mt-1 text-xs">
+                                                    <AlertCircle className="mr-1 h-3 w-3" /> Out of Stock
+                                                </Badge>
+                                            )}
                                         </div>
                                     </div>
                                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeItem(product.id)}>
                                         <X className="h-4 w-4"/>
                                     </Button>
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">

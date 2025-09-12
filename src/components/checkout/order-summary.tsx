@@ -19,7 +19,8 @@ import type { PlainPromotion } from '@/lib/promotions-service';
 import Link from 'next/link';
 import { Badge } from '../ui/badge';
 import { calculateCustomerShippingCost } from '@/lib/shipping-service';
-import { onProductsUpdate, type Product } from '@/lib/products-client-service';
+import { onProductsUpdate } from '@/lib/products-client-service';
+import type { Product } from '@/lib/products';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -144,12 +145,12 @@ export function OrderSummary() {
             clearCart();
             router.push('/checkout/success');
         } else {
-            throw new Error("Order creation failed");
+            throw new Error(result.message || "Order creation failed");
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to place order:", error);
-        toast({ title: "Error", description: "Could not place your order. Please try again.", variant: "destructive" });
+        toast({ title: "Error", description: error.message || "Could not place your order. Please try again.", variant: "destructive" });
     } finally {
         setIsPlacingOrder(false);
     }
@@ -280,7 +281,7 @@ export function OrderSummary() {
             </AlertDialogHeader>
             <AlertDialogFooter>
                 <AlertDialogAction onClick={() => {
-                    if(outOfStockItem) removeItem(outOfStockItem.cartItemId, outOfStockItem.name);
+                    if(outOfStockItem) handleRemove(outOfStockItem.cartItemId, outOfStockItem.name);
                     setOutOfStockItem(null);
                 }}>
                     Remove Item & Continue

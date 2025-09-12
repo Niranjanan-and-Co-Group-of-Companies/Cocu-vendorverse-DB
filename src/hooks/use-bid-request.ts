@@ -7,10 +7,13 @@ import type { Product } from '@/lib/products';
 
 const MAX_ITEMS = 4;
 
+type BidItem = Product & { isOutOfStock?: boolean };
+
 interface BidRequestState {
-  items: Product[];
+  items: BidItem[];
   addItem: (product: Product) => { success: boolean, message?: string, variant?: 'destructive' };
   removeItem: (productId: string) => void;
+  setStockStatus: (productId: string, isOutOfStock: boolean) => void;
   clearBid: () => void;
 }
 
@@ -44,8 +47,15 @@ export const useBidRequest = create(
             variant: 'destructive',
           };
         }
+        
+        if (currentItems.some(item => item.id === product.id)) {
+            return {
+                success: false,
+                message: "This product is already in your bid request.",
+            };
+        }
 
-        set({ items: [...currentItems, product] });
+        set({ items: [...currentItems, { ...product, isOutOfStock: false }] });
         return {
             success: true,
             message: `"${product.name}" has been added to your bid request.`
@@ -53,6 +63,13 @@ export const useBidRequest = create(
       },
       removeItem: (productId) => {
         set((state) => ({ items: state.items.filter((item) => item.id !== productId) }));
+      },
+      setStockStatus: (productId, isOutOfStock) => {
+        set(state => ({
+            items: state.items.map(item => 
+                item.id === productId ? { ...item, isOutOfStock } : item
+            )
+        }));
       },
       clearBid: () => set({ items: [] }),
     }),

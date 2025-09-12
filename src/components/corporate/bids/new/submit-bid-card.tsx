@@ -1,22 +1,25 @@
 
+
 'use client';
 
 import * as React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { Send, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ShieldCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useBidRequest } from '@/hooks/use-bid-request';
 
 interface SubmitBidCardProps {
     isSubmitting: boolean;
-    itemCount: number;
     onSubmit: () => void;
 }
 
-export function SubmitBidCard({ isSubmitting, itemCount, onSubmit }: SubmitBidCardProps) {
-    const isDisabled = isSubmitting || itemCount < 2;
+export function SubmitBidCard({ isSubmitting, onSubmit }: SubmitBidCardProps) {
+    const { items } = useBidRequest();
+    const hasOutOfStockItems = items.some(item => item.isOutOfStock);
+    const isDisabled = isSubmitting || items.length < 2 || hasOutOfStockItems;
 
     const SubmitButton = (
         <Button className="w-full" size="lg" disabled={isDisabled} onClick={onSubmit}>
@@ -36,14 +39,18 @@ export function SubmitBidCard({ isSubmitting, itemCount, onSubmit }: SubmitBidCa
                     </AlertDescription>
                 </Alert>
                 
-                {isDisabled && itemCount < 2 ? (
+                {isDisabled && (items.length < 2 || hasOutOfStockItems) ? (
                      <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div className="w-full">{SubmitButton}</div>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>You must add at least 2 products to create a bid request.</p>
+                                <p>
+                                    {hasOutOfStockItems 
+                                        ? "Remove out-of-stock items to proceed." 
+                                        : "You must add at least 2 products to create a bid request."}
+                                </p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
