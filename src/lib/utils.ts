@@ -31,11 +31,12 @@ export function makePlain(obj: any): any {
     return obj.map(item => makePlain(item));
   }
   
-  // Handle plain Objects by iterating over their properties recursively
+  // Handle Objects by iterating over their properties recursively
+  // This check ensures we are only processing plain objects, not other complex classes.
   if (typeof obj === 'object' && obj.constructor === Object) {
     const newObj: { [key: string]: any } = {};
     for (const key in obj) {
-      // Ensure we only process own properties, not inherited ones
+      // It's good practice to check for own properties.
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         newObj[key] = makePlain(obj[key]);
       }
