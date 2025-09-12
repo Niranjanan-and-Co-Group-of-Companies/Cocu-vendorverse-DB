@@ -7,8 +7,8 @@ import Footer from '@/components/layout/footer';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { CorporateSidebar } from '@/components/layout/corporate-sidebar';
 import { GstVerificationDialog } from '@/components/corporate/gst-verification-dialog';
-import { ChatSafetyDialog } from '@/components/corporate/messages/chat-safety-dialog';
 import { CorporateAccountProvider } from '@/hooks/use-corporate-account-store';
+import { ChatSafetyDialog } from '@/components/corporate/messages/chat-safety-dialog';
 
 export default function CorporateLayout({
   children,
