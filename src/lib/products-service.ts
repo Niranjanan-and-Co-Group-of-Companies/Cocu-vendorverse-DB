@@ -14,9 +14,10 @@ import type { CommissionRule } from './commissions-service';
 
 const productsCollection = collection(db, 'products');
 
-export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
+export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt' | 'preparationTime'> & {
   createdAt: string | null;
   updatedAt: string | null;
+  preparationTime: { min: number, max: number };
 };
 
 export async function serializeProduct(product: Product): Promise<PlainProduct> {
@@ -24,6 +25,7 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
     ...product,
     createdAt: product.createdAt?.toDate?.().toISOString() || null,
     updatedAt: product.updatedAt?.toDate?.().toISOString() || null,
+    preparationTime: product.preparationTime || { min: 3, max: 4}, // Ensure it's not a Timestamp
   };
 }
 

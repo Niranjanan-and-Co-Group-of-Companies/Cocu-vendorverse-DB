@@ -7,8 +7,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, ProductVariant } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
-import { serializeProduct, type PlainProduct } from '@/lib/products-service';
-
+import { makePlain } from '@/lib/utils';
+import type { PlainProduct } from '@/lib/products-service';
 
 export interface CartItem extends PlainProduct {
   cartItemId: string; // Unique ID for this specific item in the cart (product.id + variant.id)
@@ -39,7 +39,7 @@ export const useCart = create(
         
         const existingItem = currentItems.find(item => item.cartItemId === cartItemId);
 
-        const plainProduct = await serializeProduct(product);
+        const plainProduct = makePlain(product) as PlainProduct;
 
         if (existingItem) {
           const newQuantity = existingItem.quantity + quantity;

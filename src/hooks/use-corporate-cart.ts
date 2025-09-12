@@ -7,8 +7,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
-import { serializeProduct, type PlainProduct } from '@/lib/products-service';
-
+import { makePlain } from '@/lib/utils';
+import type { PlainProduct } from '@/lib/products-service';
 
 export interface CartItem extends PlainProduct {
   quantity: number;
@@ -57,8 +57,8 @@ export const useCorporateCart = create(
         const currentItems = get().items;
         const existingItem = currentItems.find(item => item.id === product.id);
         const newQuantity = Math.max(product.moq || 1, quantity);
-
-        const plainProduct = await serializeProduct(product);
+        
+        const plainProduct = makePlain(product) as PlainProduct;
 
         if (existingItem) {
           const updatedQuantity = existingItem.quantity + newQuantity;

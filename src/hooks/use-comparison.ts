@@ -7,7 +7,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
-import { serializeProduct, type PlainProduct } from '@/lib/products-service';
+import { makePlain } from '@/lib/utils';
+import type { PlainProduct } from '@/lib/products-service';
 
 export interface ComparisonItem extends PlainProduct {
     displayPrice?: DisplayPrice;
@@ -52,7 +53,7 @@ export const useComparison = create(
             tieredPricing: product.tieredPricing,
         };
         const displayPrice = await calculateDisplayPrice(productInfo, 'Corporate', category || undefined);
-        const plainProduct = await serializeProduct(product);
+        const plainProduct = makePlain(product) as PlainProduct;
         set({ items: [...currentItems, { ...plainProduct, displayPrice }] });
 
         return {
@@ -60,7 +61,7 @@ export const useComparison = create(
             message: `"${product.name}" has been added to your comparison list.`
         };
       },
-      removeItem: (productId) => {
+      removeItem: (productId: string) => {
         const itemToRemove = get().items.find(item => item.id === productId);
         if (itemToRemove) {
             set((state) => ({ items: state.items.filter((item) => item.id !== productId) }));
