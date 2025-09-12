@@ -40,7 +40,9 @@ export function CartPreview() {
 
   const handleQuantityChange = (e: React.MouseEvent, cartItemId: string, newQuantity: number) => {
     e.preventDefault();
-    updateQuantity(cartItemId, newQuantity);
+    if (newQuantity >= 1) {
+        updateQuantity(cartItemId, newQuantity);
+    }
   };
 
   const subtotal = items.reduce((acc, item) => {
@@ -99,16 +101,16 @@ export function CartPreview() {
                                     <div className="flex-1 overflow-hidden">
                                         <p className="font-medium truncate">{item.name}</p>
                                         {item.selectedVariant && <p className="text-xs text-muted-foreground">{item.selectedVariant.colorName}</p>}
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(e, item.cartItemId, item.quantity - 1)} disabled={item.quantity <= 1}><Minus className="h-3 w-3"/></Button>
-                                            <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(e, item.cartItemId, item.quantity + 1)} disabled={item.quantity >= maxQty}><Plus className="h-3 w-3"/></Button>
-                                        </div>
                                         <div className="flex items-baseline gap-2 mt-1">
                                             <p className="text-sm font-semibold">{formatCurrency(price * item.quantity)}</p>
                                             {item.displayPrice?.hasDiscount && (
                                                  <p className="text-xs text-muted-foreground line-through">{formatCurrency(item.displayPrice.originalPrice * item.quantity)}</p>
                                             )}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(e, item.cartItemId, item.quantity - 1)} disabled={item.quantity <= 1}><Minus className="h-3 w-3"/></Button>
+                                            <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
+                                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(e, item.cartItemId, item.quantity + 1)} disabled={item.quantity >= maxQty}><Plus className="h-3 w-3"/></Button>
                                         </div>
                                     </div>
                                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive self-start" onClick={(e) => handleRemove(e, item.cartItemId, item.name)}>
