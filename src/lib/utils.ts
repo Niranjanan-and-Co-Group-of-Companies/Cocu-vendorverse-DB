@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -16,17 +17,17 @@ export function makePlain<T>(obj: T): T {
     return obj;
   }
 
-  // Handle Firestore Timestamp
+  // Handle Firestore Timestamp by checking for toDate method
   if (typeof (obj as any).toDate === 'function') {
     return (obj as any).toDate().toISOString() as any;
   }
 
-  // Handle Arrays
+  // Handle Arrays by mapping over them
   if (Array.isArray(obj)) {
     return obj.map(item => makePlain(item)) as any;
   }
   
-  // Handle Objects
+  // Handle Objects recursively
   if (typeof obj === 'object') {
     const newObj: { [key: string]: any } = {};
     for (const key in obj) {
@@ -40,3 +41,5 @@ export function makePlain<T>(obj: T): T {
   // Return primitive values as is
   return obj;
 }
+
+    

@@ -115,7 +115,7 @@ export function OrderSummary() {
             return;
         }
         
-        const plainItems = makePlain(items);
+        const plainItems = items.map(item => makePlain(item));
 
         const orderData = {
             customer: {
@@ -290,3 +290,5 @@ export function OrderSummary() {
     </>
   );
 }
+
+    
