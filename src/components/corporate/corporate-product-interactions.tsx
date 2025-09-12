@@ -35,8 +35,8 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   const isAddedToBid = bidItems.some((item) => item.id === product.id);
   const isInCompare = compareItems.some((item) => item.id === product.id);
 
-  const handleAddToCart = () => {
-    const result = addToCart(product);
+  const handleAddToCart = async () => {
+    const result = await addToCart(product);
     toast({
       title: result.success ? 'Success' : 'Could Not Add to Cart',
       description: result.message,
@@ -44,8 +44,8 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
     });
   };
 
-  const handleBuyNow = () => {
-    const result = addToCart(product);
+  const handleBuyNow = async () => {
+    const result = await addToCart(product);
     if (result.success) {
       router.push('/corporate/cart');
     } else {
@@ -68,8 +68,8 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
     }
   };
 
-  const handleToggleCompare = () => {
-    const result = isInCompare ? removeFromCompare(product.id) : addToCompare(product);
+  const handleToggleCompare = async () => {
+    const result = isInCompare ? removeFromCompare(product.id) : await addToCompare(product);
     if (result.message) {
       toast({
         title: result.success ? (isInCompare ? 'Removed from Compare' : 'Added to Compare') : 'Could Not Update Compare',
