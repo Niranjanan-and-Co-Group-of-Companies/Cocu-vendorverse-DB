@@ -17,7 +17,7 @@ export interface CartItem extends PlainProduct {
 
 interface CartState {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number) => Promise<{ success: boolean; message: string }>;
+  addItem: (product: Product, quantity?: number) => Promise<{ success: boolean; message: string; variant?: 'destructive' }>;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   clearCart: () => void;
@@ -58,10 +58,17 @@ export const useCorporateCart = create(
         const existingItem = currentItems.find(item => item.id === product.id);
         const newQuantity = Math.max(product.moq || 1, quantity);
         
+        if (product.stock < newQuantity) {
+            return { success: false, message: "Not enough stock available for the requested quantity.", variant: 'destructive'};
+        }
+
         const plainProduct = product as unknown as PlainProduct;
 
         if (existingItem) {
           const updatedQuantity = existingItem.quantity + newQuantity;
+          if (product.stock < updatedQuantity) {
+             return { success: false, message: "Adding this quantity would exceed available stock.", variant: 'destructive'};
+          }
           await get().updateQuantity(product.id, updatedQuantity);
           return { success: true, message: `Added ${newQuantity} more of "${product.name}" to your cart.` };
         } else {
@@ -98,5 +105,3 @@ export const useCorporateCart = create(
     }
   )
 );
-
-    

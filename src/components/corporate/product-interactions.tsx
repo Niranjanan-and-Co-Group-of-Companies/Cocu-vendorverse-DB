@@ -34,6 +34,9 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   
   const isAddedToBid = bidItems.some((item) => item.id === product.id);
   const isInCompare = compareItems.some((item) => item.id === product.id);
+  
+  const isOutOfStock = product.stock < (product.moq || 1);
+
 
   const handleAddToCart = async () => {
     const result = await addToCart(product);
@@ -92,14 +95,14 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   };
   
   const primaryAction = product.customizable ? (
-    <Button asChild size="lg" className="w-full">
+    <Button asChild size="lg" className="w-full" disabled={isOutOfStock}>
       <Link href={`/corporate/customize/${product.id}`}>
         <Brush className="mr-2" />
         Customize & Quote
       </Link>
     </Button>
   ) : (
-    <Button asChild size="lg" className="w-full">
+    <Button asChild size="lg" className="w-full" disabled={isOutOfStock}>
       <Link href={`/corporate/quote/${product.id}`}>
         <FileText className="mr-2" />
         Request a Quote
@@ -108,9 +111,9 @@ export function CorporateProductInteractions({ product, onPriceChange }: Corpora
   );
 
   const renderActions = () => {
-    if (product.stock === 0) {
+    if (isOutOfStock) {
       return (
-        <Button size="lg" className="w-full">
+        <Button size="lg" className="w-full" disabled>
             <Bell className="mr-2" />
             Notify Me When Available
         </Button>

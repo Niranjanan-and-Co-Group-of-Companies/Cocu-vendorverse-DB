@@ -2,7 +2,7 @@
 
 'use server';
 
-import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc, addDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDocs, writeBatch, updateDoc, Timestamp, query, where, limit, getDoc, addDoc, serverTimestamp, increment, runTransaction } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product, CustomizationSide, ProductVariant } from './products';
 import { createNotification } from './notifications-actions';
@@ -97,53 +97,63 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 
 
 export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'date' | 'status' | 'statusTimeline'>) {
-    const batch = writeBatch(db);
+    try {
+        const orderId = await runTransaction(db, async (transaction) => {
+            // 1. Verify stock for all items
+            for (const item of orderData.items) {
+                const productRef = doc(db, 'products', item.id);
+                const productSnap = await transaction.get(productRef);
+                if (!productSnap.exists() || productSnap.data().stock < item.quantity) {
+                    throw new Error(`Insufficient stock for product: ${item.name}`);
+                }
+            }
 
-    // 1. Create the new order document
-    const orderRef = doc(collection(db, 'orders'));
-    const orderId = generateReadableId('ORD');
-    const newOrderData = {
-        ...orderData,
-        orderId,
-        status: 'Pending' as OrderStatus,
-        date: serverTimestamp(),
-        statusTimeline: [{ status: 'Pending' as OrderStatus, at: new Date() }],
-    };
-    batch.set(orderRef, newOrderData);
+            // 2. If all stock is available, proceed to create order and decrement stock
+            const orderRef = doc(collection(db, 'orders'));
+            const newOrderId = generateReadableId('ORD');
+            const newOrderData = {
+                ...orderData,
+                orderId: newOrderId,
+                status: 'Pending' as OrderStatus,
+                date: serverTimestamp(),
+                statusTimeline: [{ status: 'Pending' as OrderStatus, at: new Date() }],
+            };
+            transaction.set(orderRef, newOrderData);
 
-    // 2. Decrement stock for each item in the order
-    for (const item of orderData.items) {
-        const productRef = doc(db, 'products', item.id);
-        // Use the 'increment' utility with a negative value to decrement stock
-        batch.update(productRef, { stock: increment(-item.quantity) });
-    }
-
-    // 3. Commit the batch
-    await batch.commit();
-
-    // --- Create Notifications AFTER successful order creation ---
-    
-    // Notify Admin
-    await createNotification({
-        userId: 'admin',
-        forAdmin: true,
-        type: 'NEW_ORDER',
-        text: `New order #${orderId} for ${orderData.total.toFixed(2)} placed by ${orderData.customer.name}.`,
-        link: `/admin/orders?orderId=${orderRef.id}`
-    });
-
-    // Notify relevant vendors
-    const vendorIds = new Set(orderData.items.map(item => item.vendorId));
-    for (const vendorId of vendorIds) {
-        await createNotification({
-            userId: vendorId,
-            type: 'NEW_ORDER',
-            text: `You have a new order #${orderId} from ${orderData.customer.name}.`,
-            link: `/vendor/personalized/orders` // Generic link, vendor dashboard should highlight new orders.
+            for (const item of orderData.items) {
+                const productRef = doc(db, 'products', item.id);
+                transaction.update(productRef, { stock: increment(-item.quantity) });
+            }
+            
+            return { orderId: newOrderId, orderRefId: orderRef.id };
         });
+
+        // --- Create Notifications AFTER successful order creation ---
+        
+        // Notify Admin
+        await createNotification({
+            userId: 'admin',
+            forAdmin: true,
+            type: 'NEW_ORDER',
+            text: `New order #${orderId.orderId} for ${orderData.total.toFixed(2)} placed by ${orderData.customer.name}.`,
+            link: `/admin/orders?orderId=${orderId.orderRefId}`
+        });
+
+        // Notify relevant vendors
+        const vendorIds = new Set(orderData.items.map(item => item.vendorId));
+        for (const vendorId of vendorIds) {
+            await createNotification({
+                userId: vendorId,
+                type: 'NEW_ORDER',
+                text: `You have a new order #${orderId.orderId} from ${orderData.customer.name}.`,
+                link: `/vendor/personalized/orders`
+            });
+        }
+        
+        return { success: true, orderId: orderId.orderRefId };
+
+    } catch (error: any) {
+        console.error("Order creation transaction failed: ", error);
+        return { success: false, message: error.message };
     }
-    
-    return { success: true, orderId: orderRef.id };
 }
-
-
