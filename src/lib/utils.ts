@@ -18,10 +18,11 @@ export function makePlain(obj: any): any {
     return obj;
   }
 
-  // Handle Firestore Timestamps (and JS Dates) by converting to ISO string
+  // Robustly identify Firestore Timestamps (or similar objects) and convert to ISO string.
   if (typeof obj.toDate === 'function') {
     return obj.toDate().toISOString();
   }
+  
   if (obj instanceof Date) {
     return obj.toISOString();
   }
@@ -32,11 +33,10 @@ export function makePlain(obj: any): any {
   }
   
   // Handle Objects by iterating over their properties recursively
-  // This check ensures we are only processing plain objects, not other complex classes.
+  // This check ensures we are only processing plain objects.
   if (typeof obj === 'object' && obj.constructor === Object) {
     const newObj: { [key: string]: any } = {};
     for (const key in obj) {
-      // It's good practice to check for own properties.
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         newObj[key] = makePlain(obj[key]);
       }
