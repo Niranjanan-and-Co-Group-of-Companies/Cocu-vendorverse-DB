@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -8,6 +7,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { PlayCircle } from 'lucide-react';
 import type { Product, ProductVariant } from '@/lib/products';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel"
 
 type MediaItem = {
     type: 'image' | 'video';
@@ -20,7 +27,8 @@ interface ProductMediaGalleryProps {
 }
 
 export function ProductMediaGallery({ product, selectedVariant }: ProductMediaGalleryProps) {
-    const [activeMedia, setActiveMedia] = React.useState<MediaItem | null>(null);
+    const [api, setApi] = React.useState<CarouselApi>()
+    const [current, setCurrent] = React.useState(0)
 
     const media: MediaItem[] = React.useMemo(() => {
         const items: MediaItem[] = [];
@@ -58,23 +66,28 @@ export function ProductMediaGallery({ product, selectedVariant }: ProductMediaGa
         return items;
     }, [product, selectedVariant]);
     
-    React.useEffect(() => {
-        if (media.length > 0) {
-            // If the active media isn't in the new media list, reset to the first item
-            if (!activeMedia || !media.some(m => m.url === activeMedia.url)) {
-                 setActiveMedia(media[0]);
-            }
-        } else {
-            setActiveMedia(null);
+     React.useEffect(() => {
+        if (!api) {
+            return
         }
-    }, [media, activeMedia]);
+
+        setCurrent(api.selectedScrollSnap())
+
+        api.on("select", () => {
+            setCurrent(api.selectedScrollSnap())
+        })
+     }, [api])
 
     const getYouTubeThumbnail = (url: string) => {
         const videoId = url.split('v=')[1]?.split('&')[0];
         return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
     };
+    
+    const handleThumbnailClick = (index: number) => {
+        api?.scrollTo(index);
+    }
 
-    if (!activeMedia) {
+    if (media.length === 0) {
         return (
             <Card className="overflow-hidden">
                 <div className="aspect-square bg-muted flex items-center justify-center">
@@ -86,40 +99,52 @@ export function ProductMediaGallery({ product, selectedVariant }: ProductMediaGa
 
     return (
         <div className="flex flex-col gap-4">
-            <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                    <div className="aspect-square relative flex items-center justify-center">
-                        {activeMedia.type === 'image' ? (
-                            <Image
-                                src={activeMedia.url}
-                                alt={product.name}
-                                fill
-                                className="object-cover"
-                                data-ai-hint="product image"
-                            />
-                        ) : (
-                             <iframe
-                                width="100%"
-                                height="100%"
-                                src={`https://www.youtube.com/embed/${activeMedia.url.split('v=')[1]?.split('&')[0]}`}
-                                title="YouTube video player"
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
+            <Carousel setApi={setApi} className="w-full">
+                <CarouselContent>
+                    {media.map((item, index) => (
+                        <CarouselItem key={index}>
+                            <Card className="overflow-hidden">
+                                <CardContent className="p-0">
+                                    <div className="aspect-square relative flex items-center justify-center">
+                                    {item.type === 'image' ? (
+                                        <Image
+                                            src={item.url}
+                                            alt={product.name}
+                                            fill
+                                            className="object-cover"
+                                            data-ai-hint="product image"
+                                            priority={index === 0}
+                                        />
+                                    ) : (
+                                        <iframe
+                                            width="100%"
+                                            height="100%"
+                                            src={`https://www.youtube.com/embed/${item.url.split('v=')[1]?.split('&')[0]}`}
+                                            title="YouTube video player"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        ></iframe>
+                                    )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10" />
+                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
+            </Carousel>
+
             <div className="grid grid-cols-5 gap-4">
                 {media.map((item, index) => (
                     <div
                         key={index}
                         className={cn(
                             'aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-colors',
-                            activeMedia.url === item.url ? 'border-primary' : 'border-transparent hover:border-primary/50'
+                            current === index ? 'border-primary' : 'border-transparent hover:border-primary/50'
                         )}
-                        onClick={() => setActiveMedia(item)}
+                        onClick={() => handleThumbnailClick(index)}
                     >
                         <div className="relative w-full h-full">
                              <Image
