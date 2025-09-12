@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -64,8 +63,8 @@ export function ProductInteractions({ product, categoryName, selectedVariant }: 
     router.push('/checkout');
   };
 
-  const handleWishlistToggle = () => {
-    const result = toggleWishlistItem(product);
+  const handleWishlistToggle = async () => {
+    const result = await toggleWishlistItem(product);
     toast({
       title: result.message,
     });
