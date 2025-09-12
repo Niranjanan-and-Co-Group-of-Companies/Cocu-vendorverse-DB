@@ -113,7 +113,7 @@ export function CorporateSidebar() {
               <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild tooltip={{ children: 'View Main Site' }}><Link href="/"><Home /><span>View Main Site</span></Link></SidebarMenuButton>
+                        <SidebarMenuButton asChild tooltip={{ children: 'View Main Site' }}><Link href="/corporate/dashboard"><Home /><span>View Main Site</span></Link></SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild tooltip={{ children: 'Log Out' }}><Link href="/login"><LogOut /><span>Log Out</span></Link></SidebarMenuButton>

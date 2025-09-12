@@ -23,6 +23,7 @@ import {
   Warehouse,
   ListChecks,
   LineChart,
+  MessageSquare,
   LifeBuoy,
   Settings,
   Home,
@@ -40,6 +41,7 @@ import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { VendorNotificationDropdown } from '@/components/layout/vendor-notification-dropdown';
+import { onVendorConversationsUpdate } from '@/lib/vendor/messages-service';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 
@@ -96,6 +98,7 @@ const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
 
 function BothVendorSidebar() {
     const pathname = usePathname();
+
 
     const isActive = (path: string) => {
         return pathname.startsWith(path);
@@ -176,7 +179,7 @@ function BothVendorSidebar() {
               <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild tooltip={{ children: 'View Main Site' }}><Link href="/"><Home /><span>View Main Site</span></Link></SidebarMenuButton>
+                        <SidebarMenuButton asChild tooltip={{ children: 'View Main Site' }}><Link href="/vendor/both/dashboard"><Home /><span>View Main Site</span></Link></SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild tooltip={{ children: 'Log Out' }}><Link href="/login"><LogOut /><span>Log Out</span></Link></SidebarMenuButton>
