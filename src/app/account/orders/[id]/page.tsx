@@ -163,10 +163,9 @@ function OrderDetailsPageContent({ id }: { id: string }) {
 
 
 export default function CustomerOrderDetailsPage({ params }: { params: { id: string } }) {
-    const { id } = params;
     return (
         <React.Suspense fallback={<Skeleton className="h-96 w-full" />}>
-            <OrderDetailsPageContent id={id} />
+            <OrderDetailsPageContent id={params.id} />
         </React.Suspense>
     );
 }
