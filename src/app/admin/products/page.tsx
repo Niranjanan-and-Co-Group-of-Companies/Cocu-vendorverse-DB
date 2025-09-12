@@ -21,7 +21,6 @@ import type { Product, ProductStatus } from '@/lib/products';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminProductActions } from '@/components/admin/products/product-actions';
-import { calculateAdminDisplayPrice } from '@/lib/admin/admin-pricing-service';
 import { onCategoriesUpdate } from '@/lib/categories-service';
 import type { Category } from '@/lib/categories-service';
 import { onSnapshot, query, collection, where, doc, getDoc } from 'firebase/firestore';
@@ -93,10 +92,7 @@ function ProductsPageContent() {
 
             const pricedProducts = await Promise.all(
                 rawProducts.map(async (p) => {
-                    const category = categories.find(c => c.name === p.category);
-                    const productInfo = { vendorSP: p.vendorSP, category: p.category };
-                    const displayPrice = await calculateAdminDisplayPrice(productInfo, p.platform, category);
-                    return { ...p, displayPrice: displayPrice };
+                    return { ...p };
                 })
             );
             setAllProducts(pricedProducts);
@@ -196,7 +192,6 @@ function ProductsPageContent() {
                     <TableHead>Status</TableHead>
                     <TableHead>Vendor</TableHead>
                     <TableHead>Vendor SP</TableHead>
-                    <TableHead>Customer Price</TableHead>
                     <TableHead>Type</TableHead>
                     {isCorporateView && <TableHead>MOQ</TableHead>}
                     <TableHead className="text-right">Actions</TableHead>
@@ -210,7 +205,6 @@ function ProductsPageContent() {
                         <TableCell><div className="space-y-1"><Skeleton className="h-5 w-48" /><Skeleton className="h-3 w-24" /></div></TableCell>
                         <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                         {isCorporateView && <TableCell><Skeleton className="h-5 w-12" /></TableCell>}
@@ -242,7 +236,6 @@ function ProductsPageContent() {
                         </TableCell>
                          <TableCell>{product.vendor}</TableCell>
                         <TableCell>{formatCurrency(product.vendorSP)}</TableCell>
-                        <TableCell className="font-medium">{formatCurrency(product.displayPrice)}</TableCell>
                         <TableCell>
                            <Badge variant={product.platform === 'Corporate' ? 'secondary' : 'outline'}>
                                 {product.platform}
@@ -269,3 +262,4 @@ export default function ProductsPage() {
         </React.Suspense>
     );
 }
+
