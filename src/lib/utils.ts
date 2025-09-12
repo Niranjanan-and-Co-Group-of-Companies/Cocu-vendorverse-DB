@@ -37,5 +37,3 @@ export function makePlain<T>(obj: T): T {
 
   return newObj as T;
 }
-
-    

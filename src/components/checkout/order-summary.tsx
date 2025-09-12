@@ -185,6 +185,14 @@ export function OrderSummary() {
                     <div key={item.cartItemId} className={cn("flex items-start gap-4", isDisabled && "opacity-50")}>
                         <div className="relative shrink-0">
                             <Image src={item.selectedVariant?.image || item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
+                             <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-muted text-destructive hover:bg-destructive hover:text-destructive-foreground" 
+                                onClick={() => handleRemove(item.cartItemId, item.name)}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
                         </div>
                         <div className="flex-grow overflow-hidden">
                             <p className="font-semibold truncate">{item.name}</p>
@@ -202,9 +210,6 @@ export function OrderSummary() {
                                 <span className="text-sm font-medium w-4 text-center">x {item.quantity}</span>
                             </div>
                              <p className="font-semibold text-sm mt-1">{formatCurrency(price * item.quantity)}</p>
-                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleRemove(item.cartItemId, item.name)}>
-                                <X className="h-4 w-4" />
-                            </Button>
                         </div>
                     </div>
                 )})}
@@ -285,5 +290,3 @@ export function OrderSummary() {
     </>
   );
 }
-
-    
