@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -23,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const iconMap: { [key in NotificationType]: React.ElementType } = {
   ORDER_STATUS_UPDATE: Package,
+  NEW_ORDER: Package,
   NEW_MESSAGE: MessageSquare,
   NEW_BID_RESPONSE: Gavel,
   NEW_VENDOR_SUBMISSION: UserPlus,

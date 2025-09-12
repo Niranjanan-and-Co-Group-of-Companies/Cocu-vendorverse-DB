@@ -36,7 +36,7 @@ export interface Order {
     };
     items: OrderItem[];
     status: OrderStatus;
-    statusTimeline: { status: OrderStatus; at: Timestamp }[];
+    statusTimeline: { status: OrderStatus; at: Date }[];
     date: any;
     subtotal: number;
     shipping: number;
@@ -62,7 +62,7 @@ export interface Order {
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
     const orderRef = doc(db, 'orders', orderId);
     try {
-        await updateDoc(orderRef, { status });
+        await updateDoc(orderRef, { status, lastUpdated: serverTimestamp() });
         
         // After updating, send notifications
         const orderSnap = await getDoc(orderRef);
@@ -121,6 +121,29 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'dat
     // 3. Commit the batch
     await batch.commit();
 
+    // --- Create Notifications AFTER successful order creation ---
+    
+    // Notify Admin
+    await createNotification({
+        userId: 'admin',
+        forAdmin: true,
+        type: 'NEW_ORDER',
+        text: `New order #${orderId} for ${orderData.total.toFixed(2)} placed by ${orderData.customer.name}.`,
+        link: `/admin/orders?orderId=${orderRef.id}`
+    });
+
+    // Notify relevant vendors
+    const vendorIds = new Set(orderData.items.map(item => item.vendorId));
+    for (const vendorId of vendorIds) {
+        await createNotification({
+            userId: vendorId,
+            type: 'NEW_ORDER',
+            text: `You have a new order #${orderId} from ${orderData.customer.name}.`,
+            link: `/vendor/personalized/orders` // Generic link, vendor dashboard should highlight new orders.
+        });
+    }
+    
     return { success: true, orderId: orderRef.id };
 }
+
 

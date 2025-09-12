@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -12,7 +13,7 @@ import {
   DropdownMenuFooter,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Bell, Package, MessageSquare, Activity, UserPlus, Shield, FileEdit, HelpCircle, Gavel, FileQuestion, PackageSearch, X } from 'lucide-react';
+import { Bell, Package, MessageSquare, Activity, UserPlus, Shield, FileEdit, HelpCircle, Gavel, FileQuestion, PackageSearch, X, ShoppingCart } from 'lucide-react';
 import { onAdminNotificationsUpdate, type Notification, type NotificationType } from '@/lib/notifications-service';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +25,7 @@ import { cn } from '@/lib/utils';
 
 const iconMap: { [key in NotificationType]: React.ElementType } = {
   ORDER_STATUS_UPDATE: Package,
+  NEW_ORDER: ShoppingCart,
   NEW_MESSAGE: MessageSquare,
   NEW_BID_RESPONSE: Gavel,
   NEW_VENDOR_SUBMISSION: UserPlus,

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { collection, onSnapshot, query, where, orderBy, limit, Unsubscribe } from 'firebase/firestore';
@@ -6,6 +7,7 @@ import { db } from './firebase';
 
 export type NotificationType = 
     | 'ORDER_STATUS_UPDATE' 
+    | 'NEW_ORDER'
     | 'NEW_MESSAGE' 
     | 'NEW_BID_RESPONSE' 
     | 'NEW_VENDOR_SUBMISSION' 
