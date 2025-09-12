@@ -20,7 +20,16 @@ export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
 };
 
 export async function serializeProduct(product: Product): Promise<PlainProduct> {
-  return makePlain(product);
+  const plainProduct = { ...product } as any;
+
+  if (product.createdAt && typeof product.createdAt.toDate === 'function') {
+    plainProduct.createdAt = product.createdAt.toDate().toISOString();
+  }
+  if (product.updatedAt && typeof product.updatedAt.toDate === 'function') {
+    plainProduct.updatedAt = product.updatedAt.toDate().toISOString();
+  }
+
+  return plainProduct as PlainProduct;
 }
 
 

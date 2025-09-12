@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { collection, onSnapshot, doc, query, where, Unsubscribe, limit, getDocs, orderBy, documentId } from 'firebase/firestore';
@@ -9,28 +10,18 @@ import { getVendorById } from './vendors-service';
 import { onCategoriesWithCommissionsUpdate, type Category } from './categories-service';
 import { calculateDisplayPrice, type DisplayPrice } from './pricing-service';
 import { getFeaturedPersonalProducts, getFeaturedCorporateProducts } from './featured-service';
+import { serializeProduct } from './products-service';
 
 export type ProductWithStatus = Product & { status: ProductStatus };
 export type ProductWithVendor = Product & { vendor: Vendor };
 export type ProductWithPrice = Product & { displayPrice: DisplayPrice };
-
-// A helper to safely convert Firestore Timestamps to ISO strings
-const serializeTimestamps = (productData: any) => {
-  if (productData.createdAt?.toDate) {
-    productData.createdAt = productData.createdAt.toDate().toISOString();
-  }
-  if (productData.updatedAt?.toDate) {
-    productData.updatedAt = productData.updatedAt.toDate().toISOString();
-  }
-  return productData;
-};
 
 export function onProductUpdate(id: string, callback: (product: Product | null) => void): () => void {
     const docRef = doc(db, 'products', id);
     return onSnapshot(docRef, (doc) => {
         if (doc.exists()) {
             const product = { id: doc.id, ...doc.data() } as Product;
-            callback(serializeTimestamps(product));
+            callback(serializeProduct(product));
         } else {
             callback(null);
         }
@@ -46,7 +37,7 @@ export function onProductsUpdate(productIds: string[], callback: (products: Prod
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const products = snapshot.docs.map(doc => {
             const product = { id: doc.id, ...doc.data() } as Product;
-            return serializeTimestamps(product);
+            return serializeProduct(product);
         });
         callback(products);
     });
@@ -60,7 +51,7 @@ export function onVendorProductsUpdate(vendorId: string, callback: (products: Pr
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const products = snapshot.docs.map(doc => {
             const product = {id: doc.id, ...doc.data()} as Product;
-            return serializeTimestamps(product);
+            return serializeProduct(product);
         });
         callback(products as ProductWithStatus[]);
     });
@@ -89,7 +80,7 @@ export function onPendingProductsUpdate(callback: (products: ProductWithVendor[]
         const productsPromises = snapshot.docs.map(async (doc) => {
             const productData = { id: doc.id, ...doc.data() } as Product;
             const vendor = await getVendor(productData.vendorId);
-            return { ...serializeTimestamps(productData), vendor } as ProductWithVendor;
+            return { ...serializeProduct(productData), vendor } as ProductWithVendor;
         });
 
         const products = await Promise.all(productsPromises);
@@ -165,7 +156,7 @@ export function onFeaturedProductsUpdate(
         if (productIds.length > 0) {
             const q = query(productsCollection, where(documentId(), 'in', productIds));
             unsubProducts = onSnapshot(q, (snapshot) => {
-                productCache = snapshot.docs.map(doc => serializeTimestamps({ id: doc.id, ...doc.data() } as Product));
+                productCache = snapshot.docs.map(doc => serializeProduct({ id: doc.id, ...doc.data() } as Product));
                 combineAndCallback();
             });
         } else {
@@ -198,7 +189,7 @@ export function onProductsByCategoryUpdate(
         if (unsubProducts) unsubProducts(); // Unsubscribe from previous listener
 
         unsubProducts = onSnapshot(q, async (snapshot) => {
-            const products = snapshot.docs.map(doc => serializeTimestamps({ id: doc.id, ...doc.data() } as Product));
+            const products = snapshot.docs.map(doc => serializeProduct({ id: doc.id, ...doc.data() } as Product));
             const priced = await priceProducts(products, platform, categories);
             callback(priced, currentCategory);
         });
@@ -223,7 +214,7 @@ export function onAllProductsUpdate(
         if (unsubProducts) unsubProducts(); // Unsubscribe from previous listener
 
         unsubProducts = onSnapshot(q, async (snapshot) => {
-            const products = snapshot.docs.map(doc => serializeTimestamps({ id: doc.id, ...doc.data() } as Product));
+            const products = snapshot.docs.map(doc => serializeProduct({ id: doc.id, ...doc.data() } as Product));
             const platformFiltered = platform === 'Corporate' 
                 ? products.filter(p => p.moq && p.moq > 0)
                 : products;
