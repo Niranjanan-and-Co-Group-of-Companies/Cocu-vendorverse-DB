@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import type { CartItem } from '@/hooks/use-corporate-cart';
+import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { Input } from '@/components/ui/input';
 import { Tag, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +15,11 @@ import type { PlainPromotion } from '@/lib/promotions-service';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { createOrder } from '@/lib/orders-service';
+import { useRouter } from 'next/navigation';
+import { getMockUser, type User } from '@/lib/user-service';
+import { makePlain } from '@/lib/utils';
+
 
 interface CartSummaryProps {
   items: CartItem[];
@@ -21,12 +27,15 @@ interface CartSummaryProps {
 }
 
 export function CartSummary({ items, isCheckoutPage = false }: CartSummaryProps) {
+  const { clearCart } = useCorporateCart();
   const { toast } = useToast();
+  const router = useRouter();
   const [couponInput, setCouponInput] = React.useState('');
   const [appliedPromotions, setAppliedPromotions] = React.useState<PlainPromotion[]>([]);
   const [isApplying, setIsApplying] = React.useState(false);
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = React.useState(false);
 
   React.useEffect(() => {
     const findAndApplyBestPromotion = async () => {
@@ -148,6 +157,55 @@ export function CartSummary({ items, isCheckoutPage = false }: CartSummaryProps)
     toast({ title: "Coupon Removed", description: `"${promoToRemove.code}" has been removed.`, variant: "destructive" });
   };
 
+  const handlePlaceOrder = async () => {
+    setIsPlacingOrder(true);
+    try {
+        const user: User | null = await getMockUser(); // Using mock user for now
+        if (!user) {
+            toast({ title: "Please log in to place an order.", variant: "destructive" });
+            setIsPlacingOrder(false);
+            return;
+        }
+        
+        const plainItems = items.map(item => makePlain(item));
+
+        const orderData = {
+            customer: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                shippingAddress: "123 Corporate Ave, Metropolis, IL", // Mock Address
+                pincode: '60601', // Mock Pincode
+            },
+            items: plainItems,
+            subtotal,
+            shipping: 0, // Mock shipping
+            total,
+            payment: {
+                method: "PO Request",
+                status: "Pending" as const,
+                transactionId: `po_${Date.now()}`
+            },
+        };
+
+        const result = await createOrder(orderData);
+
+        if (result.success) {
+            toast({ title: "Order Placed!", description: "Your order has been successfully placed." });
+            clearCart();
+            router.push('/checkout/success');
+        } else {
+            throw new Error("Order creation failed");
+        }
+
+    } catch (error) {
+        console.error("Failed to place order:", error);
+        toast({ title: "Error", description: "Could not place your order. Please try again.", variant: "destructive" });
+    } finally {
+        setIsPlacingOrder(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -156,10 +214,13 @@ export function CartSummary({ items, isCheckoutPage = false }: CartSummaryProps)
   };
   
   const total = subtotal - discountAmount;
-  const canProceed = isConfirmed && agreedToTerms;
+  const canProceed = isConfirmed && agreedToTerms && !isPlacingOrder;
 
   const ActionButton = isCheckoutPage ? (
-    <Button className="w-full" size="lg" disabled={!canProceed}>Place Order</Button>
+    <Button className="w-full" size="lg" disabled={!canProceed} onClick={handlePlaceOrder}>
+        {isPlacingOrder && <Loader2 className="mr-2 animate-spin" />}
+        {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
+    </Button>
   ) : (
     <Button className="w-full" size="lg" asChild disabled={!canProceed}>
         <Link href="/corporate/checkout">Proceed to Checkout</Link>
