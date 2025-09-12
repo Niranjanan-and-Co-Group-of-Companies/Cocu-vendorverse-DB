@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -24,7 +25,6 @@ import {
   Gavel,
   FileText,
   LineChart,
-  MessageSquare,
   LifeBuoy,
   Settings,
   Home,
@@ -33,6 +33,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ListChecks,
+  Warehouse
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -41,7 +42,7 @@ import { VendorNotificationDropdown } from '@/components/layout/vendor-notificat
 import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 
 // In a real app, this would come from an auth context.
-const VENDOR_ID = "vendor001";
+const VENDOR_ID = "vendor003";
 
 function CustomSidebarTrigger() {
     
@@ -78,7 +79,7 @@ function CorporateVendorSidebar() {
                     <AvatarFallback>V</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col group-data-[state=collapsed]:hidden">
-                    <span className="text-base font-semibold">Gourmet Delights</span>
+                    <span className="text-base font-semibold">Heritage Wares</span>
                     <Badge variant="secondary" className="w-fit">Corporate B2B</Badge>
                 </div>
               </SidebarHeader>
@@ -96,6 +97,11 @@ function CorporateVendorSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/inventory')} tooltip={{ children: 'Inventory' }}>
+                            <Link href="/vendor/corporate/inventory"><Warehouse /><span>Inventory</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/orders')} tooltip={{ children: 'Orders' }}>
                             <Link href="/vendor/corporate/orders"><ListChecks /><span>Orders</span></Link>
                         </SidebarMenuButton>
@@ -108,16 +114,6 @@ function CorporateVendorSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/quotes')} tooltip={{ children: 'Quotes' }}>
                             <Link href="/vendor/corporate/quotes"><FileText /><span>Quotes</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/analytics')} tooltip={{ children: 'Analytics' }}>
-                            <Link href="/vendor/corporate/analytics"><LineChart /><span>Analytics</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/messages')} tooltip={{ children: 'Messages' }}>
-                            <Link href="/vendor/corporate/messages"><MessageSquare /><span>Messages</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
@@ -194,7 +190,7 @@ function CorporateVendorLayoutContent({ children }: { children: React.ReactNode;
                     <h1 className="font-headline text-lg font-semibold">{pageTitle}</h1>
                  </div>
                  <div className="flex items-center gap-2">
-                    <VendorNotificationDropdown />
+                    <VendorNotificationDropdown vendorId={VENDOR_ID} />
                  </div>
             </header>
             <main className="flex-1 p-4 md:p-6 bg-muted/40">

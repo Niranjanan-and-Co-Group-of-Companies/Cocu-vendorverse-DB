@@ -23,7 +23,6 @@ import {
   Warehouse,
   ListChecks,
   LineChart,
-  MessageSquare,
   LifeBuoy,
   Settings,
   Home,
@@ -64,11 +63,7 @@ function VendorSidebar() {
     const pathname = usePathname();
 
     const isActive = (path: string) => {
-        // Make the messages link active when on the messages page
-        if (path === '/vendor/personalized/messages' && pathname.startsWith(path)) {
-            return true;
-        }
-        return pathname === path;
+        return pathname.startsWith(path);
     };
 
     return (

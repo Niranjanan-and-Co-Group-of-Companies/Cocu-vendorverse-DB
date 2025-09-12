@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -97,17 +98,6 @@ const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
 
 function BothVendorSidebar() {
     const pathname = usePathname();
-    const [totalUnreadMessages, setTotalUnreadMessages] = React.useState(0);
-
-    React.useEffect(() => {
-        const unsubscribe = onVendorConversationsUpdate(VENDOR_ID, (conversations) => {
-            const corporateConversations = conversations.filter(c => c.type === 'Corporate');
-            const totalUnread = corporateConversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
-            setTotalUnreadMessages(totalUnread);
-        });
-
-        return () => unsubscribe();
-    }, []);
 
 
     const isActive = (path: string) => {
@@ -179,13 +169,6 @@ function BothVendorSidebar() {
                                 <LineChart /><span>Analytics</span>
                             </SidebarMenuButton>
                         </PlatformSwitcher>
-                    </SidebarMenuItem>
-                    
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/both/messages')} tooltip={{ children: 'Messages' }}>
-                            <Link href="/vendor/both/messages"><MessageSquare /><span>Messages</span></Link>
-                        </SidebarMenuButton>
-                        {totalUnreadMessages > 0 && <SidebarMenuBadge>{totalUnreadMessages}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                     
                      <SidebarMenuItem>
@@ -262,7 +245,7 @@ function BothVendorSidebarLayoutContent({ children }: { children: React.ReactNod
                     <h1 className="font-headline text-lg font-semibold">{pageTitle}</h1>
                  </div>
                  <div className="flex items-center gap-2">
-                    <VendorNotificationDropdown />
+                    <VendorNotificationDropdown vendorId={VENDOR_ID} />
                  </div>
             </header>
             <main className="flex-1 p-4 md:p-6 bg-muted/40">

@@ -27,23 +27,18 @@ import {
   ShoppingCart,
   Heart,
   Scale,
-  MessageSquare,
   PenSquare,
   PackageSearch
 } from 'lucide-react';
 import { useCorporateCart } from '@/hooks/use-corporate-cart';
 import { useComparison } from '@/hooks/use-comparison';
-import { useCorporateChat } from '@/hooks/use-corporate-chat-store';
 
 
 export function CorporateSidebar() {
     const pathname = usePathname();
     const { items: cartItems } = useCorporateCart();
     const { items: compareItems } = useComparison();
-    const { conversations } = useCorporateChat();
     const { open, setOpen } = useSidebar();
-
-    const totalUnreadMessages = conversations.reduce((acc, conv) => acc + conv.unreadCount, 0);
 
     const isActive = (path: string) => {
         if (path === '/corporate/dashboard' && pathname === path) {
