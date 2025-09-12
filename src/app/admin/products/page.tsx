@@ -192,6 +192,7 @@ function ProductsPageContent() {
                     <TableHead>Status</TableHead>
                     <TableHead>Vendor</TableHead>
                     <TableHead>Vendor SP</TableHead>
+                    <TableHead>Inventory</TableHead>
                     <TableHead>Type</TableHead>
                     {isCorporateView && <TableHead>MOQ</TableHead>}
                     <TableHead className="text-right">Actions</TableHead>
@@ -206,6 +207,7 @@ function ProductsPageContent() {
                         <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                         {isCorporateView && <TableCell><Skeleton className="h-5 w-12" /></TableCell>}
                         <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
@@ -236,6 +238,7 @@ function ProductsPageContent() {
                         </TableCell>
                          <TableCell>{product.vendor}</TableCell>
                         <TableCell>{formatCurrency(product.vendorSP)}</TableCell>
+                        <TableCell>{product.stock}</TableCell>
                         <TableCell>
                            <Badge variant={product.platform === 'Corporate' ? 'secondary' : 'outline'}>
                                 {product.platform}
@@ -262,4 +265,3 @@ export default function ProductsPage() {
         </React.Suspense>
     );
 }
-
