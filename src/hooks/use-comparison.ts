@@ -38,7 +38,7 @@ export const useComparison = create(
         }
         
         if (currentItems.some(item => item.id === product.id)) {
-            return { success: false }; // Already in list, do nothing.
+            return { success: false, message: "This item is already in your comparison list." }; // Already in list, do nothing.
         }
         const category = await getCategoryByName(product.category);
         const productInfo = {
