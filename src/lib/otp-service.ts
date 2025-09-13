@@ -1,8 +1,10 @@
 
+
 'use server';
 
 import { collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc, doc, orderBy, limit } from 'firebase/firestore';
 import { db } from './firebase';
+import 'dotenv/config'
 
 const API_KEY = process.env.TWO_FACTOR_API_KEY;
 const API_URL = 'https://2factor.in/API/V1';
@@ -17,7 +19,6 @@ type OtpStatus = 'pending' | 'verified' | 'expired' | 'failed';
 export async function sendOtp(to: string): Promise<{ success: boolean; message: string }> {
     if (!API_KEY) {
         console.error("2Factor API key is not configured. Cannot send live OTP.");
-        // In a real production environment with a key, this block would not be hit.
         // For this demo, we fall back to a mock success to avoid blocking development if the key is missing.
         console.log("DEMO MODE: OTP send successful (mock).");
         return { success: true, message: "OTP sent successfully (demo mode)." };
@@ -28,7 +29,7 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
     }
 
     try {
-        const response = await fetch(`${API_URL}/${API_KEY}/SMS/+91${to}/AUTOGEN/VendorVerse`);
+        const response = await fetch(`${API_URL}/${API_KEY}/SMS/${to}/AUTOGEN/VendorVerse`);
         const json = await response.json();
 
         if (json.Status !== 'Success') {

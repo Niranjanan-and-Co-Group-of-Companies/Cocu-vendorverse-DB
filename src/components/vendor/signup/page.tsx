@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -73,8 +74,7 @@ export default function VendorSignupPage() {
     setIsLoading(true);
 
     try {
-        const fullPhoneNumber = `+91${phone}`;
-        const { exists, message } = await checkVendorExists(email, fullPhoneNumber);
+        const { exists, message } = await checkVendorExists(email, `+91${phone}`);
 
         if (exists) {
             toast({
@@ -119,7 +119,7 @@ export default function VendorSignupPage() {
     }
 
     try {
-        await createVendorApplication({ storeName, firstName, lastName, email, phone: `+91${phone}`, vendorType });
+        await createVendorApplication({ storeName, firstName, lastName, email, phone, vendorType });
         toast({
             title: "Application Submitted!",
             description: "Your application is under review. We'll be in touch within 2-3 business days.",

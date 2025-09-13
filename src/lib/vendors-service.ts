@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
@@ -152,7 +153,7 @@ export async function createVendorApplication(vendorData: VendorSignupData): Pro
     const newVendorRef = await addDoc(collection(db, 'vendors'), {
         name: vendorData.storeName,
         email: vendorData.email,
-        phone: vendorData.phone,
+        phone: `+91${vendorData.phone}`,
         type: vendorData.vendorType,
         vendorId: generateReadableId('VDR'),
         avatar: `https://i.pravatar.cc/40?u=${vendorData.email}`,
