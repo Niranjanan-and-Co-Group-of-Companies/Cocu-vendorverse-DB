@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -17,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import type { User, UserRole } from '@/lib/user-service';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { sendOtp, verifyOtp } from '@/lib/otp-service';
 
 interface AddUserDialogProps {
   open: boolean;
@@ -34,8 +34,8 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
   const [otp, setOtp] = React.useState('');
   const { toast } = useToast();
 
-  const handleContinue = () => {
-    if (!name || !email) {
+  const handleContinue = async () => {
+    if (!name || !email || !phone) {
         toast({
             title: "Validation Error",
             description: "Please fill in all required fields.",
@@ -43,33 +43,40 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
         });
         return;
     }
-    // In a real app, you would send an OTP here.
-    // For now, we just simulate it.
-    setStep(2);
-    toast({
-        title: "OTP Sent",
-        description: "A one-time password has been sent to the customer's phone number.",
-    });
+    
+    const result = await sendOtp(phone);
+    if (result.success) {
+        setStep(2);
+        toast({
+            title: "OTP Sent",
+            description: "A one-time password has been sent to the customer's phone number.",
+        });
+    } else {
+        toast({
+            title: "Failed to send OTP",
+            description: result.message,
+            variant: "destructive",
+        });
+    }
   };
 
-  const handleAddUser = () => {
-    // In a real app, you'd verify the OTP.
-    if (otp !== '123456') {
+  const handleAddUser = async () => {
+    const result = await verifyOtp(phone, otp);
+    if (!result.success) {
         toast({
             title: "Invalid OTP",
-            description: "The OTP you entered is incorrect.",
+            description: result.message,
             variant: "destructive",
         });
         return;
     }
     
-    onUserAdded({ name, email, role });
+    onUserAdded({ name, email, role, phone: `+91${phone}` });
     toast({
         title: "Customer Added",
         description: `Customer account for ${name} has been successfully created.`,
     });
     
-    // Reset state and close dialog
     onOpenChange(false);
     setTimeout(() => {
         setStep(1);
@@ -77,7 +84,7 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
         setEmail('');
         setPhone('');
         setOtp('');
-    }, 200); // Delay reset to allow dialog to close smoothly
+    }, 200);
   };
 
   const handleClose = (isOpen: boolean) => {
@@ -95,7 +102,6 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Allow only numbers and limit to 10 digits
     const numericValue = value.replace(/\D/g, '').slice(0, 10);
     setPhone(numericValue);
   };
@@ -161,7 +167,7 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
                 <DialogHeader>
                     <DialogTitle>Verify Contact</DialogTitle>
                     <DialogDescription>
-                        Enter the 6-digit OTP sent to the customer's phone to complete setup. (Hint: it's 123456)
+                        Enter the 6-digit OTP sent to the customer's phone to complete setup.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -169,7 +175,7 @@ export function AddUserDialog({ open, onOpenChange, onUserAdded, children }: Add
                         <Label htmlFor="otp" className="text-right">
                         OTP
                         </Label>
-                        <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} className="col-span-3" placeholder="123456" />
+                        <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} className="col-span-3" placeholder="Enter 6-digit code" />
                     </div>
                 </div>
                 <DialogFooter>
