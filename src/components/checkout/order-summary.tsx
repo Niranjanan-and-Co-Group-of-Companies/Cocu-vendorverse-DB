@@ -35,7 +35,6 @@ import { useRouter } from 'next/navigation';
 import { createOrder } from '@/lib/orders-service';
 import { getMockUser } from '@/lib/user-service';
 import type { User } from '@/lib/user-service';
-import { makePlain } from '@/lib/utils';
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat('en-IN', {
@@ -116,8 +115,6 @@ export function OrderSummary() {
             return;
         }
         
-        const plainItems = items.map(item => makePlain(item));
-
         const orderData = {
             customer: {
                 id: user.id,
@@ -126,7 +123,7 @@ export function OrderSummary() {
                 shippingAddress: "123 Maple St, Springfield, IL", // Mock Address
                 pincode: '62704', // Mock Pincode
             },
-            items: plainItems,
+            items: items,
             subtotal,
             shipping: shippingFee,
             total,

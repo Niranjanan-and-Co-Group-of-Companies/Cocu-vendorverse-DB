@@ -1,6 +1,4 @@
 
-'use server';
-
 import { collection, getDocs, writeBatch, doc, getDoc, query, where, limit, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, storage } from './firebase';
 import type { Product, ProductStatus, CustomizationSide, AllowedCustomizationType, ProductVariant } from './products';
@@ -10,16 +8,16 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getCategoryByName } from './categories-service';
 import { calculateDisplayPrice } from './pricing-service';
 import type { CommissionRule } from './commissions-service';
-import { makePlain } from './utils';
 
-const productsCollection = collection(db, 'products');
-
-export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
+export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt' | 'variants'> & {
   createdAt: string | null;
   updatedAt: string | null;
+  variants: (Omit<ProductVariant, 'customizationSides'> & {
+      customizationSides: Record<CustomizationSide, { image: string | null }>;
+  })[];
 };
 
-export async function serializeProduct(product: Product): Promise<PlainProduct> {
+export function serializeProduct(product: Product): PlainProduct {
   const plainProduct = { ...product } as any;
 
   if (product.createdAt && typeof product.createdAt.toDate === 'function') {
@@ -31,11 +29,16 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
   }
   
   if (product.variants) {
-      plainProduct.variants = product.variants.map(v => makePlain(v));
-  }
-  
-  if (product.customizationAreas) {
-      plainProduct.customizationAreas = makePlain(product.customizationAreas);
+      plainProduct.variants = product.variants.map(v => {
+          const newV = {...v};
+          if(newV.customizationSides) {
+            (Object.keys(newV.customizationSides) as CustomizationSide[]).forEach(side => {
+                // This is a simplified conversion. A real app might need more complex logic if areas existed.
+                newV.customizationSides[side] = { image: newV.customizationSides[side].image };
+            });
+          }
+          return newV;
+      });
   }
 
   return plainProduct as PlainProduct;
@@ -287,3 +290,5 @@ export async function approveProduct(productId: string) {
 export async function declineProduct(productId: string) {
     await updateProductStatus(String(productId), 'Declined');
 }
+
+const productsCollection = collection(db, 'products');
