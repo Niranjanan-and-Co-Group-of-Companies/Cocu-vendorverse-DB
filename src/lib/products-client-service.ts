@@ -9,12 +9,12 @@ import type { PlainVendor } from './vendors-service';
 import { getVendorById } from './vendors-service';
 import { onCategoriesWithCommissionsUpdate, type Category } from './categories-service';
 import { calculateDisplayPrice, type DisplayPrice } from './pricing-service';
-import { getFeaturedPersonalProducts, getFeaturedCorporateProducts } from './featured-service';
+import { getFeaturedPersonalProducts, getFeaturedCorporateProducts, type FeaturedProduct } from './featured-service';
 import { serializeProduct } from './products-service';
 
 export type ProductWithStatus = Product & { status: ProductStatus };
 export type ProductWithVendor = Product & { vendor: PlainVendor };
-export type ProductWithPrice = Product & { displayPrice: DisplayPrice };
+export type ProductWithPrice = Product & FeaturedProduct & { displayPrice: DisplayPrice };
 
 export function onProductUpdate(id: string, callback: (product: Product | null) => void): () => void {
     const docRef = doc(db, 'products', id);
@@ -102,7 +102,7 @@ export function getPendingProductCount(callback: (count: number) => void): Unsub
 
 const productsCollection = collection(db, 'products');
 
-async function priceProducts(products: Product[], platform: 'Personalized' | 'Corporate', categories: Category[]): Promise<ProductWithPrice[]> {
+async function priceProducts(products: (Product & Partial<FeaturedProduct>)[], platform: 'Personalized' | 'Corporate', categories: Category[]): Promise<ProductWithPrice[]> {
     const pricedProducts = await Promise.all(
         products.map(async (p) => {
             const category = categories.find(c => c.name === p.category);
@@ -118,8 +118,10 @@ async function priceProducts(products: Product[], platform: 'Personalized' | 'Co
             };
             return {
                 ...p,
+                featuredOnPersonal: p.featuredOnPersonal ?? false,
+                featuredOnCorporate: p.featuredOnCorporate ?? false,
                 displayPrice: await calculateDisplayPrice(productInfo, platform, category || undefined),
-            };
+            } as ProductWithPrice;
         })
     );
     return pricedProducts;
@@ -133,7 +135,7 @@ export function onFeaturedProductsUpdate(
 
     let unsubCategories: Unsubscribe | null = null;
     let unsubProducts: Unsubscribe | null = null;
-    let productCache: Product[] = [];
+    let productCache: (Product & Partial<FeaturedProduct>)[] = [];
     let categoryCache: Category[] = [];
 
     const combineAndCallback = async () => {
@@ -145,18 +147,30 @@ export function onFeaturedProductsUpdate(
 
     unsubCategories = onCategoriesWithCommissionsUpdate(platform, (categories) => {
         categoryCache = categories;
-        combineAndCallback();
+        if(productCache.length > 0) {
+            combineAndCallback();
+        }
     });
 
     const setupProductListener = async () => {
-        // Fetch featured products once to get their IDs
         const featuredProductsInitial = await fetcher();
+        productCache = featuredProductsInitial;
+        combineAndCallback();
+        
         const productIds = featuredProductsInitial.map(p => p.id);
 
         if (productIds.length > 0) {
             const q = query(productsCollection, where(documentId(), 'in', productIds));
             unsubProducts = onSnapshot(q, (snapshot) => {
-                productCache = snapshot.docs.map(doc => serializeProduct({ id: doc.id, ...doc.data() } as Product));
+                const updatedProducts = snapshot.docs.map(doc => {
+                    const existingData = productCache.find(p => p.id === doc.id);
+                    return {
+                        ...(serializeProduct({ id: doc.id, ...doc.data() } as Product)),
+                        featuredOnPersonal: existingData?.featuredOnPersonal,
+                        featuredOnCorporate: existingData?.featuredOnCorporate,
+                    };
+                });
+                productCache = updatedProducts;
                 combineAndCallback();
             });
         } else {

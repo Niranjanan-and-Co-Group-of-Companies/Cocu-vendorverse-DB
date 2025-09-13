@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -18,6 +19,7 @@ import { onCategoriesWithCommissionsUpdate, type Category } from '@/lib/categori
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
+import type { FeaturedProduct } from '@/lib/featured-service';
 
 interface RelatedProductsCarouselProps {
   type: 'category' | 'vendor';
@@ -31,7 +33,7 @@ interface ProductWithPrice extends Product {
 }
 
 export function RelatedProductsCarousel({ type, value, currentProductId, title }: RelatedProductsCarouselProps) {
-  const [relatedProducts, setRelatedProducts] = React.useState<ProductWithPrice[]>([]);
+  const [relatedProducts, setRelatedProducts] = React.useState<(ProductWithPrice & Partial<FeaturedProduct>)[]>([]);
   const [loading, setLoading] = React.useState(true);
   const pathname = usePathname();
   const { addItem: addToCart } = useCart();
@@ -140,7 +142,7 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                     />
                   </Link>
                   <div className="absolute top-2 left-2 z-10 flex flex-col gap-y-2">
-                        {product.featured && <Badge>Featured</Badge>}
+                        {product.featuredOnPersonal && <Badge>Featured</Badge>}
                         {product.displayPrice.hasDiscount && (
                             <Badge variant="destructive" >{product.displayPrice.discountText}</Badge>
                         )}
