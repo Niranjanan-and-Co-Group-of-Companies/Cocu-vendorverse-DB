@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc, doc, orderBy, limit } from 'firebase/firestore';
 import { db } from './firebase';
 
 const API_KEY = process.env.TWO_FACTOR_API_KEY;
@@ -16,12 +16,13 @@ type OtpStatus = 'pending' | 'verified' | 'expired' | 'failed';
  */
 export async function sendOtp(to: string): Promise<{ success: boolean; message: string }> {
     if (!API_KEY) {
-        console.error("2Factor API key is not configured.");
-        // In a real production environment, we'd fail gracefully.
-        // For this demo, we'll allow a mock success to not block development.
+        console.error("2Factor API key is not configured. Cannot send live OTP.");
+        // In a real production environment with a key, this block would not be hit.
+        // For this demo, we fall back to a mock success to avoid blocking development if the key is missing.
         console.log("DEMO MODE: OTP send successful (mock).");
         return { success: true, message: "OTP sent successfully (demo mode)." };
     }
+
     if (!/^\d{10}$/.test(to)) {
         return { success: false, message: "Invalid phone number format." };
     }
@@ -32,7 +33,7 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
 
         if (json.Status !== 'Success') {
             console.error("2Factor API Error:", json.Details);
-            return { success: false, message: "Failed to send OTP. Please try again." };
+            return { success: false, message: "Failed to send OTP. Please try again later." };
         }
         
         const sessionId = json.Details;
@@ -47,8 +48,8 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
 
         return { success: true, message: `OTP sent successfully.` };
     } catch (error) {
-        console.error("Error sending OTP:", error);
-        return { success: false, message: "An unexpected error occurred." };
+        console.error("Error sending OTP via 2Factor API:", error);
+        return { success: false, message: "An unexpected error occurred while sending the OTP." };
     }
 }
 
@@ -60,10 +61,9 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
  */
 export async function verifyOtp(to: string, otpAttempt: string): Promise<{ success: boolean; message: string }> {
      if (!API_KEY) {
-        console.error("2Factor API key is not configured.");
+        console.warn("2Factor API key not found. Falling back to demo mode OTP verification.");
         // In demo mode, accept a hardcoded OTP.
         if (otpAttempt === '123456') {
-             console.log("DEMO MODE: OTP verified (mock).");
             return { success: true, message: "OTP verified successfully (demo mode)." };
         }
         return { success: false, message: "Invalid OTP (demo mode)." };
@@ -76,7 +76,7 @@ export async function verifyOtp(to: string, otpAttempt: string): Promise<{ succe
         const sessionSnapshot = await getDocs(q);
 
         if (sessionSnapshot.empty) {
-            return { success: false, message: "No pending OTP session found. Please try sending a new OTP." };
+            return { success: false, message: "No pending OTP session found. Please request a new one." };
         }
         
         const sessionDoc = sessionSnapshot.docs[0];
@@ -86,11 +86,10 @@ export async function verifyOtp(to: string, otpAttempt: string): Promise<{ succe
         const json = await response.json();
 
         if (json.Status === 'Success') {
-            // Update session status to verified
             await updateDoc(doc(db, 'otp_sessions', sessionDoc.id), { status: 'verified' });
             return { success: true, message: "OTP verified successfully." };
         } else {
-            return { success: false, message: json.Details || "Invalid OTP." };
+            return { success: false, message: json.Details || "Invalid or expired OTP." };
         }
     } catch (error) {
         console.error("Error verifying OTP:", error);
