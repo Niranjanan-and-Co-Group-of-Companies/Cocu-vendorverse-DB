@@ -17,9 +17,8 @@ type OtpStatus = 'pending' | 'verified' | 'expired' | 'failed';
  */
 export async function sendOtp(to: string): Promise<{ success: boolean; message: string }> {
     if (!API_KEY) {
-        console.error("2Factor API key is not configured. Cannot send live OTP.");
+        console.warn("2Factor API key is not configured. Using demo mode.");
         // For this demo, we fall back to a mock success to avoid blocking development if the key is missing.
-        console.log("DEMO MODE: OTP send successful (mock).");
         return { success: true, message: "OTP sent successfully (demo mode)." };
     }
 
