@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, doc, limit, Timestamp } from 'firebase/firestore';
@@ -20,8 +19,11 @@ async function hashPassword(password: string): Promise<string> {
  */
 export async function checkUserExists(email: string, phone: string): Promise<{ exists: boolean, message?: string }> {
     const usersRef = collection(db, 'users');
+    // Normalize phone number for querying
+    const normalizedPhone = `+91${phone.replace(/\D/g, '').slice(-10)}`;
+
     const emailQuery = query(usersRef, where('email', '==', email));
-    const phoneQuery = query(usersRef, where('phone', '==', `+91${phone}`));
+    const phoneQuery = query(usersRef, where('phone', '==', normalizedPhone));
 
     const [emailSnapshot, phoneSnapshot] = await Promise.all([
         getDocs(emailQuery),
@@ -57,11 +59,13 @@ export async function signupUser(userData: {
     
     const hashedPassword = await hashPassword(userData.password);
     const verificationToken = uuidv4();
+    const normalizedPhone = `+91${userData.phone.replace(/\D/g, '').slice(-10)}`;
+
 
     const newUserRef = await addDoc(collection(db, 'users'), {
         name: userData.name,
         email: userData.email,
-        phone: `+91${userData.phone}`,
+        phone: normalizedPhone,
         passwordHash: hashedPassword,
         role: userData.role,
         corporateAccountId: userData.corporateAccountId || null,
@@ -107,4 +111,3 @@ export async function verifyUserEmail(token: string): Promise<{ success: boolean
 
     return { success: true, message: 'Your email has been verified! You can now log in.' };
 }
-
