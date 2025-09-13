@@ -6,30 +6,38 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { OrderSummary } from '@/components/checkout/order-summary';
 import { ShippingAddress } from '@/components/checkout/shipping-address';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { PhoneVerificationDialog } from '@/components/checkout/phone-verification-dialog';
-
-// In a real app this would come from an auth context
-const MOCK_USER = {
-    isPhoneVerified: false,
-};
+import { getMockUser } from '@/lib/user-service';
 
 function CheckoutPageContent() {
     const { items } = useCart();
-    const [isPhoneVerified, setIsPhoneVerified] = React.useState(MOCK_USER.isPhoneVerified);
+    const [user, setUser] = React.useState<any>(null);
+    const [loading, setLoading] = React.useState(true);
     const [isVerificationOpen, setIsVerificationOpen] = React.useState(false);
 
     React.useEffect(() => {
-        // In a real app, you would check if the user is authenticated first.
-        // If not authenticated, you might redirect to login or show the login dialog.
-        if (!isPhoneVerified) {
-            setIsVerificationOpen(true);
-        }
-    }, [isPhoneVerified]);
+        getMockUser().then(userData => {
+            setUser(userData);
+            setLoading(false);
+            if (userData && !userData.isPhoneVerified) {
+                setIsVerificationOpen(true);
+            }
+        });
+    }, []);
+    
+    if (loading) {
+        return (
+            <div className="container py-20 text-center">
+                <Loader2 className="mx-auto h-16 w-16 animate-spin text-muted-foreground" />
+                <p className="mt-4 text-lg">Loading your details...</p>
+            </div>
+        )
+    }
     
     if (items.length === 0) {
         return (
@@ -80,7 +88,7 @@ function CheckoutPageContent() {
                 isOpen={isVerificationOpen}
                 onOpenChange={setIsVerificationOpen}
                 onVerified={() => {
-                    setIsPhoneVerified(true);
+                    if (user) user.isPhoneVerified = true;
                     setIsVerificationOpen(false);
                 }}
             />
