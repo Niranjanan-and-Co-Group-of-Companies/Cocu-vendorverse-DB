@@ -1,10 +1,8 @@
-
-
 'use server';
 
+import 'dotenv/config';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc, doc, orderBy, limit } from 'firebase/firestore';
 import { db } from './firebase';
-import 'dotenv/config'
 
 const API_KEY = process.env.TWO_FACTOR_API_KEY;
 const API_URL = 'https://2factor.in/API/V1';
@@ -18,9 +16,8 @@ type OtpStatus = 'pending' | 'verified' | 'expired' | 'failed';
  */
 export async function sendOtp(to: string): Promise<{ success: boolean; message: string }> {
     if (!API_KEY) {
-        console.warn("2Factor API key is not configured. Using demo mode.");
-        // For this demo, we fall back to a mock success to avoid blocking development if the key is missing.
-        return { success: true, message: "OTP sent successfully (demo mode)." };
+        console.error("2Factor API key is not configured. Please set TWO_FACTOR_API_KEY in your .env file.");
+        return { success: false, message: "Server configuration error." };
     }
 
     if (!/^\d{10}$/.test(to)) {
@@ -29,11 +26,17 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
 
     try {
         const response = await fetch(`${API_URL}/${API_KEY}/SMS/${to}/AUTOGEN/VendorVerse`);
+        
+        if (!response.ok) {
+            console.error("2Factor API request failed with status:", response.status);
+            return { success: false, message: "Failed to send OTP. Please try again later." };
+        }
+
         const json = await response.json();
 
         if (json.Status !== 'Success') {
             console.error("2Factor API Error:", json.Details);
-            return { success: false, message: "Failed to send OTP. Please try again later." };
+            return { success: false, message: "Failed to send OTP. Please check the number and try again." };
         }
         
         const sessionId = json.Details;
@@ -43,7 +46,7 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
             to: `+91${to}`,
             sessionId: sessionId,
             createdAt: serverTimestamp(),
-            status: 'pending',
+            status: 'pending' as OtpStatus,
         });
 
         return { success: true, message: `OTP sent. Session ID: ${sessionId}` };
@@ -61,7 +64,7 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
  */
 export async function verifyOtp(to: string, otpAttempt: string): Promise<{ success: boolean; message: string }> {
      if (!API_KEY) {
-        console.warn("2Factor API key not found. Falling back to demo mode OTP verification.");
+        console.error("2Factor API key not found for verification.");
         // In demo mode, accept a hardcoded OTP.
         if (otpAttempt === '123456') {
             return { success: true, message: "OTP verified successfully (demo mode)." };
@@ -83,6 +86,12 @@ export async function verifyOtp(to: string, otpAttempt: string): Promise<{ succe
         const sessionId = sessionDoc.data().sessionId;
 
         const response = await fetch(`${API_URL}/${API_KEY}/SMS/VERIFY/${sessionId}/${otpAttempt}`);
+        
+        if (!response.ok) {
+            console.error("2Factor verification API request failed with status:", response.status);
+            return { success: false, message: "Could not verify OTP. Service may be unavailable." };
+        }
+        
         const json = await response.json();
 
         if (json.Status === 'Success') {
@@ -96,4 +105,3 @@ export async function verifyOtp(to: string, otpAttempt: string): Promise<{ succe
         return { success: false, message: "An unexpected error occurred during verification." };
     }
 }
-

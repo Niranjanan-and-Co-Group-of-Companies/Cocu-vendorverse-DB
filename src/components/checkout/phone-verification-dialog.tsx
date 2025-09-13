@@ -46,7 +46,7 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
 
     if (result.success) {
       setStep(2);
-      toast({ title: "OTP Sent", description: "A one-time password has been sent." });
+      toast({ title: "OTP Sent", description: result.message });
     } else {
       toast({ title: "Failed to Send OTP", description: result.message, variant: "destructive" });
     }
@@ -60,10 +60,21 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
     if (result.success) {
       toast({ title: "Phone Verified", description: "You can now proceed with your order." });
       onVerified();
+      onOpenChange(false);
     } else {
-      toast({ title: result.message, variant: "destructive" });
+      toast({ title: "Verification Failed", description: result.message, variant: "destructive" });
     }
   };
+
+  React.useEffect(() => {
+    if (!isOpen) {
+        setTimeout(() => {
+            setStep(1);
+            setPhone('');
+            setOtp('');
+        }, 200);
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -98,7 +109,7 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="otp">One-Time Password</Label>
-              <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit OTP" />
+              <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit code" />
             </div>
              <Button onClick={handleVerifyOtp} disabled={isSending}>
                 {isSending && <Loader2 className="mr-2 animate-spin" />}
