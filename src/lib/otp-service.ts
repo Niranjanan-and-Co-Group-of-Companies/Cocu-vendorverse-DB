@@ -1,3 +1,4 @@
+
 'use server';
 
 import 'dotenv/config';
@@ -28,7 +29,8 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
         const response = await fetch(`${API_URL}/${API_KEY}/SMS/${to}/AUTOGEN/VendorVerse`);
         
         if (!response.ok) {
-            console.error("2Factor API request failed with status:", response.status);
+            const errorBody = await response.text();
+            console.error("2Factor API request failed with status:", response.status, "Body:", errorBody);
             return { success: false, message: "Failed to send OTP. Please try again later." };
         }
 
@@ -36,7 +38,7 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
 
         if (json.Status !== 'Success') {
             console.error("2Factor API Error:", json.Details);
-            return { success: false, message: "Failed to send OTP. Please check the number and try again." };
+            return { success: false, message: `Failed to send OTP: ${json.Details}` };
         }
         
         const sessionId = json.Details;
@@ -64,7 +66,6 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
  */
 export async function verifyOtp(to: string, otpAttempt: string): Promise<{ success: boolean; message: string }> {
      if (!API_KEY) {
-        console.error("2Factor API key not found for verification.");
         // In demo mode, accept a hardcoded OTP.
         if (otpAttempt === '123456') {
             return { success: true, message: "OTP verified successfully (demo mode)." };
