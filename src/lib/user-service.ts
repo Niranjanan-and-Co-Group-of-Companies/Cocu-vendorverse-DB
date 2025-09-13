@@ -95,7 +95,7 @@ export function onUsersUpdate(callback: (users: User[]) => void): Unsubscribe {
     return unsubscribe;
 }
 
-export async function updateUserContact(userId: string, field: 'email' | 'phone', value: string) {
+export async function updateUserContact(userId: string, field: 'email' | 'phone' | 'name', value: string) {
   const userRef = doc(db, 'users', userId);
   await updateDoc(userRef, { [field]: value });
 }

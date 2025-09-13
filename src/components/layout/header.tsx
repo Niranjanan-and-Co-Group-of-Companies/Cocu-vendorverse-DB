@@ -64,7 +64,7 @@ export default function Header() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuLabel>Hi, {user.name.split(' ')[0]}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild><Link href="/account"><User className="mr-2"/>Profile & Orders</Link></DropdownMenuItem>
                         <DropdownMenuSeparator />

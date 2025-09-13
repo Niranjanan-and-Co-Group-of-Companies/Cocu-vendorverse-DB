@@ -7,14 +7,55 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { getMockUser, type User } from '@/lib/user-service';
+import { getMockUser, type User, updateUserContact } from '@/lib/user-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import { onSnapshot, query, collection, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Order } from '@/lib/orders-service';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye } from 'lucide-react';
+import { Eye, Loader2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+
+function EditableProfileField({ label, initialValue, onSave }: { label: string; initialValue: string; onSave: (newValue: string) => Promise<void>}) {
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [value, setValue] = React.useState(initialValue);
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await onSave(value);
+    setIsSaving(false);
+    setIsEditing(false);
+  };
+  
+  React.useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex items-center gap-2">
+        <Input value={value} onChange={e => setValue(e.target.value)} readOnly={!isEditing} />
+        {isEditing ? (
+          <>
+            <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? <Loader2 className="mr-2 animate-spin"/> : null}
+                Save
+            </Button>
+            <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+          </>
+        ) : (
+          <Button variant="outline" onClick={() => setIsEditing(true)}>Edit</Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 // Component for Orders Tab
 function OrdersTab() {
@@ -174,14 +215,42 @@ function PaymentMethodsTab() {
 
 // Component for Profile Settings Tab
 function SettingsTab() {
+     const [user, setUser] = React.useState<User | null>(null);
+     const [loading, setLoading] = React.useState(true);
+     const { toast } = useToast();
+
+     React.useEffect(() => {
+        getMockUser().then(userData => {
+            setUser(userData);
+            setLoading(false);
+        });
+    }, []);
+
+    const handleSave = async (field: 'name' | 'email' | 'phone', value: string) => {
+        if (!user) return;
+        try {
+            await updateUserContact(user.id, field, value);
+            setUser(prev => prev ? { ...prev, [field]: value } : null);
+            toast({ title: 'Profile Updated', description: `Your ${field} has been updated.` });
+        } catch (error) {
+            toast({ title: 'Error', description: 'Could not update your profile.', variant: 'destructive' });
+        }
+    }
+     
+     if(loading) {
+         return <Skeleton className="h-64 w-full" />
+     }
+
      return (
         <Card>
             <CardHeader>
                 <CardTitle>Profile Settings</CardTitle>
                  <CardDescription>Update your personal information and communication preferences.</CardDescription>
             </CardHeader>
-            <CardContent>
-                <p>Profile settings form will go here.</p>
+            <CardContent className="space-y-6">
+                <EditableProfileField label="Full Name" initialValue={user?.name || ''} onSave={(newValue) => handleSave('name', newValue)} />
+                <EditableProfileField label="Email Address" initialValue={user?.email || ''} onSave={(newValue) => handleSave('email', newValue)} />
+                <EditableProfileField label="Phone Number" initialValue={user?.phone || ''} onSave={(newValue) => handleSave('phone', newValue)} />
             </CardContent>
         </Card>
     );
@@ -190,7 +259,7 @@ function SettingsTab() {
 
 function AccountPageContent() {
     const searchParams = useSearchParams();
-    const defaultTab = searchParams.get('tab') || 'dashboard';
+    const defaultTab = searchParams.get('tab') || 'orders';
     const [user, setUser] = React.useState<User | null>(null);
     const [loading, setLoading] = React.useState(true);
     
@@ -249,5 +318,3 @@ export default function AccountPage() {
         </React.Suspense>
     )
 }
-
-    
