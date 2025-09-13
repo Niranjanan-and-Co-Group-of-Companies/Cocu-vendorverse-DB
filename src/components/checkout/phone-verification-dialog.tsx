@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -15,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldCheck } from 'lucide-react';
+import { sendOtp, verifyOtp } from '@/lib/otp-service';
 
 interface PhoneVerificationDialogProps {
   isOpen: boolean;
@@ -31,31 +31,37 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Allow only numbers and limit to 10 digits
     const numericValue = value.replace(/\D/g, '').slice(0, 10);
     setPhone(numericValue);
   };
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (phone.length < 10) {
       toast({ title: "Invalid Phone Number", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
       return;
     }
     setIsSending(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSending(false);
+    const result = await sendOtp(phone);
+    setIsSending(false);
+
+    if (result.success) {
       setStep(2);
       toast({ title: "OTP Sent", description: "A one-time password has been sent." });
-    }, 1000);
+    } else {
+      toast({ title: "Failed to Send OTP", description: result.message, variant: "destructive" });
+    }
   };
 
-  const handleVerifyOtp = () => {
-    if (otp === '123456') { // Mock OTP
+  const handleVerifyOtp = async () => {
+    setIsSending(true);
+    const result = await verifyOtp(phone, otp);
+    setIsSending(false);
+
+    if (result.success) {
       toast({ title: "Phone Verified", description: "You can now proceed with your order." });
       onVerified();
     } else {
-      toast({ title: "Invalid OTP", variant: "destructive" });
+      toast({ title: result.message, variant: "destructive" });
     }
   };
 
@@ -70,7 +76,7 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
           <DialogDescription className="text-center">
             {step === 1 
               ? "For security, we need to verify your phone number before you can place an order."
-              : "Enter the 6-digit code we sent to your phone. (Hint: 123456)"
+              : `Enter the 6-digit code we sent to +91 ${phone}.`
             }
           </DialogDescription>
         </DialogHeader>
@@ -92,9 +98,12 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="otp">One-Time Password</Label>
-              <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" />
+              <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit OTP" />
             </div>
-             <Button onClick={handleVerifyOtp}>Verify & Continue</Button>
+             <Button onClick={handleVerifyOtp} disabled={isSending}>
+                {isSending && <Loader2 className="mr-2 animate-spin" />}
+                Verify & Continue
+             </Button>
           </div>
         )}
       </DialogContent>

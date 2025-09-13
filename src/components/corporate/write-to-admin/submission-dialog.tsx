@@ -15,8 +15,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldCheck } from 'lucide-react';
-import type { SourcingRequestData } from '@/app/corporate/write-to-admin/page';
+import type { SourcingRequestData } from '@/app/corporate/sourcing-requests/new/page';
 import { createSourcingRequest } from '@/lib/sourcing-requests-service';
+import { sendOtp, verifyOtp } from '@/lib/otp-service';
 
 interface SubmissionDialogProps {
   isOpen: boolean;
@@ -30,15 +31,34 @@ export function SubmissionDialog({ isOpen, onClose, requestData, onVerified }: S
   const [isVerifying, setIsVerifying] = React.useState(false);
   const { toast } = useToast();
 
+   React.useEffect(() => {
+    if (isOpen && requestData?.contactPhone) {
+        const phone = requestData.contactPhone.replace(/\D/g, '').slice(-10);
+        sendOtp(phone).then(result => {
+            if(result.success) {
+                toast({ title: 'OTP Sent', description: 'A code has been sent to the contact phone number.' });
+            } else {
+                 toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
+                 onClose();
+            }
+        })
+    }
+  }, [isOpen, requestData, toast, onClose]);
+
+
   const handleVerify = async () => {
     if (!requestData) return;
+    const phone = requestData.contactPhone.replace(/\D/g, '').slice(-10);
     
-    if (otp !== '123456') { // Mock OTP check
-        toast({ title: "Invalid OTP", description: "The OTP you entered is incorrect.", variant: "destructive" });
+    setIsVerifying(true);
+    const otpResult = await verifyOtp(phone, otp);
+
+    if (!otpResult.success) {
+        toast({ title: "Invalid OTP", description: otpResult.message, variant: "destructive" });
+        setIsVerifying(false);
         return;
     }
 
-    setIsVerifying(true);
     try {
         await createSourcingRequest(requestData);
         onVerified();
@@ -47,11 +67,14 @@ export function SubmissionDialog({ isOpen, onClose, requestData, onVerified }: S
         toast({ title: "Error", description: "Could not submit your request. Please try again.", variant: "destructive" });
     } finally {
         setIsVerifying(false);
+        onClose();
     }
   };
   
   React.useEffect(() => {
-    setOtp('');
+    if(!isOpen) {
+        setOtp('');
+    }
   }, [isOpen]);
 
   return (
@@ -63,7 +86,7 @@ export function SubmissionDialog({ isOpen, onClose, requestData, onVerified }: S
           </div>
           <DialogTitle className="text-center">Verify Your Phone Number</DialogTitle>
           <DialogDescription className="text-center">
-            To finalize your request, please enter the 6-digit code we sent to {requestData?.contactPhone}. (Hint: use 123456)
+            To finalize your request, please enter the 6-digit code we sent to {requestData?.contactPhone}.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -73,7 +96,7 @@ export function SubmissionDialog({ isOpen, onClose, requestData, onVerified }: S
                 id="otp" 
                 value={otp} 
                 onChange={(e) => setOtp(e.target.value)} 
-                placeholder="123456" 
+                placeholder="Enter 6-digit OTP" 
                 autoComplete="one-time-code"
               />
             </div>

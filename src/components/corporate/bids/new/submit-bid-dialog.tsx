@@ -19,6 +19,7 @@ import { createBid } from '@/lib/bids-service';
 import type { Product } from '@/lib/products';
 import type { BidDetails } from './bid-details-card';
 import type { AdditionalInfo } from './additional-info-card';
+import { sendOtp, verifyOtp } from '@/lib/otp-service';
 
 interface SubmitBidDialogProps {
   isOpen: boolean;
@@ -33,17 +34,34 @@ export function SubmitBidDialog({ isOpen, onClose, bidDetails, additionalInfo, p
   const [otp, setOtp] = React.useState('');
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
+  // In a real app, this would come from the user's profile
+  const MOCK_PHONE = '9876543210'; 
+
+  React.useEffect(() => {
+    if(isOpen) {
+        sendOtp(MOCK_PHONE).then(result => {
+            if(result.success) {
+                toast({ title: 'OTP Sent', description: 'A code has been sent to your registered number.' });
+            } else {
+                 toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
+                 onClose();
+            }
+        })
+    }
+  }, [isOpen]);
 
   const handleFinalizeBid = async () => {
-    if (otp !== '123456') { // Mock OTP check
-        toast({ title: 'Invalid OTP', description: 'The OTP you entered is incorrect.', variant: 'destructive' });
+    setIsSaving(true);
+    const otpResult = await verifyOtp(MOCK_PHONE, otp);
+    if(!otpResult.success) {
+        toast({ title: 'Invalid OTP', description: otpResult.message, variant: 'destructive' });
+        setIsSaving(false);
         return;
     }
     
-    setIsSaving(true);
     try {
         await createBid({
-            products: products.map(p => ({ id: p.id, name: p.name, image: p.image, vendor: p.vendor })),
+            products: products.map(p => ({ id: p.id, name: p.name, image: p.image, vendor: p.vendor, vendorId: p.vendorId })),
             ...bidDetails,
             notes: additionalInfo.notes,
             briefFiles: additionalInfo.briefFiles,
@@ -65,7 +83,7 @@ export function SubmitBidDialog({ isOpen, onClose, bidDetails, additionalInfo, p
         <DialogHeader>
           <DialogTitle>Verify & Submit Bid</DialogTitle>
           <DialogDescription>
-            Enter the 6-digit OTP sent to your registered mobile number to confirm your bid request. (Hint: use 123456)
+            Enter the 6-digit OTP sent to your registered mobile number to confirm your bid request.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
@@ -75,13 +93,14 @@ export function SubmitBidDialog({ isOpen, onClose, bidDetails, additionalInfo, p
                 id="otp" 
                 value={otp}
                 onChange={e => setOtp(e.target.value)}
-                placeholder="123456" 
+                placeholder="Enter 6-digit OTP" 
+                autoComplete="one-time-code"
             />
           </div>
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="button" onClick={handleFinalizeBid} disabled={isSaving}>
+          <Button type="button" onClick={handleFinalizeBid} disabled={isSaving || otp.length < 6}>
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Confirm & Submit
           </Button>

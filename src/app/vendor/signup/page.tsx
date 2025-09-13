@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useRouter } from 'next/navigation';
 import { createVendorApplication, type VendorType, checkVendorExists } from '@/lib/vendors-service';
+import { sendOtp, verifyOtp } from '@/lib/otp-service';
 
 export default function VendorSignupPage() {
   const [step, setStep] = React.useState(1);
@@ -45,8 +45,7 @@ export default function VendorSignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   
   // OTP state
-  const [emailOtp, setEmailOtp] = React.useState('');
-  const [phoneOtp, setPhoneOtp] = React.useState('');
+  const [otp, setOtp] = React.useState('');
 
   const passwordCriteria = "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.";
 
@@ -83,14 +82,17 @@ export default function VendorSignupPage() {
                 description: message,
                 variant: "destructive",
             });
+            setIsLoading(false);
             return;
         }
 
-        // Simulate sending OTPs if check passes
-        setTimeout(() => {
+        const otpResult = await sendOtp(phone);
+        if (otpResult.success) {
             setStep(3);
-            toast({ title: "Verification Required", description: "OTPs have been sent to your email and phone." });
-        }, 1000);
+            toast({ title: "Verification Required", description: "An OTP has been sent to your phone." });
+        } else {
+            toast({ title: "Failed to Send OTP", description: otpResult.message, variant: "destructive"});
+        }
 
     } catch (error) {
         console.error(error);
@@ -102,16 +104,20 @@ export default function VendorSignupPage() {
 
   const handleFinalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (emailOtp !== '123456' || phoneOtp !== '123456') {
-        toast({ title: "Invalid OTP", description: "One or both of your verification codes are incorrect.", variant: "destructive" });
-        return;
-    }
     if (!vendorType) {
         toast({ title: "Vendor type missing", description: "An error occurred, please start over.", variant: "destructive" });
         return;
     }
 
     setIsLoading(true);
+
+    const verificationResult = await verifyOtp(phone, otp);
+    if (!verificationResult.success) {
+        toast({ title: "Invalid OTP", description: verificationResult.message, variant: "destructive" });
+        setIsLoading(false);
+        return;
+    }
+
     try {
         await createVendorApplication({ storeName, firstName, lastName, email, phone: `+91${phone}`, vendorType });
         toast({
@@ -239,15 +245,12 @@ export default function VendorSignupPage() {
             )}
             {step === 3 && (
                 <form className="grid gap-4" onSubmit={handleFinalSubmit}>
-                     <div className="grid gap-2">
-                        <Label htmlFor="email-otp">Email OTP</Label>
-                        <Input id="email-otp" value={emailOtp} onChange={e => setEmailOtp(e.target.value)} placeholder="Enter 6-digit code" required />
-                    </div>
+                    <p className="text-sm text-center text-muted-foreground">We've sent a 6-digit code to +91 {phone}.</p>
                      <div className="grid gap-2">
                         <Label htmlFor="phone-otp">Phone OTP</Label>
-                        <Input id="phone-otp" value={phoneOtp} onChange={e => setPhoneOtp(e.target.value)} placeholder="Enter 6-digit code" required />
+                        <Input id="phone-otp" value={otp} onChange={e => setOtp(e.target.value)} placeholder="Enter 6-digit code" required />
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full" disabled={isLoading || otp.length < 6}>
                          {isLoading && <Loader2 className="mr-2 animate-spin" />}
                          Submit Application
                     </Button>

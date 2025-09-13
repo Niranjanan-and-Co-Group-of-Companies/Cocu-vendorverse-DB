@@ -3,7 +3,10 @@
 
 import { collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from './firebase';
-import { hash } from 'bcryptjs'; // A more secure way to handle OTPs
+import { compare, hash } from 'bcryptjs';
+
+const API_KEY = process.env.TWO_FACTOR_API_KEY;
+const API_URL = 'https://2factor.in/API/V1';
 
 type OtpType = 'email' | 'phone';
 type OtpStatus = 'pending' | 'verified' | 'expired' | 'failed';
@@ -21,67 +24,66 @@ interface OtpLog {
 const MAX_ATTEMPTS = 5;
 
 /**
- * Creates and stores a new OTP log.
- * In a real app, this would also trigger the email/SMS sending.
- * @param type - The type of OTP (email or phone).
- * @param to - The recipient's email or phone number.
- * @param otp - The plain text OTP.
- * @param validityInMinutes - How long the OTP is valid for.
+ * Generates and sends a new OTP.
+ * @param to - The recipient's 10-digit phone number.
  */
-export async function createOtp(type: OtpType, to: string, otp: string, validityInMinutes: number = 5): Promise<void> {
-    const saltRounds = 10;
-    const otpHash = await hash(otp, saltRounds);
+export async function sendOtp(to: string): Promise<{ success: boolean; message: string }> {
+    if (!API_KEY) {
+        console.error("2Factor API key is not configured.");
+        return { success: false, message: "SMS service is not configured." };
+    }
+    if (!/^\d{10}$/.test(to)) {
+        return { success: false, message: "Invalid phone number format." };
+    }
 
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + validityInMinutes);
+    try {
+        const response = await fetch(`${API_URL}/${API_KEY}/SMS/+91${to}/AUTOGEN/VendorVerse`);
+        const json = await response.json();
 
-    await addDoc(collection(db, 'otp_logs'), {
-        type,
-        to,
-        otpHash,
-        expiresAt: serverTimestamp(),
-        attempts: 0,
-        status: 'pending',
-    });
-    // Here you would call your email (ZeptoMail) or SMS (2Factor) service
-    console.log(`(Simulation) OTP ${otp} sent to ${to}`);
+        if (json.Status !== 'Success') {
+            console.error("2Factor API Error:", json.Details);
+            return { success: false, message: "Failed to send OTP. Please try again." };
+        }
+        
+        const sessionId = json.Details;
+        
+        await addDoc(collection(db, 'otp_sessions'), {
+            to: `+91${to}`,
+            sessionId: sessionId,
+            createdAt: serverTimestamp(),
+            status: 'pending',
+        });
+
+        return { success: true, message: `OTP sent successfully.` };
+    } catch (error) {
+        console.error("Error sending OTP:", error);
+        return { success: false, message: "An unexpected error occurred." };
+    }
 }
 
+
 /**
- * Verifies an OTP against the stored hash.
- * @param to - The email or phone number the OTP was sent to.
- * @param otpAttempt - The plain text OTP entered by the user.
- * @returns True if verification is successful, false otherwise.
+ * Verifies an OTP using the 2Factor service.
+ * @param to - The 10-digit phone number.
+ * @param otpAttempt - The OTP entered by the user.
  */
-export async function verifyOtp(to: string, otpAttempt: string): Promise<boolean> {
-    const otpRef = collection(db, 'otp_logs');
-    const q = query(
-        otpRef,
-        where('to', '==', to),
-        where('status', '==', 'pending'),
-        where('expiresAt', '>', new Date())
-    );
-
-    const snapshot = await getDocs(q);
-    if (snapshot.empty) {
-        return false; // No pending OTP found
+export async function verifyOtp(to: string, otpAttempt: string): Promise<{ success: boolean; message: string }> {
+    if (!API_KEY) {
+        console.error("2Factor API key is not configured.");
+        return { success: false, message: "SMS service is not configured." };
     }
 
-    const otpDoc = snapshot.docs[0]; // Get the most recent one
-    const otpData = otpDoc.data() as OtpLog;
+    try {
+        const response = await fetch(`${API_URL}/${API_KEY}/SMS/VERIFY3/+91${to}/${otpAttempt}`);
+        const json = await response.json();
 
-    if (otpData.attempts >= MAX_ATTEMPTS) {
-        await updateDoc(otpDoc.ref, { status: 'failed' });
-        return false; // Too many attempts
-    }
-
-    const isMatch = await hash(otpAttempt, otpData.otpHash); // This should use bcrypt.compare
-
-    if (isMatch) {
-        await updateDoc(otpDoc.ref, { status: 'verified' });
-        return true;
-    } else {
-        await updateDoc(otpDoc.ref, { attempts: otpData.attempts + 1 });
-        return false;
+        if (json.Status === 'Success') {
+            return { success: true, message: "OTP verified successfully." };
+        } else {
+            return { success: false, message: json.Details || "Invalid OTP." };
+        }
+    } catch (error) {
+        console.error("Error verifying OTP:", error);
+        return { success: false, message: "An unexpected error occurred during verification." };
     }
 }

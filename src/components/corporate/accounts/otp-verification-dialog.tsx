@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -15,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldCheck } from 'lucide-react';
+import { sendOtp, verifyOtp } from '@/lib/otp-service';
 
 interface OtpVerificationDialogProps {
   isOpen: boolean;
@@ -28,27 +28,40 @@ export function OtpVerificationDialog({ isOpen, onClose, onVerified, contactInfo
   const [isVerifying, setIsVerifying] = React.useState(false);
   const { toast } = useToast();
 
+  React.useEffect(() => {
+    if (isOpen && contactInfo) {
+        const sendUserOtp = async () => {
+            const phone = contactInfo.replace(/\D/g, '').slice(-10); // Extract 10-digit phone
+            const result = await sendOtp(phone);
+            if (!result.success) {
+                toast({ title: 'Failed to send OTP', description: result.message, variant: 'destructive'});
+            } else {
+                 toast({ title: 'OTP Sent', description: 'A code has been sent to your new phone number.' });
+            }
+        };
+        sendUserOtp();
+    }
+  }, [isOpen, contactInfo, toast]);
+
+
   const handleVerify = async () => {
-    // In a real app, you'd send the OTP to your backend for verification
-    if (otp !== '123456') {
-      toast({
-        title: 'Invalid OTP',
-        description: 'The OTP you entered is incorrect.',
-        variant: 'destructive',
-      });
-      return;
+    setIsVerifying(true);
+    const phone = contactInfo.replace(/\D/g, '').slice(-10);
+    const result = await verifyOtp(phone, otp);
+
+    if (result.success) {
+        try {
+            await onVerified();
+            toast({ title: 'Success', description: 'Your contact information has been updated.' });
+            onClose();
+        } catch (error) {
+            toast({ title: 'Error', description: 'Failed to update information.', variant: 'destructive' });
+        }
+    } else {
+         toast({ title: 'Invalid OTP', description: result.message, variant: 'destructive' });
     }
 
-    setIsVerifying(true);
-    try {
-      await onVerified(); // Call the parent's update function
-      toast({ title: 'Success', description: 'Your contact information has been updated.' });
-      onClose();
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to update information.', variant: 'destructive' });
-    } finally {
-      setIsVerifying(false);
-    }
+    setIsVerifying(false);
   };
 
   React.useEffect(() => {
@@ -66,7 +79,7 @@ export function OtpVerificationDialog({ isOpen, onClose, onVerified, contactInfo
           </div>
           <DialogTitle className="text-center">Confirm Your Change</DialogTitle>
           <DialogDescription className="text-center">
-            We've sent a 6-digit code to {contactInfo}. Please enter it below. (Hint: use 123456)
+            We've sent a 6-digit code to {contactInfo}. Please enter it below.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -76,7 +89,7 @@ export function OtpVerificationDialog({ isOpen, onClose, onVerified, contactInfo
               id="otp-verification"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              placeholder="123456"
+              placeholder="Enter 6-digit OTP"
               autoComplete="one-time-code"
             />
           </div>
