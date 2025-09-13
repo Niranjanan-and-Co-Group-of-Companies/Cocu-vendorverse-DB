@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc, doc, orderBy, limit } from 'firebase/firestore';
@@ -47,7 +46,7 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
             status: 'pending',
         });
 
-        return { success: true, message: `OTP sent successfully.` };
+        return { success: true, message: `OTP sent. Session ID: ${sessionId}` };
     } catch (error) {
         console.error("Error sending OTP via 2Factor API:", error);
         return { success: false, message: "An unexpected error occurred while sending the OTP." };
