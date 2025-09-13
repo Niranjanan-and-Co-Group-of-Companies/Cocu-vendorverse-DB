@@ -1,7 +1,8 @@
 
+
 'use server';
 
-import { collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, doc, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, doc, limit, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import { sendVerificationEmail } from './email-service';
 import type { User, UserRole } from './user-service';
@@ -106,3 +107,4 @@ export async function verifyUserEmail(token: string): Promise<{ success: boolean
 
     return { success: true, message: 'Your email has been verified! You can now log in.' };
 }
+
