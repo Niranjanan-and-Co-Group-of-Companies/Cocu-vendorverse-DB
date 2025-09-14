@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -7,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +27,30 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
   const [phone, setPhone] = React.useState('');
   const [otp, setOtp] = React.useState('');
   const [isSending, setIsSending] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(0);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  const startCountdown = () => {
+    setCountdown(30);
+    if(timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+  
+  React.useEffect(() => {
+    return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, []);
+
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -46,11 +69,25 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
 
     if (result.success) {
       setStep(2);
+      startCountdown();
       toast({ title: "OTP Sent", description: result.message });
     } else {
       toast({ title: "Failed to Send OTP", description: result.message, variant: "destructive" });
     }
   };
+  
+  const handleResendOtp = async () => {
+    setIsSending(true);
+    const result = await sendOtp(phone);
+    if (result.success) {
+        startCountdown();
+        toast({ title: "New OTP Sent", description: "A new verification code has been sent." });
+    } else {
+         toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
+    }
+    setIsSending(false);
+  };
+
 
   const handleVerifyOtp = async () => {
     setIsSending(true);
@@ -72,6 +109,8 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
             setStep(1);
             setPhone('');
             setOtp('');
+            if (timerRef.current) clearInterval(timerRef.current);
+            setCountdown(0);
         }, 200);
     }
   }, [isOpen]);
@@ -110,6 +149,15 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
             <div className="grid gap-2">
               <Label htmlFor="otp">One-Time Password</Label>
               <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter 6-digit code" />
+            </div>
+            <div className="text-center text-sm text-muted-foreground">
+                {countdown > 0 ? (
+                    `Resend code in ${countdown}s`
+                ) : (
+                    <Button type="button" variant="link" size="sm" onClick={handleResendOtp} disabled={isSending}>
+                        Resend OTP
+                    </Button>
+                )}
             </div>
              <Button onClick={handleVerifyOtp} disabled={isSending}>
                 {isSending && <Loader2 className="mr-2 animate-spin" />}
