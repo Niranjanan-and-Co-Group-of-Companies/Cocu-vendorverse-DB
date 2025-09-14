@@ -32,9 +32,12 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
     if (!/^\d{10}$/.test(to)) {
         return { success: false, message: "Invalid phone number format. Please provide a 10-digit number." };
     }
+    
+    // Format for API call: 91xxxxxxxxxx
+    const phoneNumberForApi = `91${to}`;
 
     try {
-        const response = await fetch(`${API_URL}/${API_KEY}/SMS/${to}/AUTOGEN/VendorVerse`);
+        const response = await fetch(`${API_URL}/${API_KEY}/SMS/${phoneNumberForApi}/AUTOGEN/VendorVerse`);
         
         if (!response.ok) {
             const errorBody = await response.text();
@@ -51,7 +54,7 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
         
         const sessionId = json.Details;
         
-        // Store the session ID for verification with the standardized phone number format
+        // Store the session ID for verification with the standardized E.164 phone number format
         await addDoc(collection(db, 'otp_sessions'), {
             to: `+91${to}`,
             sessionId: sessionId,
@@ -82,7 +85,7 @@ export async function verifyOtp(to: string, otpAttempt: string): Promise<{ succe
     }
     
     try {
-        // Find the latest OTP session for this number using the standardized format
+        // Find the latest OTP session for this number using the standardized E.164 format
         const sessionsRef = collection(db, 'otp_sessions');
         const q = query(sessionsRef, where('to', '==', `+91${to}`), where('status', '==', 'pending'), orderBy('createdAt', 'desc'), limit(1));
         const sessionSnapshot = await getDocs(q);
