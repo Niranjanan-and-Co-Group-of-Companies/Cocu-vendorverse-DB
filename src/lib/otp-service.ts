@@ -16,24 +16,26 @@ type OtpStatus = 'pending' | 'verified' | 'expired' | 'failed';
  * @param to - The recipient's 10-digit phone number.
  */
 export async function sendOtp(to: string): Promise<{ success: boolean; message: string }> {
-    if (!API_KEY) {
-        console.warn("2Factor API key is not configured. Using demo mode.");
-        // In demo mode, we won't actually send an OTP but will simulate success.
-        // We still need to store a session for the demo `verifyOtp` to work.
-         await addDoc(collection(db, 'otp_sessions'), {
-            to: `+91${to}`,
-            sessionId: `demo_${Date.now()}`,
-            createdAt: serverTimestamp(),
-            status: 'pending' as OtpStatus,
-        });
-        return { success: true, message: "OTP Sent (Demo Mode). Session: demo_... Use 123456 to verify." };
-    }
-
     if (!/^\d{10}$/.test(to)) {
         return { success: false, message: "Invalid phone number format. Please provide a 10-digit number." };
     }
+
+    if (!API_KEY) {
+        console.warn("2Factor API key is not configured. Using demo mode. Use OTP 123456 to verify.");
+        try {
+            await addDoc(collection(db, 'otp_sessions'), {
+                to: `+91${to}`,
+                sessionId: `demo_${Date.now()}`,
+                createdAt: serverTimestamp(),
+                status: 'pending' as OtpStatus,
+            });
+            return { success: true, message: "OTP Sent (Demo Mode). Use 123456 to verify." };
+        } catch (error) {
+            console.error("Error creating demo OTP session:", error);
+            return { success: false, message: "Failed to create a demo session." };
+        }
+    }
     
-    // Format for API call: 91xxxxxxxxxx
     const phoneNumberForApi = `91${to}`;
 
     try {
@@ -54,7 +56,6 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
         
         const sessionId = json.Details;
         
-        // Store the session ID for verification with the standardized E.164 phone number format
         await addDoc(collection(db, 'otp_sessions'), {
             to: `+91${to}`,
             sessionId: sessionId,
@@ -77,7 +78,6 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
  */
 export async function verifyOtp(to: string, otpAttempt: string): Promise<{ success: boolean; message: string }> {
      if (!API_KEY) {
-        // In demo mode, accept a hardcoded OTP.
         if (otpAttempt === '123456') {
             return { success: true, message: "OTP verified successfully (demo mode)." };
         }
@@ -85,7 +85,6 @@ export async function verifyOtp(to: string, otpAttempt: string): Promise<{ succe
     }
     
     try {
-        // Find the latest OTP session for this number using the standardized E.164 format
         const sessionsRef = collection(db, 'otp_sessions');
         const q = query(sessionsRef, where('to', '==', `+91${to}`), where('status', '==', 'pending'), orderBy('createdAt', 'desc'), limit(1));
         const sessionSnapshot = await getDocs(q);
