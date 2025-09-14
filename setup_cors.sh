@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # This script configures Firebase Storage CORS settings to allow uploads
 # from the Firebase Studio development environment.
@@ -9,7 +10,7 @@ cat > cors-config.json << EOL
     "origin": [
       "http://localhost:3000",
       "http://127.0.0.1:3000",
-      "https://6000--firebase-studio-1756796276779.cluster-3gc7bglotjgwuxlqpiut7yyqt4.cloudworkstations.dev",
+      "https://6000-firebase-studio-1756796276779.cluster-n281f5a51-ol-w.cloudworkstations.dev",
       "https://studio--vendorverse-rhu2g.us-central1.hosted.app",
       "https://vendorverse-rhu2g.web.app"
     ],
@@ -31,7 +32,7 @@ cat > cors-config.json << EOL
 EOL
 
 # Step 2: Get the Project ID from Firebase
-PROJECT_ID=$(firebase projects:list | grep '(current)' | awk '{print $3}')
+PROJECT_ID="vendorverse-rhu2g"
 if [ -z "$PROJECT_ID" ]; then
   echo "Error: Could not determine Firebase Project ID."
   exit 1
