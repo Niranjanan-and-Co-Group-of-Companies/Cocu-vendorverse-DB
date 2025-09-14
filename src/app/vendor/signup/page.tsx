@@ -46,8 +46,30 @@ export default function VendorSignupPage() {
   
   // OTP state
   const [otp, setOtp] = React.useState('');
+  const [countdown, setCountdown] = React.useState(0);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const passwordCriteria = "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.";
+
+  const startCountdown = () => {
+    setCountdown(30);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  React.useEffect(() => {
+    return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, []);
+
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +111,8 @@ export default function VendorSignupPage() {
         const otpResult = await sendOtp(phone);
         if (otpResult.success) {
             setStep(3);
-            toast({ title: "Verification Required", description: "An OTP has been sent to your phone." });
+            startCountdown();
+            toast({ title: "Verification Required", description: otpResult.message });
         } else {
             toast({ title: "Failed to Send OTP", description: otpResult.message, variant: "destructive"});
         }
@@ -101,6 +124,18 @@ export default function VendorSignupPage() {
         setIsLoading(false);
     }
   }
+  
+  const handleResendOtp = async () => {
+    setIsLoading(true);
+    const otpResult = await sendOtp(phone);
+    if(otpResult.success) {
+        startCountdown();
+        toast({ title: "New OTP Sent", description: "A new verification code has been sent to your phone." });
+    } else {
+        toast({ title: 'Failed to Send OTP', description: otpResult.message, variant: 'destructive' });
+    }
+    setIsLoading(false);
+  };
 
   const handleFinalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -119,7 +154,7 @@ export default function VendorSignupPage() {
     }
 
     try {
-        await createVendorApplication({ storeName, firstName, lastName, email, phone: `+91${phone}`, vendorType });
+        await createVendorApplication({ storeName, firstName, lastName, email, phone, vendorType });
         toast({
             title: "Application Submitted!",
             description: "Your application is under review. We'll be in touch within 2-3 business days.",
@@ -156,7 +191,7 @@ export default function VendorSignupPage() {
             <CardDescription>
                 {step === 1 && 'Start your journey by telling us what you sell.'}
                 {step === 2 && 'Complete your registration details.'}
-                {step === 3 && 'Verify your contact information to complete your application.'}
+                {step === 3 && `Enter the OTP sent to +91 ${phone} to verify your number.`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -245,16 +280,24 @@ export default function VendorSignupPage() {
             )}
             {step === 3 && (
                 <form className="grid gap-4" onSubmit={handleFinalSubmit}>
-                    <p className="text-sm text-center text-muted-foreground">We've sent a 6-digit code to +91 {phone}.</p>
                      <div className="grid gap-2">
                         <Label htmlFor="phone-otp">Phone OTP</Label>
                         <Input id="phone-otp" value={otp} onChange={e => setOtp(e.target.value)} placeholder="Enter 6-digit code" required />
+                    </div>
+                    <div className="text-center text-sm text-muted-foreground">
+                        {countdown > 0 ? (
+                            `Resend code in ${countdown}s`
+                        ) : (
+                            <Button type="button" variant="link" size="sm" onClick={handleResendOtp} disabled={isLoading}>
+                                Resend OTP
+                            </Button>
+                        )}
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading || otp.length < 6}>
                          {isLoading && <Loader2 className="mr-2 animate-spin" />}
                          Submit Application
                     </Button>
-                     <Button variant="link" size="sm" onClick={() => setStep(2)}>Go Back</Button>
+                     <Button variant="link" size="sm" onClick={() => setStep(2)} disabled={isLoading}>Go Back</Button>
                 </form>
             )}
             <div className="mt-4 text-center text-sm">
