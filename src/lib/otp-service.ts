@@ -17,12 +17,20 @@ type OtpStatus = 'pending' | 'verified' | 'expired' | 'failed';
  */
 export async function sendOtp(to: string): Promise<{ success: boolean; message: string }> {
     if (!API_KEY) {
-        console.error("2Factor API key is not configured. Please set TWO_FACTOR_API_KEY in your .env file.");
-        return { success: false, message: "Server configuration error." };
+        console.warn("2Factor API key is not configured. Using demo mode.");
+        // In demo mode, we won't actually send an OTP but will simulate success.
+        // We still need to store a session for the demo `verifyOtp` to work.
+         await addDoc(collection(db, 'otp_sessions'), {
+            to: `+91${to}`,
+            sessionId: `demo_${Date.now()}`,
+            createdAt: serverTimestamp(),
+            status: 'pending' as OtpStatus,
+        });
+        return { success: true, message: "OTP Sent (Demo Mode). Session: demo_... Use 123456 to verify." };
     }
 
     if (!/^\d{10}$/.test(to)) {
-        return { success: false, message: "Invalid phone number format." };
+        return { success: false, message: "Invalid phone number format. Please provide a 10-digit number." };
     }
 
     try {
@@ -43,7 +51,7 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
         
         const sessionId = json.Details;
         
-        // Store the session ID for verification
+        // Store the session ID for verification with the standardized phone number format
         await addDoc(collection(db, 'otp_sessions'), {
             to: `+91${to}`,
             sessionId: sessionId,
@@ -51,7 +59,7 @@ export async function sendOtp(to: string): Promise<{ success: boolean; message: 
             status: 'pending' as OtpStatus,
         });
 
-        return { success: true, message: `OTP sent. Session ID: ${sessionId}` };
+        return { success: true, message: `OTP sent successfully. Session ID: ${sessionId}` };
     } catch (error) {
         console.error("Error sending OTP via 2Factor API:", error);
         return { success: false, message: "An unexpected error occurred while sending the OTP." };
@@ -74,7 +82,7 @@ export async function verifyOtp(to: string, otpAttempt: string): Promise<{ succe
     }
     
     try {
-        // Find the latest OTP session for this number
+        // Find the latest OTP session for this number using the standardized format
         const sessionsRef = collection(db, 'otp_sessions');
         const q = query(sessionsRef, where('to', '==', `+91${to}`), where('status', '==', 'pending'), orderBy('createdAt', 'desc'), limit(1));
         const sessionSnapshot = await getDocs(q);
