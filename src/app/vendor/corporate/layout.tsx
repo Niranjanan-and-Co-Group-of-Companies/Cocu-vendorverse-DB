@@ -25,7 +25,6 @@ import {
   Gavel,
   FileText,
   LineChart,
-  MessageSquare,
   LifeBuoy,
   Settings,
   Home,
@@ -41,7 +40,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { VendorNotificationDropdown } from '@/components/layout/vendor-notification-dropdown';
 import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
-import { onVendorConversationsUpdate } from '@/lib/vendor/messages-service';
 
 // In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor003";
@@ -66,17 +64,6 @@ function CustomSidebarTrigger() {
 function CorporateVendorSidebar() {
     
     const pathname = usePathname();
-    const [totalUnreadMessages, setTotalUnreadMessages] = React.useState(0);
-
-    React.useEffect(() => {
-        const unsubscribe = onVendorConversationsUpdate(VENDOR_ID, (conversations) => {
-            const corporateConversations = conversations.filter(c => c.type === 'Corporate');
-            const totalUnread = corporateConversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
-            setTotalUnreadMessages(totalUnread);
-        });
-
-        return () => unsubscribe();
-    }, []);
 
     const isActive = (path: string) => {
         return pathname.startsWith(path);
@@ -128,12 +115,6 @@ function CorporateVendorSidebar() {
                         <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/quotes')} tooltip={{ children: 'Quotes' }}>
                             <Link href="/vendor/corporate/quotes"><FileText /><span>Quotes</span></Link>
                         </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/messages')} tooltip={{ children: 'Messages' }}>
-                            <Link href="/vendor/corporate/messages"><MessageSquare /><span>Messages</span></Link>
-                        </SidebarMenuButton>
-                        {totalUnreadMessages > 0 && <SidebarMenuBadge>{totalUnreadMessages}</SidebarMenuBadge>}
                     </SidebarMenuItem>
                      <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive('/vendor/corporate/support')} tooltip={{ children: 'Support' }}>
