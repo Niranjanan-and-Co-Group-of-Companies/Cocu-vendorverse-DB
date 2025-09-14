@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -26,26 +27,54 @@ interface OtpVerificationDialogProps {
 export function OtpVerificationDialog({ isOpen, onOpenChange, onVerified, termsType }: OtpVerificationDialogProps) {
   const [phoneOtp, setPhoneOtp] = React.useState('');
   const [isVerifying, setIsVerifying] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(0);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   
-  // Admin phone number is hardcoded for this demo
   const adminPhone = '9999999999';
+
+  const startCountdown = () => {
+    setCountdown(30);
+    if(timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+  
+  React.useEffect(() => {
+    return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, []);
+
+  const handleSendOtp = async (isInitial = false) => {
+    setIsVerifying(true);
+    const result = await sendOtp(adminPhone);
+    setIsVerifying(false);
+    if (result.success) {
+      startCountdown();
+      if(!isInitial) toast({ title: 'New OTP Sent', description: 'A new code has been sent to the admin phone number.' });
+    } else {
+      toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
+      if(isInitial) onOpenChange(false);
+    }
+  };
 
   React.useEffect(() => {
     if (isOpen) {
-        // Automatically send OTP when dialog opens
-        const sendAdminOtp = async () => {
-            const result = await sendOtp(adminPhone);
-            if (result.success) {
-                toast({ title: 'OTP Sent', description: 'A code has been sent to the admin phone number.' });
-            } else {
-                 toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
-                 onOpenChange(false);
-            }
-        };
-        sendAdminOtp();
+        handleSendOtp(true);
+    } else {
+        setPhoneOtp('');
+        if (timerRef.current) clearInterval(timerRef.current);
+        setCountdown(0);
     }
-  }, [isOpen, toast, onOpenChange]);
+  }, [isOpen]);
 
   const handleVerify = async () => {
     setIsVerifying(true);
@@ -56,7 +85,6 @@ export function OtpVerificationDialog({ isOpen, onOpenChange, onVerified, termsT
             await onVerified();
             onOpenChange(false); // Close dialog on success
         } catch(e) {
-            // Error toast will be shown by the parent component
             console.error("Verification callback failed", e);
         }
     } else {
@@ -69,12 +97,6 @@ export function OtpVerificationDialog({ isOpen, onOpenChange, onVerified, termsT
 
     setIsVerifying(false);
   };
-  
-  React.useEffect(() => {
-    if(!isOpen) {
-        setPhoneOtp('');
-    }
-  }, [isOpen]);
 
   if (!termsType) return null;
 
@@ -100,6 +122,15 @@ export function OtpVerificationDialog({ isOpen, onOpenChange, onVerified, termsT
                 placeholder="Enter 6-digit OTP" 
                 autoComplete="one-time-code"
               />
+            </div>
+            <div className="text-center text-sm text-muted-foreground">
+                {countdown > 0 ? (
+                    `Resend code in ${countdown}s`
+                ) : (
+                    <Button type="button" variant="link" size="sm" onClick={() => handleSendOtp()} disabled={isVerifying}>
+                        Resend OTP
+                    </Button>
+                )}
             </div>
         </div>
         <DialogFooter>

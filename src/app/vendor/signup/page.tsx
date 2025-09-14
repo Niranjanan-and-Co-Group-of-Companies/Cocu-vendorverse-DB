@@ -284,7 +284,7 @@ export default function VendorSignupPage() {
                         <Label htmlFor="phone-otp">Phone OTP</Label>
                         <Input id="phone-otp" value={otp} onChange={e => setOtp(e.target.value)} placeholder="Enter 6-digit code" required />
                     </div>
-                    <div className="text-center text-sm text-muted-foreground">
+                     <div className="text-center text-sm text-muted-foreground">
                         {countdown > 0 ? (
                             `Resend code in ${countdown}s`
                         ) : (

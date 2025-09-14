@@ -33,22 +33,54 @@ interface SubmitBidDialogProps {
 export function SubmitBidDialog({ isOpen, onClose, bidDetails, additionalInfo, products, onBidFinalized }: SubmitBidDialogProps) {
   const [otp, setOtp] = React.useState('');
   const [isSaving, setIsSaving] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(0);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   // In a real app, this would come from the user's profile
   const MOCK_PHONE = '9876543210'; 
 
+  const startCountdown = () => {
+    setCountdown(30);
+    if(timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+  
+  React.useEffect(() => {
+    return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, []);
+
   React.useEffect(() => {
     if(isOpen) {
-        sendOtp(MOCK_PHONE).then(result => {
-            if(result.success) {
-                toast({ title: 'OTP Sent', description: 'A code has been sent to your registered number.' });
-            } else {
-                 toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
-                 onClose();
-            }
-        })
+        handleResendOtp(true); // Send OTP when dialog opens
+    } else {
+        setOtp('');
+        if (timerRef.current) clearInterval(timerRef.current);
+        setCountdown(0);
     }
   }, [isOpen]);
+  
+  const handleResendOtp = async (isInitial = false) => {
+    setIsSaving(true);
+    const result = await sendOtp(MOCK_PHONE);
+    setIsSaving(false);
+    if(result.success) {
+        startCountdown();
+        if (!isInitial) toast({ title: 'New OTP Sent', description: 'A new verification code has been sent.' });
+    } else {
+         toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
+         if(isInitial) onClose();
+    }
+  };
 
   const handleFinalizeBid = async () => {
     setIsSaving(true);
@@ -96,6 +128,15 @@ export function SubmitBidDialog({ isOpen, onClose, bidDetails, additionalInfo, p
                 placeholder="Enter 6-digit OTP" 
                 autoComplete="one-time-code"
             />
+          </div>
+          <div className="text-center text-sm text-muted-foreground mt-2">
+            {countdown > 0 ? (
+                `Resend code in ${countdown}s`
+            ) : (
+                <Button type="button" variant="link" size="sm" onClick={() => handleResendOtp()} disabled={isSaving}>
+                    Resend OTP
+                </Button>
+            )}
           </div>
         </div>
         <DialogFooter>

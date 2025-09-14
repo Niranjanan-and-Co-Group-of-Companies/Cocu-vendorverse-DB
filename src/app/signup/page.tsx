@@ -71,6 +71,7 @@ export default function SignupPage() {
         const { exists, message } = await checkUserExists(email, phone);
         if (exists) {
             toast({ title: 'Account Exists', description: message, variant: 'destructive' });
+            setIsLoading(false);
             return;
         }
 

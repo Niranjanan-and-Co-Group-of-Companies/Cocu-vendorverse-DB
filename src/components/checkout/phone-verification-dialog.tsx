@@ -58,7 +58,7 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
     setPhone(numericValue);
   };
 
-  const handleSendOtp = async () => {
+  const handleSendOtp = async (isResend = false) => {
     if (phone.length < 10) {
       toast({ title: "Invalid Phone Number", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
       return;
@@ -70,22 +70,18 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
     if (result.success) {
       setStep(2);
       startCountdown();
-      toast({ title: "OTP Sent", description: result.message });
+      if (!isResend) {
+        toast({ title: "OTP Sent", description: result.message });
+      } else {
+        toast({ title: "New OTP Sent", description: "A new verification code has been sent." });
+      }
     } else {
       toast({ title: "Failed to Send OTP", description: result.message, variant: "destructive" });
     }
   };
   
   const handleResendOtp = async () => {
-    setIsSending(true);
-    const result = await sendOtp(phone);
-    if (result.success) {
-        startCountdown();
-        toast({ title: "New OTP Sent", description: "A new verification code has been sent." });
-    } else {
-         toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
-    }
-    setIsSending(false);
+    await handleSendOtp(true);
   };
 
 
@@ -139,7 +135,7 @@ export function PhoneVerificationDialog({ isOpen, onOpenChange, onVerified }: Ph
                   <Input id="phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder="98765 43210" className="pl-10" />
               </div>
             </div>
-            <Button onClick={handleSendOtp} disabled={isSending}>
+            <Button onClick={() => handleSendOtp()} disabled={isSending}>
               {isSending && <Loader2 className="mr-2 animate-spin" />}
               Send OTP
             </Button>

@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Mail, Phone } from 'lucide-react';
+import { sendOtp, verifyOtp } from '@/lib/otp-service';
 
 interface ChangePasswordDialogProps {
   open: boolean;
@@ -31,9 +32,34 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
   const [otpMethod, setOtpMethod] = React.useState<'email' | 'phone'>('email');
   const [otp, setOtp] = React.useState('');
   const [isSaving, setIsSaving] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(0);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  
+  // In a real app, this would come from the user's profile
+  const MOCK_PHONE = '9876543210'; 
 
-  const handleContinue = () => {
+  const startCountdown = () => {
+    setCountdown(30);
+    if(timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+  
+  React.useEffect(() => {
+    return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, []);
+
+  const handleContinue = async () => {
     if (newPassword !== confirmPassword) {
       toast({ title: "Passwords do not match", variant: "destructive" });
       return;
@@ -42,19 +68,28 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
         toast({ title: "Password too short", description: "Password must be at least 6 characters.", variant: "destructive" });
         return;
     }
-    // In a real app, you would verify the current password here before sending OTP.
-    setStep(2);
-    toast({ title: "OTP Sent", description: `A verification code has been sent to your registered ${otpMethod}.` });
+    setIsSaving(true);
+    const otpResult = await sendOtp(MOCK_PHONE);
+    setIsSaving(false);
+    if (otpResult.success) {
+      setStep(2);
+      startCountdown();
+      toast({ title: "OTP Sent", description: `A verification code has been sent to your registered ${otpMethod}.` });
+    } else {
+      toast({ title: "Failed to send OTP", description: otpResult.message, variant: "destructive" });
+    }
   }
 
   const handleSubmit = async () => {
-    if (otp !== '123456') { // Mock OTP check
-      toast({ title: 'Invalid OTP', description: 'The code you entered is incorrect.', variant: 'destructive' });
-      return;
+    setIsSaving(true);
+    const verificationResult = await verifyOtp(MOCK_PHONE, otp);
+    if (!verificationResult.success) {
+        toast({ title: 'Invalid OTP', description: 'The code you entered is incorrect.', variant: 'destructive' });
+        setIsSaving(false);
+        return;
     }
     
-    setIsSaving(true);
-    // Simulate API call
+    // Simulate API call to change password
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     toast({ title: "Password Updated", description: "Your password has been changed successfully." });
@@ -71,6 +106,8 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
             setNewPassword('');
             setConfirmPassword('');
             setOtp('');
+            setCountdown(0);
+            if(timerRef.current) clearInterval(timerRef.current);
         }, 200);
     }
   }, [open]);
@@ -129,13 +166,23 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
                     autoComplete="one-time-code"
                 />
             </div>
+             <div className="text-center text-sm text-muted-foreground">
+                {countdown > 0 ? (
+                    `Resend code in ${countdown}s`
+                ) : (
+                    <Button type="button" variant="link" size="sm" onClick={handleContinue} disabled={isSaving}>
+                        Resend OTP
+                    </Button>
+                )}
+            </div>
         </div>
         )}
         
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           {step === 1 ? (
-            <Button onClick={handleContinue} disabled={!currentPassword || !newPassword || !confirmPassword}>
+            <Button onClick={handleContinue} disabled={isSaving || !currentPassword || !newPassword || !confirmPassword}>
+                 {isSaving && <Loader2 className="mr-2 animate-spin" />}
                 Continue
             </Button>
           ) : (
@@ -149,4 +196,3 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
     </Dialog>
   );
 }
-

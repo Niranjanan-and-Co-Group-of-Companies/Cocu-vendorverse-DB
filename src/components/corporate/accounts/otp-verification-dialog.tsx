@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -26,27 +27,59 @@ interface OtpVerificationDialogProps {
 export function OtpVerificationDialog({ isOpen, onClose, onVerified, contactInfo }: OtpVerificationDialogProps) {
   const [otp, setOtp] = React.useState('');
   const [isVerifying, setIsVerifying] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(0);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  const startCountdown = () => {
+    setCountdown(30);
+    if(timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+  
+  React.useEffect(() => {
+    return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, []);
+  
+  const handleSendOtp = async (isInitial = false) => {
+    if (!contactInfo) return;
+    const phone = contactInfo.replace(/\D/g, '').slice(-10);
+    setIsVerifying(true);
+    const result = await sendOtp(phone);
+    setIsVerifying(false);
+    if (result.success) {
+      startCountdown();
+      if(!isInitial) toast({ title: 'New OTP Sent', description: 'A new verification code has been sent.' });
+    } else {
+      toast({ title: 'Failed to send OTP', description: result.message, variant: 'destructive'});
+      if (isInitial) onClose();
+    }
+  };
 
   React.useEffect(() => {
     if (isOpen && contactInfo) {
-        const sendUserOtp = async () => {
-            const phone = contactInfo.replace(/\D/g, '').slice(-10); // Extract 10-digit phone
-            const result = await sendOtp(phone);
-            if (!result.success) {
-                toast({ title: 'Failed to send OTP', description: result.message, variant: 'destructive'});
-            } else {
-                 toast({ title: 'OTP Sent', description: 'A code has been sent to your new phone number.' });
-            }
-        };
-        sendUserOtp();
+        handleSendOtp(true);
+    } else {
+        setOtp('');
+        if (timerRef.current) clearInterval(timerRef.current);
+        setCountdown(0);
     }
-  }, [isOpen, contactInfo, toast]);
+  }, [isOpen, contactInfo]);
 
 
   const handleVerify = async () => {
-    setIsVerifying(true);
     const phone = contactInfo.replace(/\D/g, '').slice(-10);
+    setIsVerifying(true);
     const result = await verifyOtp(phone, otp);
 
     if (result.success) {
@@ -63,12 +96,6 @@ export function OtpVerificationDialog({ isOpen, onClose, onVerified, contactInfo
 
     setIsVerifying(false);
   };
-
-  React.useEffect(() => {
-    if (!isOpen) {
-      setOtp('');
-    }
-  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -93,6 +120,15 @@ export function OtpVerificationDialog({ isOpen, onClose, onVerified, contactInfo
               autoComplete="one-time-code"
             />
           </div>
+            <div className="text-center text-sm text-muted-foreground">
+                {countdown > 0 ? (
+                    `Resend code in ${countdown}s`
+                ) : (
+                    <Button type="button" variant="link" size="sm" onClick={() => handleSendOtp()} disabled={isVerifying}>
+                        Resend OTP
+                    </Button>
+                )}
+            </div>
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={isVerifying}>

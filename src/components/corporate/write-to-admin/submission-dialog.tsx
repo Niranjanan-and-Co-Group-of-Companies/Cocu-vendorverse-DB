@@ -29,22 +29,56 @@ interface SubmissionDialogProps {
 export function SubmissionDialog({ isOpen, onClose, requestData, onVerified }: SubmissionDialogProps) {
   const [otp, setOtp] = React.useState('');
   const [isVerifying, setIsVerifying] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(0);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
-   React.useEffect(() => {
-    if (isOpen && requestData?.contactPhone) {
-        const phone = requestData.contactPhone.replace(/\D/g, '').slice(-10);
-        sendOtp(phone).then(result => {
-            if(result.success) {
-                toast({ title: 'OTP Sent', description: 'A code has been sent to the contact phone number.' });
-            } else {
-                 toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
-                 onClose();
-            }
-        })
-    }
-  }, [isOpen, requestData, toast, onClose]);
+  const startCountdown = () => {
+    setCountdown(30);
+    if(timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
+  React.useEffect(() => {
+    return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (isOpen && requestData?.contactPhone) {
+        handleResendOtp(true);
+    } else {
+        setOtp('');
+        if (timerRef.current) clearInterval(timerRef.current);
+        setCountdown(0);
+    }
+  }, [isOpen, requestData]);
+  
+  const handleResendOtp = async (isInitial = false) => {
+    if (!requestData?.contactPhone) return;
+    const phone = requestData.contactPhone.replace(/\D/g, '').slice(-10);
+
+    setIsVerifying(true);
+    const result = await sendOtp(phone);
+    setIsVerifying(false);
+
+    if (result.success) {
+        startCountdown();
+        if (!isInitial) toast({ title: 'New OTP Sent', description: 'A new verification code has been sent.' });
+    } else {
+        toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
+        if (isInitial) onClose();
+    }
+  };
 
   const handleVerify = async () => {
     if (!requestData) return;
@@ -70,12 +104,6 @@ export function SubmissionDialog({ isOpen, onClose, requestData, onVerified }: S
         onClose();
     }
   };
-  
-  React.useEffect(() => {
-    if(!isOpen) {
-        setOtp('');
-    }
-  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -99,6 +127,15 @@ export function SubmissionDialog({ isOpen, onClose, requestData, onVerified }: S
                 placeholder="Enter 6-digit OTP" 
                 autoComplete="one-time-code"
               />
+            </div>
+            <div className="text-center text-sm text-muted-foreground">
+                {countdown > 0 ? (
+                    `Resend code in ${countdown}s`
+                ) : (
+                    <Button type="button" variant="link" size="sm" onClick={() => handleResendOtp()} disabled={isVerifying}>
+                        Resend OTP
+                    </Button>
+                )}
             </div>
         </div>
         <DialogFooter>
