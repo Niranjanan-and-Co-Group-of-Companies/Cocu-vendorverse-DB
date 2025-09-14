@@ -43,6 +43,7 @@ import { VendorNotificationDropdown } from '@/components/layout/vendor-notificat
 import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 import { onVendorConversationsUpdate } from '@/lib/vendor/messages-service';
 
+// In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor003";
 
 function CustomSidebarTrigger() {
@@ -150,7 +151,7 @@ function CorporateVendorSidebar() {
               <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild tooltip={{ children: 'View Main Site' }}><Link href="/vendor/corporate/dashboard"><Home /><span>View Main Site</span></Link></SidebarMenuButton>
+                        <SidebarMenuButton asChild tooltip={{ children: 'View Main Site' }}><Link href="/"><Home /><span>View Main Site</span></Link></SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild tooltip={{ children: 'Log Out' }}><Link href="/login"><LogOut /><span>Log Out</span></Link></SidebarMenuButton>
