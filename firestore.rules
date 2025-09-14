@@ -1,9 +1,31 @@
-
 rules_version = '2';
+
+// The rules for Cloud Firestore are not being changed, but are kept here.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
+    }
+  }
+}
+
+// These are the new rules for Cloud Storage.
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow public read access to all files.
+    match /{allPaths=**} {
+      allow read;
+    }
+
+    // Allow writes only to the 'categories' folder for now.
+    // This can be made more secure later if needed.
+    match /categories/{allPaths=**} {
+      allow write: if true;
+    }
+
+    // Allow writes to product images, but could be restricted further.
+    match /products/{allPaths=**} {
+      allow write: if true;
     }
   }
 }
