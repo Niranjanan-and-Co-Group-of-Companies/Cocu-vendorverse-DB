@@ -109,6 +109,7 @@ export async function verifyOtp(to: string, otpAttempt: string): Promise<{ succe
             await updateDoc(doc(db, 'otp_sessions', sessionDoc.id), { status: 'verified' });
             return { success: true, message: "OTP verified successfully." };
         } else {
+            // This is the most common failure case (wrong OTP)
             return { success: false, message: json.Details || "Invalid or expired OTP." };
         }
     } catch (error) {
