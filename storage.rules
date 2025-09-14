@@ -2,35 +2,29 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow public read access to all files. This is useful for images that
-    // need to be displayed on your website without requiring authentication.
+    // Allow public read access to all files.
+    // This is common for files like category images, product images, etc.
     match /{allPaths=**} {
       allow read;
     }
 
-    // Allow write operations only to specific, designated folders.
-    // In a production environment, you should add authentication checks here
-    // to ensure only authorized users (like admins or specific vendors) can write files.
-    // For example: `allow write: if request.auth != null;`
-
-    // Allow writes to the 'categories' folder for category images.
+    // Allow write access only to specific, known paths.
+    // This is a security measure to prevent unauthorized uploads.
+    // We explicitly allow uploads to paths starting with 'categories/', 'products/', 'bids/', etc.
     match /categories/{allPaths=**} {
       allow write;
     }
-
-    // Allow writes to the 'products' folder for product images.
     match /products/{allPaths=**} {
       allow write;
     }
-
-    // Allow writes to the 'blog' folder for blog post images.
-    match /blog/{allPaths=**} {
+    match /bids/{allPaths=**} {
       allow write;
     }
-
-    // Allow writes to the 'sourcing_requests' folder for attachments.
-    match /sourcing_requests/{allPaths=**} {
+     match /sourcing_requests/{allPaths=**} {
       allow write;
+    }
+    match /blog/{allPaths=**} {
+        allow write;
     }
   }
 }
