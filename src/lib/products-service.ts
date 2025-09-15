@@ -301,3 +301,4 @@ export async function declineProduct(productId: string) {
 
 const productsCollection = collection(db, 'products');
 
+

@@ -18,10 +18,11 @@ export type ProductWithPrice = Product & FeaturedProduct & { displayPrice: Displ
 
 export function onProductUpdate(id: string, callback: (product: Product | null) => void): () => void {
     const docRef = doc(db, 'products', id);
-    return onSnapshot(docRef, (doc) => {
+    return onSnapshot(docRef, async (doc) => {
         if (doc.exists()) {
             const product = { id: doc.id, ...doc.data() } as Product;
-            callback(serializeProduct(product));
+            const plainProduct = await serializeProduct(product);
+            callback(plainProduct);
         } else {
             callback(null);
         }
@@ -34,12 +35,12 @@ export function onProductsUpdate(productIds: string[], callback: (products: Prod
         return () => {};
     }
     const q = query(collection(db, 'products'), where(documentId(), 'in', productIds));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
         const products = snapshot.docs.map(doc => {
-            const product = { id: doc.id, ...doc.data() } as Product;
-            return serializeProduct(product);
+            return { id: doc.id, ...doc.data() } as Product;
         });
-        callback(products);
+        const plainProducts = await Promise.all(products.map(serializeProduct));
+        callback(plainProducts);
     });
     return unsubscribe;
 }
@@ -52,12 +53,10 @@ export function onVendorProductsUpdate(vendorId: string, callback: (products: Pr
     }
     const q = query(productsCollection, where('vendorId', '==', vendorId));
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        const products = snapshot.docs.map(doc => {
-            const product = {id: doc.id, ...doc.data()} as Product;
-            return serializeProduct(product);
-        });
-        callback(products as ProductWithStatus[]);
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+        const products = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as Product));
+        const plainProducts = await Promise.all(products.map(serializeProduct));
+        callback(plainProducts as ProductWithStatus[]);
     });
 
     return unsubscribe;
@@ -83,8 +82,9 @@ export function onPendingProductsUpdate(callback: (products: ProductWithVendor[]
 
         const productsPromises = snapshot.docs.map(async (doc) => {
             const productData = { id: doc.id, ...doc.data() } as Product;
+            const plainProduct = await serializeProduct(productData);
             const vendor = await getVendor(productData.vendorId);
-            return { ...serializeProduct(productData), vendor } as ProductWithVendor;
+            return { ...plainProduct, vendor } as ProductWithVendor;
         });
 
         const products = await Promise.all(productsPromises);
@@ -145,7 +145,8 @@ export function onFeaturedProductsUpdate(
     const combineAndCallback = async () => {
         if(productCache.length > 0 && categoryCache.length > 0) {
             const priced = await priceProducts(productCache, platform, categoryCache);
-            callback(priced);
+            const plainPriced = await Promise.all(priced.map(p => serializeProduct(p as Product)));
+            callback(plainPriced as ProductWithPrice[]);
         }
     }
 
@@ -159,23 +160,25 @@ export function onFeaturedProductsUpdate(
     const setupProductListener = async () => {
         const featuredProductsInitial = await fetcher();
         productCache = featuredProductsInitial;
-        combineAndCallback();
+        await combineAndCallback();
         
         const productIds = featuredProductsInitial.map(p => p.id);
 
         if (productIds.length > 0) {
             const q = query(productsCollection, where(documentId(), 'in', productIds));
-            unsubProducts = onSnapshot(q, (snapshot) => {
-                const updatedProducts = snapshot.docs.map(doc => {
+            unsubProducts = onSnapshot(q, async (snapshot) => {
+                const updatedProducts = await Promise.all(snapshot.docs.map(async (doc) => {
                     const existingData = productCache.find(p => p.id === doc.id);
+                    const product = { id: doc.id, ...doc.data() } as Product;
+                    const plainProduct = await serializeProduct(product);
                     return {
-                        ...(serializeProduct({ id: doc.id, ...doc.data() } as Product)),
+                        ...plainProduct,
                         featuredOnPersonal: existingData?.featuredOnPersonal,
                         featuredOnCorporate: existingData?.featuredOnCorporate,
                     };
-                });
-                productCache = updatedProducts;
-                combineAndCallback();
+                }));
+                productCache = updatedProducts as (Product & Partial<FeaturedProduct>)[];
+                await combineAndCallback();
             });
         } else {
             callback([]);
@@ -207,8 +210,9 @@ export function onProductsByCategoryUpdate(
         if (unsubProducts) unsubProducts(); // Unsubscribe from previous listener
 
         unsubProducts = onSnapshot(q, async (snapshot) => {
-            const products = snapshot.docs.map(doc => serializeProduct({ id: doc.id, ...doc.data() } as Product));
-            const priced = await priceProducts(products, platform, categories);
+            const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            const plainProducts = await Promise.all(products.map(serializeProduct));
+            const priced = await priceProducts(plainProducts as Product[], platform, categories);
             callback(priced, currentCategory);
         });
     });
@@ -232,12 +236,14 @@ export function onAllProductsUpdate(
         if (unsubProducts) unsubProducts(); // Unsubscribe from previous listener
 
         unsubProducts = onSnapshot(q, async (snapshot) => {
-            const products = snapshot.docs.map(doc => serializeProduct({ id: doc.id, ...doc.data() } as Product));
+            const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            const plainProducts = await Promise.all(products.map(serializeProduct));
+
             const platformFiltered = platform === 'Corporate' 
-                ? products.filter(p => p.moq && p.moq > 0)
-                : products;
+                ? plainProducts.filter(p => p.moq && p.moq > 0)
+                : plainProducts;
             
-            const priced = await priceProducts(platformFiltered, platform, categories);
+            const priced = await priceProducts(platformFiltered as Product[], platform, categories);
             callback(priced);
         });
     });

@@ -67,6 +67,8 @@ export async function serializeVendor(vendor: Vendor): Promise<PlainVendor> {
 
   if (vendor.joinedDate && typeof vendor.joinedDate.toDate === 'function') {
     plainVendor.joinedDate = vendor.joinedDate.toDate().toISOString();
+  } else {
+    plainVendor.joinedDate = null;
   }
 
   return plainVendor as PlainVendor;
@@ -112,7 +114,7 @@ export async function getVendorById(id: string): Promise<PlainVendor | null> {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         const vendor = { id: docSnap.id, ...docSnap.data() } as Vendor;
-        return serializeVendor(vendor);
+        return await serializeVendor(vendor);
     }
     return null;
 }
