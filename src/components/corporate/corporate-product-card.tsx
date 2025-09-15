@@ -19,7 +19,7 @@ import { type DisplayPrice } from '@/lib/pricing-service';
 import { Skeleton } from '../ui/skeleton';
 
 interface CorporateProductCardProps {
-  product: Product & { displayPrice: DisplayPrice };
+  product: Product & { displayPrice: DisplayPrice; featuredOnCorporate?: boolean };
   onAction: (actionName: string, productName: string) => void;
 }
 
@@ -101,7 +101,7 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
       <div className="relative">
         <Link href={`/corporate/products/${product.id}`} className="block aspect-[4/3] bg-muted overflow-hidden">
             <div className="absolute top-2 left-2 z-10 flex flex-col gap-y-2">
-                {product.featured && <Badge>Featured</Badge>}
+                {product.featuredOnCorporate && <Badge>Featured</Badge>}
                 {product.displayPrice?.hasDiscount && <Badge variant="destructive">{product.displayPrice.discountText}</Badge>}
             </div>
             <Image
