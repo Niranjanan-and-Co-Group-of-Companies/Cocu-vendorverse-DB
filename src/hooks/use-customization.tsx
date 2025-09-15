@@ -5,6 +5,7 @@ import * as React from 'react';
 import { create } from 'zustand';
 import type { CustomizationElement } from '@/lib/customization';
 import type { CustomizationSide } from '@/lib/products';
+import html2canvas from 'html2canvas';
 
 // --- Store Definition ---
 
@@ -20,6 +21,9 @@ interface CustomizationState {
   setActiveSide: (side: CustomizationSide) => void;
   selectedVariantId: string | null;
   setSelectedVariantId: (id: string | null) => void;
+  canvasRef: React.RefObject<HTMLDivElement> | null;
+  setCanvasRef: (ref: React.RefObject<HTMLDivElement>) => void;
+  getCanvasDataURL: (side: CustomizationSide) => Promise<string | null>;
 }
 
 const useCustomizationStore = create<CustomizationState>()((set, get) => ({
@@ -27,6 +31,7 @@ const useCustomizationStore = create<CustomizationState>()((set, get) => ({
     selectedElementId: null,
     activeSide: 'front',
     selectedVariantId: null,
+    canvasRef: null,
 
     addElement: (element) => {
         const { activeSide } = get();
@@ -83,6 +88,35 @@ const useCustomizationStore = create<CustomizationState>()((set, get) => ({
     
     setSelectedVariantId: (id) => {
         set({ selectedVariantId: id, activeSide: 'front', selectedElementId: null }); // Reset to front side and deselect elements
+    },
+    
+    setCanvasRef: (ref) => {
+        set({ canvasRef: ref });
+    },
+
+    getCanvasDataURL: async (side) => {
+        const { canvasRef, elements } = get();
+        if (!canvasRef?.current) return null;
+
+        const sideElements = elements.filter(el => el.side === side);
+        if (sideElements.length === 0) return null; // Don't generate image if there are no customizations
+
+        try {
+            const canvas = await html2canvas(canvasRef.current, {
+                backgroundColor: null, // Transparent background
+                logging: false,
+                useCORS: true, 
+                // Only capture the canvas div itself, not the whole page
+                width: canvasRef.current.offsetWidth,
+                height: canvasRef.current.offsetHeight,
+                windowWidth: canvasRef.current.offsetWidth,
+                windowHeight: canvasRef.current.offsetHeight,
+            });
+            return canvas.toDataURL('image/png');
+        } catch (error) {
+            console.error("Error generating canvas image:", error);
+            return null;
+        }
     }
 }));
 

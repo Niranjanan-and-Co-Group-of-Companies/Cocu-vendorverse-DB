@@ -16,20 +16,22 @@ interface StudioCanvasProps {
 }
 
 export function StudioCanvas({ product }: StudioCanvasProps) {
-    const canvasRef = React.useRef<HTMLDivElement>(null);
-    const { elements, setSelectedElementId, activeSide, selectedVariantId } = useCustomization();
+    const internalCanvasRef = React.useRef<HTMLDivElement>(null);
+    const { elements, setSelectedElementId, activeSide, selectedVariantId, setCanvasRef } = useCustomization();
+
+    React.useEffect(() => {
+        setCanvasRef(internalCanvasRef);
+    }, [setCanvasRef]);
 
     const activeVariant = product.variants.find(v => v.id === selectedVariantId) || product.variants[0];
     const sideData = activeVariant?.customizationSides[activeSide];
     
-    // Fallback logic: if a specific side image doesn't exist, use the variant's main image, then the product's main image.
     const activeSideImage = sideData?.image || activeVariant?.image || product.image;
     
     const customizationAreas = product.customizationAreas?.[activeSide] || [];
 
     const handleCanvasClick = (e: React.MouseEvent) => {
-        // Deselect if clicking on the canvas background
-        if (e.target === canvasRef.current || (e.target as HTMLElement).id === 'canvas-image') {
+        if (e.target === internalCanvasRef.current || (e.target as HTMLElement).id === 'canvas-image-container') {
             setSelectedElementId(null);
         }
     }
@@ -39,7 +41,7 @@ export function StudioCanvas({ product }: StudioCanvasProps) {
             className="relative w-full h-full max-w-[80vh] max-h-[80vh] aspect-square bg-muted rounded-lg flex items-center justify-center"
             onClick={handleCanvasClick}
         >
-            <div ref={canvasRef} className="relative w-full h-full" style={{ aspectRatio: '1 / 1' }}>
+            <div id="canvas-image-container" ref={internalCanvasRef} className="relative w-full h-full" style={{ aspectRatio: '1 / 1' }}>
                  {activeSideImage ? (
                     <>
                         <Image
@@ -71,16 +73,16 @@ export function StudioCanvas({ product }: StudioCanvasProps) {
                             const constraintArea = customizationAreas[0] || null;
 
                             if (element.type === 'text') {
-                                return <TextElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
+                                return <TextElementComponent key={element.id} element={element} canvasRef={internalCanvasRef} constraintArea={constraintArea} />
                             }
                             if (element.type === 'ai-image' || element.type === 'image') {
-                                return <ImageElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
+                                return <ImageElementComponent key={element.id} element={element} canvasRef={internalCanvasRef} constraintArea={constraintArea} />
                             }
                              if (element.type === 'qr-code') {
-                                return <QrCodeElementComponent key={element.id} element={element} canvasRef={canvasRef} constraintArea={constraintArea} />
+                                return <QrCodeElementComponent key={element.id} element={element} canvasRef={internalCanvasRef} constraintArea={constraintArea} />
                             }
                              if (element.type === 'clipart') {
-                                return <ImageElementComponent key={element.id} element={element as ClipartElement} canvasRef={canvasRef} constraintArea={constraintArea} />
+                                return <ImageElementComponent key={element.id} element={element as ClipartElement} canvasRef={internalCanvasRef} constraintArea={constraintArea} />
                             }
                             return null;
                         })}

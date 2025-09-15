@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { create } from 'zustand';
@@ -10,17 +9,19 @@ import { getCategoryByName } from '@/lib/categories-service';
 import type { PlainProduct } from '@/lib/products-service';
 import { serializeProduct } from '@/lib/products-service';
 import { makePlain } from '@/lib/utils';
+import type { CustomizationProof } from '@/lib/customization-service';
 
 export interface CartItem extends PlainProduct {
   cartItemId: string; // Unique ID for this specific item in the cart (product.id + variant.id)
   quantity: number;
   displayPrice?: DisplayPrice;
   selectedVariant: ProductVariant | null;
+  customizations?: CustomizationProof[];
 }
 
 interface CartState {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number, selectedVariant?: ProductVariant | null) => Promise<{ success: boolean; message: string }>;
+  addItem: (product: Product, quantity?: number, selectedVariant?: ProductVariant | null, customizations?: CustomizationProof[]) => Promise<{ success: boolean; message: string }>;
   removeItem: (cartItemId: string) => { success: boolean; message: string };
   updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -30,7 +31,7 @@ export const useCart = create(
   persist<CartState>(
     (set, get) => ({
       items: [],
-      addItem: async (product, quantity = 1, selectedVariant = null) => {
+      addItem: async (product, quantity = 1, selectedVariant = null, customizations) => {
         const category = await getCategoryByName(product.category);
         const displayPrice = await calculateDisplayPrice({ id: product.id, vendorId: product.vendorId, vendorSP: product.vendorSP, category: product.category, discountType: product.discountValue }, 'Personalized', category || undefined);
         const currentItems = get().items;
@@ -46,12 +47,12 @@ export const useCart = create(
           const newQuantity = existingItem.quantity + quantity;
           set({
             items: currentItems.map(item =>
-              item.cartItemId === cartItemId ? { ...item, quantity: newQuantity, displayPrice } : item
+              item.cartItemId === cartItemId ? { ...item, quantity: newQuantity, displayPrice, customizations } : item
             ),
           });
           return { success: true, message: `Added ${quantity} more of "${product.name}" to your cart.` };
         } else {
-          set({ items: [...currentItems, { ...(plainProduct as unknown as PlainProduct), cartItemId, quantity: quantity, displayPrice, selectedVariant }] });
+          set({ items: [...currentItems, { ...(plainProduct as unknown as PlainProduct), cartItemId, quantity: quantity, displayPrice, selectedVariant, customizations }] });
           return { success: true, message: `"${product.name}" (x${quantity}) added to cart.` };
         }
       },
