@@ -11,6 +11,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getCategoryByName } from './categories-service';
 import { calculateDisplayPrice } from './pricing-service';
 import type { CommissionRule } from './commissions-service';
+import { makePlain } from './utils';
 
 export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt' | 'variants'> & {
   createdAt: string | null;
@@ -21,36 +22,18 @@ export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt' | 'variants'>
 };
 
 export async function serializeProduct(product: Product): Promise<PlainProduct> {
-  const plainProduct = { ...product } as any;
+  const plainProduct = makePlain(product);
 
-  if (product.createdAt && typeof product.createdAt.toDate === 'function') {
-    plainProduct.createdAt = product.createdAt.toDate().toISOString();
-  } else {
-    plainProduct.createdAt = null;
+  // Ensure Timestamps are converted to ISO strings
+  if (plainProduct.createdAt && typeof plainProduct.createdAt === 'object' && 'seconds' in plainProduct.createdAt) {
+    plainProduct.createdAt = new Date(plainProduct.createdAt.seconds * 1000).toISOString();
   }
-
-  if (product.updatedAt && typeof product.updatedAt.toDate === 'function') {
-    plainProduct.updatedAt = product.updatedAt.toDate().toISOString();
-  } else {
-    plainProduct.updatedAt = null;
+  if (plainProduct.updatedAt && typeof plainProduct.updatedAt === 'object' && 'seconds' in plainProduct.updatedAt) {
+    plainProduct.updatedAt = new Date(plainProduct.updatedAt.seconds * 1000).toISOString();
   }
   
-  if (product.variants) {
-      plainProduct.variants = product.variants.map(v => {
-          const newV = {...v};
-          if(newV.customizationSides) {
-            (Object.keys(newV.customizationSides) as CustomizationSide[]).forEach(side => {
-                // This is a simplified conversion. A real app might need more complex logic if areas existed.
-                newV.customizationSides[side] = { image: newV.customizationSides[side]?.image || null };
-            });
-          }
-          return newV;
-      });
-  }
-
   return plainProduct as PlainProduct;
 }
-
 
 
 async function seedProductsIfEmpty() {
@@ -304,6 +287,5 @@ export async function declineProduct(productId: string) {
 }
 
 const productsCollection = collection(db, 'products');
-
 
 

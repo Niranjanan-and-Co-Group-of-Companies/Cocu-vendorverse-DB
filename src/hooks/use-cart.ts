@@ -84,24 +84,7 @@ export const useCart = create(
     }),
     {
       name: 'personal-cart-storage',
-      storage: createJSONStorage(() => localStorage, {
-        reviver: (key, value: any) => {
-            if (typeof value === 'object' && value !== null && value.type === 'Timestamp') {
-                return new Date(value.seconds * 1000 + value.nanoseconds / 1000000);
-            }
-            return value;
-        },
-        replacer: (key, value) => {
-            if (value instanceof Date) {
-                return {
-                    type: 'Timestamp',
-                    seconds: Math.floor(value.getTime() / 1000),
-                    nanoseconds: (value.getTime() % 1000) * 1000000
-                };
-            }
-            return value;
-        }
-      }),
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
