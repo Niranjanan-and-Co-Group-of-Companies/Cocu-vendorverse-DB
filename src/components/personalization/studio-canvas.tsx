@@ -17,16 +17,16 @@ interface StudioCanvasProps {
 
 export function StudioCanvas({ product }: StudioCanvasProps) {
     const canvasRef = React.useRef<HTMLDivElement>(null);
-    const { elements, setSelectedElementId } = useCustomization();
+    const { elements, setSelectedElementId, activeSide, selectedVariantId } = useCustomization();
 
-    // For now, we'll just display the front image and its areas.
-    const activeSide = product.customizationSides.front;
-    const activeSideImage = activeSide?.image;
-    const customizationAreas = activeSide?.areas || [];
+    const activeVariant = product.variants.find(v => v.id === selectedVariantId);
+    const sideData = activeVariant?.customizationSides[activeSide];
+    const activeSideImage = sideData?.image;
+    const customizationAreas = product.customizationAreas?.[activeSide] || [];
 
     const handleCanvasClick = (e: React.MouseEvent) => {
         // Deselect if clicking on the canvas background
-        if (e.target === canvasRef.current) {
+        if (e.target === canvasRef.current || (e.target as HTMLElement).id === 'canvas-image') {
             setSelectedElementId(null);
         }
     }
@@ -40,8 +40,9 @@ export function StudioCanvas({ product }: StudioCanvasProps) {
                  {activeSideImage ? (
                     <>
                         <Image
+                            id="canvas-image"
                             src={activeSideImage}
-                            alt={`${product.name} - Front View`}
+                            alt={`${product.name} - ${activeSide} View`}
                             fill
                             className="object-contain pointer-events-none"
                             priority
@@ -63,9 +64,7 @@ export function StudioCanvas({ product }: StudioCanvasProps) {
                         ))}
 
                         {/* Render customization elements */}
-                        {elements.map(element => {
-                            // For simplicity, we assume all elements are constrained by the first customization area.
-                            // A more advanced implementation would associate elements with specific areas.
+                        {elements.filter(el => el.side === activeSide).map(element => {
                             const constraintArea = customizationAreas[0] || null;
 
                             if (element.type === 'text') {

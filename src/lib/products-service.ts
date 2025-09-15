@@ -1,5 +1,7 @@
 
 
+'use server';
+
 import { collection, getDocs, writeBatch, doc, getDoc, query, where, limit, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, storage } from './firebase';
 import type { Product, ProductStatus, CustomizationSide, AllowedCustomizationType, ProductVariant } from './products';
@@ -18,7 +20,7 @@ export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt' | 'variants'>
   })[];
 };
 
-export function serializeProduct(product: Product): PlainProduct {
+export async function serializeProduct(product: Product): Promise<PlainProduct> {
   const plainProduct = { ...product } as any;
 
   if (product.createdAt && typeof product.createdAt.toDate === 'function') {
@@ -35,7 +37,7 @@ export function serializeProduct(product: Product): PlainProduct {
           if(newV.customizationSides) {
             (Object.keys(newV.customizationSides) as CustomizationSide[]).forEach(side => {
                 // This is a simplified conversion. A real app might need more complex logic if areas existed.
-                newV.customizationSides[side] = { image: newV.customizationSides[side].image };
+                newV.customizationSides[side] = { image: newV.customizationSides[side]?.image || null };
             });
           }
           return newV;
@@ -48,14 +50,14 @@ export function serializeProduct(product: Product): PlainProduct {
 
 
 async function seedProductsIfEmpty() {
-    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v21'); 
+    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v22'); 
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return; // The correct seeding has already been performed.
     }
     
-    console.log("Performing one-time product database hard reset (v21)...");
+    console.log("Performing one-time product database hard reset (v22)...");
     
     // Hard reset logic: Delete all existing products first.
     const existingProductsSnapshot = await getDocs(productsCollection);
@@ -101,13 +103,16 @@ async function seedProductsIfEmpty() {
             shipsFromPincode: vendorInfo.pincode,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-            mainVariantId: null,
+            mainVariantId: 'variant_1', // Default main variant
             categorySlug: product.category?.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-'),
-            customizationAreas: { front: [], back: [], left: [], right: [], top: [], bottom: [] },
-            variants: [],
-            allowedCustomizations: [],
+            customizationAreas: { front: [{ id: 'area1', type: 'rect', x: 50, y: 50, width: 200, height: 100, rotation: 0 }], back: [], left: [], right: [], top: [], bottom: [] },
+            variants: [
+                { id: 'variant_1', colorName: 'Default', colorHex: '#FFFFFF', image: product.image, customizationSides: { front: { image: product.image }, back: { image: 'https://picsum.photos/seed/chocoback/600/400' }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } } },
+                { id: 'variant_2', colorName: 'Dark', colorHex: '#362222', image: 'https://picsum.photos/seed/chocodark/600/400', customizationSides: { front: { image: 'https://picsum.photos/seed/chocodark/600/400' }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } } },
+            ],
+            allowedCustomizations: ['Text', 'Image Upload', 'Clipart', 'AI Image'],
             inventoryBuffer: 5,
-            tags: [],
+            tags: ['gourmet', 'gift box', 'luxury'],
             packaging: { weight: 1, dimensions: { l: 10, w: 10, h: 5 } },
             preparationTime: { min: 3, max: 4 },
             preparationTimeUnit: 'days',
@@ -117,7 +122,6 @@ async function seedProductsIfEmpty() {
             mrp: product.vendorSP * 1.5,
             platformBufferRate: 0,
             vendorCommissionRate: 0,
-            customizationSides: { front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } }
         };
 
         seedBatch.set(docRef, fullProductData);
@@ -125,7 +129,7 @@ async function seedProductsIfEmpty() {
     await seedBatch.commit();
     
     await setDoc(seedFlagRef, { seeded: true, at: serverTimestamp() });
-    console.log(`${MOCK_PRODUCTS_RAW.length} products seeded successfully (v21). This operation will not run again.`);
+    console.log(`${MOCK_PRODUCTS_RAW.length} products seeded successfully (v22). This operation will not run again.`);
 }
 seedProductsIfEmpty();
 

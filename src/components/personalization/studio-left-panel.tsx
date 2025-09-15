@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SideSelector } from './side-selector';
+import { VariantSelector } from './variant-selector';
 
 interface StudioLeftPanelProps {
   product: Product;
@@ -21,7 +22,14 @@ export function StudioLeftPanel({ product }: StudioLeftPanelProps) {
                 <p className="text-sm text-muted-foreground">by {product.vendor}</p>
             </div>
             
-             <Separator />
+            <Separator />
+            
+            {product.hasVariants && product.variants.length > 1 && (
+              <>
+                <VariantSelector product={product} />
+                <Separator />
+              </>
+            )}
 
             <SideSelector product={product} />
 

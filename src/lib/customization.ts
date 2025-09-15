@@ -1,9 +1,12 @@
 
+import type { CustomizationSide } from './products';
+
 export type ElementType = 'text' | 'image' | 'ai-image' | 'qr-code' | 'clipart';
 
 interface BaseElement {
   id: string;
   type: ElementType;
+  side: CustomizationSide;
   x: number;
   y: number;
   width: number;

@@ -9,12 +9,22 @@ import { StudioRightPanel } from './studio-right-panel';
 import { ContextualToolbar } from './tools/contextual-toolbar';
 import { BottomToolbar } from './tools/bottom-toolbar';
 import { SideSelector } from './side-selector';
+import { useCustomization } from '@/hooks/use-customization';
 
 interface CustomizationStudioProps {
   product: Product;
 }
 
 export function CustomizationStudio({ product }: CustomizationStudioProps) {
+  const { setSelectedVariantId } = useCustomization();
+
+  React.useEffect(() => {
+    // Initialize the customization store with the product's main variant
+    const mainVariantId = product.mainVariantId || product.variants[0]?.id;
+    if (mainVariantId) {
+      setSelectedVariantId(mainVariantId);
+    }
+  }, [product, setSelectedVariantId]);
   
   return (
     <>
@@ -36,7 +46,9 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
          <ContextualToolbar />
          <div className="flex-grow flex flex-col items-center justify-center p-2 relative overflow-hidden">
              <StudioCanvas product={product} />
-             <SideSelector product={product} />
+             <div className="w-full p-2 absolute bottom-16 left-0 bg-background/80 backdrop-blur-sm rounded-t-lg">
+                <SideSelector product={product} />
+             </div>
          </div>
          <BottomToolbar product={product} />
       </div>
