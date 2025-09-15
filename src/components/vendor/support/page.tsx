@@ -197,7 +197,7 @@ function VendorSupportPageContent({ vendorId }: VendorSupportPageContentProps) {
   );
 }
 
-export default function VendorSupportPage({ vendorId = 'vendor001' }: { vendorId?: string }) {
+export default function VendorSupportPage({ vendorId = 'vendor002' }: { vendorId?: string }) {
     return (
         <React.Suspense fallback={<Skeleton className="h-screen w-full" />}>
             <VendorSupportPageContent vendorId={vendorId} />

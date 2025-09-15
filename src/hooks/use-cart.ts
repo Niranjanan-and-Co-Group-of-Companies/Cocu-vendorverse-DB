@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { create } from 'zustand';
@@ -40,7 +39,7 @@ export const useCart = create(
         
         const existingItem = currentItems.find(item => item.cartItemId === cartItemId);
 
-        const plainProduct = makePlain(product) as unknown as PlainProduct;
+        const plainProduct = makePlain(await serializeProduct(product));
 
         if (existingItem) {
           const newQuantity = existingItem.quantity + quantity;
@@ -51,7 +50,7 @@ export const useCart = create(
           });
           return { success: true, message: `Added ${quantity} more of "${product.name}" to your cart.` };
         } else {
-          set({ items: [...currentItems, { ...plainProduct, cartItemId, quantity: quantity, displayPrice, selectedVariant }] });
+          set({ items: [...currentItems, { ...(plainProduct as unknown as PlainProduct), cartItemId, quantity: quantity, displayPrice, selectedVariant }] });
           return { success: true, message: `"${product.name}" (x${quantity}) added to cart.` };
         }
       },
