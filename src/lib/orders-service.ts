@@ -102,7 +102,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'date' | 'status' | 'statusTimeline'>) {
     try {
         const orderId = await runTransaction(db, async (transaction) => {
-            const plainItems = orderData.items.map(item => makePlain(item));
+            const plainItems = makePlain(orderData.items);
             
             // 1. Verify stock for all items
             for (const item of plainItems) {
