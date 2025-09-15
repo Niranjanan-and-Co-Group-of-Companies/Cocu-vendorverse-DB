@@ -22,7 +22,7 @@ import { db, storage } from './firebase';
 
 export type ContentBlock = {
     id: string;
-    type: 'text' | 'image';
+    type: 'text' | 'image' | 'video';
     value: string;
 };
 

@@ -5,6 +5,7 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
+import { YouTubeEmbed } from '@/components/common/youtube-embed';
 
 export async function generateStaticParams() {
   const posts = await getPublishedPosts();
@@ -55,6 +56,13 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                                 return (
                                     <div key={block.id} className="relative aspect-video my-8 rounded-lg overflow-hidden">
                                         <Image src={block.value} alt="Blog content image" fill className="object-cover" />
+                                    </div>
+                                );
+                            }
+                             if (block.type === 'video') {
+                                return (
+                                    <div key={block.id} className="relative aspect-video my-8 rounded-lg overflow-hidden">
+                                        <YouTubeEmbed url={block.value} />
                                     </div>
                                 );
                             }

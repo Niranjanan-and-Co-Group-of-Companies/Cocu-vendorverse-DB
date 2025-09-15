@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { savePost, getPostById, type BlogPost, type ContentBlock } from '@/lib/blog-service';
-import { Loader2, Plus, Trash2, Upload, GripVertical } from 'lucide-react';
+import { Loader2, Plus, Trash2, Upload, GripVertical, Video } from 'lucide-react';
 import { ImageUpload } from '@/components/common/image-upload';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -43,10 +43,8 @@ function NewPostPageContent() {
         }
     }, [postId]);
 
-    const addContentBlock = (type: 'text' | 'image') => {
-        const newBlock: ContentBlock = type === 'text'
-            ? { id: `block_${Date.now()}`, type: 'text', value: '' }
-            : { id: `block_${Date.now()}`, type: 'image', value: '' };
+    const addContentBlock = (type: ContentBlock['type']) => {
+        const newBlock: ContentBlock = { id: `block_${Date.now()}`, type, value: '' };
         setContent([...content, newBlock]);
     };
 
@@ -146,12 +144,19 @@ function NewPostPageContent() {
                                         rows={5}
                                         className="text-base"
                                     />
-                                ) : (
+                                ) : block.type === 'image' ? (
                                     <ImageUpload
                                         imageUrl={block.value}
                                         onFileSelect={(file) => handleBlockImageUpload(block.id, file)}
                                     />
-                                )}
+                                ) : block.type === 'video' ? (
+                                    <Input
+                                        value={block.value}
+                                        onChange={(e) => updateContentBlock(block.id, e.target.value)}
+                                        placeholder="Enter YouTube or Vimeo video URL"
+                                        className="text-base"
+                                    />
+                                ) : null}
                              </div>
                              <Button variant="ghost" size="icon" className="mt-8 text-destructive opacity-0 group-hover:opacity-100" onClick={() => removeContentBlock(block.id)}>
                                 <Trash2 />
@@ -161,6 +166,7 @@ function NewPostPageContent() {
                     <div className="flex gap-2 justify-center border-t pt-4">
                         <Button variant="outline" onClick={() => addContentBlock('text')}><Plus className="mr-2"/> Add Text</Button>
                         <Button variant="outline" onClick={() => addContentBlock('image')}><Upload className="mr-2"/> Add Image</Button>
+                        <Button variant="outline" onClick={() => addContentBlock('video')}><Video className="mr-2"/> Add Video</Button>
                     </div>
                 </div>
             </div>
