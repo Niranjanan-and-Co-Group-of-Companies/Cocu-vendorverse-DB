@@ -40,7 +40,7 @@ export const useCart = create(
         
         const existingItem = currentItems.find(item => item.cartItemId === cartItemId);
 
-        const plainProduct = makePlain(await serializeProduct(product));
+        const plainProduct = makePlain(product) as unknown as PlainProduct;
 
         if (existingItem) {
           const newQuantity = existingItem.quantity + quantity;
