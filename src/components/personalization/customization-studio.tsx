@@ -10,6 +10,7 @@ import { ContextualToolbar } from './tools/contextual-toolbar';
 import { BottomToolbar } from './tools/bottom-toolbar';
 import { SideSelector } from './side-selector';
 import { useCustomization } from '@/hooks/use-customization';
+import { MobileActionButtons } from './mobile-action-buttons';
 
 interface CustomizationStudioProps {
   product: Product;
@@ -45,6 +46,9 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
       <div className="md:hidden h-full flex flex-col">
          <ContextualToolbar />
          <div className="flex-grow flex flex-col items-center justify-center p-2 relative overflow-auto">
+             <div className="absolute top-0 left-2 right-2 z-10 p-2 bg-background/80 backdrop-blur-sm rounded-b-lg">
+                <MobileActionButtons product={product} isMobile={true}/>
+             </div>
              <StudioCanvas product={product} />
              <div className="w-full p-2 absolute bottom-16 left-0 bg-background/80 backdrop-blur-sm rounded-t-lg">
                 <SideSelector product={product} />
