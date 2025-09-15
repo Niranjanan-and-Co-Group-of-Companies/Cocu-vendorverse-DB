@@ -46,6 +46,10 @@ export function onProductsUpdate(productIds: string[], callback: (products: Prod
 
 
 export function onVendorProductsUpdate(vendorId: string, callback: (products: ProductWithStatus[]) => void): Unsubscribe {
+    if (!vendorId) {
+        callback([]);
+        return () => {};
+    }
     const q = query(productsCollection, where('vendorId', '==', vendorId));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
