@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { create } from 'zustand';
@@ -8,6 +7,7 @@ import type { Product } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
 import { serializeProduct, type PlainProduct } from '@/lib/products-service';
+import { makePlain } from '@/lib/utils';
 
 export interface ComparisonItem extends PlainProduct {
     displayPrice?: DisplayPrice;
@@ -52,7 +52,7 @@ export const useComparison = create(
             tieredPricing: product.tieredPricing,
         };
         const displayPrice = await calculateDisplayPrice(productInfo, 'Corporate', category || undefined);
-        const plainProduct = await serializeProduct(product as Product);
+        const plainProduct = makePlain(await serializeProduct(product));
         set({ items: [...currentItems, { ...plainProduct, displayPrice }] });
 
         return {

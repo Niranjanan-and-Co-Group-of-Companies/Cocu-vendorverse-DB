@@ -4,10 +4,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
+import { makePlain } from '@/lib/utils';
+import type { PlainProduct } from '@/lib/products-service';
 
 const MAX_ITEMS = 4;
 
-type BidItem = Product & { isOutOfStock?: boolean };
+type BidItem = PlainProduct & { isOutOfStock?: boolean };
 
 interface BidRequestState {
   items: BidItem[];
@@ -54,8 +56,9 @@ export const useBidRequest = create(
                 message: "This product is already in your bid request.",
             };
         }
-
-        set({ items: [...currentItems, { ...product, isOutOfStock: false }] });
+        
+        const plainProduct = makePlain(product) as PlainProduct;
+        set({ items: [...currentItems, { ...plainProduct, isOutOfStock: false }] });
         return {
             success: true,
             message: `"${product.name}" has been added to your bid request.`
