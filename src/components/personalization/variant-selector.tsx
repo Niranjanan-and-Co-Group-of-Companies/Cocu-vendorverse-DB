@@ -25,7 +25,7 @@ export function VariantSelector({ product }: VariantSelectorProps) {
             variant="outline"
             size="icon"
             className={cn(
-                'h-10 w-10 rounded-full border-2', 
+                'h-10 w-10 rounded-full border-2 p-0 overflow-hidden', 
                 selectedVariantId === variant.id && 'ring-2 ring-primary ring-offset-2'
             )}
             style={{ backgroundColor: variant.colorHex }}
@@ -33,12 +33,14 @@ export function VariantSelector({ product }: VariantSelectorProps) {
             aria-label={`Select color ${variant.colorName}`}
           >
              {variant.image && (
-                <Image 
-                    src={variant.image}
-                    alt={variant.colorName}
-                    fill
-                    className="object-cover rounded-full"
-                />
+                <div className="relative w-full h-full">
+                    <Image 
+                        src={variant.image}
+                        alt={variant.colorName}
+                        fill
+                        className="object-cover"
+                    />
+                </div>
              )}
           </Button>
         ))}
