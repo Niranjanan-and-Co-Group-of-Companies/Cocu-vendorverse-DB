@@ -8,6 +8,7 @@ import type { Product, CustomizationSide, ProductVariant, Platform } from './pro
 import { createNotification } from './notifications-actions';
 import { generateReadableId } from './id-service';
 import type { PlainProduct } from './products-service';
+import { makePlain } from './utils';
 
 export interface CustomizationDetails {
     side: CustomizationSide;
@@ -101,8 +102,10 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'date' | 'status' | 'statusTimeline'>) {
     try {
         const orderId = await runTransaction(db, async (transaction) => {
+            const plainItems = orderData.items.map(item => makePlain(item));
+            
             // 1. Verify stock for all items
-            for (const item of orderData.items) {
+            for (const item of plainItems) {
                 const productRef = doc(db, 'products', item.id);
                 const productSnap = await transaction.get(productRef);
                 if (!productSnap.exists() || productSnap.data().stock < item.quantity) {
@@ -115,6 +118,7 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'dat
             const newOrderId = generateReadableId('ORD');
             const newOrderData = {
                 ...orderData,
+                items: plainItems, // Use the plain items
                 orderId: newOrderId,
                 status: 'Pending' as OrderStatus,
                 date: serverTimestamp(),
@@ -122,7 +126,7 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'orderId' | 'dat
             };
             transaction.set(orderRef, newOrderData);
 
-            for (const item of orderData.items) {
+            for (const item of plainItems) {
                 const productRef = doc(db, 'products', item.id);
                 transaction.update(productRef, { stock: increment(-item.quantity) });
             }

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { create } from 'zustand';
@@ -62,7 +61,7 @@ export const useCorporateCart = create(
             return { success: false, message: "Not enough stock available for the requested quantity.", variant: 'destructive'};
         }
 
-        const plainProduct = product as unknown as PlainProduct;
+        const plainProduct = makePlain(product) as unknown as PlainProduct;
 
         if (existingItem) {
           const updatedQuantity = existingItem.quantity + newQuantity;
