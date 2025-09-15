@@ -44,7 +44,7 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
       {/* Mobile View: Unified layout with contextual top toolbar and bottom action bar */}
       <div className="md:hidden h-full flex flex-col">
          <ContextualToolbar />
-         <div className="flex-grow flex flex-col items-center justify-center p-2 relative overflow-hidden">
+         <div className="flex-grow flex flex-col items-center justify-center p-2 relative overflow-auto">
              <StudioCanvas product={product} />
              <div className="w-full p-2 absolute bottom-16 left-0 bg-background/80 backdrop-blur-sm rounded-t-lg">
                 <SideSelector product={product} />

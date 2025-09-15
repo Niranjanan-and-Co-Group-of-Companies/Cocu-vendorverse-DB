@@ -66,9 +66,7 @@ function CustomizePageWrapper({ params }: { params: { id: string } }) {
             <Header />
             <main className="flex-grow">
                 <React.Suspense fallback={<p>Loading...</p>}>
-                    <CustomizationProvider>
-                        <CustomizePageContent id={id} />
-                    </CustomizationProvider>
+                    <CustomizePageContent id={id} />
                 </React.Suspense>
             </main>
             <Footer />
@@ -77,5 +75,9 @@ function CustomizePageWrapper({ params }: { params: { id: string } }) {
 }
 
 export default function CustomizePage({ params }: { params: { id: string } }) {
-    return <CustomizePageWrapper params={params} />
+    return (
+      <CustomizationProvider>
+        <CustomizePageWrapper params={params} />
+      </CustomizationProvider>
+    );
 }
