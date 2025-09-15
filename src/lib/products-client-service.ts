@@ -10,12 +10,27 @@ import { getVendorById } from './vendors-service';
 import { onCategoriesWithCommissionsUpdate, type Category } from './categories-service';
 import { calculateDisplayPrice, type DisplayPrice } from './pricing-service';
 import { getFeaturedPersonalProducts, getFeaturedCorporateProducts, type FeaturedProduct } from './featured-service';
-import { serializeProduct, type PlainProduct } from './products-service';
+import type { PlainProduct } from './products-service';
 import { makePlain } from './utils';
 
 export type ProductWithStatus = PlainProduct & { status: ProductStatus };
 export type ProductWithVendor = PlainProduct & { vendor: PlainVendor };
 export type ProductWithPrice = PlainProduct & Partial<FeaturedProduct> & { displayPrice: DisplayPrice };
+
+export async function serializeProduct(product: Product): Promise<PlainProduct> {
+  const plainProduct = makePlain(product);
+
+  // Ensure Timestamps are converted to ISO strings
+  if (plainProduct.createdAt && typeof plainProduct.createdAt === 'object' && 'seconds' in plainProduct.createdAt) {
+    plainProduct.createdAt = new Date(plainProduct.createdAt.seconds * 1000).toISOString();
+  }
+  if (plainProduct.updatedAt && typeof plainProduct.updatedAt === 'object' && 'seconds' in plainProduct.updatedAt) {
+    plainProduct.updatedAt = new Date(plainProduct.updatedAt.seconds * 1000).toISOString();
+  }
+  
+  return plainProduct as PlainProduct;
+}
+
 
 export function onProductUpdate(id: string, callback: (product: PlainProduct | null) => void): () => void {
     const docRef = doc(db, 'products', id);

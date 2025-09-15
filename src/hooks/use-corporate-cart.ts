@@ -8,7 +8,7 @@ import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service'
 import { getCategoryByName } from '@/lib/categories-service';
 import { makePlain } from '@/lib/utils';
 import type { PlainProduct } from '@/lib/products-service';
-import { serializeProduct } from '@/lib/products-service';
+import { serializeProduct } from '@/lib/products-client-service';
 
 export interface CartItem extends PlainProduct {
   quantity: number;

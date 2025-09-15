@@ -6,6 +6,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/products';
 import { makePlain } from '@/lib/utils';
 import type { PlainProduct } from '@/lib/products-service';
+import { serializeProduct } from '@/lib/products-client-service';
 
 const MAX_ITEMS = 4;
 
@@ -13,7 +14,7 @@ type BidItem = PlainProduct & { isOutOfStock?: boolean };
 
 interface BidRequestState {
   items: BidItem[];
-  addItem: (product: Product) => { success: boolean, message?: string, variant?: 'destructive' };
+  addItem: (product: Product) => Promise<{ success: boolean, message?: string, variant?: 'destructive' }>;
   removeItem: (productId: string) => void;
   setStockStatus: (productId: string, isOutOfStock: boolean) => void;
   clearBid: () => void;
@@ -23,7 +24,7 @@ export const useBidRequest = create(
   persist<BidRequestState>(
     (set, get) => ({
       items: [],
-      addItem: (product) => {
+      addItem: async (product) => {
         const currentItems = get().items;
 
         if (product.stock < (product.moq || 1)) {
@@ -57,7 +58,7 @@ export const useBidRequest = create(
             };
         }
         
-        const plainProduct = makePlain(product) as PlainProduct;
+        const plainProduct = makePlain(await serializeProduct(product));
         set({ items: [...currentItems, { ...plainProduct, isOutOfStock: false }] });
         return {
             success: true,

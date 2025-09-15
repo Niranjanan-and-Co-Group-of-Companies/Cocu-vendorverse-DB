@@ -7,7 +7,7 @@ import type { Product, ProductVariant } from '@/lib/products';
 import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service';
 import { getCategoryByName } from '@/lib/categories-service';
 import type { PlainProduct } from '@/lib/products-service';
-import { serializeProduct } from '@/lib/products-service';
+import { serializeProduct } from '@/lib/products-client-service';
 import { makePlain } from '@/lib/utils';
 import type { CustomizationProof } from '@/lib/customization-service';
 
