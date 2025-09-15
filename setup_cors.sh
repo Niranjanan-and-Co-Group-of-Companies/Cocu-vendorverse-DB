@@ -42,7 +42,7 @@ echo "Firebase Project ID: $PROJECT_ID"
 
 # Step 3: Apply the CORS configuration to the default storage bucket
 # Use the newer firebasestorage.app domain format
-BUCKET_NAME="gs://${PROJECT_ID}.firebasestorage.app"
+BUCKET_NAME="gs://${PROJECT_ID}.appspot.com"
 echo "Applying CORS configuration to bucket: $BUCKET_NAME"
 gcloud storage buckets update $BUCKET_NAME --cors-file=./cors-config.json
 
