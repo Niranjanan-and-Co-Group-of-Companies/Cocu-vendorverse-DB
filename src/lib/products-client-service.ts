@@ -10,11 +10,11 @@ import { getVendorById } from './vendors-service';
 import { onCategoriesWithCommissionsUpdate, type Category } from './categories-service';
 import { calculateDisplayPrice, type DisplayPrice } from './pricing-service';
 import { getFeaturedPersonalProducts, getFeaturedCorporateProducts, type FeaturedProduct } from './featured-service';
-import { serializeProduct } from './products-service';
+import { serializeProduct, type PlainProduct } from './products-service';
 
 export type ProductWithStatus = Product & { status: ProductStatus };
 export type ProductWithVendor = Product & { vendor: PlainVendor };
-export type ProductWithPrice = PlainProduct & FeaturedProduct & { displayPrice: DisplayPrice };
+export type ProductWithPrice = PlainProduct & Partial<FeaturedProduct> & { displayPrice: DisplayPrice };
 
 export function onProductUpdate(id: string, callback: (product: PlainProduct | null) => void): () => void {
     const docRef = doc(db, 'products', id);
@@ -46,7 +46,7 @@ export function onProductsUpdate(productIds: string[], callback: (products: Plai
 }
 
 
-export function onVendorProductsUpdate(vendorId: string, callback: (products: ProductWithStatus[]) => void): Unsubscribe {
+export function onVendorProductsUpdate(vendorId: string | undefined, callback: (products: ProductWithStatus[]) => void): Unsubscribe {
     if (!vendorId) {
         callback([]);
         return () => {};
@@ -233,7 +233,7 @@ export function onAllProductsUpdate(
     const q = query(productsCollection, where('status', '==', 'Live'));
 
     unsubCategories = onCategoriesWithCommissionsUpdate(platform, (categories) => {
-        if (unsubProducts) unsubProducts(); // Unsubscribe from previous listener
+        if (unsubProducts) unsubProducts();
 
         unsubProducts = onSnapshot(q, async (snapshot) => {
             const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
