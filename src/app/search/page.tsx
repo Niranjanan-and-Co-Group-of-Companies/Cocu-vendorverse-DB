@@ -36,10 +36,12 @@ function SearchResultsContent() {
     setLoading(true);
     const unsubscribe = onAllProductsUpdate('Personalized', (pricedProducts) => {
         if (query) {
+            const lowerCaseQuery = query.toLowerCase();
             const filtered = pricedProducts.filter(product =>
-                product.name.toLowerCase().includes(query.toLowerCase()) ||
-                product.vendor.toLowerCase().includes(query.toLowerCase()) ||
-                product.description?.toLowerCase().includes(query.toLowerCase())
+                product.name.toLowerCase().includes(lowerCaseQuery) ||
+                product.vendor.toLowerCase().includes(lowerCaseQuery) ||
+                (product.category && product.category.toLowerCase().includes(lowerCaseQuery)) ||
+                product.description?.toLowerCase().includes(lowerCaseQuery)
             );
             setSearchResults(filtered);
         } else {

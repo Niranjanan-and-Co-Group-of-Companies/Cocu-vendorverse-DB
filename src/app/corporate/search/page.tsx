@@ -29,6 +29,7 @@ function CorporateSearchPageContent() {
         const results = products.filter(p => 
              (p.name.toLowerCase().includes(lowerCaseQuery) ||
              p.vendor.toLowerCase().includes(lowerCaseQuery) ||
+             (p.category && p.category.toLowerCase().includes(lowerCaseQuery)) ||
              p.description?.toLowerCase().includes(lowerCaseQuery))
              && p.stock >= (p.moq || 1) // Filter out-of-stock items
         );
