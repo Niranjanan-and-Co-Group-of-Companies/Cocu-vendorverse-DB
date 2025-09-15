@@ -5,6 +5,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
+import { makePlain } from './utils';
 
 export type CategoryPlatform = 'Personalized' | 'Corporate';
 
@@ -17,6 +18,17 @@ export interface Category {
   platform: CategoryPlatform;
   commissionRate?: number; // Added to hold the relevant commission rate
 }
+
+export type PlainCategory = Omit<Category, 'createdAt' | 'updatedAt'> & {
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+const serializeCategory = (category: Category): PlainCategory => {
+  const plainCategory = makePlain(category);
+  return plainCategory as PlainCategory;
+};
+
 
 const MOCK_CATEGORIES = [
     // Personalized Categories
@@ -102,11 +114,14 @@ export function onCategoriesUpdate(callback: (categories: Category[]) => void): 
     seedCategories();
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-        const categoriesData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        } as Category));
-        callback(categoriesData);
+        const categoriesData = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+            } as Category;
+        });
+        callback(categoriesData.map(c => makePlain(c)));
     });
 
     return unsubscribe;
@@ -182,7 +197,7 @@ export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Co
             commissionRate: commissionRulesMap.get(category.name) ?? 0,
         }));
         
-        callback(combined.sort((a, b) => a.name.localeCompare(b.name)));
+        callback(combined.sort((a, b) => a.name.localeCompare(b.name)).map(c => makePlain(c)));
     };
 
     const unsubCategories = onSnapshot(categoriesQuery, (snapshot) => {
@@ -231,7 +246,8 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
         return null;
     }
     const docData = snapshot.docs[0];
-    return { id: docData.id, ...docData.data() } as Category;
+    const category = { id: docData.id, ...docData.data() } as Category;
+    return makePlain(category);
 }
 
 export async function getCategoryByName(name?: string): Promise<Category | null> {
@@ -254,7 +270,8 @@ export async function getCategoryByName(name?: string): Promise<Category | null>
         commissionRate = (commissionsSnapshot.docs[0].data() as CommissionRule).commissionRate;
     }
     
-    return { id: docData.id, ...docData.data(), commissionRate } as Category;
+    const category = { id: docData.id, ...docData.data(), commissionRate } as Category;
+    return makePlain(category);
 }
 
 

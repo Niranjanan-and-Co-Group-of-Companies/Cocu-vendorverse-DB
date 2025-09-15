@@ -276,7 +276,7 @@ export default function Home() {
                     </Card>
                 ))
               ) : (categories.map((category) => (
-                <Link key={category.slug} href={`/category/${category.slug}`} className="block group">
+                <Link key={category.id} href={`/category/${category.slug}`} className="block group">
                   <Card className="overflow-hidden relative">
                     <div className="aspect-[4/3] bg-muted">
                        {category.image && <Image src={category.image} alt={category.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint="category" />}
