@@ -25,10 +25,14 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
   if (product.createdAt && typeof product.createdAt.toDate === 'function') {
     plainProduct.createdAt = product.createdAt.toDate().toISOString();
+  } else {
+    plainProduct.createdAt = null;
   }
 
   if (product.updatedAt && typeof product.updatedAt.toDate === 'function') {
     plainProduct.updatedAt = product.updatedAt.toDate().toISOString();
+  } else {
+    plainProduct.updatedAt = null;
   }
   
   if (product.variants) {
@@ -220,7 +224,7 @@ export async function getProductsByVendor(vendorId: string): Promise<PlainProduc
     const q = query(productsCollection, where('vendorId', '==', vendorId));
     const snapshot = await getDocs(q);
     const products = snapshot.docs.map(doc => doc.data() as Product);
-    return Promise.all(products.map(serializeProduct));
+    return await Promise.all(products.map(serializeProduct));
 }
 
 export async function getProductById(id: string): Promise<PlainProduct | null> {
@@ -300,5 +304,6 @@ export async function declineProduct(productId: string) {
 }
 
 const productsCollection = collection(db, 'products');
+
 
 
