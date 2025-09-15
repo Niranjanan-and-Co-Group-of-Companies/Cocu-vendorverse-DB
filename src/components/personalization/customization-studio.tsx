@@ -19,10 +19,10 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
   const { setSelectedVariantId } = useCustomization();
 
   React.useEffect(() => {
-    // Initialize the customization store with the product's main variant
-    const mainVariantId = product.mainVariantId || product.variants[0]?.id;
-    if (mainVariantId) {
-      setSelectedVariantId(mainVariantId);
+    // Initialize the customization store with the product's main variant or the first one.
+    const initialVariantId = product.mainVariantId || product.variants?.[0]?.id;
+    if (initialVariantId) {
+      setSelectedVariantId(initialVariantId);
     }
   }, [product, setSelectedVariantId]);
   

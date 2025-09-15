@@ -14,6 +14,8 @@ interface StudioLeftPanelProps {
 }
 
 export function StudioLeftPanel({ product }: StudioLeftPanelProps) {
+  const showVariants = product.hasVariants && product.variants && product.variants.length > 1;
+
   return (
     <ScrollArea className="h-full">
         <div className="p-4 space-y-6">
@@ -24,7 +26,7 @@ export function StudioLeftPanel({ product }: StudioLeftPanelProps) {
             
             <Separator />
             
-            {product.hasVariants && product.variants.length > 1 && (
+            {showVariants && (
               <>
                 <VariantSelector product={product} />
                 <Separator />

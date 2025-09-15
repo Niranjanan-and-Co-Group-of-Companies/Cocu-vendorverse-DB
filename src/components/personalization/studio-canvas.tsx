@@ -19,9 +19,12 @@ export function StudioCanvas({ product }: StudioCanvasProps) {
     const canvasRef = React.useRef<HTMLDivElement>(null);
     const { elements, setSelectedElementId, activeSide, selectedVariantId } = useCustomization();
 
-    const activeVariant = product.variants.find(v => v.id === selectedVariantId);
+    const activeVariant = product.variants.find(v => v.id === selectedVariantId) || product.variants[0];
     const sideData = activeVariant?.customizationSides[activeSide];
-    const activeSideImage = sideData?.image;
+    
+    // Fallback logic: if a specific side image doesn't exist, use the variant's main image, then the product's main image.
+    const activeSideImage = sideData?.image || activeVariant?.image || product.image;
+    
     const customizationAreas = product.customizationAreas?.[activeSide] || [];
 
     const handleCanvasClick = (e: React.MouseEvent) => {
