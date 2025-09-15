@@ -45,12 +45,14 @@ export function CustomizationStudio({ product }: CustomizationStudioProps) {
       {/* Mobile View: Unified layout with contextual top toolbar and bottom action bar */}
       <div className="md:hidden h-full flex flex-col">
          <ContextualToolbar />
-         <div className="flex-grow flex flex-col items-center justify-center p-2 relative overflow-auto">
-             <div className="absolute top-0 left-2 right-2 z-10 p-2 bg-background/80 backdrop-blur-sm rounded-b-lg">
+         <div className="flex-grow flex flex-col p-2 relative overflow-hidden">
+            <div className="absolute top-0 left-2 right-2 z-10 p-2">
                 <MobileActionButtons product={product} isMobile={true}/>
+            </div>
+             <div className="flex-grow flex items-center justify-center">
+                <StudioCanvas product={product} />
              </div>
-             <StudioCanvas product={product} />
-             <div className="w-full p-2 absolute bottom-16 left-0 bg-background/80 backdrop-blur-sm rounded-t-lg">
+             <div className="w-full p-2 bg-background/80 backdrop-blur-sm rounded-t-lg">
                 <SideSelector product={product} />
              </div>
          </div>
