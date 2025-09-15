@@ -81,7 +81,7 @@ export function Search({ platform = 'personalized' }: SearchProps) {
     setShowSuggestions(false);
   };
   
-  const placeholderText = isMobile ? "Search..." : "Search for gifts, vendors, and more...";
+  const placeholderText = isMobile ? "Search..." : "Search for gifts, categories, and more...";
 
   return (
     <div className="w-full max-w-lg relative" ref={searchContainerRef}>
