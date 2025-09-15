@@ -246,7 +246,7 @@ export async function getRelatedProducts(type: 'category' | 'vendor', value?: st
         .filter(p => String(p.id) !== currentProductId)
         .slice(0, 4);
     
-    return await Promise.all(products.map(p => serializeProduct(p)));
+    return await Promise.all(products.map(serializeProduct));
 }
 
 
@@ -287,5 +287,6 @@ export async function declineProduct(productId: string) {
 }
 
 const productsCollection = collection(db, 'products');
+
 
 

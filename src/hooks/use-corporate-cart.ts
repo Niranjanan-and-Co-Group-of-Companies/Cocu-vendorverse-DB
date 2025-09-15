@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { create } from 'zustand';
@@ -8,6 +9,7 @@ import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service'
 import { getCategoryByName } from '@/lib/categories-service';
 import { makePlain } from '@/lib/utils';
 import type { PlainProduct } from '@/lib/products-service';
+import { serializeProduct } from '@/lib/products-service';
 
 export interface CartItem extends PlainProduct {
   quantity: number;
@@ -61,7 +63,7 @@ export const useCorporateCart = create(
             return { success: false, message: "Not enough stock available for the requested quantity.", variant: 'destructive'};
         }
 
-        const plainProduct = makePlain(product) as unknown as PlainProduct;
+        const plainProduct = makePlain(await serializeProduct(product));
 
         if (existingItem) {
           const updatedQuantity = existingItem.quantity + newQuantity;
