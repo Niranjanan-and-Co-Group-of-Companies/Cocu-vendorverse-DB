@@ -41,7 +41,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
                 {post.featuredImage && (
                     <div className="relative aspect-video mb-8 rounded-lg overflow-hidden">
-                        <Image src={post.featuredImage} alt={post.title} layout="fill" className="object-cover" priority />
+                        <Image src={post.featuredImage} alt={post.title} fill className="object-cover" priority />
                     </div>
                 )}
                 
@@ -54,7 +54,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                             if (block.type === 'image') {
                                 return (
                                     <div key={block.id} className="relative aspect-video my-8 rounded-lg overflow-hidden">
-                                        <Image src={block.value} alt="Blog content image" layout="fill" className="object-cover" />
+                                        <Image src={block.value} alt="Blog content image" fill className="object-cover" />
                                     </div>
                                 );
                             }

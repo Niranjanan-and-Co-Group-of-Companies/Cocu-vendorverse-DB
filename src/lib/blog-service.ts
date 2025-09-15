@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { 
@@ -35,32 +34,43 @@ export interface BlogPost {
   featuredImage: string;
   content: ContentBlock[];
   status: 'Published' | 'Draft';
-  createdAt: any; // Firestore Timestamp
-  updatedAt: any; // Firestore Timestamp
+  createdAt: any; // Can be Timestamp or string
+  updatedAt: any; // Can be Timestamp or string
 }
 
 const postsCollection = collection(db, 'blogPosts');
+
+const serializePost = (doc: any): BlogPost => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+    } as BlogPost;
+};
+
 
 // --- Service Functions ---
 
 export async function getPublishedPosts(): Promise<BlogPost[]> {
     const q = query(postsCollection, where('status', '==', 'Published'), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogPost));
+    return snapshot.docs.map(serializePost);
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     const q = query(postsCollection, where('slug', '==', slug), limit(1));
     const snapshot = await getDocs(q);
     if (snapshot.empty) return null;
-    return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as BlogPost;
+    return serializePost(snapshot.docs[0]);
 }
 
 export async function getPostById(id: string): Promise<BlogPost | null> {
     const docRef = doc(db, 'blogPosts', id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as BlogPost;
+        return serializePost(docSnap);
     }
     return null;
 }

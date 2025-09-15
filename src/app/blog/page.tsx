@@ -14,7 +14,7 @@ function PostCard({ post }: { post: BlogPost }) {
     
     const formatDate = (timestamp: any) => {
         if (!timestamp) return 'N/A';
-        return timestamp.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        return new Date(timestamp).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     };
 
     return (
@@ -22,7 +22,7 @@ function PostCard({ post }: { post: BlogPost }) {
             <CardHeader className="p-0">
                 {post.featuredImage && (
                     <Link href={`/blog/${post.slug}`} className="block aspect-video relative overflow-hidden rounded-t-lg">
-                        <Image src={post.featuredImage} alt={post.title} layout="fill" className="object-cover" data-ai-hint="blog post" />
+                        <Image src={post.featuredImage} alt={post.title} fill className="object-cover" data-ai-hint="blog post" />
                     </Link>
                 )}
             </CardHeader>
