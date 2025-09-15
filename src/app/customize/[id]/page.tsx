@@ -19,7 +19,7 @@ function CustomizePageContent({ id }: { id: string }) {
         
         setLoading(true);
         const unsubscribe = onProductUpdate(id, (productData) => {
-            setProduct(productData);
+            setProduct(productData as Product);
             setLoading(false);
         });
         return () => unsubscribe();
