@@ -122,7 +122,7 @@ seedProductsIfEmpty();
 
 
 async function uploadFile(path: string, file: File): Promise<string> {
-    const storageRef = ref(storage, `products/${path}`);
+    const storageRef = ref(storage, path);
     await uploadBytes(storageRef, file);
     return getDownloadURL(storageRef);
 }
@@ -287,6 +287,7 @@ export async function declineProduct(productId: string) {
 }
 
 const productsCollection = collection(db, 'products');
+
 
 
 
