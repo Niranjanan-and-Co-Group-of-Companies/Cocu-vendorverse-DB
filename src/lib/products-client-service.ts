@@ -14,9 +14,9 @@ import { serializeProduct } from './products-service';
 
 export type ProductWithStatus = Product & { status: ProductStatus };
 export type ProductWithVendor = Product & { vendor: PlainVendor };
-export type ProductWithPrice = Product & FeaturedProduct & { displayPrice: DisplayPrice };
+export type ProductWithPrice = PlainProduct & FeaturedProduct & { displayPrice: DisplayPrice };
 
-export function onProductUpdate(id: string, callback: (product: Product | null) => void): () => void {
+export function onProductUpdate(id: string, callback: (product: PlainProduct | null) => void): () => void {
     const docRef = doc(db, 'products', id);
     return onSnapshot(docRef, async (doc) => {
         if (doc.exists()) {
@@ -29,7 +29,7 @@ export function onProductUpdate(id: string, callback: (product: Product | null) 
     });
 }
 
-export function onProductsUpdate(productIds: string[], callback: (products: Product[]) => void): Unsubscribe {
+export function onProductsUpdate(productIds: string[], callback: (products: PlainProduct[]) => void): Unsubscribe {
     if (productIds.length === 0) {
         callback([]);
         return () => {};
@@ -106,7 +106,7 @@ export function getPendingProductCount(callback: (count: number) => void): Unsub
 
 const productsCollection = collection(db, 'products');
 
-async function priceProducts(products: (Product & Partial<FeaturedProduct>)[], platform: 'Personalized' | 'Corporate', categories: Category[]): Promise<ProductWithPrice[]> {
+async function priceProducts(products: PlainProduct[], platform: 'Personalized' | 'Corporate', categories: Category[]): Promise<ProductWithPrice[]> {
     const pricedProducts = await Promise.all(
         products.map(async (p) => {
             const category = categories.find(c => c.name === p.category);
@@ -122,8 +122,8 @@ async function priceProducts(products: (Product & Partial<FeaturedProduct>)[], p
             };
             return {
                 ...p,
-                featuredOnPersonal: p.featuredOnPersonal ?? false,
-                featuredOnCorporate: p.featuredOnCorporate ?? false,
+                featuredOnPersonal: (p as Partial<FeaturedProduct>).featuredOnPersonal ?? false,
+                featuredOnCorporate: (p as Partial<FeaturedProduct>).featuredOnCorporate ?? false,
                 displayPrice: await calculateDisplayPrice(productInfo, platform, category || undefined),
             } as ProductWithPrice;
         })
@@ -139,14 +139,13 @@ export function onFeaturedProductsUpdate(
 
     let unsubCategories: Unsubscribe | null = null;
     let unsubProducts: Unsubscribe | null = null;
-    let productCache: (Product & Partial<FeaturedProduct>)[] = [];
+    let productCache: PlainProduct[] = [];
     let categoryCache: Category[] = [];
 
     const combineAndCallback = async () => {
         if(productCache.length > 0 && categoryCache.length > 0) {
             const priced = await priceProducts(productCache, platform, categoryCache);
-            const plainPriced = await Promise.all(priced.map(p => serializeProduct(p as Product)));
-            callback(plainPriced as ProductWithPrice[]);
+            callback(priced);
         }
     }
 
@@ -159,10 +158,11 @@ export function onFeaturedProductsUpdate(
 
     const setupProductListener = async () => {
         const featuredProductsInitial = await fetcher();
-        productCache = featuredProductsInitial;
+        const plainFeatured = await Promise.all(featuredProductsInitial.map(p => serializeProduct(p as Product)));
+        productCache = plainFeatured as PlainProduct[];
         await combineAndCallback();
         
-        const productIds = featuredProductsInitial.map(p => p.id);
+        const productIds = plainFeatured.map(p => p.id);
 
         if (productIds.length > 0) {
             const q = query(productsCollection, where(documentId(), 'in', productIds));
@@ -173,11 +173,11 @@ export function onFeaturedProductsUpdate(
                     const plainProduct = await serializeProduct(product);
                     return {
                         ...plainProduct,
-                        featuredOnPersonal: existingData?.featuredOnPersonal,
-                        featuredOnCorporate: existingData?.featuredOnCorporate,
+                        featuredOnPersonal: (existingData as Partial<FeaturedProduct>)?.featuredOnPersonal,
+                        featuredOnCorporate: (existingData as Partial<FeaturedProduct>)?.featuredOnCorporate,
                     };
                 }));
-                productCache = updatedProducts as (Product & Partial<FeaturedProduct>)[];
+                productCache = updatedProducts as PlainProduct[];
                 await combineAndCallback();
             });
         } else {
@@ -212,7 +212,7 @@ export function onProductsByCategoryUpdate(
         unsubProducts = onSnapshot(q, async (snapshot) => {
             const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
             const plainProducts = await Promise.all(products.map(serializeProduct));
-            const priced = await priceProducts(plainProducts as Product[], platform, categories);
+            const priced = await priceProducts(plainProducts, platform, categories);
             callback(priced, currentCategory);
         });
     });
@@ -243,7 +243,7 @@ export function onAllProductsUpdate(
                 ? plainProducts.filter(p => p.moq && p.moq > 0)
                 : plainProducts;
             
-            const priced = await priceProducts(platformFiltered as Product[], platform, categories);
+            const priced = await priceProducts(platformFiltered, platform, categories);
             callback(priced);
         });
     });

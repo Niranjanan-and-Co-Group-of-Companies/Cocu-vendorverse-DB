@@ -9,6 +9,7 @@ import { calculateDisplayPrice, type DisplayPrice } from '@/lib/pricing-service'
 import { getCategoryByName } from '@/lib/categories-service';
 import type { PlainProduct } from '@/lib/products-service';
 import { serializeProduct } from '@/lib/products-service';
+import { makePlain } from '@/lib/utils';
 
 export interface CartItem extends PlainProduct {
   cartItemId: string; // Unique ID for this specific item in the cart (product.id + variant.id)
@@ -83,7 +84,24 @@ export const useCart = create(
     }),
     {
       name: 'personal-cart-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => localStorage, {
+        reviver: (key, value: any) => {
+            if (typeof value === 'object' && value !== null && value.type === 'Timestamp') {
+                return new Date(value.seconds * 1000 + value.nanoseconds / 1000000);
+            }
+            return value;
+        },
+        replacer: (key, value) => {
+            if (value instanceof Date) {
+                return {
+                    type: 'Timestamp',
+                    seconds: Math.floor(value.getTime() / 1000),
+                    nanoseconds: (value.getTime() % 1000) * 1000000
+                };
+            }
+            return value;
+        }
+      }),
     }
   )
 );

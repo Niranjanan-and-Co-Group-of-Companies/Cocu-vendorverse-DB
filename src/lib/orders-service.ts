@@ -7,6 +7,7 @@ import { db } from './firebase';
 import type { Product, CustomizationSide, ProductVariant, Platform } from './products';
 import { createNotification } from './notifications-actions';
 import { generateReadableId } from './id-service';
+import type { PlainProduct } from './products-service';
 
 export interface CustomizationDetails {
     side: CustomizationSide;
@@ -14,7 +15,7 @@ export interface CustomizationDetails {
     printUrl: string;
 }
 
-export interface OrderItem extends Product {
+export interface OrderItem extends PlainProduct {
     quantity: number;
     customizations?: CustomizationDetails[];
     selectedVariant?: ProductVariant; // Add selected variant
