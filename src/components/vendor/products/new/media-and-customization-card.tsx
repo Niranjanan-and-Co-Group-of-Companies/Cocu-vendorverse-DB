@@ -38,7 +38,7 @@ export function MediaAndCustomizationCard({
     
     React.useEffect(() => {
         // If main variant changes, switch the active editing variant
-        if (mainVariantId) {
+        if (mainVariantId && product.variants?.some(v => v.id === mainVariantId)) {
             setActiveVariantId(mainVariantId);
         } else if (product.variants && product.variants.length > 0 && !product.variants.some(v => v.id === activeVariantId)) {
             // If the active variant ID is no longer valid (e.g., variant deleted), default to the first one
