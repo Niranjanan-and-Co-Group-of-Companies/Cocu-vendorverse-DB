@@ -227,7 +227,8 @@ export async function getProductById(id: string): Promise<PlainProduct | null> {
     const docRef = doc(db, 'products', id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-        return serializeProduct(docSnap.data() as Product);
+        const product = docSnap.data() as Product;
+        return await serializeProduct(product);
     }
     return null;
 }
@@ -258,7 +259,7 @@ export async function getRelatedProducts(type: 'category' | 'vendor', value?: st
         .filter(p => String(p.id) !== currentProductId)
         .slice(0, 4);
     
-    return Promise.all(products.map(serializeProduct));
+    return await Promise.all(products.map(p => serializeProduct(p)));
 }
 
 
@@ -299,3 +300,4 @@ export async function declineProduct(productId: string) {
 }
 
 const productsCollection = collection(db, 'products');
+
