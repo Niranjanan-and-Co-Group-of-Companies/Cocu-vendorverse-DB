@@ -56,7 +56,19 @@ const serializePost = (doc: any): BlogPost => {
 export async function getPublishedPosts(): Promise<BlogPost[]> {
     const q = query(postsCollection, where('status', '==', 'Published'), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(serializePost);
+    
+    // Serialize the posts safely after fetching
+    const posts = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : null,
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : null,
+        } as BlogPost;
+    });
+
+    return posts;
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {

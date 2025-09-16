@@ -9,7 +9,7 @@ import { getStorage } from 'firebase/storage';
 const firebaseConfig = {
   "projectId": "vendorverse-rhu2g",
   "appId": "1:449199253707:web:eeb19ad71d5bc81d79934e",
-  "storageBucket": "vendorverse-rhu2g.appspot.com",
+  "storageBucket": "vendorverse-rhu2g.firebasestorage.app",
   "apiKey": "AIzaSyBuVM0FSd3fZGrDzGOqdfAlpQeNZSSUzV0",
   "authDomain": "vendorverse-rhu2g.firebaseapp.com",
   "measurementId": "G-11V629000L",
