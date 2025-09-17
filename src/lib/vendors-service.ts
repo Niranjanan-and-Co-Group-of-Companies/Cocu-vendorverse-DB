@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp, query, where, setDoc } from 'firebase/firestore';
@@ -73,23 +74,23 @@ export async function serializeVendor(vendor: Vendor): Promise<PlainVendor> {
   return plainVendor as PlainVendor;
 }
 
-const MOCK_VENDORS: Omit<Vendor, 'id' | 'joinedDate' | 'vendorId'>[] = [
-    { name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', phone: '+919876543210', avatar: 'https://i.pravatar.cc/40?u=vendor001', type: 'both', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Main Kitchen', street: '123 Foodie Lane', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', country: 'India', isDefault: true }], gstProfile: { gstin: '27AAAAA0000A1Z5', legalName: 'Gourmet Delights Pvt Ltd', stateCode: '27' }, banking: { beneficiary: 'Gourmet Delights Pvt Ltd', ifsc: 'HDFC0000001', accountNoMasked: '********1234' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
-    { name: 'Serene Moments', email: 'support@serenemoments.co', phone: '+919876543211', avatar: 'https://i.pravatar.cc/40?u=vendor002', type: 'personalized', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Warehouse A', street: '456 Wellness Way', city: 'Bangalore', state: 'Karnataka', pincode: '560001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: 'Serene Moments Inc', ifsc: 'ICIC0000002', accountNoMasked: '********5678' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'vendor'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } },
-    { name: 'Heritage Wares', email: 'info@heritagewares.com', phone: '+919876543212', avatar: 'https://i.pravatar.cc/40?u=vendor003', type: 'corporate', status: 'Pending', pickupAddresses: [{ id: 'addr1', label: 'Workshop', street: '789 Craft Circle', city: 'Jaipur', state: 'Rajasthan', pincode: '302001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: '', ifsc: '', accountNoMasked: '' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 1, status: 'In Progress', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } },
-    { name: 'The Daily Grind', email: 'hello@dailygrind.coffee', phone: '+919876543213', avatar: 'https://i.pravatar.cc/40?u=vendor004', type: 'personalized', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Roastery', street: '101 Coffee Bean Blvd', city: 'Chikmagalur', state: 'Karnataka', pincode: '577101', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: 'The Daily Grind', ifsc: 'SBIN0000123', accountNoMasked: '********1122' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer' }, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } }
+const MOCK_VENDORS: Omit<Vendor, 'joinedDate' | 'vendorId'>[] = [
+    { id: 'vendor001', name: 'Gourmet Delights', email: 'contact@gourmetdelights.com', phone: '+919876543210', avatar: 'https://i.pravatar.cc/40?u=vendor001', type: 'both', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Main Kitchen', street: '123 Foodie Lane', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', country: 'India', isDefault: true }], gstProfile: { gstin: '27AAAAA0000A1Z5', legalName: 'Gourmet Delights Pvt Ltd', stateCode: '27' }, banking: { beneficiary: 'Gourmet Delights Pvt Ltd', ifsc: 'HDFC0000001', accountNoMasked: '********1234' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Verified' } },
+    { id: 'vendor002', name: 'Serene Moments', email: 'support@serenemoments.co', phone: '+919876543211', avatar: 'https://i.pravatar.cc/40?u=vendor002', type: 'personalized', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Warehouse A', street: '456 Wellness Way', city: 'Bangalore', state: 'Karnataka', pincode: '560001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: 'Serene Moments Inc', ifsc: 'ICIC0000002', accountNoMasked: '********5678' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'vendor'}, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } },
+    { id: 'vendor003', name: 'Heritage Wares', email: 'info@heritagewares.com', phone: '+919876543212', avatar: 'https://i.pravatar.cc/40?u=vendor003', type: 'corporate', status: 'Pending', pickupAddresses: [{ id: 'addr1', label: 'Workshop', street: '789 Craft Circle', city: 'Jaipur', state: 'Rajasthan', pincode: '302001', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: '', ifsc: '', accountNoMasked: '' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer'}, kyc: { currentStep: 1, status: 'In Progress', panStatus: 'Not Submitted', bankAccountStatus: 'Not Submitted', addressProofStatus: 'Not Submitted', gstinStatus: 'Not Submitted' } },
+    { id: 'vendor004', name: 'The Daily Grind', email: 'hello@dailygrind.coffee', phone: '+919876543213', avatar: 'https://i.pravatar.cc/40?u=vendor004', type: 'personalized', status: 'Active', pickupAddresses: [{ id: 'addr1', label: 'Roastery', street: '101 Coffee Bean Blvd', city: 'Chikmagalur', state: 'Karnataka', pincode: '577101', country: 'India', isDefault: true }], gstProfile: { gstin: '', legalName: '', stateCode: '' }, banking: { beneficiary: 'The Daily Grind', ifsc: 'SBIN0000123', accountNoMasked: '********1122' }, payoutConfig: { settlementHoldDays: 2, logisticsPayer: 'customer' }, kyc: { currentStep: 4, status: 'Verified', panStatus: 'Verified', bankAccountStatus: 'Verified', addressProofStatus: 'Verified', gstinStatus: 'Not Applicable' } }
 ];
 
 
 async function seedVendors() {
-    const seedFlagRef = doc(db, 'internal_flags', 'vendorsSeeded_v5'); // <-- Incrementing the seed version
+    const seedFlagRef = doc(db, 'internal_flags', 'vendorsSeeded_v6'); // <-- Incrementing the seed version
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return;
     }
     
-    console.log("Forcing re-seed of vendors collection (v5)...");
+    console.log("Forcing re-seed of vendors collection (v6)...");
     
     const vendorsRef = collection(db, "vendors");
     const snapshot = await getDocs(vendorsRef);
@@ -100,7 +101,8 @@ async function seedVendors() {
 
     const addBatch = writeBatch(db);
     MOCK_VENDORS.forEach(vendor => {
-        const docRef = doc(vendorsRef);
+        // Use the hardcoded ID from the mock data
+        const docRef = doc(vendorsRef, vendor.id);
         addBatch.set(docRef, { ...vendor, vendorId: generateReadableId('VDR'), joinedDate: serverTimestamp() });
     });
     await addBatch.commit();
@@ -108,7 +110,7 @@ async function seedVendors() {
 
 
     await setDoc(seedFlagRef, { completed: true });
-    console.log("Vendor seeding v5 complete.");
+    console.log("Vendor seeding v6 complete.");
 }
 
 seedVendors();

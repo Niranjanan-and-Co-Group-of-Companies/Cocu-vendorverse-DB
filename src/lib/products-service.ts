@@ -37,14 +37,14 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
 
 
 async function seedProductsIfEmpty() {
-    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v22'); 
+    const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v23'); 
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return; // The correct seeding has already been performed.
     }
     
-    console.log("Performing one-time product database hard reset (v22)...");
+    console.log("Performing one-time product database hard reset (v23)...");
     
     // Hard reset logic: Delete all existing products first.
     const existingProductsSnapshot = await getDocs(productsCollection);
@@ -62,7 +62,7 @@ async function seedProductsIfEmpty() {
         { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 450.00, image: 'https://picsum.photos/seed/choco/600/400', galleryImages: ['https://picsum.photos/seed/choco1/600/400', 'https://picsum.photos/seed/choco2/600/400', 'https://picsum.photos/seed/choco3/600/400'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", category: "Food & Drink", platform: 'Personalized', hasVariants: true },
         { name: 'Luxury Spa Set', vendor: 'Serene Moments', vendorSP: 850.00, image: 'https://picsum.photos/seed/spa/600/400', galleryImages: ['https://picsum.photos/seed/spa1/600/400', 'https://picsum.photos/seed/spa2/600/400'], rating: 4.9, stock: 5, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", category: "Wellness", platform: 'Personalized', hasVariants: false },
         { name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', vendorSP: 750.00, tieredPricing: [{ quantity: 25, price: '700.00' }, { quantity: 50, price: '650.00' }, { quantity: 100, price: '600.00' }], image: 'https://picsum.photos/seed/wallet/600/400', rating: 4.7, stock: 15, customizable: true, featured: false, category: "Office & Corporate", moq: 25, platform: 'Corporate', hasVariants: true},
-        { name: 'Gourmet Coffee Collection', vendor: 'Gourmet Delights', vendorSP: 600.00, image: 'https://picsum.photos/seed/coffee/600/400', rating: 4.6, stock: 30, customizable: false, featured: false, description: "Explore the world of coffee with our curated collection of single-origin beans.", category: "Food & Drink", platform: 'Personalized', hasVariants: false },
+        { name: 'Gourmet Coffee Collection', vendor: 'The Daily Grind', vendorSP: 600.00, image: 'https://picsum.photos/seed/coffee/600/400', rating: 4.6, stock: 30, customizable: false, featured: false, description: "Explore the world of coffee with our curated collection of single-origin beans.", category: "Food & Drink", platform: 'Personalized', hasVariants: false },
         { name: 'Aromatherapy Diffuser', vendor: 'Serene Moments', vendorSP: 1200.00, image: 'https://picsum.photos/seed/diffuser/600/400', rating: 4.8, stock: 20, customizable: false, featured: false, description: "An ultrasonic diffuser that mists essential oils for aromatherapy and relaxation.", category: "Wellness", platform: 'Personalized', hasVariants: false },
     ];
     
@@ -70,6 +70,7 @@ async function seedProductsIfEmpty() {
         'Gourmet Delights': { id: 'vendor001', pincode: '400001'},
         'Serene Moments': { id: 'vendor002', pincode: '560001'},
         'Heritage Wares': { id: 'vendor003', pincode: '302001'},
+        'The Daily Grind': { id: 'vendor004', pincode: '577101'}
     };
     
     const seedBatch = writeBatch(db);
@@ -116,7 +117,7 @@ async function seedProductsIfEmpty() {
     await seedBatch.commit();
     
     await setDoc(seedFlagRef, { seeded: true, at: serverTimestamp() });
-    console.log(`${MOCK_PRODUCTS_RAW.length} products seeded successfully (v22). This operation will not run again.`);
+    console.log(`${MOCK_PRODUCTS_RAW.length} products seeded successfully (v23). This operation will not run again.`);
 }
 seedProductsIfEmpty();
 
@@ -287,6 +288,7 @@ export async function declineProduct(productId: string) {
 }
 
 const productsCollection = collection(db, 'products');
+
 
 
 
