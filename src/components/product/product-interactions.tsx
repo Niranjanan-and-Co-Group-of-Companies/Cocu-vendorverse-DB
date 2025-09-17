@@ -1,18 +1,18 @@
 
-
 'use client';
 
 import * as React from 'react';
 import type { Product, ProductVariant } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, MessageSquare, Heart, Bell, Minus, Plus, Brush } from 'lucide-react';
+import { ShoppingCart, MessageSquare, Heart, Bell, Minus, Plus, Brush, Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Label } from '../ui/label';
 import { useWishlist } from '@/hooks/use-wishlist';
 import Link from 'next/link';
+import { getShippingEstimate } from '@/lib/shipping-service';
 
 interface ProductInteractionsProps {
   product: Product;
@@ -72,22 +72,26 @@ export function ProductInteractions({ product, categoryName, selectedVariant }: 
   }
 
 
-  const handleCheckDelivery = () => {
-    if (!pincode) return;
+  const handleCheckDelivery = async () => {
+    if (!pincode || pincode.length !== 6) {
+        setDeliveryInfo("Please enter a valid 6-digit pincode.");
+        return;
+    };
     setChecking(true);
-    // Simulate API call
-    setTimeout(() => {
-        const deliveryDate = new Date();
-        deliveryDate.setDate(deliveryDate.getDate() + 5);
-        setDeliveryInfo(`Estimated delivery by ${deliveryDate.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })}.`);
+    try {
+        const estimate = await getShippingEstimate(product.vendorId, product.preparationTime, product.preparationTimeUnit, pincode);
+        setDeliveryInfo(estimate);
+    } catch(error) {
+        setDeliveryInfo("Could not calculate delivery time.");
+    } finally {
         setChecking(false);
-    }, 1000);
+    }
   };
   
   const renderMainActions = () => {
     if (product.stock === 0) {
         return (
-            <Button size="lg" className="w-full">
+            <Button size="lg" className="w-full" disabled>
                 <Bell className="mr-2" />
                 Notify Me When Available
             </Button>
@@ -130,7 +134,7 @@ export function ProductInteractions({ product, categoryName, selectedVariant }: 
 
   return (
     <div className="space-y-6">
-        {product.stock > 0 && (
+        {product.stock > 0 && !product.customizable && (
             <div className="space-y-2">
                 <Label>Quantity</Label>
                 <div className="flex items-center gap-2">
@@ -168,9 +172,10 @@ export function ProductInteractions({ product, categoryName, selectedVariant }: 
                     placeholder="Enter Pincode" 
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
+                    maxLength={6}
                 />
                 <Button onClick={handleCheckDelivery} disabled={checking}>
-                    {checking ? 'Checking...' : 'Check'}
+                    {checking ? <Loader2 className="animate-spin" /> : 'Check'}
                 </Button>
             </div>
             {deliveryInfo && <p className="text-sm text-muted-foreground">{deliveryInfo}</p>}

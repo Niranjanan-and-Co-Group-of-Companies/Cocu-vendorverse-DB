@@ -35,6 +35,12 @@ export interface ShippingCost {
     totalCost: number;
 }
 
+export interface ShippingEstimate {
+    rate: number;
+    etd: string; // Estimated Time of Delivery from API
+}
+
+
 // --- Service Functions ---
 
 /**
@@ -42,19 +48,21 @@ export interface ShippingCost {
  * @param fromPincode - The vendor's pickup pincode.
  * @param toPincode - The customer's delivery pincode.
  * @param weightKg - The package weight in kilograms.
- * @returns The lowest available shipping rate, or a high default if none are found.
+ * @returns The lowest available shipping rate and its ETD, or a high default if none are found.
  */
-async function getShiprocketRate(fromPincode: string, toPincode: string, weightKg: number): Promise<number> {
+async function getShiprocketRate(fromPincode: string, toPincode: string, weightKg: number): Promise<ShippingEstimate> {
     const SHIPROCKET_API_URL = "https://apiv2.shiprocket.in/v1/external/courier/serviceability/";
     const SHIPROCKET_TOKEN = process.env.SHIPROCKET_API_TOKEN;
 
     if (!SHIPROCKET_TOKEN) {
         console.warn("Shiprocket API token not configured. Using simulated rate.");
-        // Fallback to simulation if token is missing
         const baseRate = 60;
         const perKgRate = 30;
         const distanceFactor = 1.2;
-        return Math.round((baseRate + (weightKg * perKgRate)) * distanceFactor);
+        return {
+            rate: Math.round((baseRate + (weightKg * perKgRate)) * distanceFactor),
+            etd: "4-6 days"
+        };
     }
 
     try {
@@ -68,30 +76,34 @@ async function getShiprocketRate(fromPincode: string, toPincode: string, weightK
                 pickup_postcode: fromPincode,
                 delivery_postcode: toPincode,
                 weight: weightKg,
-                cod: 0, // Assuming non-COD for simplicity
+                cod: 0,
             }),
         });
 
         if (!response.ok) {
             console.error("Shiprocket API Error:", await response.text());
-            return 250; // Return a high default on API error
+            return { rate: 250, etd: '7-10 days' }; // High default on API error
         }
 
         const data = await response.json();
 
         if (data.status === 200 && data.data.available_courier_companies?.length > 0) {
             // Find the cheapest rate
-            const lowestRate = data.data.available_courier_companies.reduce((min: number, courier: ShiprocketRate) => {
-                return courier.rate < min ? courier.rate : min;
-            }, Infinity);
-            return lowestRate;
+            const cheapestCourier = data.data.available_courier_companies.reduce((cheapest: ShiprocketRate, current: ShiprocketRate) => {
+                return current.rate < cheapest.rate ? current : cheapest;
+            }, data.data.available_courier_companies[0]);
+            
+            return {
+                rate: cheapestCourier.rate,
+                etd: cheapestCourier.etd,
+            };
         } else {
             console.warn("No couriers available for this route:", fromPincode, "->", toPincode);
-            return 250; // High default if no couriers are available
+            return { rate: 250, etd: '7-10 days' }; // High default if no couriers
         }
     } catch (error) {
         console.error("Failed to fetch Shiprocket rates:", error);
-        return 250; // High default on network or parsing error
+        return { rate: 250, etd: '7-10 days' }; // High default on network error
     }
 }
 
@@ -118,35 +130,63 @@ export async function calculateCustomerShippingCost(items: ShippingCartItem[], c
         }
 
         if (!vendor || !vendor.pickupAddresses?.[0]?.pincode) {
-            // If vendor or pincode is missing, assume a default high shipping cost for now
             totalCustomerCost += 100 * item.quantity;
             continue;
         }
 
         const fromPincode = vendor.pickupAddresses[0].pincode;
         const weightKg = (item.packaging?.weight || 0.5) * item.quantity;
-
-        // Get the total shipping cost for this item/vendor
-        const itemTotalShippingCost = await getShiprocketRate(fromPincode, customerPincode, weightKg);
+        const { rate } = await getShiprocketRate(fromPincode, customerPincode, weightKg);
         
         const logisticsPayer = vendor.payoutConfig.logisticsPayer || 'customer';
 
         switch (logisticsPayer) {
             case 'vendor':
-                // Vendor pays all, so customer cost is 0 for this item.
                 break;
             case 'shared':
-                // Customer pays a fixed amount (e.g., 69), vendor pays the rest.
-                const customerShare = 69;
-                totalCustomerCost += customerShare;
+                totalCustomerCost += 69; // Customer pays a fixed amount
                 break;
             case 'customer':
             default:
-                // Customer pays the full amount for this item.
-                totalCustomerCost += itemTotalShippingCost;
+                totalCustomerCost += rate;
                 break;
         }
     }
 
     return totalCustomerCost;
+}
+
+/**
+ * Gets a shipping estimate for a single product.
+ * @param vendorId - The ID of the vendor for the product.
+ * @param prepTime - The product's preparation time object.
+ * @param prepTimeUnit - The unit for the prep time.
+ * @param customerPincode - The customer's delivery pincode.
+ * @returns A string describing the estimated delivery date.
+ */
+export async function getShippingEstimate(vendorId: string, prepTime: {min: number, max: number}, prepTimeUnit: 'days' | 'hours', customerPincode: string): Promise<string> {
+    if (!customerPincode || !vendorId) {
+        return 'Enter a pincode to see estimate.';
+    }
+
+    const vendor = await getVendorById(vendorId);
+    if (!vendor || !vendor.pickupAddresses?.[0]?.pincode) {
+        return 'Cannot estimate delivery at this time.';
+    }
+
+    const fromPincode = vendor.pickupAddresses[0].pincode;
+    
+    // Using a default weight of 1kg for estimation. In a more complex app, this might come from the product.
+    const { etd } = await getShiprocketRate(fromPincode, customerPincode, 1);
+    
+    // "3-4 Days" -> 4
+    const shippingDays = parseInt(etd.split('-').pop() || '5', 10);
+    const prepDays = prepTimeUnit === 'hours' ? Math.ceil(prepTime.max / 24) : prepTime.max;
+    
+    const totalMaxDays = prepDays + shippingDays;
+    
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + totalMaxDays);
+    
+    return `Estimated delivery by ${deliveryDate.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })}`;
 }
