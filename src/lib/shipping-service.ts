@@ -2,15 +2,29 @@
 'use server';
 
 import { getVendorById, type PlainVendor } from './vendors-service';
-import type { CartItem } from '@/hooks/use-cart';
 
 // A plain object that can be safely passed to a Server Action
 export interface ShippingCartItem {
     vendorId: string;
     quantity: number;
     packaging: {
-        weight: number;
+        weight: number; // in kg
+        dimensions: { l: number, w: number, h: number }; // in cm
     }
+}
+
+// --- Shiprocket API Types ---
+interface ShiprocketRateRequest {
+    pickup_postcode: string;
+    delivery_postcode: string;
+    cod: 0 | 1;
+    weight: number; // in kg
+}
+
+interface ShiprocketRate {
+    courier_name: string;
+    rate: number; // This is the final rate including COD charges etc.
+    etd: string;
 }
 
 // --- Types ---
@@ -24,21 +38,61 @@ export interface ShippingCost {
 // --- Service Functions ---
 
 /**
- * Simulates fetching a shipping rate from an aggregator like Shiprocket.
- * In a real app, this would make an API call with weights, dimensions, and pincodes.
+ * Fetches available courier rates from the Shiprocket API.
  * @param fromPincode - The vendor's pickup pincode.
  * @param toPincode - The customer's delivery pincode.
  * @param weightKg - The package weight in kilograms.
- * @returns A simulated total shipping cost.
+ * @returns The lowest available shipping rate, or a high default if none are found.
  */
-async function getSimulatedShippingRate(fromPincode: string, toPincode: string, weightKg: number): Promise<number> {
-    // This is a very basic simulation. A real implementation would be much more complex.
-    const baseRate = 60; // Base cost
-    const perKgRate = 30;
-    const distanceFactor = 1.2; // Simplified factor for pincode distance
-    
-    const cost = (baseRate + (weightKg * perKgRate)) * distanceFactor;
-    return Math.round(cost);
+async function getShiprocketRate(fromPincode: string, toPincode: string, weightKg: number): Promise<number> {
+    const SHIPROCKET_API_URL = "https://apiv2.shiprocket.in/v1/external/courier/serviceability/";
+    const SHIPROCKET_TOKEN = process.env.SHIPROCKET_API_TOKEN;
+
+    if (!SHIPROCKET_TOKEN) {
+        console.warn("Shiprocket API token not configured. Using simulated rate.");
+        // Fallback to simulation if token is missing
+        const baseRate = 60;
+        const perKgRate = 30;
+        const distanceFactor = 1.2;
+        return Math.round((baseRate + (weightKg * perKgRate)) * distanceFactor);
+    }
+
+    try {
+        const response = await fetch(SHIPROCKET_API_URL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SHIPROCKET_TOKEN}`
+            },
+            body: JSON.stringify({
+                pickup_postcode: fromPincode,
+                delivery_postcode: toPincode,
+                weight: weightKg,
+                cod: 0, // Assuming non-COD for simplicity
+            }),
+        });
+
+        if (!response.ok) {
+            console.error("Shiprocket API Error:", await response.text());
+            return 250; // Return a high default on API error
+        }
+
+        const data = await response.json();
+
+        if (data.status === 200 && data.data.available_courier_companies?.length > 0) {
+            // Find the cheapest rate
+            const lowestRate = data.data.available_courier_companies.reduce((min: number, courier: ShiprocketRate) => {
+                return courier.rate < min ? courier.rate : min;
+            }, Infinity);
+            return lowestRate;
+        } else {
+            console.warn("No couriers available for this route:", fromPincode, "->", toPincode);
+            return 250; // High default if no couriers are available
+        }
+    } catch (error) {
+        console.error("Failed to fetch Shiprocket rates:", error);
+        return 250; // High default on network or parsing error
+    }
 }
 
 
@@ -73,7 +127,7 @@ export async function calculateCustomerShippingCost(items: ShippingCartItem[], c
         const weightKg = (item.packaging?.weight || 0.5) * item.quantity;
 
         // Get the total shipping cost for this item/vendor
-        const itemTotalShippingCost = await getSimulatedShippingRate(fromPincode, customerPincode, weightKg);
+        const itemTotalShippingCost = await getShiprocketRate(fromPincode, customerPincode, weightKg);
         
         const logisticsPayer = vendor.payoutConfig.logisticsPayer || 'customer';
 
