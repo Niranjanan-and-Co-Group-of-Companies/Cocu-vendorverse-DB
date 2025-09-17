@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import 'dotenv/config';
@@ -65,7 +66,7 @@ async function sendEmail(
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization': apiToken,
+                'Authorization': `Zoho-enczapikey ${apiToken}`,
             },
             body: JSON.stringify(payload),
         });
