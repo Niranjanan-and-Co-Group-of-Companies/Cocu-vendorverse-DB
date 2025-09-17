@@ -100,22 +100,24 @@ export default function VendorSignupPage() {
         const { exists, message } = await checkVendorExists(email, `+91${phone}`);
 
         if (exists) {
-            toast({
-                title: "Account Already Exists",
-                description: message,
-                variant: "destructive",
-            });
+            toast({ title: "Account Already Exists", description: message, variant: "destructive" });
             setIsLoading(false);
             return;
         }
 
-        const otpResult = await sendOtp(phone);
-        if (otpResult.success) {
+        // Send both OTPs simultaneously
+        const [phoneOtpResult, emailOtpResult] = await Promise.all([
+            sendOtp(phone, `${firstName} ${lastName}`),
+            sendOtp(email, `${firstName} ${lastName}`)
+        ]);
+
+        if (phoneOtpResult.success && emailOtpResult.success) {
             setStep(3);
             startCountdown();
-            toast({ title: "Verification Required", description: otpResult.message });
+            toast({ title: "Verification Required", description: "Verification codes have been sent to your phone and email." });
         } else {
-            toast({ title: "Failed to Send OTP", description: otpResult.message, variant: "destructive"});
+            if(!phoneOtpResult.success) toast({ title: "Failed to Send Phone OTP", description: phoneOtpResult.message, variant: "destructive"});
+            if(!emailOtpResult.success) toast({ title: "Failed to Send Email OTP", description: emailOtpResult.message, variant: "destructive"});
         }
 
     } catch (error) {
@@ -126,38 +128,20 @@ export default function VendorSignupPage() {
     }
   }
   
-  const handleResendOtp = async (target: 'phone' | 'email') => {
+  const handleResendOtps = async () => {
     setIsLoading(true);
-    const otpTarget = target === 'phone' ? phone : email;
-    const otpResult = await sendOtp(otpTarget);
-    if(otpResult.success) {
+    const [phoneOtpResult, emailOtpResult] = await Promise.all([
+        sendOtp(phone, `${firstName} ${lastName}`),
+        sendOtp(email, `${firstName} ${lastName}`)
+    ]);
+    if(phoneOtpResult.success && emailOtpResult.success) {
         startCountdown();
-        toast({ title: "New OTP Sent", description: `A new verification code has been sent to your ${target}.` });
+        toast({ title: "New OTPs Sent", description: "New verification codes have been sent." });
     } else {
-        toast({ title: 'Failed to Send OTP', description: otpResult.message, variant: 'destructive' });
+        toast({ title: 'Failed to Send OTPs', description: 'Could not resend codes. Please check your details.', variant: 'destructive' });
     }
     setIsLoading(false);
   };
-
-  const handlePhoneVerification = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    const verificationResult = await verifyOtp(phone, phoneOtp);
-    if (verificationResult.success) {
-        toast({ title: "Phone Verified!", description: "Now, let's verify your email." });
-        const emailOtpResult = await sendOtp(email);
-        if (emailOtpResult.success) {
-            setStep(4);
-            startCountdown();
-        } else {
-             toast({ title: 'Failed to Send Email OTP', description: emailOtpResult.message, variant: 'destructive' });
-        }
-    } else {
-        toast({ title: "Invalid Phone OTP", description: verificationResult.message, variant: "destructive" });
-    }
-    setIsLoading(false);
-  }
 
   const handleFinalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -168,9 +152,18 @@ export default function VendorSignupPage() {
 
     setIsLoading(true);
 
-    const verificationResult = await verifyOtp(email, emailOtp);
-    if (!verificationResult.success) {
-        toast({ title: "Invalid Email OTP", description: verificationResult.message, variant: "destructive" });
+    const [phoneVerificationResult, emailVerificationResult] = await Promise.all([
+        verifyOtp(phone, phoneOtp),
+        verifyOtp(email, emailOtp)
+    ]);
+
+    if (!phoneVerificationResult.success) {
+        toast({ title: "Invalid Phone OTP", description: phoneVerificationResult.message, variant: "destructive" });
+        setIsLoading(false);
+        return;
+    }
+    if (!emailVerificationResult.success) {
+        toast({ title: "Invalid Email OTP", description: emailVerificationResult.message, variant: "destructive" });
         setIsLoading(false);
         return;
     }
@@ -213,8 +206,7 @@ export default function VendorSignupPage() {
             <CardDescription>
                 {step === 1 && 'Start your journey by telling us what you sell.'}
                 {step === 2 && 'Complete your registration details.'}
-                {step === 3 && `Enter the OTP sent to +91 ${phone} to verify your number.`}
-                {step === 4 && `Finally, enter the OTP sent to ${email} to verify your email.`}
+                {step === 3 && 'Enter the codes sent to your phone and email.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -302,47 +294,29 @@ export default function VendorSignupPage() {
                  </form>
             )}
             {step === 3 && (
-                <form className="grid gap-4" onSubmit={handlePhoneVerification}>
+                <form className="grid gap-4" onSubmit={handleFinalSubmit}>
                      <div className="grid gap-2">
                         <Label htmlFor="phone-otp">Phone OTP</Label>
                         <Input id="phone-otp" value={phoneOtp} onChange={e => setPhoneOtp(e.target.value)} placeholder="Enter 6-digit code" required />
                     </div>
-                     <div className="text-center text-sm text-muted-foreground">
-                        {countdown > 0 ? (
-                            `Resend code in ${countdown}s`
-                        ) : (
-                            <Button type="button" variant="link" size="sm" onClick={() => handleResendOtp('phone')} disabled={isLoading}>
-                                Resend OTP
-                            </Button>
-                        )}
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading || phoneOtp.length < 6}>
-                         {isLoading && <Loader2 className="mr-2 animate-spin" />}
-                         Verify Phone & Continue
-                    </Button>
-                     <Button variant="link" size="sm" onClick={() => setStep(2)} disabled={isLoading}>Go Back</Button>
-                </form>
-            )}
-             {step === 4 && (
-                <form className="grid gap-4" onSubmit={handleFinalSubmit}>
-                     <div className="grid gap-2">
+                    <div className="grid gap-2">
                         <Label htmlFor="email-otp">Email OTP</Label>
                         <Input id="email-otp" value={emailOtp} onChange={e => setEmailOtp(e.target.value)} placeholder="Enter 6-digit code" required />
                     </div>
                      <div className="text-center text-sm text-muted-foreground">
                         {countdown > 0 ? (
-                            `Resend code in ${countdown}s`
+                            `Resend codes in ${countdown}s`
                         ) : (
-                            <Button type="button" variant="link" size="sm" onClick={() => handleResendOtp('email')} disabled={isLoading}>
-                                Resend OTP
+                            <Button type="button" variant="link" size="sm" onClick={handleResendOtps} disabled={isLoading}>
+                                Resend OTPs
                             </Button>
                         )}
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading || emailOtp.length < 6}>
+                    <Button type="submit" className="w-full" disabled={isLoading || phoneOtp.length < 6 || emailOtp.length < 6}>
                          {isLoading && <Loader2 className="mr-2 animate-spin" />}
-                         Verify Email & Submit Application
+                         Verify & Submit Application
                     </Button>
-                     <Button variant="link" size="sm" onClick={() => setStep(3)} disabled={isLoading}>Go Back</Button>
+                     <Button variant="link" size="sm" onClick={() => setStep(2)}>Go Back</Button>
                 </form>
             )}
             <div className="mt-4 text-center text-sm">
