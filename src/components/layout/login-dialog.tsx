@@ -19,6 +19,9 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Alert, AlertDescription } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { loginUser, signupUser, checkUserExists } from '@/lib/auth-service';
+import type { UserRole } from '@/lib/user-service';
+import { sendOtp, verifyOtp } from '@/lib/otp-service';
 
 interface LoginDialogProps {
   open: boolean;
@@ -28,58 +31,60 @@ interface LoginDialogProps {
 type PortalType = 'personalized' | 'corporate';
 
 function LoginForm({ onLoginSuccess }: { onLoginSuccess: () => void }) {
-    const [portalType, setPortalType] = React.useState<PortalType>('personalized');
-    const [showPassword, setShowPassword] = React.useState(false);
     const router = useRouter();
-
-    const handleLogin = (e: React.FormEvent) => {
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = React.useState(false);
+    
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onLoginSuccess();
-        const redirectPath = portalType === 'corporate' ? '/corporate/dashboard' : '/account';
-        router.push(redirectPath);
+        setIsLoading(true);
+
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
+
+        try {
+            const result = await loginUser(email, password);
+            if (result.success) {
+                toast({
+                    title: 'Login Successful',
+                    description: 'Welcome back!',
+                });
+                onLoginSuccess();
+                router.push(result.redirectPath || '/');
+            } else {
+                toast({
+                    title: 'Login Failed',
+                    description: result.message,
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            toast({
+                title: 'An Error Occurred',
+                description: 'Could not log you in. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
          <form className="grid gap-4 py-4" onSubmit={handleLogin}>
-            <div className="space-y-2">
-                <Label>Account Type</Label>
-                <RadioGroup value={portalType} onValueChange={(value: PortalType) => setPortalType(value)} className="grid grid-cols-2 gap-4">
-                    <div>
-                        <RadioGroupItem value="personalized" id="login-personal" className="peer sr-only" />
-                        <Label htmlFor="login-personal" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                            <User className="mb-2"/> Personalized
-                        </Label>
-                    </div>
-                    <div>
-                        <RadioGroupItem value="corporate" id="login-corporate" className="peer sr-only" />
-                        <Label htmlFor="login-corporate" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                            <Briefcase className="mb-2"/> Corporate
-                        </Label>
-                    </div>
-                </RadioGroup>
-            </div>
             <div className="grid gap-2">
                 <Label htmlFor="email-login">Email or Phone</Label>
-                <Input id="email-login" type="text" placeholder="m@example.com or +91..." required />
+                <Input id="email-login" name="email" type="text" placeholder="m@example.com or +91..." required />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="password-login">Password</Label>
-                    <div className="relative">
-                    <Input id="password-login" type={showPassword ? 'text' : 'password'} required />
-                        <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                        onClick={() => setShowPassword(!showPassword)}
-                    >
-                        {showPassword ? <EyeOff /> : <Eye />}
-                    </Button>
-                </div>
+                <Input id="password-login" name="password" type="password" required />
             </div>
-            <Button type="submit" className="w-full">Login</Button>
-            <Button variant="outline" className="w-full">Login with Google</Button>
-                <div className="text-center text-sm">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 animate-spin" />}
+                Login
+            </Button>
+            <div className="text-center text-sm">
                 Are you a vendor?{' '}
                 <Link href="/vendor/login" onClick={onLoginSuccess} className="underline font-semibold">
                     Login to Vendor Portal
@@ -97,17 +102,15 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
     const { toast } = useToast();
     const router = useRouter();
 
-    const [firstName, setFirstName] = React.useState('');
-    const [lastName, setLastName] = React.useState('');
+    const [name, setName] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [phone, setPhone] = React.useState('');
     const [password, setPassword] = React.useState('');
-    const [emailOtp, setEmailOtp] = React.useState('');
-    const [phoneOtp, setPhoneOtp] = React.useState('');
+    const [otp, setOtp] = React.useState('');
     
-    const isStep1Valid = firstName && lastName && password && (email || phone);
+    const isStep1Valid = name && password && (email || phone);
 
-    const handleSignup = (e: React.FormEvent) => {
+    const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!isStep1Valid) {
             toast({ title: 'Missing Fields', description: 'Please fill out all required fields.', variant: 'destructive' });
@@ -115,33 +118,50 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
         }
 
         setIsLoading(true);
-        setTimeout(() => {
+        try {
+            const { exists, message } = await checkUserExists(email, phone);
+            if (exists) {
+                toast({ title: 'Account Exists', description: message, variant: 'destructive' });
+                return;
+            }
+            
+            const otpTarget = email || phone;
+            const result = await sendOtp(otpTarget, name);
+            if(result.success) {
+                setStep(2);
+                toast({ title: 'Verification Required', description: result.message });
+            } else {
+                 toast({ title: 'Failed to Send OTP', description: result.message, variant: 'destructive' });
+            }
+        } catch (error: any) {
+             toast({ title: 'Signup Error', description: error.message || 'An error occurred.', variant: 'destructive' });
+        } finally {
             setIsLoading(false);
-            setStep(2);
-            toast({ title: 'Verification Required', description: 'Please check your email/phone for a verification code.' });
-        }, 1000);
+        }
     };
 
-     const handleVerification = (e: React.FormEvent) => {
+     const handleVerification = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        if (email && emailOtp !== '123456') {
-            toast({ title: 'Invalid Email OTP', variant: 'destructive' });
-            return;
-        }
-        if (phone && phoneOtp !== '123456') {
-            toast({ title: 'Invalid Phone OTP', variant: 'destructive' });
-            return;
-        }
-        
         setIsLoading(true);
-        setTimeout(() => {
+        try {
+            const otpTarget = email || phone;
+            const verificationResult = await verifyOtp(otpTarget, otp);
+            
+            if (!verificationResult.success) {
+                toast({ title: 'Invalid OTP', description: verificationResult.message, variant: 'destructive' });
+                return;
+            }
+
+            const role: UserRole = portalType === 'corporate' ? 'corporate-admin' : 'customer';
+            await signupUser({ name, email, phone, password, role });
+            
+            toast({ title: 'Account Created!', description: 'Welcome to VendorVerse. You can now log in.' });
+            onSignupSuccess(); 
+        } catch (error: any) {
+            toast({ title: 'Signup Failed', description: error.message || 'An unexpected error occurred.', variant: 'destructive' });
+        } finally {
             setIsLoading(false);
-            toast({ title: 'Account Created!', description: 'Welcome to VendorVerse.' });
-            onSignupSuccess(); // Close the dialog
-            const redirectPath = portalType === 'corporate' ? '/corporate/dashboard' : '/account';
-            router.push(redirectPath);
-        }, 1000);
+        }
     }
     
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,15 +196,9 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
                         </div>
                     </RadioGroup>
                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="dialog-first-name">First name</Label>
-                        <Input id="dialog-first-name" placeholder="Max" required value={firstName} onChange={e => setFirstName(e.target.value)} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="dialog-last-name">Last name</Label>
-                        <Input id="dialog-last-name" placeholder="Robinson" required value={lastName} onChange={e => setLastName(e.target.value)} />
-                    </div>
+                 <div className="grid gap-2">
+                    <Label htmlFor="dialog-full-name">Full name</Label>
+                    <Input id="dialog-full-name" placeholder="Max Robinson" required value={name} onChange={e => setName(e.target.value)} />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="dialog-email">Email</Label>
@@ -200,7 +214,7 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
                     </span>
                   </div>
                 </div>
-                    <div className="grid gap-2">
+                <div className="grid gap-2">
                     <Label htmlFor="dialog-phone">Phone Number</Label>
                     <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">+91</span>
@@ -215,26 +229,17 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
                         {isLoading && <Loader2 className="mr-2 animate-spin" />}
                         Create Account
                 </Button>
-                <Button variant="outline" className="w-full">Sign up with Google</Button>
             </form>
         );
     }
 
     return (
          <form className="grid gap-4 py-4" onSubmit={handleVerification}>
-            <p className="text-sm text-center text-muted-foreground">We've sent a code to your {email ? 'email' : ''}{email && phone ? ' and ' : ''}{phone ? 'phone' : ''}. (Hint: 123456)</p>
-            {email && (
+            <p className="text-sm text-center text-muted-foreground">We've sent a code to your {email || `+91${phone}`}. Please enter it below to verify.</p>
             <div className="grid gap-2">
-                <Label htmlFor="dialog-email-otp">Email OTP</Label>
-                <Input id="dialog-email-otp" placeholder="123456" required value={emailOtp} onChange={e => setEmailOtp(e.target.value)} />
+                <Label htmlFor="dialog-otp">Verification Code</Label>
+                <Input id="dialog-otp" placeholder="Enter 6-digit code" required value={otp} onChange={e => setOtp(e.target.value)} />
             </div>
-            )}
-            {phone && (
-            <div className="grid gap-2">
-                <Label htmlFor="dialog-phone-otp">Phone OTP</Label>
-                <Input id="dialog-phone-otp" placeholder="123456" required value={phoneOtp} onChange={e => setPhoneOtp(e.target.value)} />
-            </div>
-            )}
             <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 animate-spin" />}
             Verify & Continue

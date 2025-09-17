@@ -3,7 +3,7 @@
 
 import { collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, doc, limit, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
-import { sendVerificationEmail } from './email-service';
+import { sendWelcomeEmail } from './email-service';
 import type { User, UserRole } from './user-service';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -24,21 +24,22 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
  */
 export async function checkUserExists(email: string, phone: string): Promise<{ exists: boolean, message?: string }> {
     const usersRef = collection(db, 'users');
-    // Normalize phone number for querying
-    const normalizedPhone = `+91${phone.replace(/\D/g, '').slice(-10)}`;
+    const queries = [];
+    
+    if (email) {
+      queries.push(getDocs(query(usersRef, where('email', '==', email))));
+    }
+    if (phone) {
+      const normalizedPhone = `+91${phone.replace(/\D/g, '').slice(-10)}`;
+      queries.push(getDocs(query(usersRef, where('phone', '==', normalizedPhone))));
+    }
+    
+    const snapshots = await Promise.all(queries);
 
-    const emailQuery = query(usersRef, where('email', '==', email));
-    const phoneQuery = query(usersRef, where('phone', '==', normalizedPhone));
-
-    const [emailSnapshot, phoneSnapshot] = await Promise.all([
-        getDocs(emailQuery),
-        getDocs(phoneQuery)
-    ]);
-
-    if (!emailSnapshot.empty) {
+    if (email && !snapshots[0].empty) {
         return { exists: true, message: "An account with this email address already exists." };
     }
-    if (!phoneSnapshot.empty) {
+    if (phone && snapshots.length > 1 && !snapshots[1].empty) {
         return { exists: true, message: "An account with this phone number already exists." };
     }
 
@@ -63,26 +64,26 @@ export async function signupUser(userData: {
     }
     
     const hashedPassword = await hashPassword(userData.password);
-    const normalizedPhone = `+91${userData.phone.replace(/\D/g, '').slice(-10)}`;
-
-
+    
     const newUserRef = await addDoc(collection(db, 'users'), {
         name: userData.name,
-        email: userData.email,
-        phone: normalizedPhone,
+        email: userData.email || null,
+        phone: userData.phone ? `+91${userData.phone.replace(/\D/g, '').slice(-10)}` : null,
         passwordHash: hashedPassword,
         role: userData.role,
         corporateAccountId: userData.corporateAccountId || null,
-        status: 'Active', // Set status to Active directly
-        avatar: `https://avatar.vercel.sh/${userData.email}`,
+        status: 'Active',
+        avatar: `https://avatar.vercel.sh/${userData.email || userData.name}`,
         joinedDate: serverTimestamp(),
-        communicationPrefs: { email: true, sms: false },
-        phoneVerifiedAt: serverTimestamp(), // Mark phone as verified
+        communicationPrefs: { email: !!userData.email, sms: !!userData.phone },
+        phoneVerifiedAt: userData.phone ? serverTimestamp() : null,
+        emailVerifiedAt: userData.email ? serverTimestamp() : null, // Assuming OTP verification counts as verification
     });
 
-    // We can still send a welcome email, but it's no longer for verification.
-    // This part can be uncommented once a generic welcome template is ready.
-    // await sendWelcomeEmail(userData.email, userData.name);
+    // Send a welcome email if an email was provided
+    if (userData.email) {
+        await sendWelcomeEmail(userData.email, userData.name);
+    }
 
     return { success: true, userId: newUserRef.id };
 }
@@ -118,40 +119,11 @@ export async function loginUser(emailOrPhone: string, password: string): Promise
     let redirectPath = '/account';
     if (user.role === 'corporate-admin' || user.role === 'corporate-user') {
         redirectPath = '/corporate/dashboard';
+    } else if (user.role === 'admin') {
+        redirectPath = '/admin';
     }
 
     // In a real app, you would set a session cookie or JWT here.
     
     return { success: true, message: "Login successful!", redirectPath };
-}
-
-
-/**
- * Verifies a user's email address using the provided token.
- * This function is now DEPRECATED for initial signup but can be repurposed for verifying email changes.
- */
-export async function verifyUserEmail(token: string): Promise<{ success: boolean; message: string }> {
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('verificationToken', '==', token), limit(1));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) {
-        return { success: false, message: 'Invalid or expired verification link.' };
-    }
-
-    const userDoc = snapshot.docs[0];
-    const userData = userDoc.data();
-
-    if (userData.verificationTokenExpires && userData.verificationTokenExpires.toMillis() < Date.now()) {
-        return { success: false, message: 'Verification link has expired. Please request a new one.' };
-    }
-
-    await updateDoc(doc(db, 'users', userDoc.id), {
-        status: 'Active', // Or just update the emailVerifiedAt field if status is already active
-        emailVerifiedAt: serverTimestamp(),
-        verificationToken: null, 
-        verificationTokenExpires: null,
-    });
-
-    return { success: true, message: 'Your email has been verified!' };
 }

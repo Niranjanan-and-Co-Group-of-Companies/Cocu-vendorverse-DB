@@ -86,15 +86,13 @@ async function sendEmail(
 
 
 /**
- * Sends a verification email to a new user.
+ * Sends a welcome email to a new user.
  */
-export async function sendVerificationEmail(toEmail: string, toName: string, verificationToken: string) {
-    const verificationLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+export async function sendWelcomeEmail(toEmail: string, toName: string) {
     const templateKey = process.env.ZEPTOMAIL_WELCOME_TEMPLATE_KEY || '';
 
     const mergeInfo = {
         name: toName,
-        verification_link: verificationLink,
     };
     
     // Use the HELLO mail agent for a friendly welcome
@@ -109,7 +107,8 @@ export async function sendOtpEmail(toEmail: string, toName: string, otp: string)
     
     const mergeInfo = {
         name: toName,
-        otp_code: otp,
+        otp: otp,
+        expires_in_minutes: '10' // Standard expiry time
     };
 
     // Use the SYSTEM mail agent for critical transactional emails
