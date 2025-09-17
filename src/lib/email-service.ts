@@ -3,7 +3,7 @@
 
 import 'dotenv/config';
 
-const ZEPTOMAIL_API_URL = "https://api.zeptomail.in/v1.1/email";
+const ZEPTOMAIL_API_URL = "https://api.zeptomail.in/v1.1/email/template";
 
 // Define the types of senders as outlined in the plan
 export type MailSenderType = 'SYSTEM' | 'ORDERS' | 'VENDORS' | 'CHAMPIONS' | 'CORPORATE' | 'SUPPORT' | 'HELLO';
@@ -20,37 +20,43 @@ const SENDER_CONFIG: Record<MailSenderType, { address: string; name: string; tok
 };
 
 
-interface ZeptoMailPayload {
+interface ZeptoMailTemplatePayload {
+    mail_template_key: string;
     from: { address: string; name: string; };
     to: { email_address: { address: string; name: string; }; }[];
-    subject: string;
-    htmlbody: string;
+    merge_info: Record<string, any>;
 }
 
 
 /**
- * Sends an email using the ZeptoMail API with a specified sender type.
+ * Sends a templated email using the ZeptoMail API.
  */
-async function sendEmail(senderType: MailSenderType, to: { email: string, name: string }, subject: string, htmlbody: string) {
+async function sendEmail(
+    senderType: MailSenderType, 
+    to: { email: string, name: string }, 
+    templateKey: string,
+    mergeInfo: Record<string, any>
+) {
     const sender = SENDER_CONFIG[senderType];
     const apiToken = sender.token;
 
-    if (!apiToken || apiToken.startsWith('your_')) {
-        console.log('--- EMAIL SIMULATION ---');
+    if (!apiToken || apiToken.startsWith('your_') || !templateKey || templateKey.startsWith('your_')) {
+        console.log('--- EMAIL SIMULATION (Template) ---');
         console.log(`To: ${to.name} <${to.email}>`);
         console.log(`From: ${sender.name} <${sender.address}>`);
-        console.log(`Subject: ${subject}`);
-        console.log('Body:', htmlbody);
+        console.log(`Template Key: ${templateKey}`);
+        console.log('Merge Info:', JSON.stringify(mergeInfo, null, 2));
         console.log('--- END EMAIL SIMULATION ---');
-        console.warn(`ZeptoMail token for ${senderType} is not configured. Email was simulated in the console.`);
+        const reason = !apiToken || apiToken.startsWith('your_') ? `token for ${senderType}` : 'template key';
+        console.warn(`ZeptoMail ${reason} is not configured. Email was simulated in the console.`);
         return { success: true, message: "Email simulated successfully." };
     }
 
-    const payload: ZeptoMailPayload = {
+    const payload: ZeptoMailTemplatePayload = {
+        mail_template_key: templateKey,
         from: { address: sender.address, name: sender.name },
         to: [{ email_address: { address: to.email, name: to.name } }],
-        subject,
-        htmlbody,
+        merge_info: mergeInfo,
     };
 
     try {
@@ -84,14 +90,28 @@ async function sendEmail(senderType: MailSenderType, to: { email: string, name: 
  */
 export async function sendVerificationEmail(toEmail: string, toName: string, verificationToken: string) {
     const verificationLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+    const templateKey = process.env.ZEPTOMAIL_VERIFICATION_TEMPLATE_KEY || '';
 
-    const subject = "Welcome to VendorVerse! Please Verify Your Email";
-    const body = `
-        <h1>Welcome, ${toName}!</h1>
-        <p>Thank you for signing up. Please click the link below to verify your email address and activate your account:</p>
-        <a href="${verificationLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email Address</a>
-        <p>If you did not sign up for an account, you can safely ignore this email.</p>
-    `;
+    const mergeInfo = {
+        name: toName,
+        verification_link: verificationLink,
+    };
+    
+    // Use the HELLO mail agent for a friendly welcome
+    return sendEmail('HELLO', { email: toEmail, name: toName }, templateKey, mergeInfo);
+}
 
-    return sendEmail('HELLO', { email: toEmail, name: toName }, subject, body);
+/**
+ * Sends an OTP email to a user.
+ */
+export async function sendOtpEmail(toEmail: string, toName: string, otp: string) {
+    const templateKey = process.env.ZEPTOMAIL_OTP_TEMPLATE_KEY || '';
+    
+    const mergeInfo = {
+        name: toName,
+        otp_code: otp,
+    };
+
+    // Use the SYSTEM mail agent for critical transactional emails
+    return sendEmail('SYSTEM', { email: toEmail, name: toName }, templateKey, mergeInfo);
 }
