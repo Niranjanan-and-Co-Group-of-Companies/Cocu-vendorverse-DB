@@ -20,18 +20,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Heart, X } from 'lucide-react';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
-import { LoginDialog } from './login-dialog';
 import type { Product } from '@/lib/products';
+
+interface WishlistPreviewProps {
+    isLoggedIn: boolean;
+    onLoginClick: () => void;
+}
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
-export function WishlistPreview() {
+export function WishlistPreview({ isLoggedIn, onLoginClick }: WishlistPreviewProps) {
   const { items, addItem } = useWishlist();
   const { toast } = useToast();
-  // In a real app, this would come from an auth hook/context
-  const [isLoggedIn] = React.useState(true); 
-  const [isLoginOpen, setIsLoginOpen] = React.useState(false);
-
 
   const handleRemove = async (e: React.MouseEvent, product: Product) => {
     e.preventDefault(); // Prevent dropdown from closing
@@ -44,12 +44,9 @@ export function WishlistPreview() {
 
   if (!isLoggedIn) {
       return (
-        <>
-            <Button variant="ghost" size="icon" className="relative" onClick={() => setIsLoginOpen(true)}>
-                <Heart />
-            </Button>
-            <LoginDialog open={isLoginOpen} onOpenChange={setIsLoginOpen} />
-        </>
+        <Button variant="ghost" size="icon" className="relative" onClick={onLoginClick}>
+            <Heart />
+        </Button>
       )
   }
 
@@ -96,7 +93,7 @@ export function WishlistPreview() {
                                         <p className="text-sm font-semibold">{item.price}</p>
                                     )}
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item)}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => handleRemove(e, item as unknown as Product)}>
                                     <X className="h-4 w-4" />
                                 </Button>
                             </Link>

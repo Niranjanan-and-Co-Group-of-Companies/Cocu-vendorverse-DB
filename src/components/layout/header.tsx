@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -22,11 +23,16 @@ export default function Header() {
 
   React.useEffect(() => {
     // In a real app, this would come from an auth context.
-    // For now, we simulate fetching the user to show a logged-in state.
+    // We are now simulating both logged in and logged out states.
+    // To test logged out state, change `getMockUser()` to `Promise.resolve(null)`
     const fetchUser = async () => {
         setLoading(true);
-        const userData = await getMockUser();
-        setUser(userData);
+        try {
+            const userData = await getMockUser();
+            setUser(userData);
+        } catch (error) {
+            setUser(null);
+        }
         setLoading(false);
     }
     fetchUser();
@@ -47,8 +53,8 @@ export default function Header() {
         </div>
 
         <nav className="ml-auto flex items-center gap-2">
-          <WishlistPreview />
-           <CartPreview />
+          <WishlistPreview isLoggedIn={!!user} onLoginClick={() => setIsLoginOpen(true)} />
+          <CartPreview isLoggedIn={!!user} onLoginClick={() => setIsLoginOpen(true)} />
            {loading ? (
              <Skeleton className="h-10 w-10 rounded-full" />
            ) : user ? (
@@ -67,7 +73,7 @@ export default function Header() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild><Link href="/account"><User className="mr-2"/>Profile & Orders</Link></DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem><LogOut className="mr-2"/>Logout</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setUser(null)}><LogOut className="mr-2"/>Logout</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
                 <TermsUpdateDialog userType="customer" />
