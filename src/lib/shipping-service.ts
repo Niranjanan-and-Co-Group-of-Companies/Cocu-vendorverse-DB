@@ -182,7 +182,7 @@ export async function getShippingEstimate(vendorId: string, prepTime: {min: numb
     }
 
     const vendor = await getVendorById(vendorId);
-    if (!vendor || !vendor.pickupAddresses?.[0]?.pincode) {
+    if (!vendor || !vendor.pickupAddresses || vendor.pickupAddresses.length === 0) {
         return 'Cannot estimate delivery at this time. Vendor address not found.';
     }
 

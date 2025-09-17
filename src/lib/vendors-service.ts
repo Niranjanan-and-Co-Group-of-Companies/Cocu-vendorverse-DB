@@ -185,3 +185,4 @@ export async function updateVendorSettings(vendorId: string, data: Partial<Vendo
     const vendorRef = doc(db, 'vendors', vendorId);
     await updateDoc(vendorRef, data);
 }
+
