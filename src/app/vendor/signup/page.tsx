@@ -47,28 +47,35 @@ export default function VendorSignupPage() {
   // OTP state
   const [phoneOtp, setPhoneOtp] = React.useState('');
   const [emailOtp, setEmailOtp] = React.useState('');
-  const [countdown, setCountdown] = React.useState(0);
-  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  
+  // Timer states
+  const [phoneCountdown, setPhoneCountdown] = React.useState(0);
+  const [emailCountdown, setEmailCountdown] = React.useState(0);
+  const phoneTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const emailTimerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const passwordCriteria = "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.";
 
-  const startCountdown = () => {
-    setCountdown(30);
-    if(timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+  const startCountdown = (type: 'phone' | 'email') => {
+    if (type === 'phone') {
+        if(phoneTimerRef.current) clearInterval(phoneTimerRef.current);
+        setPhoneCountdown(30);
+        phoneTimerRef.current = setInterval(() => {
+            setPhoneCountdown(prev => (prev <= 1 ? 0 : prev - 1));
+        }, 1000);
+    } else {
+        if(emailTimerRef.current) clearInterval(emailTimerRef.current);
+        setEmailCountdown(30);
+        emailTimerRef.current = setInterval(() => {
+            setEmailCountdown(prev => (prev <= 1 ? 0 : prev - 1));
+        }, 1000);
+    }
   };
   
   React.useEffect(() => {
     return () => {
-        if (timerRef.current) clearInterval(timerRef.current);
+        if (phoneTimerRef.current) clearInterval(phoneTimerRef.current);
+        if (emailTimerRef.current) clearInterval(emailTimerRef.current);
     }
   }, []);
 
@@ -113,7 +120,8 @@ export default function VendorSignupPage() {
 
         if (phoneOtpResult.success && emailOtpResult.success) {
             setStep(3);
-            startCountdown();
+            startCountdown('phone');
+            startCountdown('email');
             toast({ title: "Verification Required", description: "Verification codes have been sent to your phone and email." });
         } else {
             if(!phoneOtpResult.success) toast({ title: "Failed to Send Phone OTP", description: phoneOtpResult.message, variant: "destructive"});
@@ -128,17 +136,15 @@ export default function VendorSignupPage() {
     }
   }
   
-  const handleResendOtps = async () => {
+  const handleResendOtp = async (type: 'phone' | 'email') => {
     setIsLoading(true);
-    const [phoneOtpResult, emailOtpResult] = await Promise.all([
-        sendOtp(phone, `${firstName} ${lastName}`),
-        sendOtp(email, `${firstName} ${lastName}`)
-    ]);
-    if(phoneOtpResult.success && emailOtpResult.success) {
-        startCountdown();
-        toast({ title: "New OTPs Sent", description: "New verification codes have been sent." });
+    const target = type === 'phone' ? phone : email;
+    const result = await sendOtp(target, `${firstName} ${lastName}`);
+    if(result.success) {
+        startCountdown(type);
+        toast({ title: `New OTP Sent`, description: `A new verification code has been sent to your ${type}.` });
     } else {
-        toast({ title: 'Failed to Send OTPs', description: 'Could not resend codes. Please check your details.', variant: 'destructive' });
+        toast({ title: `Failed to Send ${type} OTP`, description: result.message, variant: 'destructive' });
     }
     setIsLoading(false);
   };
@@ -298,19 +304,28 @@ export default function VendorSignupPage() {
                      <div className="grid gap-2">
                         <Label htmlFor="phone-otp">Phone OTP</Label>
                         <Input id="phone-otp" value={phoneOtp} onChange={e => setPhoneOtp(e.target.value)} placeholder="Enter 6-digit code" required />
+                         <div className="text-right text-sm text-muted-foreground">
+                            {phoneCountdown > 0 ? (
+                                `Resend code in ${phoneCountdown}s`
+                            ) : (
+                                <Button type="button" variant="link" size="sm" onClick={() => handleResendOtp('phone')} disabled={isLoading}>
+                                    Resend OTP
+                                </Button>
+                            )}
+                        </div>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="email-otp">Email OTP</Label>
                         <Input id="email-otp" value={emailOtp} onChange={e => setEmailOtp(e.target.value)} placeholder="Enter 6-digit code" required />
-                    </div>
-                     <div className="text-center text-sm text-muted-foreground">
-                        {countdown > 0 ? (
-                            `Resend codes in ${countdown}s`
-                        ) : (
-                            <Button type="button" variant="link" size="sm" onClick={handleResendOtps} disabled={isLoading}>
-                                Resend OTPs
-                            </Button>
-                        )}
+                         <div className="text-right text-sm text-muted-foreground">
+                            {emailCountdown > 0 ? (
+                                `Resend code in ${emailCountdown}s`
+                            ) : (
+                                <Button type="button" variant="link" size="sm" onClick={() => handleResendOtp('email')} disabled={isLoading}>
+                                    Resend OTP
+                                </Button>
+                            )}
+                        </div>
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading || phoneOtp.length < 6 || emailOtp.length < 6}>
                          {isLoading && <Loader2 className="mr-2 animate-spin" />}
