@@ -42,7 +42,7 @@ export async function checkUserExists(email: string, phone: string): Promise<{ e
 
 
 /**
- * Creates a new user with a 'pending' status and sends a verification email.
+ * Creates a new user with an 'Active' status after successful OTP verification.
  */
 export async function signupUser(userData: {
     name: string;
@@ -58,7 +58,6 @@ export async function signupUser(userData: {
     }
     
     const hashedPassword = await hashPassword(userData.password);
-    const verificationToken = uuidv4();
     const normalizedPhone = `+91${userData.phone.replace(/\D/g, '').slice(-10)}`;
 
 
@@ -69,22 +68,23 @@ export async function signupUser(userData: {
         passwordHash: hashedPassword,
         role: userData.role,
         corporateAccountId: userData.corporateAccountId || null,
-        status: 'pending-verification',
+        status: 'Active', // Set status to Active directly
         avatar: `https://avatar.vercel.sh/${userData.email}`,
         joinedDate: serverTimestamp(),
         communicationPrefs: { email: true, sms: false },
-        verificationToken: verificationToken,
-        verificationTokenExpires: Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        phoneVerifiedAt: serverTimestamp(), // Mark phone as verified
     });
 
-    // Send the verification email using our new service
-    await sendVerificationEmail(userData.email, userData.name, verificationToken);
+    // We can still send a welcome email, but it's no longer for verification.
+    // This part can be uncommented once a generic welcome template is ready.
+    // await sendWelcomeEmail(userData.email, userData.name);
 
     return { success: true, userId: newUserRef.id };
 }
 
 /**
  * Verifies a user's email address using the provided token.
+ * This function is now DEPRECATED for initial signup but can be repurposed for verifying email changes.
  */
 export async function verifyUserEmail(token: string): Promise<{ success: boolean; message: string }> {
     const usersRef = collection(db, 'users');
@@ -99,16 +99,15 @@ export async function verifyUserEmail(token: string): Promise<{ success: boolean
     const userData = userDoc.data();
 
     if (userData.verificationTokenExpires && userData.verificationTokenExpires.toMillis() < Date.now()) {
-        // Optional: Add logic to delete the user or allow resending verification
-        return { success: false, message: 'Verification link has expired. Please sign up again.' };
+        return { success: false, message: 'Verification link has expired. Please request a new one.' };
     }
 
     await updateDoc(doc(db, 'users', userDoc.id), {
-        status: 'Active',
+        status: 'Active', // Or just update the emailVerifiedAt field if status is already active
         emailVerifiedAt: serverTimestamp(),
-        verificationToken: null, // Invalidate the token
+        verificationToken: null, 
         verificationTokenExpires: null,
     });
 
-    return { success: true, message: 'Your email has been verified! You can now log in.' };
+    return { success: true, message: 'Your email has been verified!' };
 }

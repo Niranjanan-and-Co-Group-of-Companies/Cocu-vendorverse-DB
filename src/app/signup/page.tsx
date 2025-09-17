@@ -119,11 +119,11 @@ export default function SignupPage() {
       
       if(result.success) {
         toast({
-            title: "Verification Email Sent!",
-            description: "Please check your email to verify your account and complete registration.",
+            title: "Account Created!",
+            description: "Welcome to VendorVerse. You can now log in.",
             duration: 7000,
         });
-        router.push('/signup/verify-email');
+        router.push('/login');
       }
 
     } catch (error: any) {
