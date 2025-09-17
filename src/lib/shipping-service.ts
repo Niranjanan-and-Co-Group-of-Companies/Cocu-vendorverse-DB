@@ -89,7 +89,8 @@ async function getShiprocketRate(fromPincode: string, toPincode: string, weightK
             if (insuredCouriers.length === 0) {
                 console.warn("No insured couriers available for this route. Falling back to cheapest overall.");
                 // Fallback to cheapest if no insured options exist
-                return insuredCouriers.reduce((cheapest, current) => current.rate < cheapest.rate ? { rate: current.rate, etd: current.etd } : cheapest, { rate: Infinity, etd: '' });
+                const bestCourier = availableCouriers.reduce((cheapest, current) => current.rate < cheapest.rate ? current : cheapest, { rate: Infinity, etd: '' } as ShiprocketRate);
+                return { rate: bestCourier.rate, etd: bestCourier.etd };
             }
 
             // 2. Find the fastest ETD among insured couriers
@@ -182,7 +183,7 @@ export async function getShippingEstimate(vendorId: string, prepTime: {min: numb
 
     const vendor = await getVendorById(vendorId);
     if (!vendor || !vendor.pickupAddresses?.[0]?.pincode) {
-        return 'Cannot estimate delivery at this time.';
+        return 'Cannot estimate delivery at this time. Vendor address not found.';
     }
 
     const fromPincode = vendor.pickupAddresses[0].pincode;
