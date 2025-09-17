@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp, query, where, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { createNotification } from './notifications-actions';
 import { generateReadableId } from './id-service';
@@ -82,17 +82,33 @@ const MOCK_VENDORS: Omit<Vendor, 'id' | 'joinedDate' | 'vendorId'>[] = [
 
 
 async function seedVendors() {
+    const seedFlagRef = doc(db, 'internal_flags', 'vendorsSeeded_v5'); // <-- Incrementing the seed version
+    const seedFlagSnap = await getDoc(seedFlagRef);
+
+    if (seedFlagSnap.exists()) {
+        return;
+    }
+    
+    console.log("Forcing re-seed of vendors collection (v5)...");
+    
     const vendorsRef = collection(db, "vendors");
     const snapshot = await getDocs(vendorsRef);
-    if (snapshot.empty) {
-        console.log("Seeding vendors...");
-        const batch = writeBatch(db);
-        MOCK_VENDORS.forEach(vendor => {
-            const docRef = doc(vendorsRef);
-            batch.set(docRef, { ...vendor, vendorId: generateReadableId('VDR'), joinedDate: serverTimestamp() });
-        });
-        await batch.commit();
-    }
+    const deleteBatch = writeBatch(db);
+    snapshot.docs.forEach(doc => deleteBatch.delete(doc.ref));
+    await deleteBatch.commit();
+    console.log(`Deleted ${snapshot.size} old vendors.`);
+
+    const addBatch = writeBatch(db);
+    MOCK_VENDORS.forEach(vendor => {
+        const docRef = doc(vendorsRef);
+        addBatch.set(docRef, { ...vendor, vendorId: generateReadableId('VDR'), joinedDate: serverTimestamp() });
+    });
+    await addBatch.commit();
+    console.log(`${MOCK_VENDORS.length} vendors seeded.`);
+
+
+    await setDoc(seedFlagRef, { completed: true });
+    console.log("Vendor seeding v5 complete.");
 }
 
 seedVendors();
@@ -185,4 +201,3 @@ export async function updateVendorSettings(vendorId: string, data: Partial<Vendo
     const vendorRef = doc(db, 'vendors', vendorId);
     await updateDoc(vendorRef, data);
 }
-
