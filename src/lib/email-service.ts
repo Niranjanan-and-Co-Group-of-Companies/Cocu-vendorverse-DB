@@ -1,6 +1,8 @@
 
 'use server';
 
+import 'dotenv/config';
+
 const ZEPTOMAIL_API_KEY = process.env.ZEPTOMAIL_API_KEY;
 const ZEPTOMAIL_API_URL = "https://api.zeptomail.in/v1.1/email";
 
@@ -31,10 +33,15 @@ interface ZeptoMailPayload {
  * Sends an email using the ZeptoMail API with a specified sender type.
  */
 async function sendEmail(senderType: MailSenderType, to: { email: string, name: string }, subject: string, htmlbody: string) {
-    if (!ZEPTOMAIL_API_KEY) {
-        console.error('ZeptoMail API key is missing. Email not sent.');
-        // In a non-demo app, you might want to throw an error or handle this more gracefully
-        return { success: false, message: "Email service is not configured." };
+    if (!ZEPTOMAIL_API_KEY || ZEPTOMAIL_API_KEY === 'your_zeptomail_api_key_here') {
+        console.log('--- EMAIL SIMULATION ---');
+        console.log(`To: ${to.name} <${to.email}>`);
+        console.log(`From: ${SENDER_ADDRESSES[senderType].name} <${SENDER_ADDRESSES[senderType].address}>`);
+        console.log(`Subject: ${subject}`);
+        console.log('Body:', htmlbody);
+        console.log('--- END EMAIL SIMULATION ---');
+        console.warn('ZeptoMail API key is missing or not configured. Email was simulated in the console.');
+        return { success: true, message: "Email simulated successfully." };
     }
 
     const fromAddress = SENDER_ADDRESSES[senderType];

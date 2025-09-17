@@ -77,6 +77,7 @@ export async function signupUser(userData: {
         verificationTokenExpires: Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
     });
 
+    // Send the verification email using our new service
     await sendVerificationEmail(userData.email, userData.name, verificationToken);
 
     return { success: true, userId: newUserRef.id };
