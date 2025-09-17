@@ -180,10 +180,10 @@ export async function getShippingEstimate(vendorId: string, prepTime: {min: numb
     const { etd } = await getShiprocketRate(fromPincode, customerPincode, 1);
     
     // "3-4 Days" -> 4
-    const shippingDays = parseInt(etd.split('-').pop() || '5', 10);
+    const shippingDays = parseInt(etd.split('-').pop()?.trim().split(' ')[0] || '5', 10);
     const prepDays = prepTimeUnit === 'hours' ? Math.ceil(prepTime.max / 24) : prepTime.max;
     
-    const totalMaxDays = prepDays + shippingDays;
+    const totalMaxDays = prepDays + shippingDays + 1; // Added 1 day buffer
     
     const deliveryDate = new Date();
     deliveryDate.setDate(deliveryDate.getDate() + totalMaxDays);
