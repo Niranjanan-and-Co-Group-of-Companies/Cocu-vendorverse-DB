@@ -3,21 +3,20 @@
 
 import 'dotenv/config';
 
-const ZEPTOMAIL_API_KEY = process.env.ZEPTOMAIL_API_KEY;
 const ZEPTOMAIL_API_URL = "https://api.zeptomail.in/v1.1/email";
 
 // Define the types of senders as outlined in the plan
 export type MailSenderType = 'SYSTEM' | 'ORDERS' | 'VENDORS' | 'CHAMPIONS' | 'CORPORATE' | 'SUPPORT' | 'HELLO';
 
-// Map the sender types to their corresponding from addresses
-const SENDER_ADDRESSES: Record<MailSenderType, { address: string; name: string; }> = {
-    SYSTEM: { address: 'system@coandcu.com', name: 'VendorVerse System' },
-    ORDERS: { address: 'orders@coandcu.com', name: 'VendorVerse Orders' },
-    VENDORS: { address: 'vendors@coandcu.com', name: 'VendorVerse for Vendors' },
-    CHAMPIONS: { address: 'champions@coandcu.com', name: 'VendorVerse Champions' },
-    CORPORATE: { address: 'corporate@coandcu.com', name: 'VendorVerse Corporate' },
-    SUPPORT: { address: 'support@coandcu.com', name: 'VendorVerse Support' },
-    HELLO: { address: 'hello@coandcu.com', name: 'VendorVerse' },
+// Map the sender types to their corresponding from addresses and tokens
+const SENDER_CONFIG: Record<MailSenderType, { address: string; name: string; token: string | undefined; }> = {
+    SYSTEM: { address: 'system@coandcu.com', name: 'VendorVerse System', token: process.env.ZEPTOMAIL_SYSTEM_TOKEN },
+    ORDERS: { address: 'orders@coandcu.com', name: 'VendorVerse Orders', token: process.env.ZEPTOMAIL_ORDERS_TOKEN },
+    VENDORS: { address: 'vendors@coandcu.com', name: 'VendorVerse for Vendors', token: process.env.ZEPTOMAIL_VENDORS_TOKEN },
+    CHAMPIONS: { address: 'champions@coandcu.com', name: 'VendorVerse Champions', token: process.env.ZEPTOMAIL_CHAMPIONS_TOKEN },
+    CORPORATE: { address: 'corporate@coandcu.com', name: 'VendorVerse Corporate', token: process.env.ZEPTOMAIL_CORPORATE_TOKEN },
+    SUPPORT: { address: 'support@coandcu.com', name: 'VendorVerse Support', token: process.env.ZEPTOMAIL_SUPPORT_TOKEN },
+    HELLO: { address: 'hello@coandcu.com', name: 'VendorVerse', token: process.env.ZEPTOMAIL_HELLO_TOKEN },
 };
 
 
@@ -33,21 +32,22 @@ interface ZeptoMailPayload {
  * Sends an email using the ZeptoMail API with a specified sender type.
  */
 async function sendEmail(senderType: MailSenderType, to: { email: string, name: string }, subject: string, htmlbody: string) {
-    if (!ZEPTOMAIL_API_KEY || ZEPTOMAIL_API_KEY === 'your_zeptomail_api_key_here') {
+    const sender = SENDER_CONFIG[senderType];
+    const apiToken = sender.token;
+
+    if (!apiToken || apiToken.startsWith('your_')) {
         console.log('--- EMAIL SIMULATION ---');
         console.log(`To: ${to.name} <${to.email}>`);
-        console.log(`From: ${SENDER_ADDRESSES[senderType].name} <${SENDER_ADDRESSES[senderType].address}>`);
+        console.log(`From: ${sender.name} <${sender.address}>`);
         console.log(`Subject: ${subject}`);
         console.log('Body:', htmlbody);
         console.log('--- END EMAIL SIMULATION ---');
-        console.warn('ZeptoMail API key is missing or not configured. Email was simulated in the console.');
+        console.warn(`ZeptoMail token for ${senderType} is not configured. Email was simulated in the console.`);
         return { success: true, message: "Email simulated successfully." };
     }
 
-    const fromAddress = SENDER_ADDRESSES[senderType];
-
     const payload: ZeptoMailPayload = {
-        from: fromAddress,
+        from: { address: sender.address, name: sender.name },
         to: [{ email_address: { address: to.email, name: to.name } }],
         subject,
         htmlbody,
@@ -59,7 +59,7 @@ async function sendEmail(senderType: MailSenderType, to: { email: string, name: 
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization': ZEPTOMAIL_API_KEY,
+                'Authorization': apiToken,
             },
             body: JSON.stringify(payload),
         });
