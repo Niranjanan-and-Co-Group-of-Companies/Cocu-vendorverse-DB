@@ -90,7 +90,7 @@ async function sendEmail(
  */
 export async function sendVerificationEmail(toEmail: string, toName: string, verificationToken: string) {
     const verificationLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
-    const templateKey = process.env.ZEPTOMAIL_VERIFICATION_TEMPLATE_KEY || '';
+    const templateKey = process.env.ZEPTOMAIL_WELCOME_TEMPLATE_KEY || '';
 
     const mergeInfo = {
         name: toName,
