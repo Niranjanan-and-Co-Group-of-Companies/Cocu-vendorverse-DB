@@ -14,17 +14,11 @@ export interface ShippingCartItem {
 }
 
 // --- Shiprocket API Types ---
-interface ShiprocketRateRequest {
-    pickup_postcode: string;
-    delivery_postcode: string;
-    cod: 0 | 1;
-    weight: number; // in kg
-}
-
 interface ShiprocketRate {
     courier_name: string;
     rate: number; // This is the final rate including COD charges etc.
     etd: string;
+    is_insurance_available: boolean;
 }
 
 // --- Types ---
@@ -48,7 +42,7 @@ export interface ShippingEstimate {
  * @param fromPincode - The vendor's pickup pincode.
  * @param toPincode - The customer's delivery pincode.
  * @param weightKg - The package weight in kilograms.
- * @returns The lowest available shipping rate and its ETD, or a high default if none are found.
+ * @returns The best value shipping rate and its ETD, or a high default if none are found.
  */
 async function getShiprocketRate(fromPincode: string, toPincode: string, weightKg: number): Promise<ShippingEstimate> {
     const SHIPROCKET_API_URL = "https://apiv2.shiprocket.in/v1/external/courier/serviceability/";
@@ -88,14 +82,31 @@ async function getShiprocketRate(fromPincode: string, toPincode: string, weightK
         const data = await response.json();
 
         if (data.status === 200 && data.data.available_courier_companies?.length > 0) {
-            // Find the cheapest rate
-            const cheapestCourier = data.data.available_courier_companies.reduce((cheapest: ShiprocketRate, current: ShiprocketRate) => {
+            const availableCouriers: ShiprocketRate[] = data.data.available_courier_companies;
+
+            // 1. Filter for insured couriers
+            const insuredCouriers = availableCouriers.filter(c => c.is_insurance_available);
+            if (insuredCouriers.length === 0) {
+                console.warn("No insured couriers available for this route. Falling back to cheapest overall.");
+                // Fallback to cheapest if no insured options exist
+                return insuredCouriers.reduce((cheapest, current) => current.rate < cheapest.rate ? { rate: current.rate, etd: current.etd } : cheapest, { rate: Infinity, etd: '' });
+            }
+
+            // 2. Find the fastest ETD among insured couriers
+            const getMinDays = (etd: string) => parseInt(etd.split('-')[0], 10);
+            const fastestEtdDays = Math.min(...insuredCouriers.map(c => getMinDays(c.etd)));
+
+            // 3. Filter for all couriers that match the fastest ETD
+            const fastestCouriers = insuredCouriers.filter(c => getMinDays(c.etd) === fastestEtdDays);
+
+            // 4. Find the cheapest among the fastest
+            const bestValueCourier = fastestCouriers.reduce((cheapest, current) => {
                 return current.rate < cheapest.rate ? current : cheapest;
-            }, data.data.available_courier_companies[0]);
-            
+            });
+
             return {
-                rate: cheapestCourier.rate,
-                etd: cheapestCourier.etd,
+                rate: bestValueCourier.rate,
+                etd: bestValueCourier.etd,
             };
         } else {
             console.warn("No couriers available for this route:", fromPincode, "->", toPincode);
