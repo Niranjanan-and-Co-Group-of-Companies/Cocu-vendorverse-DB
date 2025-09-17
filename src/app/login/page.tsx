@@ -7,16 +7,48 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Gift } from 'lucide-react';
+import { Gift, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { loginUser } from '@/lib/auth-service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = React.useState(false);
     
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // In a real app, you would authenticate here.
-        router.push('/account'); // Redirect customer to their account page
+        setIsLoading(true);
+
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
+
+        try {
+            const result = await loginUser(email, password);
+            if (result.success) {
+                toast({
+                    title: 'Login Successful',
+                    description: 'Welcome back!',
+                });
+                router.push(result.redirectPath || '/');
+            } else {
+                toast({
+                    title: 'Login Failed',
+                    description: result.message,
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            toast({
+                title: 'An Error Occurred',
+                description: 'Could not log you in. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
   return (
@@ -39,7 +71,7 @@ export default function LoginPage() {
             <form className="grid gap-4" onSubmit={handleLogin}>
                 <div className="grid gap-2">
                     <Label htmlFor="email">Email or Phone</Label>
-                    <Input id="email" type="text" placeholder="m@example.com" required />
+                    <Input id="email" name="email" type="text" placeholder="m@example.com" required />
                 </div>
                 <div className="grid gap-2">
                     <div className="flex items-center">
@@ -48,9 +80,10 @@ export default function LoginPage() {
                         Forgot your password?
                         </Link>
                     </div>
-                    <Input id="password" type="password" required />
+                    <Input id="password" name="password" type="password" required />
                 </div>
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Login
                 </Button>
                 <div className="text-center text-sm">

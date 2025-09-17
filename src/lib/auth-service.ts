@@ -14,6 +14,11 @@ async function hashPassword(password: string): Promise<string> {
     return `hashed_${password}`;
 }
 
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
+    // In a real app: return await bcrypt.compare(password, hash);
+    return `hashed_${password}` === hash;
+}
+
 /**
  * Checks if a user already exists with the given email or phone number.
  */
@@ -81,6 +86,45 @@ export async function signupUser(userData: {
 
     return { success: true, userId: newUserRef.id };
 }
+
+
+export async function loginUser(emailOrPhone: string, password: string): Promise<{ success: boolean; message: string; redirectPath?: string; }> {
+    const usersRef = collection(db, 'users');
+    const isEmail = emailOrPhone.includes('@');
+
+    const q = isEmail 
+        ? query(usersRef, where('email', '==', emailOrPhone), limit(1))
+        : query(usersRef, where('phone', '==', emailOrPhone), limit(1));
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+        return { success: false, message: "Invalid credentials." };
+    }
+
+    const userDoc = snapshot.docs[0];
+    const user = { id: userDoc.id, ...userDoc.data() } as User & { passwordHash: string };
+
+    if (user.status !== 'Active') {
+        return { success: false, message: `Your account is currently ${user.status}. Please contact support.` };
+    }
+
+    const passwordMatches = await verifyPassword(password, user.passwordHash);
+
+    if (!passwordMatches) {
+        return { success: false, message: "Invalid credentials." };
+    }
+
+    let redirectPath = '/account';
+    if (user.role === 'corporate-admin' || user.role === 'corporate-user') {
+        redirectPath = '/corporate/dashboard';
+    }
+
+    // In a real app, you would set a session cookie or JWT here.
+    
+    return { success: true, message: "Login successful!", redirectPath };
+}
+
 
 /**
  * Verifies a user's email address using the provided token.
