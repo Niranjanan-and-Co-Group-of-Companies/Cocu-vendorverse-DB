@@ -132,7 +132,6 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
         campaignsRef,
         where('placement', '==', placement),
         where('status', '==', 'Active'),
-        where('platform', 'in', ['Personalized', 'Both']),
         where('startDate', '<=', now),
         orderBy('startDate', 'desc')
     );
@@ -141,16 +140,22 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
     if (snapshot.empty) {
         return null;
     }
+    
+    const personalizedPlatforms: Array<Platform | 'Both'> = ['Personalized', 'Both'];
 
-    // Find the first valid campaign that has not ended
+    // Find the first valid campaign that has not ended and matches the platform
     for (const campaignDoc of snapshot.docs) {
         const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
-        if (!campaignData.endDate || (campaignData.endDate && campaignData.endDate.toDate() > now.toDate())) {
-            return campaignData;
+        
+        const isPlatformMatch = personalizedPlatforms.includes(campaignData.platform);
+        const isNotEnded = !campaignData.endDate || (campaignData.endDate && campaignData.endDate.toDate() > now.toDate());
+
+        if (isPlatformMatch && isNotEnded) {
+            return campaignData; // Return the first valid, active campaign
         }
     }
     
-    return null; // All found campaigns have ended
+    return null; // All found campaigns have ended or don't match the platform
 }
 
 
@@ -163,10 +168,11 @@ export async function getActiveCorporateCampaignByPlacement(placement: Placement
         campaignsRef,
         where('placement', '==', placement),
         where('status', '==', 'Active'),
-        where('platform', 'in', ['Corporate', 'Both']),
         where('startDate', '<=', now),
         orderBy('startDate', 'desc')
     );
+    
+    const corporatePlatforms: Array<Platform | 'Both'> = ['Corporate', 'Both'];
 
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
@@ -176,10 +182,14 @@ export async function getActiveCorporateCampaignByPlacement(placement: Placement
     // Find the first valid campaign that has not ended
     for (const campaignDoc of snapshot.docs) {
         const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
-        if (!campaignData.endDate || (campaignData.endDate && campaignData.endDate.toDate() > now.toDate())) {
+        
+        const isPlatformMatch = corporatePlatforms.includes(campaignData.platform);
+        const isNotEnded = !campaignData.endDate || (campaignData.endDate && campaignData.endDate.toDate() > now.toDate());
+
+        if (isPlatformMatch && isNotEnded) {
             return campaignData;
         }
     }
     
-    return null; // All found campaigns have ended
+    return null; // All found campaigns have ended or don't match platform
 }
