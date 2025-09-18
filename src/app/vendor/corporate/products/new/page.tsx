@@ -102,6 +102,22 @@ function ProductEditorContent() {
                 [side]: file
             }
         }));
+        if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setProduct(prev => {
+                const newVariants = prev.variants?.map(v => {
+                    if (v.id === variantId) {
+                        // Create a mutable copy of the side data to update
+                        const newSides = { ...(v.customizationSides || {}) };
+                        newSides[side] = { ...(newSides[side] || {}), image: imageUrl };
+
+                        return { ...v, customizationSides: newSides };
+                    }
+                    return v;
+                }) || [];
+                return { ...prev, variants: newVariants };
+            });
+        }
     };
 
     const handleGalleryFilesChange = (variantId: string, files: File[]) => {
