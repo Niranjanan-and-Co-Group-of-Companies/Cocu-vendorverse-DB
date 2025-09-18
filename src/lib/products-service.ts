@@ -35,6 +35,7 @@ export async function serializeProduct(product: Product): Promise<PlainProduct> 
   return plainProduct as PlainProduct;
 }
 
+const productsCollection = collection(db, 'products');
 
 async function seedProductsIfEmpty() {
     const seedFlagRef = doc(db, 'internal_flags', 'productsSeeded_v23'); 
@@ -62,7 +63,7 @@ async function seedProductsIfEmpty() {
         { name: 'Artisanal Chocolate Box', vendor: 'Gourmet Delights', vendorSP: 450.00, image: 'https://picsum.photos/seed/choco/600/400', galleryImages: ['https://picsum.photos/seed/choco1/600/400', 'https://picsum.photos/seed/choco2/600/400', 'https://picsum.photos/seed/choco3/600/400'], videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', rating: 4.8, stock: 25, customizable: true, featured: true, description: "A decadent assortment of handcrafted chocolates, perfect for any sweet tooth. Our chocolates are made with single-origin cacao beans and all-natural ingredients. Each box contains a variety of flavors, from classic dark chocolate to exotic fruit-infused truffles.", category: "Food & Drink", platform: 'Personalized', hasVariants: true },
         { name: 'Luxury Spa Set', vendor: 'Serene Moments', vendorSP: 850.00, image: 'https://picsum.photos/seed/spa/600/400', galleryImages: ['https://picsum.photos/seed/spa1/600/400', 'https://picsum.photos/seed/spa2/600/400'], rating: 4.9, stock: 5, customizable: false, featured: true, description: "A complete home-spa experience with bath bombs, lotions, and scented candles. This set is designed to help you relax, rejuvenate, and find your inner peace. All products are vegan and cruelty-free.", category: "Wellness", platform: 'Personalized', hasVariants: false },
         { name: 'Handcrafted Leather Wallet', vendor: 'Heritage Wares', vendorSP: 750.00, tieredPricing: [{ quantity: 25, price: '700.00' }, { quantity: 50, price: '650.00' }, { quantity: 100, price: '600.00' }], image: 'https://picsum.photos/seed/wallet/600/400', rating: 4.7, stock: 15, customizable: true, featured: false, category: "Office & Corporate", moq: 25, platform: 'Corporate', hasVariants: true},
-        { name: 'Gourmet Coffee Collection', vendor: 'The Daily Grind', vendorSP: 600.00, image: 'https://picsum.photos/seed/coffee/600/400', rating: 4.6, stock: 30, customizable: false, featured: false, description: "Explore the world of coffee with our curated collection of single-origin beans.", category: "Food & Drink", platform: 'Personalized', hasVariants: false },
+        { name: 'Gourmet Coffee Collection', vendor: 'The Daily Grind', vendorSP: 600.00, image: 'https://picsum.photos/seed/coffee/600/400', rating: 4.6, stock: 30, customizable: false, featured: false, description: "Explore the world of coffee with our curated collection of single-origin beans.", category: "Food & Drink", platform: 'Personalized', hasVariants: false, preparationTime: { min: 1, max: 2 } },
         { name: 'Aromatherapy Diffuser', vendor: 'Serene Moments', vendorSP: 1200.00, image: 'https://picsum.photos/seed/diffuser/600/400', rating: 4.8, stock: 20, customizable: false, featured: false, description: "An ultrasonic diffuser that mists essential oils for aromatherapy and relaxation.", category: "Wellness", platform: 'Personalized', hasVariants: false },
     ];
     
@@ -102,7 +103,7 @@ async function seedProductsIfEmpty() {
             inventoryBuffer: 5,
             tags: ['gourmet', 'gift box', 'luxury'],
             packaging: { weight: 1, dimensions: { l: 10, w: 10, h: 5 } },
-            preparationTime: { min: 3, max: 4 },
+            preparationTime: product.preparationTime || { min: 3, max: 4 },
             preparationTimeUnit: 'days',
             sku: `${product.vendor.substring(0,2).toUpperCase()}-${docRef.id.substring(0,4)}`,
             hsnSac: '9505',
@@ -119,7 +120,6 @@ async function seedProductsIfEmpty() {
     await setDoc(seedFlagRef, { seeded: true, at: serverTimestamp() });
     console.log(`${MOCK_PRODUCTS_RAW.length} products seeded successfully (v23). This operation will not run again.`);
 }
-seedProductsIfEmpty();
 
 
 async function uploadFile(path: string, file: File): Promise<string> {
@@ -286,11 +286,3 @@ export async function approveProduct(productId: string) {
 export async function declineProduct(productId: string) {
     await updateProductStatus(String(productId), 'Declined');
 }
-
-const productsCollection = collection(db, 'products');
-
-
-
-
-
-
