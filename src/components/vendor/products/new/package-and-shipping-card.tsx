@@ -29,13 +29,23 @@ export function PackageAndShippingCard({
 }: PackageAndShippingCardProps) {
   
   const handleDimensionChange = (dim: 'l' | 'w' | 'h', value: string) => {
+    const parsedValue = parseFloat(value);
+    const dimension = isNaN(parsedValue) ? 0 : parsedValue;
+
     onFieldChange('packaging', {
         ...packaging,
         dimensions: {
             ...packaging.dimensions,
-            [dim]: parseInt(value, 10) || 0
+            [dim]: dimension
         }
     });
+  };
+
+  const handleDimensionBlur = (dim: 'l' | 'w' | 'h', value: string) => {
+    const parsedValue = parseFloat(value);
+    if (!isNaN(parsedValue) && parsedValue < 0.5 && parsedValue !== 0) {
+        handleDimensionChange(dim, '0.5');
+    }
   };
 
   const handleWeightChange = (value: string) => {
@@ -50,7 +60,7 @@ export function PackageAndShippingCard({
   
   const handleWeightBlur = (value: string) => {
       const parsedValue = parseFloat(value);
-      if (!isNaN(parsedValue) && parsedValue < 0.5) {
+      if (!isNaN(parsedValue) && parsedValue < 0.5 && parsedValue !== 0) {
           onFieldChange('packaging', {
               ...packaging,
               weight: 0.5
@@ -128,9 +138,9 @@ export function PackageAndShippingCard({
         <div className="space-y-2">
             <Label>Package Dimensions (cm)</Label>
             <div className="grid grid-cols-3 gap-2">
-                <Input placeholder="L" type="number" value={packaging?.dimensions?.l || 0} onChange={e => handleDimensionChange('l', e.target.value)} />
-                <Input placeholder="W" type="number" value={packaging?.dimensions?.w || 0} onChange={e => handleDimensionChange('w', e.target.value)} />
-                <Input placeholder="H" type="number" value={packaging?.dimensions?.h || 0} onChange={e => handleDimensionChange('h', e.target.value)} />
+                <Input placeholder="L" type="number" step="0.01" value={packaging?.dimensions?.l || 0} onChange={e => handleDimensionChange('l', e.target.value)} onBlur={e => handleDimensionBlur('l', e.target.value)} />
+                <Input placeholder="W" type="number" step="0.01" value={packaging?.dimensions?.w || 0} onChange={e => handleDimensionChange('w', e.target.value)} onBlur={e => handleDimensionBlur('w', e.target.value)} />
+                <Input placeholder="H" type="number" step="0.01" value={packaging?.dimensions?.h || 0} onChange={e => handleDimensionChange('h', e.target.value)} onBlur={e => handleDimensionBlur('h', e.target.value)} />
             </div>
              <Alert className="mt-2">
                 <AlertCircle className="h-4 w-4" />
