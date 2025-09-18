@@ -13,6 +13,7 @@ import { CustomizationAreaEditor } from './customization-area-editor';
 import { MultiImageUpload } from '@/components/common/multi-image-upload';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 
 interface MediaAndCustomizationCardProps {
   product: Product;
@@ -126,18 +127,20 @@ export function MediaAndCustomizationCard({
                                     </div>
                                 ))}
                             </div>
+                            <Separator className="my-6" />
                         </>
-                    ) : (
-                        <div className="space-y-2">
-                            <Label>Product Gallery for {activeVariant.colorName}</Label>
-                            <Alert><AlertDescription>Upload images for this variant. The first image will be the main one.</AlertDescription></Alert>
-                             <MultiImageUpload
-                                existingImageUrls={activeVariant.galleryImages || []}
-                                files={galleryImageFilesByVariant[activeVariantId] || []}
-                                onFilesChange={(files) => onGalleryFilesChange(activeVariantId, files)}
-                             />
-                        </div>
-                    )}
+                    ) : null}
+
+                    {/* Gallery section is now always visible when there's an active variant */}
+                    <div className="space-y-2">
+                        <Label>Product Gallery for {activeVariant.colorName}</Label>
+                        <Alert><AlertDescription>Upload showcase images for this variant. The first image will be the main one if no specific 'front side' image is set for customization.</AlertDescription></Alert>
+                         <MultiImageUpload
+                            existingImageUrls={activeVariant.galleryImages || []}
+                            files={galleryImageFilesByVariant[activeVariantId] || []}
+                            onFilesChange={(files) => onGalleryFilesChange(activeVariantId, files)}
+                         />
+                    </div>
                 </div>
             )}
             
