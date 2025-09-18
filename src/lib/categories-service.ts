@@ -173,10 +173,11 @@ export async function deleteCategory(categoryId: string) {
 
 // --- Real-time Combined Fetching ---
 
-export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Corporate' | 'Both', callback: (categories: Category[]) => void): Unsubscribe {
+export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Corporate', callback: (categories: Category[]) => void): Unsubscribe {
     seedCategories(); // Ensure categories exist
 
     const categoriesRef = collection(db, 'categories');
+    // Updated query to fetch platform-specific AND "Both" categories
     const categoriesQuery = query(categoriesRef, where('platform', 'in', [platform, 'Both']));
     
     const commissionsRef = collection(db, 'commissions');
