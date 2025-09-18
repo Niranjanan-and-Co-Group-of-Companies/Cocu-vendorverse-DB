@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -18,6 +19,7 @@ interface CustomizationAreaEditorProps {
   onSave: (areas: CustomizationArea[]) => void;
   imageUrl: string;
   initialAreas: CustomizationArea[];
+  isReviewMode?: boolean;
 }
 
 
@@ -26,19 +28,22 @@ const AreaComponent = ({
     isSelected,
     onSelect,
     onUpdate,
-    canvasRef
+    canvasRef,
+    isReviewMode
 }: {
     area: CustomizationArea,
     isSelected: boolean,
     onSelect: (id: string) => void,
     onUpdate: (id: string, newArea: Partial<CustomizationArea>) => void,
-    canvasRef: React.RefObject<HTMLDivElement>
+    canvasRef: React.RefObject<HTMLDivElement>,
+    isReviewMode: boolean
 }) => {
     const [position, setPosition] = React.useState({x: area.x, y: area.y});
     const [isDragging, setIsDragging] = React.useState(false);
     const dragStartPos = React.useRef({x: 0, y: 0});
 
     const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+        if (isReviewMode) return;
         e.preventDefault();
         e.stopPropagation();
         onSelect(area.id);
@@ -52,7 +57,7 @@ const AreaComponent = ({
     };
 
     const handleDrag = React.useCallback((e: MouseEvent | TouchEvent) => {
-        if (!isDragging || !canvasRef.current) return;
+        if (!isDragging || !canvasRef.current || isReviewMode) return;
         const event = 'touches' in e ? e.touches[0] : e;
         const canvasRect = canvasRef.current.getBoundingClientRect();
         
@@ -63,14 +68,14 @@ const AreaComponent = ({
         newY = Math.max(0, Math.min(newY, canvasRect.height - area.height));
 
         setPosition({ x: newX, y: newY });
-    }, [isDragging, canvasRef, area.width, area.height]);
+    }, [isDragging, canvasRef, area.width, area.height, isReviewMode]);
 
     const handleDragEnd = React.useCallback(() => {
-        if (isDragging) {
+        if (isDragging && !isReviewMode) {
             onUpdate(area.id, { x: position.x, y: position.y });
             setIsDragging(false);
         }
-    }, [isDragging, onUpdate, area.id, position]);
+    }, [isDragging, onUpdate, area.id, position, isReviewMode]);
 
     React.useEffect(() => {
         if (isDragging) {
@@ -107,11 +112,13 @@ const AreaComponent = ({
                 width={area.width}
                 height={area.height}
                 onResizeStop={(e, data) => {
-                    onUpdate(area.id, { width: data.size.width, height: data.size.height });
+                    if (!isReviewMode) {
+                        onUpdate(area.id, { width: data.size.width, height: data.size.height });
+                    }
                 }}
                 minConstraints={[50, 50]}
                 maxConstraints={[800, 800]}
-                resizeHandles={['se', 'sw', 'ne', 'nw', 'e', 'w', 'n', 's']}
+                resizeHandles={isReviewMode ? [] : ['se', 'sw', 'ne', 'nw', 'e', 'w', 'n', 's']}
                 handle={(handle, ref) => (
                     <div
                         ref={ref as any}
@@ -119,7 +126,7 @@ const AreaComponent = ({
                             'react-resizable-handle',
                             `react-resizable-handle-${handle}`,
                            'bg-card border-2 border-primary rounded-full w-3 h-3 -m-1.5',
-                           isSelected ? 'opacity-100' : 'opacity-0'
+                           isSelected && !isReviewMode ? 'opacity-100' : 'opacity-0'
                         )}
                     />
                 )}
@@ -137,7 +144,7 @@ const AreaComponent = ({
                         alignItems: 'center',
                         justifyContent: 'center',
                         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        cursor: isDragging ? 'grabbing' : 'grab'
+                        cursor: isReviewMode ? 'default' : (isDragging ? 'grabbing' : 'grab')
                     }}
                     onMouseDown={handleDragStart}
                     onTouchStart={handleDragStart}
@@ -150,7 +157,7 @@ const AreaComponent = ({
 };
 
 
-export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, initialAreas }: CustomizationAreaEditorProps) {
+export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, initialAreas, isReviewMode = false }: CustomizationAreaEditorProps) {
   const [areas, setAreas] = React.useState<CustomizationArea[]>(initialAreas);
   const [selectedAreaId, setSelectedAreaId] = React.useState<string | null>(null);
   const canvasRef = React.useRef<HTMLDivElement>(null);
@@ -165,6 +172,7 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
   }, [initialAreas, isOpen]);
 
   const addArea = (type: 'rect' | 'ellipse') => {
+    if (isReviewMode) return;
     const newArea: CustomizationArea = {
       id: `area_${Date.now()}`,
       type,
@@ -182,6 +190,7 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
   };
 
   const removeArea = (idToRemove: string) => {
+      if (isReviewMode) return;
       setAreas(currentAreas => currentAreas.filter(a => a.id !== idToRemove));
       if (selectedAreaId === idToRemove) {
           setSelectedAreaId(null);
@@ -189,6 +198,7 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
   };
   
   const updateArea = (id: string, updatedProps: Partial<CustomizationArea>) => {
+    if (isReviewMode) return;
     setAreas(currentAreas => currentAreas.map(a => a.id === id ? { ...a, ...updatedProps } : a));
   };
 
@@ -201,7 +211,7 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
   const selectedArea = areas.find(a => a.id === selectedAreaId);
 
   const handleAreaPropChange = (prop: keyof CustomizationArea, value: any) => {
-    if (!selectedAreaId) return;
+    if (!selectedAreaId || isReviewMode) return;
     updateArea(selectedAreaId, { [prop]: value });
   }
 
@@ -209,7 +219,7 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Define Customization Area</DialogTitle>
+          <DialogTitle>{isReviewMode ? 'View Customization Area' : 'Define Customization Area'}</DialogTitle>
         </DialogHeader>
         <div 
             className="flex-grow grid grid-cols-1 md:grid-cols-4 gap-4 overflow-hidden"
@@ -225,18 +235,21 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
                 onSelect={setSelectedAreaId}
                 onUpdate={updateArea}
                 canvasRef={canvasRef}
+                isReviewMode={isReviewMode}
               />
             ))}
           </div>
           {/* Toolbox & Properties Panel */}
           <div className="flex flex-col gap-4 overflow-y-auto pr-2">
-             <div>
-                <h3 className="font-semibold mb-2">Tools</h3>
-                 <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" onClick={() => addArea('rect')}><Square className="mr-2"/> Add Box</Button>
-                    <Button variant="outline" onClick={() => addArea('ellipse')}><Circle className="mr-2"/> Add Oval</Button>
+             {!isReviewMode && (
+                 <div>
+                    <h3 className="font-semibold mb-2">Tools</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" onClick={() => addArea('rect')}><Square className="mr-2"/> Add Box</Button>
+                        <Button variant="outline" onClick={() => addArea('ellipse')}><Circle className="mr-2"/> Add Oval</Button>
+                    </div>
                 </div>
-             </div>
+             )}
              
              <div className="flex-grow p-4 border rounded-md space-y-4">
                <h3 className="font-semibold">Properties</h3>
@@ -244,27 +257,29 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
                 <>
                     <div className="space-y-2">
                         <Label>Area Label</Label>
-                        <Input value={selectedArea.label} onChange={(e) => handleAreaPropChange('label', e.target.value)} />
+                        <Input value={selectedArea.label} onChange={(e) => handleAreaPropChange('label', e.target.value)} readOnly={isReviewMode} />
                     </div>
                      <div className="space-y-2">
                         <Label>Default Font</Label>
-                        <Input value={selectedArea.defaultFont} onChange={(e) => handleAreaPropChange('defaultFont', e.target.value)} />
+                        <Input value={selectedArea.defaultFont} onChange={(e) => handleAreaPropChange('defaultFont', e.target.value)} readOnly={isReviewMode} />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-2">
                             <Label>Font Size</Label>
-                            <Input type="number" value={selectedArea.defaultFontSize} onChange={(e) => handleAreaPropChange('defaultFontSize', parseInt(e.target.value, 10) || 0)} />
+                            <Input type="number" value={selectedArea.defaultFontSize} onChange={(e) => handleAreaPropChange('defaultFontSize', parseInt(e.target.value, 10) || 0)} readOnly={isReviewMode} />
                         </div>
                         <div className="space-y-2">
                             <Label>Text Color</Label>
-                            <Input type="color" value={selectedArea.defaultColor} onChange={(e) => handleAreaPropChange('defaultColor', e.target.value)} className="p-1"/>
+                            <Input type="color" value={selectedArea.defaultColor} onChange={(e) => handleAreaPropChange('defaultColor', e.target.value)} className="p-1" disabled={isReviewMode} />
                         </div>
                     </div>
                     <p className="text-xs text-muted-foreground">Width and Height are now controlled by dragging the handles on the canvas.</p>
 
-                    <Button variant="destructive" size="sm" onClick={() => removeArea(selectedAreaId!)} className="w-full">
-                        <Trash2 className="mr-2"/> Remove Selected Area
-                    </Button>
+                    {!isReviewMode && (
+                        <Button variant="destructive" size="sm" onClick={() => removeArea(selectedAreaId!)} className="w-full">
+                            <Trash2 className="mr-2"/> Remove Selected Area
+                        </Button>
+                    )}
                 </>
               ) : (
                 <div className="text-center text-muted-foreground h-full flex flex-col items-center justify-center">
@@ -277,9 +292,9 @@ export function CustomizationAreaEditor({ isOpen, onClose, onSave, imageUrl, ini
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Close</Button>
           </DialogClose>
-          <Button onClick={handleSave}>Save Changes</Button>
+          {!isReviewMode && <Button onClick={handleSave}>Save Changes</Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>

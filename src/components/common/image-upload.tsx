@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -11,9 +12,10 @@ interface ImageUploadProps {
   imageUrl?: string;
   onFileSelect: (file: File | null) => void;
   className?: string;
+  isReviewMode?: boolean;
 }
 
-export function ImageUpload({ imageUrl, onFileSelect, className }: ImageUploadProps) {
+export function ImageUpload({ imageUrl, onFileSelect, className, isReviewMode = false }: ImageUploadProps) {
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(imageUrl || null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -22,6 +24,7 @@ export function ImageUpload({ imageUrl, onFileSelect, className }: ImageUploadPr
   }, [imageUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isReviewMode) return;
     const file = e.target.files?.[0];
     if (file) {
       onFileSelect(file);
@@ -30,6 +33,7 @@ export function ImageUpload({ imageUrl, onFileSelect, className }: ImageUploadPr
   };
 
   const handleRemoveImage = (e: React.MouseEvent) => {
+    if (isReviewMode) return;
     e.stopPropagation();
     onFileSelect(null);
     setPreviewUrl(null);
@@ -41,29 +45,32 @@ export function ImageUpload({ imageUrl, onFileSelect, className }: ImageUploadPr
   return (
     <div
       className={cn(
-        "w-full aspect-video rounded-md border-2 border-dashed border-muted-foreground/30 flex items-center justify-center cursor-pointer hover:border-primary transition-colors relative group",
+        "w-full aspect-video rounded-md border-2 border-dashed border-muted-foreground/30 flex items-center justify-center relative group",
+        !isReviewMode && "cursor-pointer hover:border-primary transition-colors",
         className
       )}
-      onClick={() => fileInputRef.current?.click()}
+      onClick={() => !isReviewMode && fileInputRef.current?.click()}
     >
-      <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+      <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" disabled={isReviewMode} />
       
       {previewUrl ? (
         <>
             <Image src={previewUrl} alt="Creative preview" fill className="object-cover rounded-md" />
-            <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={handleRemoveImage}
-            >
-                <X className="h-4 w-4" />
-            </Button>
+            {!isReviewMode && (
+                <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={handleRemoveImage}
+                >
+                    <X className="h-4 w-4" />
+                </Button>
+            )}
         </>
       ) : (
         <div className="text-center text-muted-foreground">
           <Upload className="mx-auto h-8 w-8" />
-          <p className="mt-2 text-sm">Click to upload an image</p>
+          <p className="mt-2 text-sm">{isReviewMode ? "No Image Provided" : "Click to upload"}</p>
         </div>
       )}
     </div>

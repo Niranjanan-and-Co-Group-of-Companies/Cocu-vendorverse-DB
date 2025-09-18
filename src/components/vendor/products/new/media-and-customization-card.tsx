@@ -51,7 +51,6 @@ export function MediaAndCustomizationCard({
     const activeVariant = product.variants?.find(v => v.id === activeVariantId);
     
     const handleDefineArea = (side: CustomizationSide) => {
-        if (isReviewMode) return;
         setEditingSide(side);
     };
 
@@ -86,7 +85,7 @@ export function MediaAndCustomizationCard({
             {product.variants && product.variants.length > 1 && (
                  <div className="space-y-2">
                     <Label>Select Variant to Edit Images</Label>
-                     <Select value={activeVariantId} onValueChange={setActiveVariantId} disabled={isReviewMode}>
+                     <Select value={activeVariantId} onValueChange={setActiveVariantId}>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a variant" />
                         </SelectTrigger>
@@ -107,9 +106,21 @@ export function MediaAndCustomizationCard({
             {activeVariant && (
                 <div className="space-y-4 p-4 border rounded-md">
                      <h4 className="font-semibold text-lg">Editing Images for: {activeVariant.colorName}</h4>
-
+                     
+                     <div className="space-y-2">
+                        <Label>Product Gallery for {activeVariant.colorName}</Label>
+                        <Alert><AlertDescription>Upload showcase images for this variant. The first image will be the main one if no specific 'front side' image is set for customization.</AlertDescription></Alert>
+                         <MultiImageUpload
+                            existingImageUrls={activeVariant.galleryImages || []}
+                            files={galleryImageFilesByVariant[activeVariantId] || []}
+                            onFilesChange={(files) => onGalleryFilesChange(activeVariantId, files)}
+                            isReviewMode={isReviewMode}
+                         />
+                    </div>
+                    
                     {isCustomizable && (
                          <>
+                            <Separator className="my-6" />
                             <p className="text-sm text-muted-foreground">Upload an image for each side you want customers to be able to customize.</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {SIDES.map(side => (
@@ -119,32 +130,23 @@ export function MediaAndCustomizationCard({
                                             imageUrl={activeVariant.customizationSides[side]?.image || undefined}
                                             onFileSelect={(file) => onImageChange(activeVariantId, side, file)}
                                             className="aspect-square"
+                                            isReviewMode={isReviewMode}
                                         />
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             className="w-full"
-                                            disabled={!activeVariant.customizationSides[side]?.image || isReviewMode}
+                                            disabled={!activeVariant.customizationSides[side]?.image}
                                             onClick={() => handleDefineArea(side)}
                                         >
-                                            Define Area
+                                            {isReviewMode ? 'View Area' : 'Define Area'}
                                         </Button>
                                     </div>
                                 ))}
                             </div>
-                            <Separator className="my-6" />
                         </>
                     )}
 
-                    <div className="space-y-2">
-                        <Label>Product Gallery for {activeVariant.colorName}</Label>
-                        <Alert><AlertDescription>Upload showcase images for this variant. The first image will be the main one if no specific 'front side' image is set for customization.</AlertDescription></Alert>
-                         <MultiImageUpload
-                            existingImageUrls={activeVariant.galleryImages || []}
-                            files={galleryImageFilesByVariant[activeVariantId] || []}
-                            onFilesChange={(files) => onGalleryFilesChange(activeVariantId, files)}
-                         />
-                    </div>
                 </div>
             )}
             
@@ -161,13 +163,14 @@ export function MediaAndCustomizationCard({
              </div>
         </CardContent>
         </Card>
-        {!isReviewMode && isCustomizable && activeVariant && (
+        {isCustomizable && activeVariant && (
             <CustomizationAreaEditor
                 isOpen={!!editingSide}
                 onClose={() => setEditingSide(null)}
                 onSave={handleEditorSave}
                 imageUrl={editingSide ? activeVariant.customizationSides[editingSide]?.image || '' : ''}
                 initialAreas={editingSide ? product.customizationAreas?.[editingSide] || [] : []}
+                isReviewMode={isReviewMode}
             />
         )}
     </>

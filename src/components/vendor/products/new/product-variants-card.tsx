@@ -89,7 +89,10 @@ export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onM
         {product.hasVariants && (
             <>
                 <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md">
-                   Add variants for each color or style. Designate one as the main variant for the primary product image using the star icon.
+                   {isReviewMode 
+                    ? "Review the variants created by the vendor. The starred item is the main variant."
+                    : "Add variants for each color or style. Designate one as the main variant for the primary product image using the star icon."
+                   }
                 </div>
                 {variants.map((variant, index) => {
                     const isMain = mainVariantId === variant.id;
@@ -117,24 +120,33 @@ export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onM
                         <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor={`variant-name-${index}`}>Variant Name</Label>
-                                <Input
-                                    id={`variant-name-${index}`}
-                                    placeholder="e.g., Black"
-                                    value={variant.colorName}
-                                    onChange={(e) => handleVariantChange(index, 'colorName', e.target.value)}
-                                    readOnly={isReviewMode}
-                                />
+                                {isReviewMode ? (
+                                    <p className="font-semibold text-muted-foreground h-10 flex items-center">{variant.colorName}</p>
+                                ) : (
+                                    <Input
+                                        id={`variant-name-${index}`}
+                                        placeholder="e.g., Black"
+                                        value={variant.colorName}
+                                        onChange={(e) => handleVariantChange(index, 'colorName', e.target.value)}
+                                    />
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor={`variant-color-${index}`}>Color</Label>
-                                <Input
-                                    id={`variant-color-${index}`}
-                                    type="color"
-                                    value={variant.colorHex}
-                                    onChange={(e) => handleVariantChange(index, 'colorHex', e.target.value)}
-                                    className="p-1 h-10"
-                                    disabled={isReviewMode}
-                                />
+                                {isReviewMode ? (
+                                    <div className="flex items-center gap-2 h-10">
+                                        <div className="h-6 w-6 rounded-full border" style={{backgroundColor: variant.colorHex}}/>
+                                        <span className="font-mono text-muted-foreground">{variant.colorHex}</span>
+                                    </div>
+                                ) : (
+                                     <Input
+                                        id={`variant-color-${index}`}
+                                        type="color"
+                                        value={variant.colorHex}
+                                        onChange={(e) => handleVariantChange(index, 'colorHex', e.target.value)}
+                                        className="p-1 h-10"
+                                    />
+                                )}
                             </div>
                         </div>
                         {variants.length > 1 && !isReviewMode && (
