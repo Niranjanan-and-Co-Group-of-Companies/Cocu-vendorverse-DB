@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { YouTubeEmbed } from '@/components/common/youtube-embed';
 import { onFeaturedProductsUpdate, type ProductWithPrice } from '@/lib/products-client-service';
+import Autoplay from "embla-carousel-autoplay"
 
 
 const HeroSection = () => {
@@ -86,6 +87,12 @@ const HeroSection = () => {
        <Carousel
           opts={{ loop: true, }}
           className="w-full"
+          plugins={[
+            Autoplay({
+              delay: 5000,
+              stopOnInteraction: true,
+            }),
+          ]}
         >
           <CarouselContent>
             {heroCampaign.creatives.map(creative => (
@@ -185,6 +192,12 @@ export default function Home() {
                 align: "start",
                 loop: true,
               }}
+              plugins={[
+                Autoplay({
+                  delay: 3000,
+                  stopOnInteraction: true,
+                }),
+              ]}
               className="w-full mt-12"
             >
               <CarouselContent>
