@@ -1,10 +1,19 @@
+
+'use client';
+
 import * as React from 'react';
-import { PersonalizedVendorLayoutClient } from '@/components/layout/personalized-vendor-layout-client';
+import { VendorSidebarLayout } from '@/components/layout/vendor-sidebar-layout';
+import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 
 export default function PersonalizedVendorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <PersonalizedVendorLayoutClient>{children}</PersonalizedVendorLayoutClient>;
+  return (
+    <VendorSidebarLayout>
+      {children}
+      <TermsUpdateDialog userType="vendor" />
+    </VendorSidebarLayout>
+  );
 }
