@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, getDoc, addDoc, serverTimestamp, query, where, setDoc } from 'firebase/firestore';
@@ -83,14 +82,14 @@ const MOCK_VENDORS: Omit<Vendor, 'joinedDate' | 'vendorId'>[] = [
 
 
 async function seedVendors() {
-    const seedFlagRef = doc(db, 'internal_flags', 'vendorsSeeded_v6'); // <-- Incrementing the seed version
+    const seedFlagRef = doc(db, 'internal_flags', 'vendorsSeeded_v7'); // <-- Incrementing the seed version
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return;
     }
     
-    console.log("Forcing re-seed of vendors collection (v6)...");
+    console.log("Forcing re-seed of vendors collection (v7)...");
     
     const vendorsRef = collection(db, "vendors");
     const snapshot = await getDocs(vendorsRef);
@@ -110,7 +109,7 @@ async function seedVendors() {
 
 
     await setDoc(seedFlagRef, { completed: true });
-    console.log("Vendor seeding v6 complete.");
+    console.log("Vendor seeding v7 complete.");
 }
 
 seedVendors();
