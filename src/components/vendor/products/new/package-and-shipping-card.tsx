@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -40,10 +39,23 @@ export function PackageAndShippingCard({
   };
 
   const handleWeightChange = (value: string) => {
+      const parsedValue = parseFloat(value);
+      const weight = isNaN(parsedValue) ? 0 : parsedValue;
+      
       onFieldChange('packaging', {
           ...packaging,
-          weight: parseFloat(value) || 0
+          weight: weight
       });
+  }
+  
+  const handleWeightBlur = (value: string) => {
+      const parsedValue = parseFloat(value);
+      if (!isNaN(parsedValue) && parsedValue < 0.5) {
+          onFieldChange('packaging', {
+              ...packaging,
+              weight: 0.5
+          });
+      }
   }
   
   const handlePrepTimeChange = (field: 'min' | 'max', value: string) => {
@@ -103,7 +115,15 @@ export function PackageAndShippingCard({
         </div>
         <div className="space-y-2">
           <Label htmlFor="weight">Package Weight (kg)</Label>
-          <Input id="weight" type="number" step="0.01" value={packaging?.weight || 0} onChange={e => handleWeightChange(e.target.value)} />
+          <Input 
+            id="weight" 
+            type="number" 
+            step="0.01" 
+            value={packaging?.weight || 0} 
+            onChange={e => handleWeightChange(e.target.value)}
+            onBlur={e => handleWeightBlur(e.target.value)}
+            min="0.5"
+          />
         </div>
         <div className="space-y-2">
             <Label>Package Dimensions (cm)</Label>
