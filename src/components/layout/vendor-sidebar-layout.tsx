@@ -38,6 +38,9 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Badge } from '../ui/badge';
 import { VendorNotificationDropdown } from './vendor-notification-dropdown';
 import { TermsUpdateDialog } from '../common/terms-update-dialog';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Vendor } from '@/lib/vendors-service';
 
 // In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor002";
@@ -58,7 +61,7 @@ function CustomSidebarTrigger() {
     );
 }
 
-function VendorSidebar() {
+function VendorSidebar({ vendor }: { vendor: Vendor | null }) {
     'use client';
     const pathname = usePathname();
 
@@ -72,11 +75,11 @@ function VendorSidebar() {
               <CustomSidebarTrigger />
               <SidebarHeader className="items-center gap-4">
                 <Avatar className="size-8">
-                    <AvatarImage src="https://i.pravatar.cc/100?u=vendor" alt="Vendor" data-ai-hint="avatar" />
-                    <AvatarFallback>V</AvatarFallback>
+                    <AvatarImage src={vendor?.avatar || "https://i.pravatar.cc/100?u=vendor"} alt="Vendor" data-ai-hint="avatar" />
+                    <AvatarFallback>{vendor?.name?.charAt(0) || 'V'}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col group-data-[state=collapsed]:hidden">
-                    <span className="text-base font-semibold">Serene Moments</span>
+                    <span className="text-base font-semibold">{vendor?.name || 'Vendor'}</span>
                     <Badge variant="outline" className="w-fit">Personalized Retail</Badge>
                 </div>
               </SidebarHeader>
@@ -193,14 +196,26 @@ function VerificationFlowHandler({
 function VendorSidebarLayoutContent({ children }: { children: React.ReactNode; }) {
   const pathname = usePathname();
   const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard';
+  const [vendor, setVendor] = React.useState<Vendor | null>(null);
+
+  React.useEffect(() => {
+    if (VENDOR_ID) {
+      const unsub = onSnapshot(doc(db, 'vendors', VENDOR_ID), (docSnap) => {
+        if (docSnap.exists()) {
+          setVendor({ id: docSnap.id, ...docSnap.data() } as Vendor);
+        } else {
+          setVendor(null);
+        }
+      });
+      return () => unsub();
+    }
+  }, []);
   
-  // For now, we simulate the verification status.
-  // In a real app, this would come from a user context or API call.
-  const [isVerified] = React.useState(false);
+  const isVerified = vendor?.kyc?.status === 'Verified';
 
   return (
     <SidebarProvider>
-        <VendorSidebar />
+        <VendorSidebar vendor={vendor} />
         <SidebarInset>
             <header className="flex items-center justify-between gap-4 border-b p-2 h-14">
                  <div className="flex items-center gap-4">

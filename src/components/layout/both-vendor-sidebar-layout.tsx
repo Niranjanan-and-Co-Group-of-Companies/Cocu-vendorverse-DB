@@ -44,6 +44,9 @@ import { VendorNotificationDropdown } from '@/components/layout/vendor-notificat
 import { onVendorConversationsUpdate } from '@/lib/vendor/messages-service';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Vendor } from '@/lib/vendors-service';
 
 // In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor001";
@@ -96,7 +99,7 @@ const InventorySwitcher = ({ children }: { children: React.ReactNode }) => (
 );
 
 
-function BothVendorSidebar() {
+function BothVendorSidebar({ vendor }: { vendor: Vendor | null }) {
     const pathname = usePathname();
 
 
@@ -110,11 +113,11 @@ function BothVendorSidebar() {
               <CustomSidebarTrigger />
               <SidebarHeader className="items-center gap-4">
                 <Avatar className="size-8">
-                    <AvatarImage src="https://i.pravatar.cc/100?u=vendor" alt="Vendor" data-ai-hint="avatar" />
-                    <AvatarFallback>V</AvatarFallback>
+                    <AvatarImage src={vendor?.avatar || "https://i.pravatar.cc/100?u=vendor"} alt="Vendor" data-ai-hint="avatar" />
+                    <AvatarFallback>{vendor?.name?.charAt(0) || 'V'}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col group-data-[state=collapsed]:hidden">
-                    <span className="text-base font-semibold">Gourmet Delights</span>
+                    <span className="text-base font-semibold">{vendor?.name || 'Vendor'}</span>
                     <Badge variant="outline" className="w-fit">Hybrid Vendor</Badge>
                 </div>
               </SidebarHeader>
@@ -179,7 +182,7 @@ function BothVendorSidebar() {
               <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild tooltip={{ children: 'View Main Site' }}><Link href="/vendor/both/dashboard"><Home /><span>View Main Site</span></Link></SidebarMenuButton>
+                        <SidebarMenuButton asChild tooltip={{ children: 'View Main Site' }}><Link href="/"><Home /><span>View Main Site</span></Link></SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild tooltip={{ children: 'Log Out' }}><Link href="/login"><LogOut /><span>Log Out</span></Link></SidebarMenuButton>
@@ -210,7 +213,7 @@ function VerificationFlowHandler({
               Your products will remain as drafts and you cannot receive orders until verification is complete.
             </div>
             <Button asChild size="sm">
-                <Link href="#">Continue Verification</Link>
+                <Link href="/vendor/both/settings">Continue Verification</Link>
             </Button>
           </AlertDescription>
         </Alert>
@@ -224,12 +227,26 @@ function VerificationFlowHandler({
 function BothVendorSidebarLayoutContent({ children }: { children: React.ReactNode; }) {
   const pathname = usePathname();
   const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard';
+  const [vendor, setVendor] = React.useState<Vendor | null>(null);
+
+  React.useEffect(() => {
+    if (VENDOR_ID) {
+      const unsub = onSnapshot(doc(db, 'vendors', VENDOR_ID), (docSnap) => {
+        if (docSnap.exists()) {
+          setVendor({ id: docSnap.id, ...docSnap.data() } as Vendor);
+        } else {
+          setVendor(null);
+        }
+      });
+      return () => unsub();
+    }
+  }, []);
   
-  const [isVerified] = React.useState(false);
+  const isVerified = vendor?.kyc?.status === 'Verified';
 
   return (
     <SidebarProvider>
-        <BothVendorSidebar />
+        <BothVendorSidebar vendor={vendor} />
         <SidebarInset>
             <header className="flex items-center justify-between gap-4 border-b p-2 h-14">
                  <div className="flex items-center gap-4">
