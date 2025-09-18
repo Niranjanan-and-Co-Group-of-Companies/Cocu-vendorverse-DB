@@ -19,13 +19,15 @@ interface PackageAndShippingCardProps {
   preparationTime: { min: number, max: number };
   preparationTimeUnit: 'days' | 'hours';
   onFieldChange: (field: keyof Product, value: any) => void;
+  isReviewMode?: boolean;
 }
 
 export function PackageAndShippingCard({ 
     packaging, 
     preparationTime,
     preparationTimeUnit,
-    onFieldChange 
+    onFieldChange,
+    isReviewMode = false
 }: PackageAndShippingCardProps) {
   
   const handleDimensionChange = (dim: 'l' | 'w' | 'h', value: string) => {
@@ -91,14 +93,16 @@ export function PackageAndShippingCard({
                     type="number" 
                     value={preparationTime.min} 
                     onChange={e => handlePrepTimeChange('min', e.target.value)} 
+                    readOnly={isReviewMode}
                 />
                  <Input 
                     placeholder="Max" 
                     type="number" 
                     value={preparationTime.max} 
                     onChange={e => handlePrepTimeChange('max', e.target.value)} 
+                    readOnly={isReviewMode}
                 />
-                 <Select value={preparationTimeUnit} onValueChange={(value) => onFieldChange('preparationTimeUnit', value)}>
+                 <Select value={preparationTimeUnit} onValueChange={(value) => onFieldChange('preparationTimeUnit', value)} disabled={isReviewMode}>
                     <SelectTrigger className="w-[120px]">
                         <SelectValue />
                     </SelectTrigger>
@@ -133,14 +137,15 @@ export function PackageAndShippingCard({
             onChange={e => handleWeightChange(e.target.value)}
             onBlur={e => handleWeightBlur(e.target.value)}
             min="0.5"
+            readOnly={isReviewMode}
           />
         </div>
         <div className="space-y-2">
             <Label>Package Dimensions (cm)</Label>
             <div className="grid grid-cols-3 gap-2">
-                <Input placeholder="L" type="number" step="0.01" value={packaging?.dimensions?.l || 0} onChange={e => handleDimensionChange('l', e.target.value)} onBlur={e => handleDimensionBlur('l', e.target.value)} />
-                <Input placeholder="W" type="number" step="0.01" value={packaging?.dimensions?.w || 0} onChange={e => handleDimensionChange('w', e.target.value)} onBlur={e => handleDimensionBlur('w', e.target.value)} />
-                <Input placeholder="H" type="number" step="0.01" value={packaging?.dimensions?.h || 0} onChange={e => handleDimensionChange('h', e.target.value)} onBlur={e => handleDimensionBlur('h', e.target.value)} />
+                <Input placeholder="L" type="number" step="0.01" value={packaging?.dimensions?.l || 0} onChange={e => handleDimensionChange('l', e.target.value)} onBlur={e => handleDimensionBlur('l', e.target.value)} readOnly={isReviewMode} />
+                <Input placeholder="W" type="number" step="0.01" value={packaging?.dimensions?.w || 0} onChange={e => handleDimensionChange('w', e.target.value)} onBlur={e => handleDimensionBlur('w', e.target.value)} readOnly={isReviewMode} />
+                <Input placeholder="H" type="number" step="0.01" value={packaging?.dimensions?.h || 0} onChange={e => handleDimensionChange('h', e.target.value)} onBlur={e => handleDimensionBlur('h', e.target.value)} readOnly={isReviewMode} />
             </div>
              <Alert className="mt-2">
                 <AlertCircle className="h-4 w-4" />

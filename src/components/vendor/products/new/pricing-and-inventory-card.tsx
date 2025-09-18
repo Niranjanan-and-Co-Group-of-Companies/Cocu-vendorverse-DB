@@ -15,6 +15,7 @@ interface PricingAndInventoryCardProps {
   discountType?: 'Percentage' | 'Fixed Amount';
   discountValue?: number;
   onFieldChange: (field: keyof Product, value: any) => void;
+  isReviewMode?: boolean;
 }
 
 export function PricingAndInventoryCard({ 
@@ -23,7 +24,8 @@ export function PricingAndInventoryCard({
     maxQuantityPerOrder, 
     discountType,
     discountValue,
-    onFieldChange 
+    onFieldChange,
+    isReviewMode = false
 }: PricingAndInventoryCardProps) {
 
   const handleDiscountTypeChange = (value: 'Percentage' | 'Fixed Amount' | 'None') => {
@@ -51,6 +53,7 @@ export function PricingAndInventoryCard({
               value={price} 
               onChange={e => onFieldChange('price', e.target.value)} 
               className="pl-7"
+              readOnly={isReviewMode}
             />
           </div>
         </div>
@@ -91,6 +94,7 @@ export function PricingAndInventoryCard({
             type="number" 
             value={stock} 
             onChange={e => onFieldChange('stock', parseInt(e.target.value, 10))} 
+            readOnly={isReviewMode}
           />
         </div>
          <div className="space-y-2">
@@ -101,6 +105,7 @@ export function PricingAndInventoryCard({
             value={maxQuantityPerOrder || ''} 
             onChange={e => onFieldChange('maxQuantityPerOrder', parseInt(e.target.value, 10))}
             placeholder="e.g., 10"
+            readOnly={isReviewMode}
           />
         </div>
       </CardContent>

@@ -18,18 +18,21 @@ interface ProductVariantsCardProps {
   onFieldChange: (field: keyof Product, value: any) => void;
   mainVariantId: string | null;
   onMainVariantChange: (variantId: string) => void;
+  isReviewMode?: boolean;
 }
 
-export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onMainVariantChange }: ProductVariantsCardProps) {
+export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onMainVariantChange, isReviewMode = false }: ProductVariantsCardProps) {
   const variants = product.variants || [];
 
   const handleVariantChange = (index: number, field: keyof Omit<ProductVariant, 'id' | 'image' | 'customizationSides'>, value: string) => {
+    if (isReviewMode) return;
     const newVariants = [...variants];
     (newVariants[index] as any)[field] = value;
     onFieldChange('variants', newVariants);
   };
 
   const addVariant = () => {
+    if (isReviewMode) return;
     const newVariant: ProductVariant = {
       id: `variant_${Date.now()}`,
       colorName: '',
@@ -43,7 +46,7 @@ export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onM
   };
 
   const removeVariant = (index: number) => {
-    if (variants.length <= 1) return; // Cannot remove the last variant
+    if (isReviewMode || variants.length <= 1) return; // Cannot remove the last variant
     const variantToRemove = variants[index];
     const newVariants = variants.filter((_, i) => i !== index);
     onFieldChange('variants', newVariants);
@@ -54,6 +57,7 @@ export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onM
   };
   
   const handleHasVariantsToggle = (checked: boolean) => {
+    if (isReviewMode) return;
     onFieldChange('hasVariants', checked);
     if(!checked && variants.length > 1) {
         // When toggling off, keep only the main variant or the first one
@@ -77,6 +81,7 @@ export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onM
             id="has-variants"
             checked={product.hasVariants}
             onCheckedChange={handleHasVariantsToggle}
+            disabled={isReviewMode}
           />
           <Label htmlFor="has-variants">This product has multiple variants (e.g., colors)</Label>
         </div>
@@ -96,8 +101,9 @@ export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onM
                                     <Button
                                         variant={isMain ? 'default' : 'ghost'}
                                         size="icon"
-                                        onClick={() => onMainVariantChange(variant.id)}
+                                        onClick={() => !isReviewMode && onMainVariantChange(variant.id)}
                                         className="self-center"
+                                        disabled={isReviewMode}
                                     >
                                         <Star className={isMain ? 'text-white fill-white' : ''}/>
                                     </Button>
@@ -116,6 +122,7 @@ export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onM
                                     placeholder="e.g., Black"
                                     value={variant.colorName}
                                     onChange={(e) => handleVariantChange(index, 'colorName', e.target.value)}
+                                    readOnly={isReviewMode}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -126,10 +133,11 @@ export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onM
                                     value={variant.colorHex}
                                     onChange={(e) => handleVariantChange(index, 'colorHex', e.target.value)}
                                     className="p-1 h-10"
+                                    disabled={isReviewMode}
                                 />
                             </div>
                         </div>
-                        {variants.length > 1 && (
+                        {variants.length > 1 && !isReviewMode && (
                             <Button variant="ghost" size="icon" onClick={() => removeVariant(index)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -137,9 +145,11 @@ export function ProductVariantsCard({ product, onFieldChange, mainVariantId, onM
                     </div>
                     )
                 })}
-                <Button variant="outline" className="w-full" onClick={addVariant}>
-                <Plus className="mr-2" /> Add Variant
-                </Button>
+                {!isReviewMode && (
+                    <Button variant="outline" className="w-full" onClick={addVariant}>
+                        <Plus className="mr-2" /> Add Variant
+                    </Button>
+                )}
             </>
         )}
       </CardContent>

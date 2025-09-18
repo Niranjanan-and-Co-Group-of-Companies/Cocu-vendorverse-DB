@@ -133,7 +133,7 @@ export default function NewProductsPage() {
                                     <TableCell className="text-right">
                                         <div className="flex gap-2 justify-end">
                                             <Button size="sm" asChild variant="outline">
-                                                <Link href={`/admin/products/new?id=${product.id}`}>
+                                                <Link href={`/admin/products/new?id=${product.id}&view=review`}>
                                                     <Eye className="mr-2"/> View Details
                                                 </Link>
                                             </Button>

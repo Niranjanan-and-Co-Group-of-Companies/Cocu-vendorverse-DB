@@ -22,6 +22,7 @@ interface MediaAndCustomizationCardProps {
   onGalleryFilesChange: (variantId: string, files: File[]) => void;
   galleryImageFilesByVariant: Record<string, File[]>;
   mainVariantId: string | null;
+  isReviewMode?: boolean;
 }
 
 const SIDES: CustomizationSide[] = ['front', 'back', 'left', 'right', 'top', 'bottom'];
@@ -32,7 +33,8 @@ export function MediaAndCustomizationCard({
     onImageChange,
     onGalleryFilesChange,
     galleryImageFilesByVariant,
-    mainVariantId
+    mainVariantId,
+    isReviewMode = false
 }: MediaAndCustomizationCardProps) {
     const [editingSide, setEditingSide] = React.useState<CustomizationSide | null>(null);
     const [activeVariantId, setActiveVariantId] = React.useState<string>(mainVariantId || product.variants?.[0]?.id || '');
@@ -48,6 +50,7 @@ export function MediaAndCustomizationCard({
     const activeVariant = product.variants?.find(v => v.id === activeVariantId);
     
     const handleDefineArea = (side: CustomizationSide) => {
+        if (isReviewMode) return;
         setEditingSide(side);
     };
 
@@ -74,6 +77,7 @@ export function MediaAndCustomizationCard({
                     id="is-customizable" 
                     checked={isCustomizable}
                     onCheckedChange={(checked) => onFieldChange('customizable', checked)}
+                    disabled={isReviewMode}
                 />
                 <Label htmlFor="is-customizable">This product is customizable</Label>
             </div>
@@ -81,7 +85,7 @@ export function MediaAndCustomizationCard({
             {product.variants && product.variants.length > 1 && (
                  <div className="space-y-2">
                     <Label>Select Variant to Edit Images</Label>
-                     <Select value={activeVariantId} onValueChange={setActiveVariantId}>
+                     <Select value={activeVariantId} onValueChange={setActiveVariantId} disabled={isReviewMode}>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a variant" />
                         </SelectTrigger>
@@ -103,7 +107,7 @@ export function MediaAndCustomizationCard({
                 <div className="space-y-4 p-4 border rounded-md">
                      <h4 className="font-semibold text-lg">Editing Images for: {activeVariant.colorName}</h4>
 
-                    {isCustomizable ? (
+                    {isCustomizable && (
                          <>
                             <p className="text-sm text-muted-foreground">Upload an image for each side you want customers to be able to customize.</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -119,7 +123,7 @@ export function MediaAndCustomizationCard({
                                             variant="outline"
                                             size="sm"
                                             className="w-full"
-                                            disabled={!activeVariant.customizationSides[side]?.image}
+                                            disabled={!activeVariant.customizationSides[side]?.image || isReviewMode}
                                             onClick={() => handleDefineArea(side)}
                                         >
                                             Define Area
@@ -129,9 +133,8 @@ export function MediaAndCustomizationCard({
                             </div>
                             <Separator className="my-6" />
                         </>
-                    ) : null}
+                    )}
 
-                    {/* Gallery section is now always visible when there's an active variant */}
                     <div className="space-y-2">
                         <Label>Product Gallery for {activeVariant.colorName}</Label>
                         <Alert><AlertDescription>Upload showcase images for this variant. The first image will be the main one if no specific 'front side' image is set for customization.</AlertDescription></Alert>
@@ -152,11 +155,12 @@ export function MediaAndCustomizationCard({
                     placeholder="e.g. https://www.youtube.com/watch?v=..."
                     value={product.videoUrl}
                     onChange={(e) => onFieldChange('videoUrl', e.target.value)}
+                    readOnly={isReviewMode}
                 />
              </div>
         </CardContent>
         </Card>
-        {isCustomizable && activeVariant && (
+        {!isReviewMode && isCustomizable && activeVariant && (
             <CustomizationAreaEditor
                 isOpen={!!editingSide}
                 onClose={() => setEditingSide(null)}

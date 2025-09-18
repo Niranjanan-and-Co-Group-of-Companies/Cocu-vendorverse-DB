@@ -18,32 +18,32 @@ interface OrganizeCardProps {
   onFieldChange: (field: keyof Product, value: any) => void;
   isAdmin?: boolean;
   vendors?: PlainVendor[];
+  isReviewMode?: boolean;
 }
 
-export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors = [] }: OrganizeCardProps) {
+export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors = [], isReviewMode = false }: OrganizeCardProps) {
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [tagInput, setTagInput] = React.useState('');
   const pathname = usePathname();
   
   const isVendorCorporateFlow = pathname.includes('corporate');
   
-  // Determine the effective platform for fetching categories
   const platformForCategoryFetch: CategoryPlatform = React.useMemo(() => {
     return product.platform || (isVendorCorporateFlow ? 'Corporate' : 'Personalized');
   }, [product.platform, isVendorCorporateFlow]);
 
   React.useEffect(() => {
-    // Fetch categories that are for the selected platform OR for 'Both'
-    const platformQuery: ('Personalized' | 'Corporate' | 'Both')[] = [platformForCategoryFetch];
-    if (platformForCategoryFetch !== 'Both') {
-      platformQuery.push('Both');
-    }
+    const platformQuery: ('Personalized' | 'Corporate' | 'Both')[] = [platformForCategoryFetch, 'Both'];
     
-    const unsubscribe = onCategoriesWithCommissionsUpdate(platformForCategoryFetch, setCategories);
+    const unsubscribe = onCategoriesWithCommissionsUpdate(platformForCategoryFetch, (fetchedCategories) => {
+        const relevantCategories = fetchedCategories.filter(cat => platformQuery.includes(cat.platform));
+        setCategories(relevantCategories);
+    });
     return () => unsubscribe();
   }, [platformForCategoryFetch]);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (isReviewMode) return;
     if (e.key === 'Enter' && tagInput.trim()) {
       e.preventDefault();
       onFieldChange('tags', [...(product.tags || []), tagInput.trim()]);
@@ -52,10 +52,12 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
+    if (isReviewMode) return;
     onFieldChange('tags', (product.tags || []).filter(tag => tag !== tagToRemove));
   };
   
   const handleVendorChange = (vendorId: string) => {
+    if (isReviewMode) return;
     if (vendorId === 'admin') {
       onFieldChange('vendorId', 'admin');
       onFieldChange('vendor', 'VendorVerse');
@@ -84,9 +86,9 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
                   value={product.platform}
                   onValueChange={(value: Platform) => {
                       onFieldChange('platform', value);
-                      // Reset category if it's not valid for the new platform
                       onFieldChange('category', '');
                   }}
+                  disabled={isReviewMode}
                 >
                 <SelectTrigger id="platform">
                   <SelectValue placeholder="Select a platform" />
@@ -102,6 +104,7 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
                <Select 
                   value={product.vendorId}
                   onValueChange={handleVendorChange}
+                  disabled={isReviewMode}
                 >
                 <SelectTrigger id="vendor">
                   <SelectValue placeholder="Select a vendor" />
@@ -123,6 +126,7 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
           <Select 
             value={product.category}
             onValueChange={(value) => onFieldChange('category', value)}
+            disabled={isReviewMode}
           >
             <SelectTrigger id="category">
               <SelectValue placeholder="Select a category" />
@@ -149,7 +153,7 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
                 {(product.tags || []).map(tag => (
                     <div key={tag} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-sm">
                         {tag}
-                        <button onClick={() => handleRemoveTag(tag)} className="text-muted-foreground hover:text-foreground">&times;</button>
+                        {!isReviewMode && <button onClick={() => handleRemoveTag(tag)} className="text-muted-foreground hover:text-foreground">&times;</button>}
                     </div>
                 ))}
             </div>
@@ -159,6 +163,7 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleAddTag}
+                disabled={isReviewMode}
             />
         </div>
         <div className="flex items-center justify-between">
@@ -167,7 +172,7 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
                 id="product-status" 
                 checked={product.status === 'Live'}
                 onCheckedChange={(checked) => onFieldChange('status', checked ? 'Live' : 'Draft')}
-                disabled={!isVerified && product.status !== 'Live' && !isAdmin}
+                disabled={(!isVerified && product.status !== 'Live' && !isAdmin) || isReviewMode}
             />
         </div>
          {!isVerified && !isAdmin && (

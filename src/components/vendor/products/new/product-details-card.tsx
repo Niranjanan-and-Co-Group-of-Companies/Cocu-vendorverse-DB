@@ -12,9 +12,10 @@ interface ProductDetailsCardProps {
   name: string;
   description: string;
   onFieldChange: (field: keyof Product, value: any) => void;
+  isReviewMode?: boolean;
 }
 
-export function ProductDetailsCard({ name, description, onFieldChange }: ProductDetailsCardProps) {
+export function ProductDetailsCard({ name, description, onFieldChange, isReviewMode = false }: ProductDetailsCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -24,11 +25,11 @@ export function ProductDetailsCard({ name, description, onFieldChange }: Product
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name">Product Name</Label>
-          <Input id="name" value={name} onChange={e => onFieldChange('name', e.target.value)} />
+          <Input id="name" value={name} onChange={e => onFieldChange('name', e.target.value)} readOnly={isReviewMode} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
-          <Textarea id="description" value={description} onChange={e => onFieldChange('description', e.target.value)} rows={5} />
+          <Textarea id="description" value={description} onChange={e => onFieldChange('description', e.target.value)} rows={5} readOnly={isReviewMode} />
         </div>
       </CardContent>
     </Card>

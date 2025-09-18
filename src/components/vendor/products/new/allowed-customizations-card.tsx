@@ -23,12 +23,14 @@ const ALL_TYPES: AllowedCustomizationType[] = ['Text', 'AI Image', 'Image Upload
 interface AllowedCustomizationsCardProps {
   allowedTypes: AllowedCustomizationType[];
   onAllowedCustomizationChange: (types: AllowedCustomizationType[]) => void;
+  isReviewMode?: boolean;
 }
 
-export function AllowedCustomizationsCard({ allowedTypes, onAllowedCustomizationChange }: AllowedCustomizationsCardProps) {
+export function AllowedCustomizationsCard({ allowedTypes, onAllowedCustomizationChange, isReviewMode = false }: AllowedCustomizationsCardProps) {
   const [pendingType, setPendingType] = React.useState<AllowedCustomizationType | null>(null);
 
   const handleCheckedChange = (type: AllowedCustomizationType, checked: boolean) => {
+    if (isReviewMode) return;
     if (checked) {
       setPendingType(type);
     } else {
@@ -57,6 +59,7 @@ export function AllowedCustomizationsCard({ allowedTypes, onAllowedCustomization
                         id={`custom-type-${type}`}
                         checked={allowedTypes.includes(type)}
                         onCheckedChange={(checked) => handleCheckedChange(type, !!checked)}
+                        disabled={isReviewMode}
                     />
                     <Label htmlFor={`custom-type-${type}`} className="font-normal">{type}</Label>
                 </div>

@@ -20,6 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getVendors, type PlainVendor } from '@/lib/vendors-service';
 import { B2BPricingCard } from '@/components/vendor/corporate/b2b-pricing-card';
 import { ProductVariantsCard } from '@/components/vendor/products/new/product-variants-card';
+import { VendorReviewCard } from '@/components/admin/products/vendor-review-card';
 
 const createDefaultProduct = (): Partial<Product> => ({
   name: '',
@@ -64,6 +65,9 @@ function NewProductPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const productId = searchParams.get('id');
+    const viewMode = searchParams.get('view');
+    const isReviewMode = viewMode === 'review';
+    
     const { toast } = useToast();
 
     const [product, setProduct] = React.useState<Partial<Product>>(createDefaultProduct());
@@ -98,10 +102,12 @@ function NewProductPage() {
     }, [productId]);
     
     const handleFieldChange = (field: keyof Product, value: any) => {
+        if (isReviewMode) return;
         setProduct(prev => ({ ...prev, [field]: value }));
     };
 
     const handleImageChange = (variantId: string, side: CustomizationSide, file: File | null) => {
+        if (isReviewMode) return;
         setImageFiles(prev => ({
             ...prev,
             [variantId]: {
@@ -109,9 +115,26 @@ function NewProductPage() {
                 [side]: file
             }
         }));
+
+        if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setProduct(prev => {
+                const newVariants = prev.variants?.map(v => {
+                    if (v.id === variantId) {
+                        const newSides = { ...(v.customizationSides || {}) };
+                        newSides[side] = { ...(newSides[side] || {}), image: imageUrl };
+
+                        return { ...v, customizationSides: newSides };
+                    }
+                    return v;
+                }) || [];
+                return { ...prev, variants: newVariants };
+            });
+        }
     };
 
     const handleGalleryFilesChange = (variantId: string, files: File[]) => {
+        if (isReviewMode) return;
         setGalleryImageFilesByVariant(prev => ({
             ...prev,
             [variantId]: files
@@ -119,6 +142,7 @@ function NewProductPage() {
     };
 
     const handleAllowedCustomizationChange = (types: AllowedCustomizationType[]) => {
+        if (isReviewMode) return;
         setProduct(prev => ({ ...prev, allowedCustomizations: types }));
     }
 
@@ -142,7 +166,7 @@ function NewProductPage() {
     };
 
     const handleSave = async (publish: boolean = false) => {
-        if (!validateProduct()) return;
+        if (isReviewMode || !validateProduct()) return;
         
         setIsSaving(true);
         const finalStatus = publish ? 'Live' : 'Draft';
@@ -164,6 +188,13 @@ function NewProductPage() {
     };
 
     const isCorporate = product.platform === 'Corporate';
+    const pageTitle = isReviewMode 
+        ? 'Review Product Submission'
+        : (productId ? 'Edit Product' : 'Create New Product');
+    const pageDescription = isReviewMode
+        ? 'Review the details submitted by the vendor before approving or declining.'
+        : (productId ? 'Update the details for this product.' : 'Fill out the form to add a new product.');
+
 
     if (loading) {
         return (
@@ -185,21 +216,21 @@ function NewProductPage() {
         <div className="max-w-6xl mx-auto">
              <div className="flex items-center justify-between mb-6 gap-4">
                  <div>
-                    <h1 className="text-2xl font-bold">{productId ? 'Edit Product' : 'Create New Product'}</h1>
-                    <p className="text-muted-foreground">
-                        {productId ? 'Update the details for this product.' : 'Fill out the form to add a new product.'}
-                    </p>
+                    <h1 className="text-2xl font-bold">{pageTitle}</h1>
+                    <p className="text-muted-foreground">{pageDescription}</p>
                  </div>
-                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => handleSave(false)} disabled={isSaving}>
-                        <Save className="mr-2" />
-                        {isSaving ? 'Saving...' : 'Save Draft'}
-                    </Button>
-                     <Button onClick={() => handleSave(true)} disabled={isSaving}>
-                        <UploadCloud className="mr-2" />
-                        {isSaving ? 'Publishing...' : 'Publish Product'}
-                    </Button>
-                 </div>
+                 {!isReviewMode && (
+                     <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => handleSave(false)} disabled={isSaving}>
+                            <Save className="mr-2" />
+                            {isSaving ? 'Saving...' : 'Save Draft'}
+                        </Button>
+                        <Button onClick={() => handleSave(true)} disabled={isSaving}>
+                            <UploadCloud className="mr-2" />
+                            {isSaving ? 'Publishing...' : 'Publish Product'}
+                        </Button>
+                    </div>
+                 )}
             </div>
             
             {error && (
@@ -216,9 +247,10 @@ function NewProductPage() {
                         name={product.name || ''}
                         description={product.description || ''}
                         onFieldChange={handleFieldChange}
+                        isReviewMode={isReviewMode}
                     />
                     {isCorporate ? (
-                        <B2BPricingCard product={product as Product} onFieldChange={handleFieldChange} />
+                        <B2BPricingCard product={product as Product} onFieldChange={handleFieldChange} isReviewMode={isReviewMode} />
                     ) : (
                         <PricingAndInventoryCard 
                             price={product.price || ''}
@@ -227,6 +259,7 @@ function NewProductPage() {
                             discountType={product.discountType}
                             discountValue={product.discountValue}
                             onFieldChange={handleFieldChange}
+                            isReviewMode={isReviewMode}
                         />
                     )}
                      <ProductVariantsCard 
@@ -234,6 +267,7 @@ function NewProductPage() {
                         onFieldChange={handleFieldChange}
                         mainVariantId={mainVariantId}
                         onMainVariantChange={setMainVariantId}
+                        isReviewMode={isReviewMode}
                      />
                     <MediaAndCustomizationCard 
                         product={product as Product}
@@ -242,26 +276,31 @@ function NewProductPage() {
                         galleryImageFilesByVariant={galleryImageFilesByVariant}
                         onGalleryFilesChange={handleGalleryFilesChange}
                         mainVariantId={mainVariantId}
+                        isReviewMode={isReviewMode}
                     />
                 </div>
                 {/* Right Sidebar */}
                 <div className="lg:col-span-1 space-y-6 lg:sticky top-20">
+                     {isReviewMode && product.vendorId && <VendorReviewCard vendorId={product.vendorId} />}
                      <OrganizeCard 
                         product={product as Product}
                         onFieldChange={handleFieldChange}
                         isAdmin={true}
                         vendors={vendors}
+                        isReviewMode={isReviewMode}
                      />
                      <PackageAndShippingCard
                         packaging={product.packaging || { weight: 0, dimensions: { l: 0, w: 0, h: 0 } }}
                         preparationTime={product.preparationTime || { min: 3, max: 4 }}
                         preparationTimeUnit={product.preparationTimeUnit || 'days'}
                         onFieldChange={handleFieldChange}
+                        isReviewMode={isReviewMode}
                     />
                      {product.customizable && (
                         <AllowedCustomizationsCard 
                             allowedTypes={product.allowedCustomizations || []}
                             onAllowedCustomizationChange={handleAllowedCustomizationChange}
+                            isReviewMode={isReviewMode}
                         />
                      )}
                 </div>

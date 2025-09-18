@@ -12,9 +12,10 @@ import type { Product, TieredPrice } from '@/lib/products';
 interface B2BPricingCardProps {
   product: Product;
   onFieldChange: (field: keyof Product, value: any) => void;
+  isReviewMode?: boolean;
 }
 
-export function B2BPricingCard({ product, onFieldChange }: B2BPricingCardProps) {
+export function B2BPricingCard({ product, onFieldChange, isReviewMode = false }: B2BPricingCardProps) {
 
     const handleTierChange = (index: number, field: keyof TieredPrice, value: string | number) => {
         const newTiers = [...(product.tieredPricing || [])];
@@ -46,12 +47,12 @@ export function B2BPricingCard({ product, onFieldChange }: B2BPricingCardProps) 
                 <Label htmlFor="price">Base Price (for a single item)</Label>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
-                    <Input id="price" type="number" value={product.price} onChange={e => onFieldChange('price', e.target.value)} className="pl-7"/>
+                    <Input id="price" type="number" value={product.price} onChange={e => onFieldChange('price', e.target.value)} className="pl-7" readOnly={isReviewMode}/>
                 </div>
             </div>
              <div className="space-y-2">
                 <Label htmlFor="moq">Minimum Order Quantity (MOQ)</Label>
-                <Input id="moq" type="number" value={product.moq} onChange={e => onFieldChange('moq', parseInt(e.target.value, 10))} />
+                <Input id="moq" type="number" value={product.moq} onChange={e => onFieldChange('moq', parseInt(e.target.value, 10))} readOnly={isReviewMode}/>
             </div>
         </div>
         <div className="space-y-2">
@@ -59,16 +60,16 @@ export function B2BPricingCard({ product, onFieldChange }: B2BPricingCardProps) 
             <div className="space-y-2">
                 {(product.tieredPricing || []).map((tier, index) => (
                     <div key={index} className="flex items-center gap-2">
-                        <Input type="number" placeholder="Quantity" value={tier.quantity} onChange={(e) => handleTierChange(index, 'quantity', parseInt(e.target.value, 10) || 0)} />
+                        <Input type="number" placeholder="Quantity" value={tier.quantity} onChange={(e) => handleTierChange(index, 'quantity', parseInt(e.target.value, 10) || 0)} readOnly={isReviewMode} />
                         <div className="relative flex-grow">
                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
-                             <Input type="text" placeholder="Price per item" value={tier.price} onChange={(e) => handleTierChange(index, 'price', e.target.value)} className="pl-7"/>
+                             <Input type="text" placeholder="Price per item" value={tier.price} onChange={(e) => handleTierChange(index, 'price', e.target.value)} className="pl-7" readOnly={isReviewMode}/>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeTier(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                        {!isReviewMode && <Button variant="ghost" size="icon" onClick={() => removeTier(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>}
                     </div>
                 ))}
             </div>
-            <Button variant="outline" size="sm" onClick={addTier}><Plus className="mr-2"/> Add Price Tier</Button>
+            {!isReviewMode && <Button variant="outline" size="sm" onClick={addTier}><Plus className="mr-2"/> Add Price Tier</Button>}
         </div>
       </CardContent>
     </Card>
