@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -18,8 +19,8 @@ interface MediaAndCustomizationCardProps {
   product: Product;
   onFieldChange: (field: keyof Product, value: any) => void;
   onImageChange: (variantId: string, side: CustomizationSide, file: File | null) => void;
-  onGalleryFilesChange: (files: File[]) => void;
-  galleryImageFiles: File[];
+  onGalleryFilesChange: (variantId: string, files: File[]) => void;
+  galleryImageFilesByVariant: Record<string, File[]>;
   mainVariantId: string | null;
 }
 
@@ -30,18 +31,16 @@ export function MediaAndCustomizationCard({
     onFieldChange, 
     onImageChange,
     onGalleryFilesChange,
-    galleryImageFiles,
+    galleryImageFilesByVariant,
     mainVariantId
 }: MediaAndCustomizationCardProps) {
     const [editingSide, setEditingSide] = React.useState<CustomizationSide | null>(null);
     const [activeVariantId, setActiveVariantId] = React.useState<string>(mainVariantId || product.variants?.[0]?.id || '');
     
     React.useEffect(() => {
-        // If main variant changes, switch the active editing variant
         if (mainVariantId && product.variants?.some(v => v.id === mainVariantId)) {
             setActiveVariantId(mainVariantId);
         } else if (product.variants && product.variants.length > 0 && !product.variants.some(v => v.id === activeVariantId)) {
-            // If the active variant ID is no longer valid (e.g., variant deleted), default to the first one
             setActiveVariantId(product.variants[0].id);
         }
     }, [mainVariantId, product.variants, activeVariantId]);
@@ -102,7 +101,7 @@ export function MediaAndCustomizationCard({
             
             {activeVariant && (
                 <div className="space-y-4 p-4 border rounded-md">
-                     <h4 className="font-semibold text-lg">Editing: {activeVariant.colorName}</h4>
+                     <h4 className="font-semibold text-lg">Editing Images for: {activeVariant.colorName}</h4>
 
                     {isCustomizable ? (
                          <>
@@ -131,37 +130,28 @@ export function MediaAndCustomizationCard({
                         </>
                     ) : (
                         <div className="space-y-2">
-                            <Label>Product Image for {activeVariant.colorName}</Label>
-                            <Alert><AlertDescription>Upload the front-facing image for this variant. This will be the main image.</AlertDescription></Alert>
-                            <ImageUpload
-                                imageUrl={activeVariant.image || undefined}
-                                onFileSelect={(file) => onImageChange(activeVariantId, 'front', file)}
-                            />
+                            <Label>Product Gallery for {activeVariant.colorName}</Label>
+                            <Alert><AlertDescription>Upload images for this variant. The first image will be the main one.</AlertDescription></Alert>
+                             <MultiImageUpload
+                                existingImageUrls={activeVariant.galleryImages || []}
+                                files={galleryImageFilesByVariant[activeVariantId] || []}
+                                onFilesChange={(files) => onGalleryFilesChange(activeVariantId, files)}
+                             />
                         </div>
                     )}
                 </div>
             )}
             
-            <div className="space-y-4 pt-6 border-t">
-                 <div>
-                    <Label>Additional Gallery Images (Not variant-specific)</Label>
-                    <p className="text-sm text-muted-foreground">These images will appear in the product page gallery for all variants.</p>
-                     <MultiImageUpload
-                        existingImageUrls={product.galleryImages}
-                        files={galleryImageFiles}
-                        onFilesChange={onGalleryFilesChange}
-                     />
-                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="videoUrl">YouTube Video URL (Optional)</Label>
-                    <Input 
-                        id="videoUrl" 
-                        placeholder="e.g. https://www.youtube.com/watch?v=..."
-                        value={product.videoUrl}
-                        onChange={(e) => onFieldChange('videoUrl', e.target.value)}
-                    />
-                 </div>
-            </div>
+             <div className="space-y-2 pt-6 border-t">
+                 <Label htmlFor="videoUrl">YouTube Video URL (Optional)</Label>
+                 <p className="text-sm text-muted-foreground">This video will be shown for all variants.</p>
+                <Input 
+                    id="videoUrl" 
+                    placeholder="e.g. https://www.youtube.com/watch?v=..."
+                    value={product.videoUrl}
+                    onChange={(e) => onFieldChange('videoUrl', e.target.value)}
+                />
+             </div>
         </CardContent>
         </Card>
         {isCustomizable && activeVariant && (

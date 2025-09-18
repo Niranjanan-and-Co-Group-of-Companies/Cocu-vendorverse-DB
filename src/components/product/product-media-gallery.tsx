@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -33,34 +34,38 @@ export function ProductMediaGallery({ product, selectedVariant }: ProductMediaGa
     const media: MediaItem[] = React.useMemo(() => {
         const items: MediaItem[] = [];
         
-        const mainImage = product.image;
-        const galleryImages = product.galleryImages || [];
-        const videoUrl = product.videoUrl;
-
         // Determine which variant's images to use
         const currentVariant = selectedVariant || (product.variants && product.variants.length > 0 ? product.variants[0] : null);
 
-        // Collect all unique image URLs
+        // Collect all unique image URLs from the selected variant
         const imageUrls = new Set<string>();
 
         if (currentVariant) {
+            // The variant's main image is always first
             if (currentVariant.image) imageUrls.add(currentVariant.image);
-            Object.values(currentVariant.customizationSides).forEach(side => {
-                if (side.image) imageUrls.add(side.image);
-            });
+
+            // Add gallery images for this specific variant
+            if (currentVariant.galleryImages) {
+                currentVariant.galleryImages.forEach(url => imageUrls.add(url));
+            }
+            
+            // Add customization side images if they exist and product is customizable
+            if (product.customizable) {
+                Object.values(currentVariant.customizationSides).forEach(side => {
+                    if (side.image) imageUrls.add(side.image);
+                });
+            }
         }
         
-        // Always include the main product image as a primary option if it exists
-        if (mainImage) {
-            imageUrls.add(mainImage);
+        // As a final fallback, use the top-level product image
+        if (imageUrls.size === 0 && product.image) {
+            imageUrls.add(product.image);
         }
-
-        galleryImages.forEach(url => imageUrls.add(url));
 
         imageUrls.forEach(url => items.push({ type: 'image', url }));
 
-        if (videoUrl) {
-            items.push({ type: 'video', url: videoUrl });
+        if (product.videoUrl) {
+            items.push({ type: 'video', url: product.videoUrl });
         }
         
         return items;
@@ -70,9 +75,7 @@ export function ProductMediaGallery({ product, selectedVariant }: ProductMediaGa
         if (!api) {
             return
         }
-
         setCurrent(api.selectedScrollSnap())
-
         api.on("select", () => {
             setCurrent(api.selectedScrollSnap())
         })

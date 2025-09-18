@@ -34,6 +34,7 @@ export interface ProductVariant {
     colorName: string;
     colorHex: string;
     image: string | null; // The main image for this variant, used if not customizable
+    galleryImages?: string[]; // <-- Added this field
     customizationSides: Record<CustomizationSide, ProductSide>;
 }
 
@@ -86,3 +87,4 @@ export type Product = {
   createdAt: any; 
   updatedAt: any;
 };
+

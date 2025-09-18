@@ -96,8 +96,8 @@ async function seedProductsIfEmpty() {
             categorySlug: product.category?.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-'),
             customizationAreas: { front: [{ id: 'area1', type: 'rect', x: 50, y: 50, width: 200, height: 100, rotation: 0 }], back: [], left: [], right: [], top: [], bottom: [] },
             variants: [
-                { id: 'variant_1', colorName: 'Default', colorHex: '#FFFFFF', image: product.image, customizationSides: { front: { image: product.image }, back: { image: 'https://picsum.photos/seed/chocoback/600/400' }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } } },
-                { id: 'variant_2', colorName: 'Dark', colorHex: '#362222', image: 'https://picsum.photos/seed/chocodark/600/400', customizationSides: { front: { image: 'https://picsum.photos/seed/chocodark/600/400' }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } } },
+                { id: 'variant_1', colorName: 'Default', colorHex: '#FFFFFF', image: product.image, customizationSides: { front: { image: product.image }, back: { image: 'https://picsum.photos/seed/chocoback/600/400' }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } }, galleryImages: product.galleryImages },
+                { id: 'variant_2', colorName: 'Dark', colorHex: '#362222', image: 'https://picsum.photos/seed/chocodark/600/400', customizationSides: { front: { image: 'https://picsum.photos/seed/chocodark/600/400' }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null } }, galleryImages: [] },
             ],
             allowedCustomizations: ['Text', 'Image Upload', 'Clipart', 'AI Image'],
             inventoryBuffer: 5,
@@ -131,7 +131,7 @@ async function uploadFile(path: string, file: File): Promise<string> {
 export async function saveProduct(
     productData: Partial<Product>, 
     imageFilesByVariant: Record<string, Record<CustomizationSide, File | null>>,
-    galleryImageFiles: File[]
+    galleryImageFilesByVariant: Record<string, File[]>
 ) {
     const isNewProduct = !productData.id;
     const docRef = isNewProduct ? doc(productsCollection) : doc(productsCollection, productData.id!);
@@ -160,38 +160,43 @@ export async function saveProduct(
     if (finalProductData.variants) {
         for (const variant of finalProductData.variants) {
             const variantImageFiles = imageFilesByVariant[variant.id] || {};
+            const variantGalleryFiles = galleryImageFilesByVariant[variant.id] || [];
 
+            // Upload customization side images
             for (const [side, file] of Object.entries(variantImageFiles)) {
                 if (file) {
                     const imageUrl = await uploadFile(`products/${productId}/variant_${variant.id}_${side}_${file.name}`, file);
-                    if (isNewProduct || !variant.customizationSides[side as CustomizationSide]?.image) {
-                        variant.customizationSides[side as CustomizationSide] = {
-                           ...(variant.customizationSides[side as CustomizationSide]),
-                            image: imageUrl
-                        };
-                    }
+                    variant.customizationSides[side as CustomizationSide] = {
+                       ...(variant.customizationSides[side as CustomizationSide]),
+                        image: imageUrl
+                    };
                     if (side === 'front') {
-                        variant.image = imageUrl;
+                        variant.image = imageUrl; // Set main variant image if front is uploaded
                     }
                 }
             }
+
+            // Upload variant-specific gallery images
+            if (variantGalleryFiles.length > 0) {
+                const galleryUrls = await Promise.all(
+                    variantGalleryFiles.map(file => 
+                        uploadFile(`products/${productId}/gallery_${variant.id}_${Date.now()}_${file.name}`, file)
+                    )
+                );
+                variant.galleryImages = [...(variant.galleryImages || []), ...galleryUrls];
+            }
+             // If this variant is the main one and it has no primary image, set it from its gallery
+            if (!variant.image && variant.galleryImages && variant.galleryImages.length > 0) {
+                variant.image = variant.galleryImages[0];
+            }
         }
     }
-
-    const galleryImageUrls = await Promise.all(
-        galleryImageFiles.map(file => uploadFile(`products/${productId}/gallery_${Date.now()}_${file.name}`, file))
-    );
-
-    finalProductData.galleryImages = [...(finalProductData.galleryImages || []), ...galleryImageUrls];
     
     const mainVariant = finalProductData.variants?.find(v => v.id === finalProductData.mainVariantId) 
                         || finalProductData.variants?.[0];
 
-    if (finalProductData.customizable) {
-        finalProductData.image = mainVariant?.customizationSides.front?.image || mainVariant?.image || finalProductData.galleryImages?.[0] || 'https://placehold.co/600x400';
-    } else {
-        finalProductData.image = mainVariant?.image || finalProductData.galleryImages?.[0] || 'https://placehold.co/600x400';
-    }
+    // Set top-level product image based on the main variant
+    finalProductData.image = mainVariant?.image || 'https://placehold.co/600x400';
     
     await setDoc(docRef, finalProductData, { merge: true });
     return productId;
@@ -286,3 +291,4 @@ export async function approveProduct(productId: string) {
 export async function declineProduct(productId: string) {
     await updateProductStatus(String(productId), 'Declined');
 }
+

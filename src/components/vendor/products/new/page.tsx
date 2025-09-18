@@ -37,6 +37,7 @@ const createDefaultProduct = (): Partial<Product> => ({
         colorName: 'Default',
         colorHex: '#ffffff',
         image: null,
+        galleryImages: [],
         customizationSides: {
             front: { image: null }, back: { image: null }, left: { image: null }, right: { image: null }, top: { image: null }, bottom: { image: null }
         }
@@ -45,7 +46,7 @@ const createDefaultProduct = (): Partial<Product> => ({
   customizationAreas: {
     front: [], back: [], left: [], right: [], top: [], bottom: []
   },
-  galleryImages: [],
+  galleryImages: [], // This will be deprecated in favor of variant-specific galleries
   videoUrl: '',
   packaging: { weight: 0, dimensions: { l: 0, w: 0, h: 0 } },
   inventoryBuffer: 0,
@@ -66,7 +67,7 @@ function ProductEditorContent() {
 
     const [product, setProduct] = React.useState<Partial<Product>>(createDefaultProduct());
     const [imageFiles, setImageFiles] = React.useState<Record<string, Record<CustomizationSide, File | null>>>({});
-    const [galleryImageFiles, setGalleryImageFiles] = React.useState<File[]>([]);
+    const [galleryImageFilesByVariant, setGalleryImageFilesByVariant] = React.useState<Record<string, File[]>>({});
     const [loading, setLoading] = React.useState(!!productId);
     const [isSaving, setIsSaving] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
@@ -108,6 +109,13 @@ function ProductEditorContent() {
             }
         }));
     };
+    
+    const handleGalleryFilesChange = (variantId: string, files: File[]) => {
+        setGalleryImageFilesByVariant(prev => ({
+            ...prev,
+            [variantId]: files
+        }));
+    };
 
     const handleAllowedCustomizationChange = (types: AllowedCustomizationType[]) => {
         setProduct(prev => ({ ...prev, allowedCustomizations: types }));
@@ -141,7 +149,7 @@ function ProductEditorContent() {
         const productToSave = { ...product, status: finalStatus, mainVariantId } as Product;
         
         try {
-            await saveProduct(productToSave, imageFiles, galleryImageFiles);
+            await saveProduct(productToSave, imageFiles, galleryImageFilesByVariant);
             toast({ 
                 title: `Product ${publish ? 'Published' : 'Saved'}`, 
                 description: `Your product is now ${finalStatus}.` 
@@ -222,7 +230,7 @@ function ProductEditorContent() {
                         />
                     )}
                      <ProductVariantsCard 
-                        variants={product.variants || []}
+                        product={product as Product}
                         onFieldChange={handleFieldChange}
                         mainVariantId={mainVariantId}
                         onMainVariantChange={setMainVariantId}
@@ -231,8 +239,8 @@ function ProductEditorContent() {
                         product={product as Product}
                         onFieldChange={handleFieldChange}
                         onImageChange={handleImageChange}
-                        galleryImageFiles={galleryImageFiles}
-                        onGalleryFilesChange={setGalleryImageFiles}
+                        galleryImageFilesByVariant={galleryImageFilesByVariant}
+                        onGalleryFilesChange={handleGalleryFilesChange}
                         mainVariantId={mainVariantId}
                     />
                 </div>
@@ -270,3 +278,4 @@ export default function NewProductPage() {
         </React.Suspense>
     );
 }
+
