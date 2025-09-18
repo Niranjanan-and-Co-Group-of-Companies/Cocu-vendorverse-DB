@@ -33,6 +33,12 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
   }, [product.platform, isVendorCorporateFlow]);
 
   React.useEffect(() => {
+    // Fetch categories that are for the selected platform OR for 'Both'
+    const platformQuery: ('Personalized' | 'Corporate' | 'Both')[] = [platformForCategoryFetch];
+    if (platformForCategoryFetch !== 'Both') {
+      platformQuery.push('Both');
+    }
+    
     const unsubscribe = onCategoriesWithCommissionsUpdate(platformForCategoryFetch, setCategories);
     return () => unsubscribe();
   }, [platformForCategoryFetch]);
@@ -124,7 +130,14 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
             <SelectContent>
               {categories.map(cat => (
                 <SelectItem key={cat.id} value={cat.name}>
-                    {cat.name}
+                  <div className="flex justify-between w-full">
+                      <span>{cat.name}</span>
+                      {cat.commissionRate !== undefined && (
+                          <span className="text-muted-foreground text-xs ml-4">
+                              ({cat.commissionRate}% comm.)
+                          </span>
+                      )}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
