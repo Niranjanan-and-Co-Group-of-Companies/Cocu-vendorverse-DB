@@ -13,13 +13,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Check, X, MessageSquare, PackageSearch } from 'lucide-react';
+import { Check, X, MessageSquare, PackageSearch, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { approveProduct, declineProduct } from '@/lib/products-service';
 import { onPendingProductsUpdate, type ProductWithVendor } from '@/lib/products-client-service';
 import { useToast } from '@/hooks/use-toast';
 import { VendorContactDialog } from '@/components/admin/products/vendor-contact-dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Link from 'next/link';
 
 type ProductView = 'all' | 'personalized' | 'corporate';
 
@@ -131,6 +132,11 @@ export default function NewProductsPage() {
                                     <TableCell>{product.price}</TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex gap-2 justify-end">
+                                            <Button size="sm" asChild variant="outline">
+                                                <Link href={`/admin/products/new?id=${product.id}`}>
+                                                    <Eye className="mr-2"/> View Details
+                                                </Link>
+                                            </Button>
                                             <Button size="sm" onClick={() => handleApprove(product.id)}>
                                                 <Check className="mr-2" /> Approve
                                             </Button>
