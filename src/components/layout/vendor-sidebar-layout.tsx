@@ -179,7 +179,7 @@ function VerificationFlowHandler({
               Your products will remain as drafts and you cannot receive orders until verification is complete.
             </div>
             <Button asChild size="sm">
-                <Link href="#">Continue Verification</Link>
+                <Link href="/vendor/personalized/settings">Continue Verification</Link>
             </Button>
           </AlertDescription>
         </Alert>
@@ -190,7 +190,7 @@ function VerificationFlowHandler({
 }
 
 
-export function VendorSidebarLayout({ children }: { children: React.ReactNode; }) {
+function VendorSidebarLayoutContent({ children }: { children: React.ReactNode; }) {
   const pathname = usePathname();
   const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard';
   
@@ -218,5 +218,15 @@ export function VendorSidebarLayout({ children }: { children: React.ReactNode; }
             </main>
         </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+
+export function VendorSidebarLayout({ children }: { children: React.ReactNode; }) {
+  return (
+    <>
+      <VendorSidebarLayoutContent>{children}</VendorSidebarLayoutContent>
+      <TermsUpdateDialog userType="vendor" />
+    </>
   );
 }
