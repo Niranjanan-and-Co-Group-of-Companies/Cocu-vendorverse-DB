@@ -29,11 +29,8 @@ export function OrganizeCard({ product, onFieldChange, isAdmin = false, vendors 
   
   // Determine the effective platform for fetching categories
   const platformForCategoryFetch: CategoryPlatform = React.useMemo(() => {
-    if (isAdmin) {
-      return product.platform || 'Personalized';
-    }
-    return isVendorCorporateFlow ? 'Corporate' : 'Personalized';
-  }, [isAdmin, product.platform, isVendorCorporateFlow]);
+    return product.platform || (isVendorCorporateFlow ? 'Corporate' : 'Personalized');
+  }, [product.platform, isVendorCorporateFlow]);
 
   React.useEffect(() => {
     const unsubscribe = onCategoriesWithCommissionsUpdate(platformForCategoryFetch, setCategories);
