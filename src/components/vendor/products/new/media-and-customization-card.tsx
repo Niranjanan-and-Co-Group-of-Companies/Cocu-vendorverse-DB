@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -40,10 +39,10 @@ export function MediaAndCustomizationCard({
     React.useEffect(() => {
         if (mainVariantId && product.variants?.some(v => v.id === mainVariantId)) {
             setActiveVariantId(mainVariantId);
-        } else if (product.variants && product.variants.length > 0 && !product.variants.some(v => v.id === activeVariantId)) {
+        } else if (product.variants && product.variants.length > 0) {
             setActiveVariantId(product.variants[0].id);
         }
-    }, [mainVariantId, product.variants, activeVariantId]);
+    }, [mainVariantId, product.variants]);
 
     const activeVariant = product.variants?.find(v => v.id === activeVariantId);
     
