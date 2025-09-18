@@ -132,6 +132,12 @@ export function PackageAndShippingCard({
                 <Input placeholder="W" type="number" value={packaging?.dimensions?.w || 0} onChange={e => handleDimensionChange('w', e.target.value)} />
                 <Input placeholder="H" type="number" value={packaging?.dimensions?.h || 0} onChange={e => handleDimensionChange('h', e.target.value)} />
             </div>
+             <Alert className="mt-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                    Note: Dimensional value should be greater than or equal to 0.5cm.
+                </AlertDescription>
+            </Alert>
         </div>
         <Alert>
             <AlertDescription>
