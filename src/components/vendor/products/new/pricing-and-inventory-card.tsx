@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -29,6 +30,7 @@ export function PricingAndInventoryCard({
 }: PricingAndInventoryCardProps) {
 
   const handleDiscountTypeChange = (value: 'Percentage' | 'Fixed Amount' | 'None') => {
+      if (isReviewMode) return;
       if (value === 'None') {
           onFieldChange('discountType', undefined);
           onFieldChange('discountValue', undefined);

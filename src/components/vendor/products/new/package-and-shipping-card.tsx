@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -31,6 +32,7 @@ export function PackageAndShippingCard({
 }: PackageAndShippingCardProps) {
   
   const handleDimensionChange = (dim: 'l' | 'w' | 'h', value: string) => {
+    if (isReviewMode) return;
     const parsedValue = parseFloat(value);
     const dimension = isNaN(parsedValue) ? 0 : parsedValue;
 
@@ -44,6 +46,7 @@ export function PackageAndShippingCard({
   };
 
   const handleDimensionBlur = (dim: 'l' | 'w' | 'h', value: string) => {
+    if (isReviewMode) return;
     const parsedValue = parseFloat(value);
     if (!isNaN(parsedValue) && parsedValue < 0.5 && parsedValue !== 0) {
         handleDimensionChange(dim, '0.5');
@@ -51,6 +54,7 @@ export function PackageAndShippingCard({
   };
 
   const handleWeightChange = (value: string) => {
+      if (isReviewMode) return;
       const parsedValue = parseFloat(value);
       const weight = isNaN(parsedValue) ? 0 : parsedValue;
       
@@ -61,6 +65,7 @@ export function PackageAndShippingCard({
   }
   
   const handleWeightBlur = (value: string) => {
+      if (isReviewMode) return;
       const parsedValue = parseFloat(value);
       if (!isNaN(parsedValue) && parsedValue < 0.5 && parsedValue !== 0) {
           onFieldChange('packaging', {
@@ -71,6 +76,7 @@ export function PackageAndShippingCard({
   }
   
   const handlePrepTimeChange = (field: 'min' | 'max', value: string) => {
+    if (isReviewMode) return;
     onFieldChange('preparationTime', {
         ...preparationTime,
         [field]: parseInt(value, 10) || 0,

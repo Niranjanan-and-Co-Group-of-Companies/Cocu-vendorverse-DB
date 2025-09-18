@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -18,18 +19,21 @@ interface B2BPricingCardProps {
 export function B2BPricingCard({ product, onFieldChange, isReviewMode = false }: B2BPricingCardProps) {
 
     const handleTierChange = (index: number, field: keyof TieredPrice, value: string | number) => {
+        if (isReviewMode) return;
         const newTiers = [...(product.tieredPricing || [])];
         newTiers[index] = { ...newTiers[index], [field]: value };
         onFieldChange('tieredPricing', newTiers);
     };
 
     const addTier = () => {
+        if (isReviewMode) return;
         const lastTierQty = product.tieredPricing && product.tieredPricing.length > 0 ? product.tieredPricing[product.tieredPricing.length - 1].quantity : (product.moq || 1);
         const newTiers = [...(product.tieredPricing || []), { quantity: lastTierQty + 50, price: '' }];
         onFieldChange('tieredPricing', newTiers);
     };
 
     const removeTier = (index: number) => {
+        if (isReviewMode) return;
         const newTiers = (product.tieredPricing || []).filter((_, i) => i !== index);
         onFieldChange('tieredPricing', newTiers);
     }

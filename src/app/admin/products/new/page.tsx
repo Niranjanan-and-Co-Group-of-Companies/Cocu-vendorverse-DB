@@ -8,7 +8,7 @@ import { getProductById, saveProduct, type Product } from '@/lib/products-servic
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Save, UploadCloud } from 'lucide-react';
+import { Save, UploadCloud, CheckCircle, XCircle } from 'lucide-react';
 import { ProductDetailsCard } from '@/components/vendor/products/new/product-details-card';
 import { MediaAndCustomizationCard } from '@/components/vendor/products/new/media-and-customization-card';
 import { PricingAndInventoryCard } from '@/components/vendor/products/new/pricing-and-inventory-card';
@@ -21,6 +21,7 @@ import { getVendors, type PlainVendor } from '@/lib/vendors-service';
 import { B2BPricingCard } from '@/components/vendor/corporate/b2b-pricing-card';
 import { ProductVariantsCard } from '@/components/vendor/products/new/product-variants-card';
 import { VendorReviewCard } from '@/components/admin/products/vendor-review-card';
+import { approveProduct, declineProduct } from '@/lib/products-service';
 
 const createDefaultProduct = (): Partial<Product> => ({
   name: '',
@@ -145,6 +146,25 @@ function NewProductPage() {
         if (isReviewMode) return;
         setProduct(prev => ({ ...prev, allowedCustomizations: types }));
     }
+    
+    const handleApprove = async () => {
+        if (!productId) return;
+        setIsSaving(true);
+        await approveProduct(productId);
+        toast({ title: 'Product Approved', description: 'The product is now live on the marketplace.' });
+        router.push('/admin/products/new-products');
+        setIsSaving(false);
+    };
+
+    const handleDecline = async () => {
+        if (!productId) return;
+        setIsSaving(true);
+        await declineProduct(productId);
+        toast({ title: 'Product Declined', description: 'The product has been returned to the vendor as a draft.', variant: 'destructive' });
+        router.push('/admin/products/new-products');
+        setIsSaving(false);
+    };
+
 
     const validateProduct = (): boolean => {
         if (product.customizable) {
@@ -219,7 +239,18 @@ function NewProductPage() {
                     <h1 className="text-2xl font-bold">{pageTitle}</h1>
                     <p className="text-muted-foreground">{pageDescription}</p>
                  </div>
-                 {!isReviewMode && (
+                 {isReviewMode ? (
+                     <div className="flex gap-2">
+                        <Button variant="destructive" onClick={handleDecline} disabled={isSaving}>
+                            <XCircle className="mr-2" />
+                            Decline
+                        </Button>
+                        <Button onClick={handleApprove} disabled={isSaving}>
+                            <CheckCircle className="mr-2" />
+                            Approve Product
+                        </Button>
+                    </div>
+                 ) : (
                      <div className="flex gap-2">
                         <Button variant="outline" onClick={() => handleSave(false)} disabled={isSaving}>
                             <Save className="mr-2" />
@@ -317,4 +348,5 @@ export default function ProductEditorPage() {
         </React.Suspense>
     );
 }
+
 
