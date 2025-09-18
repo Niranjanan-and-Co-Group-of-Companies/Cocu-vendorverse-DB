@@ -102,6 +102,7 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
                 <SelectContent>
                     <SelectItem value="Personalized">Personalized</SelectItem>
                     <SelectItem value="Corporate">Corporate</SelectItem>
+                    <SelectItem value="Both">Both</SelectItem>
                 </SelectContent>
             </Select>
           </div>

@@ -1,5 +1,7 @@
 
 
+'use client';
+
 import { collection, onSnapshot, getDocs, writeBatch, doc, updateDoc, deleteDoc, query, where, Unsubscribe, addDoc, orderBy, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './firebase';
@@ -7,7 +9,7 @@ import type { Product } from './products';
 import type { CommissionRule } from './commissions-service';
 import { makePlain } from './utils';
 
-export type CategoryPlatform = 'Personalized' | 'Corporate';
+export type CategoryPlatform = 'Personalized' | 'Corporate' | 'Both';
 
 export interface Category {
   id: string;
@@ -42,19 +44,19 @@ const MOCK_CATEGORIES = [
     { name: "Bulk Apparel", image: "https://picsum.photos/seed/apparel/400/300", platform: 'Corporate' },
     { name: "Promotional Tech", image: "https://picsum.photos/seed/promotech/400/300", platform: 'Corporate' },
     // Shared Category
-    { name: "Tech Gadgets", image: "https://picsum.photos/seed/tech/400/300", platform: 'Personalized' },
+    { name: "Tech Gadgets", image: "https://picsum.photos/seed/tech/400/300", platform: 'Both' },
 ];
 
 
 async function seedCategories() {
-    const seedFlagRef = doc(db, 'internal_flags', 'categoriesSeeded_v4');
+    const seedFlagRef = doc(db, 'internal_flags', 'categoriesSeeded_v5');
     const seedFlagSnap = await getDoc(seedFlagRef);
 
     if (seedFlagSnap.exists()) {
         return; // Seeding already performed.
     }
 
-    console.log("Performing one-time category database hard reset...");
+    console.log("Performing one-time category database hard reset v5 (with 'Both' platform)...");
 
     const categoriesRef = collection(db, "categories");
     const snapshot = await getDocs(categoriesRef);
@@ -171,11 +173,11 @@ export async function deleteCategory(categoryId: string) {
 
 // --- Real-time Combined Fetching ---
 
-export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Corporate', callback: (categories: Category[]) => void): Unsubscribe {
+export function onCategoriesWithCommissionsUpdate(platform: 'Personalized' | 'Corporate' | 'Both', callback: (categories: Category[]) => void): Unsubscribe {
     seedCategories(); // Ensure categories exist
 
     const categoriesRef = collection(db, 'categories');
-    const categoriesQuery = query(categoriesRef, where('platform', '==', platform));
+    const categoriesQuery = query(categoriesRef, where('platform', 'in', [platform, 'Both']));
     
     const commissionsRef = collection(db, 'commissions');
 
