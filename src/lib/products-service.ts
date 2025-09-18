@@ -142,14 +142,14 @@ export async function saveProduct(
 
     const categorySlug = productData.category ? productData.category.toLowerCase().replace(/ & /g, '-').replace(/\s+/g, '-') : '';
 
-    // With the new model, the base customer-facing price IS the Vendor SP.
-    const price = productData.vendorSP || 0;
+    // The price from the form IS the definitive vendor selling price.
+    const vendorSP = parseFloat(productData.price || '0');
     
     const finalProductData = { 
         ...productData, 
         id: productId, 
-        price: price.toFixed(2), // Set price directly from vendorSP
-        vendorSP: productData.vendorSP || 0,
+        price: vendorSP.toFixed(2), // Ensure price is a string with 2 decimal places
+        vendorSP: vendorSP,
         name_lowercase: productData.name?.toLowerCase(),
         shipsFromPincode,
         categorySlug,
@@ -291,4 +291,5 @@ export async function approveProduct(productId: string) {
 export async function declineProduct(productId: string) {
     await updateProductStatus(String(productId), 'Declined');
 }
+
 
