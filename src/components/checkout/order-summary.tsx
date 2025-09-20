@@ -157,118 +157,117 @@ export function OrderSummary() {
 
   return (
     <>
-    <Card>
-      <CardHeader>
-        <CardTitle>Order Summary</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {isCheckoutBlocked && (
-            <div className="p-3 rounded-md bg-destructive/10 text-destructive border border-destructive/20 text-sm flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                <span>Some items are out of stock. Please remove them to proceed.</span>
-            </div>
-        )}
-        <ScrollArea className="h-48 pr-4">
-            <div className="space-y-4">
-                {items.map(item => {
-                  const liveProduct = liveProductData.get(item.id);
-                  const isOutOfStock = liveProduct ? liveProduct.stock === 0 : false;
-                  const hasInsufficientStock = liveProduct ? liveProduct.stock < item.quantity : false;
-                  const isDisabled = isOutOfStock || hasInsufficientStock;
+      <Card>
+        <CardHeader>
+          <CardTitle>Order Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isCheckoutBlocked && (
+              <div className="p-3 rounded-md bg-destructive/10 text-destructive border border-destructive/20 text-sm flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>Some items are out of stock. Please remove them to proceed.</span>
+              </div>
+          )}
+          <ScrollArea className="h-48 pr-4">
+              <div className="space-y-4">
+                  {items.map(item => {
+                    const liveProduct = liveProductData.get(item.id);
+                    const isOutOfStock = liveProduct ? liveProduct.stock === 0 : false;
+                    const hasInsufficientStock = liveProduct ? liveProduct.stock < item.quantity : false;
+                    const isDisabled = isOutOfStock || hasInsufficientStock;
 
-                  const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
-                  const originalPrice = item.displayPrice?.originalPrice || price;
-                  const itemHasDiscount = item.displayPrice?.hasDiscount || false;
-                  
-                  return (
-                    <div key={item.cartItemId} className={cn("flex items-start gap-4", isDisabled && "opacity-50")}>
-                        <div className="relative shrink-0">
-                            <Image src={item.selectedVariant?.image || item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
-                             <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-muted text-destructive hover:bg-destructive hover:text-destructive-foreground" 
-                                onClick={() => handleRemove(item.cartItemId, item.name)}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <div className="flex-grow overflow-hidden">
-                            <p className="font-semibold truncate">{item.name}</p>
-                            <div className="flex items-baseline gap-2">
-                                <p className="text-sm font-semibold">{formatCurrency(price)}</p>
-                                {itemHasDiscount && (
-                                    <p className="text-xs text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
-                                )}
-                            </div>
-                            {isOutOfStock && <Badge variant="destructive" className="mt-1">Out of Stock</Badge>}
-                            {hasInsufficientStock && !isOutOfStock && <Badge variant="secondary" className="mt-1">Only {liveProduct.stock} left</Badge>}
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium w-4 text-center">x {item.quantity}</span>
-                            </div>
-                             <p className="font-semibold text-sm mt-1">{formatCurrency(price * item.quantity)}</p>
-                        </div>
-                    </div>
-                )})}
-            </div>
-        </ScrollArea>
-        <Separator />
-        <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{formatCurrency(subtotal)}</span>
-            </div>
-            {discountAmount > 0 && (
-                <div className="flex justify-between text-green-600">
-                    <span>Discount</span>
-                    <span>-{formatCurrency(discountAmount)}</span>
-                </div>
-            )}
-            <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>{shippingFee === 0 ? 'Free' : formatCurrency(shippingFee)}</span>
-            </div>
-             <div className="flex justify-between">
-                <span className="text-muted-foreground">Convenience Fee (3%)</span>
-                <span className="text-muted-foreground">{formatCurrency(convenienceFee)}</span>
-            </div>
-        </div>
-        <Separator />
-        <div className="flex justify-between font-bold text-lg">
-          <span>Total</span>
-          <span>{formatCurrency(total)}</span>
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-4 items-start">
-         <div className="flex items-center space-x-2">
-            <Checkbox id="design-confirm" checked={isConfirmed} onCheckedChange={(checked) => setIsConfirmed(!!checked)} />
-            <Label htmlFor="design-confirm" className="text-sm font-normal">I confirm my personalization design is correct.</Label>
-         </div>
+                    const price = item.displayPrice?.finalPrice || parseFloat(item.price.replace('$', ''));
+                    const originalPrice = item.displayPrice?.originalPrice || price;
+                    const itemHasDiscount = item.displayPrice?.hasDiscount || false;
+                    
+                    return (
+                      <div key={item.cartItemId} className={cn("flex items-start gap-4", isDisabled && "opacity-50")}>
+                          <div className="relative shrink-0">
+                              <Image src={item.selectedVariant?.image || item.image} alt={item.name} width={64} height={64} className="rounded-md aspect-square object-cover" />
+                              <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-muted text-destructive hover:bg-destructive hover:text-destructive-foreground" 
+                                  onClick={() => handleRemove(item.cartItemId, item.name)}
+                              >
+                                  <X className="h-4 w-4" />
+                              </Button>
+                          </div>
+                          <div className="flex-grow overflow-hidden">
+                              <p className="font-semibold truncate">{item.name}</p>
+                              <div className="flex items-baseline gap-2">
+                                  <p className="text-sm font-semibold">{formatCurrency(price)}</p>
+                                  {itemHasDiscount && (
+                                      <p className="text-xs text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
+                                  )}
+                              </div>
+                              {isOutOfStock && <Badge variant="destructive" className="mt-1">Out of Stock</Badge>}
+                              {hasInsufficientStock && !isOutOfStock && <Badge variant="secondary" className="mt-1">Only {liveProduct.stock} left</Badge>}
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                              <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium w-4 text-center">x {item.quantity}</span>
+                              </div>
+                              <p className="font-semibold text-sm mt-1">{formatCurrency(price * item.quantity)}</p>
+                          </div>
+                      </div>
+                  )})}
+              </div>
+          </ScrollArea>
+          <Separator />
+          <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>{formatCurrency(subtotal)}</span>
+              </div>
+              {discountAmount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                      <span>Discount</span>
+                      <span>-{formatCurrency(discountAmount)}</span>
+                  </div>
+              )}
+              <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>{shippingFee === 0 ? 'Free' : formatCurrency(shippingFee)}</span>
+              </div>
+              <div className="flex justify-between">
+                  <span className="text-muted-foreground">Convenience Fee (3%)</span>
+                  <span className="text-muted-foreground">{formatCurrency(convenienceFee)}</span>
+              </div>
+          </div>
+          <Separator />
+          <div className="flex justify-between font-bold text-lg">
+            <span>Total</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-4 items-start">
           <div className="flex items-center space-x-2">
-            <Checkbox id="terms-confirm" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(!!checked)} />
-            <div className="text-sm">
-                 <Label htmlFor="terms-confirm" className="font-normal">
-                    I agree to the{' '}
-                    <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">
-                        Terms & Conditions
-                    </Link>
-                    .
-                </Label>
+              <Checkbox id="design-confirm" checked={isConfirmed} onCheckedChange={(checked) => setIsConfirmed(!!checked)} />
+              <Label htmlFor="design-confirm" className="text-sm font-normal">I confirm my personalization design is correct.</Label>
+          </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="terms-confirm" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(!!checked)} />
+              <div className="text-sm">
+                  <Label htmlFor="terms-confirm" className="font-normal">
+                      I agree to the{' '}
+                      <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">
+                          Terms & Conditions
+                      </Link>
+                      .
+                  </Label>
+              </div>
             </div>
-         </div>
-         <p className="text-xs text-muted-foreground">
-            Once an order is confirmed, it cannot be cancelled. For more details, please refer to our <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">Terms & Conditions</Link>.
-         </p>
-        <Button className="w-full" size="lg" disabled={!canPlaceOrder} onClick={handlePlaceOrder}>
-          {isPlacingOrder ? <Loader2 className="mr-2 animate-spin" /> : null}
-          {isPlacingOrder ? 'Placing Order...' : 'Place Order & Pay'}
-        </Button>
-      </CardFooter>
-    </Card>
-
-    <AlertDialog open={!!outOfStockItem} onOpenChange={() => setOutOfStockItem(null)}>
+            <p className="text-xs text-muted-foreground">
+              Once an order is confirmed, it cannot be cancelled. For more details, please refer to our <Link href="/legal/terms" className="underline hover:text-primary" target="_blank">Terms & Conditions</Link>.
+            </p>
+          <Button className="w-full" size="lg" disabled={!canPlaceOrder} onClick={handlePlaceOrder}>
+            {isPlacingOrder ? <Loader2 className="mr-2 animate-spin" /> : null}
+            {isPlacingOrder ? 'Placing Order...' : 'Place Order & Pay'}
+          </Button>
+        </CardFooter>
+      </Card>
+      <AlertDialog open={!!outOfStockItem} onOpenChange={() => setOutOfStockItem(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>Item Out of Stock</AlertDialogTitle>
@@ -285,8 +284,7 @@ export function OrderSummary() {
                 </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
-
-    
