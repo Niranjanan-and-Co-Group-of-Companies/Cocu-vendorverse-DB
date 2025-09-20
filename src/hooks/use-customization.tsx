@@ -102,42 +102,33 @@ const useCustomizationStore = create<CustomizationState>()((set, get) => ({
         if (sideElements.length === 0) {
             return { proofUrl: null, printUrl: null };
         }
+        
+        const canvasContainer = canvasRef.current;
 
-        const generateCanvas = async (transparent: boolean) => {
-            const canvasContainer = canvasRef.current;
-            if (!canvasContainer) return null;
+        // Ensure outlines are hidden for capture
+        const selectedBorders = Array.from(canvasContainer.querySelectorAll('[style*="outline"]')) as HTMLElement[];
+        selectedBorders.forEach(el => el.style.outline = 'none');
 
-            const canvasImage = canvasContainer.querySelector<HTMLElement>('#canvas-image');
-            
-            // Hide selection outlines during capture
-            const selectedBorders = Array.from(canvasContainer.querySelectorAll('[style*="outline"]')) as HTMLElement[];
-            selectedBorders.forEach(el => el.style.outline = 'none');
-            
-            if (canvasImage) {
-                canvasImage.style.display = transparent ? 'none' : 'block';
-            }
+        // Generate the proof URL (with product background)
+        const proofCanvas = await html2canvas(canvasContainer, {
+            backgroundColor: null, // Use existing background
+            logging: false,
+            useCORS: true,
+        });
+        const proofUrl = proofCanvas.toDataURL('image/png');
 
-            try {
-                const canvas = await html2canvas(canvasContainer, {
-                    backgroundColor: transparent ? null : 'white',
-                    logging: false,
-                    useCORS: true,
-                    width: canvasContainer.offsetWidth,
-                    height: canvasContainer.offsetHeight,
-                });
-                return canvas.toDataURL('image/png');
-            } catch (error) {
-                console.error("Error generating canvas image:", error);
-                return null;
-            } finally {
-                // Restore visibility after capture
-                if (canvasImage) canvasImage.style.display = 'block';
-                selectedBorders.forEach(el => el.style.outline = '2px dashed hsl(var(--primary))');
-            }
-        };
+        // Generate the print URL (transparent background)
+        const printCanvas = await html2canvas(canvasContainer, {
+            backgroundColor: null, // Transparent background
+            logging: false,
+            useCORS: true,
+            // Instruct html2canvas to ignore the background product image
+            ignoreElements: (element) => element.id === 'canvas-image',
+        });
+        const printUrl = printCanvas.toDataURL('image/png');
 
-        const proofUrl = await generateCanvas(false); // With background
-        const printUrl = await generateCanvas(true);  // Transparent
+        // Restore outlines after capture
+        selectedBorders.forEach(el => el.style.outline = '2px dashed hsl(var(--primary))');
 
         return { proofUrl, printUrl };
     }
