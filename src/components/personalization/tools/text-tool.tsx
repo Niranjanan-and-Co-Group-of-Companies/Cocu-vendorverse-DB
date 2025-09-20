@@ -61,7 +61,6 @@ export function TextTool() {
             locked: false,
             outlineWidth: 0,
             outlineColor: '#ffffff',
-            curve: 0,
         });
     };
 
@@ -143,10 +142,6 @@ export function TextTool() {
                             <Input type="color" value={selectedElement.outlineColor} onChange={e => handleUpdate('outlineColor', e.target.value)} className="p-1 h-10 w-16" />
                             <Slider value={[selectedElement.outlineWidth || 0]} onValueChange={(val) => handleUpdate('outlineWidth', val[0])} max={10} step={0.5} />
                         </div>
-                     </div>
-                      <div className="space-y-2">
-                        <Label>Curve</Label>
-                        <Slider value={[selectedElement.curve || 0]} onValueChange={(val) => handleUpdate('curve', val[0])} min={-100} max={100} step={1} />
                      </div>
                      <div className="space-y-2">
                         <Label>Rotate</Label>

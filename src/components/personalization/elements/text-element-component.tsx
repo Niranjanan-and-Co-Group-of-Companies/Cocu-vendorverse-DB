@@ -48,13 +48,11 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
         let newX = event.clientX - dragStartPos.current.x;
         let newY = event.clientY - dragStartPos.current.y;
         
-        const dynamicHeight = getDynamicHeight(size, element.curve);
-
         newX = Math.max(constraint.x, Math.min(newX, constraint.x + constraint.width - size.width));
-        newY = Math.max(constraint.y, Math.min(newY, constraint.y + constraint.height - dynamicHeight));
+        newY = Math.max(constraint.y, Math.min(newY, constraint.y + constraint.height - size.height));
 
         setPosition({ x: newX, y: newY });
-    }, [isDragging, canvasRef, size, element.curve, constraintArea]);
+    }, [isDragging, canvasRef, size, constraintArea]);
 
     const handleDragEnd = React.useCallback(() => {
         if (isDragging) {
@@ -85,61 +83,6 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
         setSize({width: element.width, height: element.height})
     }, [element.x, element.y, element.width, element.height]);
 
-    const getDynamicHeight = (currentSize: { width: number, height: number }, curve?: number) => {
-        const absCurve = Math.abs(curve || 0);
-        if (absCurve === 0) return currentSize.height;
-
-        const w = currentSize.width;
-        // At max curve (100), we want a perfect semicircle.
-        if (absCurve === 100) {
-            return Math.max(currentSize.height, w / 2);
-        }
-
-        // Map curve from 0-100 to an angle for more intuitive control
-        const angle = (absCurve / 100) * 90; // Max 90 degrees curve for full semicircle
-        const sagitta = (w / 2) * Math.tan(angle * Math.PI / 360);
-        
-        return Math.max(currentSize.height, sagitta + currentSize.height * 0.5);
-    };
-
-
-    const dynamicHeight = getDynamicHeight(size, element.curve);
-
-    const getPathData = (curve: number) => {
-        const w = size.width;
-        const h = dynamicHeight;
-        
-        if (curve === 0) {
-            return `M 0,${h / 2} L ${w},${h / 2}`;
-        }
-        
-        const isDownward = curve < 0;
-        const absCurve = Math.abs(curve);
-        
-        // For a perfect semicircle at max curve
-        if (absCurve >= 100) {
-            const r = w / 2;
-            const sweepFlag = isDownward ? 0 : 1;
-            const yPos = isDownward ? r : h - r;
-            return `M 0,${yPos} A ${r},${r} 0 0,${sweepFlag} ${w},${yPos}`;
-        }
-
-        // Interpolate for other values
-        const angle = (absCurve / 100) * 90;
-        const sagitta = (w / 2) * Math.tan(angle * Math.PI / 360);
-        if(sagitta === 0) return `M 0,${h / 2} L ${w},${h / 2}`;
-
-        const radius = (sagitta / 2) + (w * w) / (8 * sagitta);
-        
-        if (!isFinite(radius)) {
-             return `M 0,${h / 2} L ${w},${h / 2}`;
-        }
-        
-        const sweepFlag = isDownward ? 0 : 1;
-        const yPos = isDownward ? (h/2 - sagitta) + sagitta : (h/2 + sagitta) - sagitta;
-        
-        return `M 0,${yPos} A ${Math.abs(radius)},${Math.abs(radius)} 0 0,${sweepFlag} ${w},${yPos}`;
-    }
 
     const onResizeStop = (event: React.SyntheticEvent, { size: finalSize }: { size: { width: number, height: number }}) => {
         updateElement(element.id, { width: finalSize.width, height: finalSize.height });
@@ -163,14 +106,14 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
                 top: `${position.y}px`,
                 transform: `rotate(${element.rotation}deg)`,
                 width: size.width,
-                height: dynamicHeight,
+                height: size.height,
             }}
              onMouseDown={(e) => { e.stopPropagation(); setSelectedElementId(element.id); }}
         >
              <ResizableBox
                 width={size.width}
-                height={dynamicHeight}
-                onResize={(e, {size: newSize}) => setSize({width: newSize.width, height: getDynamicHeight({width: newSize.width, height: size.height}, element.curve)})}
+                height={size.height}
+                onResize={(e, {size: newSize}) => setSize(newSize)}
                 onResizeStop={onResizeStop}
                 minConstraints={[50, 20]}
                 maxConstraints={maxConstraints}
@@ -189,43 +132,26 @@ export function TextElementComponent({ element, canvasRef, constraintArea }: Tex
                     style={{
                         width: '100%',
                         height: '100%',
-                        cursor: isDragging ? 'grabbing' : 'grab'
+                        cursor: isDragging ? 'grabbing' : 'grab',
+                        outline: isSelected ? '2px dashed hsl(var(--primary))' : 'none',
+                        outlineOffset: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: element.textAlign,
+                        fontFamily: element.fontFamily,
+                        fontSize: element.fontSize,
+                        fontWeight: element.fontWeight,
+                        fontStyle: element.fontStyle,
+                        color: element.color,
+                        textDecoration: element.textDecoration,
+                        WebkitTextStroke: `${element.outlineWidth}px ${element.outlineColor}`,
                     }}
                     onMouseDown={handleDragStart}
                     onTouchStart={handleDragStart}
                 >
-                    <svg width="100%" height="100%" viewBox={`0 0 ${size.width} ${dynamicHeight}`}>
-                        <defs>
-                            <path id={`path-${element.id}`} d={getPathData(element.curve || 0)} />
-                        </defs>
-                        {isSelected && (
-                            <path 
-                                d={getPathData(element.curve || 0)} 
-                                stroke="hsl(var(--primary))" 
-                                strokeWidth="1" 
-                                strokeDasharray="3 3"
-                                fill="none"
-                            />
-                        )}
-                        <text
-                            fill={element.color}
-                            fontFamily={element.fontFamily}
-                            fontSize={element.fontSize}
-                            fontWeight={element.fontWeight}
-                            fontStyle={element.fontStyle}
-                            paintOrder="stroke"
-                            stroke={element.outlineColor}
-                            strokeWidth={element.outlineWidth}
-                        >
-                            <textPath href={`#path-${element.id}`} startOffset="50%" textAnchor="middle">
-                                {element.content}
-                            </textPath>
-                        </text>
-                    </svg>
+                    {element.content}
                 </div>
             </ResizableBox>
         </div>
     );
 }
-
-    
