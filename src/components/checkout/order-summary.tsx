@@ -124,6 +124,7 @@ export function OrderSummary() {
                 pincode: '62704', // Mock Pincode
             },
             items: items,
+            platform: 'Personalized' as const,
             subtotal,
             shipping: shippingFee,
             total,
@@ -284,7 +285,8 @@ export function OrderSummary() {
                 </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 }
+
+    
