@@ -27,7 +27,7 @@ import type { Order } from '@/lib/orders-service';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, Image as ImageIcon, FileType, File } from 'lucide-react';
+import { Download, FileText, ImageIcon, FileType, File } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface OrderDetailsDialogProps {
@@ -115,28 +115,12 @@ export function OrderDetailsDialog({ open, onOpenChange, order }: OrderDetailsDi
                                                                      <a href={cust.proofUrl} target="_blank" rel="noopener noreferrer">
                                                                         <Button size="sm" variant="outline"><FileText className="mr-2 h-3 w-3"/>Proof</Button>
                                                                     </a>
-                                                                    <DropdownMenu>
-                                                                        <DropdownMenuTrigger asChild>
-                                                                            <Button size="sm" variant="secondary"><Download className="mr-2 h-3 w-3"/>Print File</Button>
-                                                                        </DropdownMenuTrigger>
-                                                                        <DropdownMenuContent>
-                                                                            <DropdownMenuItem asChild>
-                                                                                <a href={cust.printUrl} download>
-                                                                                    <ImageIcon className="mr-2" /> Download as PNG
-                                                                                </a>
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuItem asChild>
-                                                                                <a href={cust.printUrl} download>
-                                                                                    <FileType className="mr-2" /> Download as SVG
-                                                                                </a>
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuItem asChild>
-                                                                                 <a href={cust.printUrl} download>
-                                                                                    <File className="mr-2" /> Download as PDF
-                                                                                </a>
-                                                                            </DropdownMenuItem>
-                                                                        </DropdownMenuContent>
-                                                                    </DropdownMenu>
+                                                                    <Button size="sm" variant="secondary" asChild>
+                                                                        <a href={cust.printUrl} download={`${order.orderId}_${item.name}_${cust.side}.png`}>
+                                                                            <Download className="mr-2 h-3 w-3"/>
+                                                                            Download PNG
+                                                                        </a>
+                                                                    </Button>
                                                                 </div>
                                                             </div>
                                                         ))}

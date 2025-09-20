@@ -95,26 +95,51 @@ const useCustomizationStore = create<CustomizationState>()((set, get) => ({
     },
 
     getCanvasDataURL: async (side) => {
-        const { canvasRef, elements } = get();
+        const { canvasRef, elements, activeSide } = get();
         if (!canvasRef?.current) return null;
+        
+        // Temporarily switch active side to render the correct elements for canvas generation
+        const originalSide = activeSide;
+        set({ activeSide: side, selectedElementId: null });
+        
+        // Give React a moment to re-render with the correct side's elements
+        await new Promise(resolve => setTimeout(resolve, 50));
 
-        const sideElements = elements.filter(el => el.side === side);
-        if (sideElements.length === 0) return null; // Don't generate image if there are no customizations
+        const sideElements = get().elements.filter(el => el.side === side);
+        if (sideElements.length === 0) {
+            set({ activeSide: originalSide }); // Switch back
+            return null; // Don't generate image if there are no customizations
+        }
 
         try {
+            const canvasImage = canvasRef.current.querySelector('#canvas-image');
+            
+            // Hide the background product image for the transparent print file
+            if (canvasImage) (canvasImage as HTMLElement).style.display = 'none';
+
             const canvas = await html2canvas(canvasRef.current, {
                 backgroundColor: null, // Transparent background
                 logging: false,
                 useCORS: true, 
-                // Only capture the canvas div itself, not the whole page
                 width: canvasRef.current.offsetWidth,
                 height: canvasRef.current.offsetHeight,
                 windowWidth: canvasRef.current.offsetWidth,
                 windowHeight: canvasRef.current.offsetHeight,
             });
+
+            // Show the background image again after capture
+            if (canvasImage) (canvasImage as HTMLElement).style.display = 'block';
+            
+            // Switch back to the original side the user was viewing
+            set({ activeSide: originalSide });
+
             return canvas.toDataURL('image/png');
         } catch (error) {
             console.error("Error generating canvas image:", error);
+             // Ensure we switch back and re-show the image even if an error occurs
+            const canvasImage = canvasRef.current.querySelector('#canvas-image');
+            if (canvasImage) (canvasImage as HTMLElement).style.display = 'block';
+            set({ activeSide: originalSide });
             return null;
         }
     }

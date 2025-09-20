@@ -29,22 +29,23 @@ export function MobileActionButtons({ product, isMobile = false }: MobileActionB
     try {
         const customizedSides = [...new Set(elements.map(e => e.side))];
         const customizationProofs: CustomizationProof[] = [];
+        
+        const selectedVariant = product.variants.find(v => v.id === selectedVariantId);
 
         for (const side of customizedSides) {
             const dataUrl = await getCanvasDataURL(side);
             if(dataUrl) {
-                const proofUrl = await saveCustomizationProof(product.id, side, dataUrl);
+                const productImageUrl = selectedVariant?.customizationSides[side]?.image || '';
+                const { proofUrl, printUrl } = await saveCustomizationProof(product.id, side, dataUrl, productImageUrl);
                 customizationProofs.push({
                     side,
                     proofUrl,
-                    printUrl: proofUrl, // In a real app, this would be a different, high-res file
+                    printUrl,
                 });
             }
         }
         
-        const selectedVariant = product.variants.find(v => v.id === selectedVariantId) || null;
-
-        const result = await addToCart(product, 1, selectedVariant, customizationProofs);
+        const result = await addToCart(product, 1, selectedVariant || null, customizationProofs);
 
         toast({
             title: result.success ? (andBuyNow ? 'Proceeding to Checkout' : 'Added to Cart') : 'Could Not Add to Cart',
