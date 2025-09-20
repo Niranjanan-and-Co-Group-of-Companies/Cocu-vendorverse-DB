@@ -23,7 +23,7 @@ interface CustomizationState {
   setSelectedVariantId: (id: string | null) => void;
   canvasRef: React.RefObject<HTMLDivElement> | null;
   setCanvasRef: (ref: React.RefObject<HTMLDivElement>) => void;
-  getCanvasDataURL: (side: CustomizationSide) => Promise<string | null>;
+  getCanvasDataURLs: (side: CustomizationSide) => Promise<{ proofUrl: string | null; printUrl: string | null; }>;
 }
 
 const useCustomizationStore = create<CustomizationState>()((set, get) => ({
@@ -94,54 +94,52 @@ const useCustomizationStore = create<CustomizationState>()((set, get) => ({
         set({ canvasRef: ref });
     },
 
-    getCanvasDataURL: async (side) => {
-        const { canvasRef, elements, activeSide } = get();
-        if (!canvasRef?.current) return null;
-        
-        // Temporarily switch active side to render the correct elements for canvas generation
-        const originalSide = activeSide;
-        set({ activeSide: side, selectedElementId: null });
-        
-        // Give React a moment to re-render with the correct side's elements
-        await new Promise(resolve => setTimeout(resolve, 50));
+    getCanvasDataURLs: async (side) => {
+        const { canvasRef, elements } = get();
+        if (!canvasRef?.current) return { proofUrl: null, printUrl: null };
 
-        const sideElements = get().elements.filter(el => el.side === side);
+        const sideElements = elements.filter(el => el.side === side);
         if (sideElements.length === 0) {
-            set({ activeSide: originalSide }); // Switch back
-            return null; // Don't generate image if there are no customizations
+            return { proofUrl: null, printUrl: null };
         }
 
-        try {
-            const canvasImage = canvasRef.current.querySelector('#canvas-image');
+        const generateCanvas = async (transparent: boolean) => {
+            const canvasContainer = canvasRef.current;
+            if (!canvasContainer) return null;
+
+            const canvasImage = canvasContainer.querySelector<HTMLElement>('#canvas-image');
             
-            // Hide the background product image for the transparent print file
-            if (canvasImage) (canvasImage as HTMLElement).style.display = 'none';
-
-            const canvas = await html2canvas(canvasRef.current, {
-                backgroundColor: null, // Transparent background
-                logging: false,
-                useCORS: true, 
-                width: canvasRef.current.offsetWidth,
-                height: canvasRef.current.offsetHeight,
-                windowWidth: canvasRef.current.offsetWidth,
-                windowHeight: canvasRef.current.offsetHeight,
-            });
-
-            // Show the background image again after capture
-            if (canvasImage) (canvasImage as HTMLElement).style.display = 'block';
+            // Hide selection outlines during capture
+            const selectedBorders = Array.from(canvasContainer.querySelectorAll('[style*="outline"]')) as HTMLElement[];
+            selectedBorders.forEach(el => el.style.outline = 'none');
             
-            // Switch back to the original side the user was viewing
-            set({ activeSide: originalSide });
+            if (canvasImage) {
+                canvasImage.style.display = transparent ? 'none' : 'block';
+            }
 
-            return canvas.toDataURL('image/png');
-        } catch (error) {
-            console.error("Error generating canvas image:", error);
-             // Ensure we switch back and re-show the image even if an error occurs
-            const canvasImage = canvasRef.current.querySelector('#canvas-image');
-            if (canvasImage) (canvasImage as HTMLElement).style.display = 'block';
-            set({ activeSide: originalSide });
-            return null;
-        }
+            try {
+                const canvas = await html2canvas(canvasContainer, {
+                    backgroundColor: transparent ? null : 'white',
+                    logging: false,
+                    useCORS: true,
+                    width: canvasContainer.offsetWidth,
+                    height: canvasContainer.offsetHeight,
+                });
+                return canvas.toDataURL('image/png');
+            } catch (error) {
+                console.error("Error generating canvas image:", error);
+                return null;
+            } finally {
+                // Restore visibility after capture
+                if (canvasImage) canvasImage.style.display = 'block';
+                selectedBorders.forEach(el => el.style.outline = '2px dashed hsl(var(--primary))');
+            }
+        };
+
+        const proofUrl = await generateCanvas(false); // With background
+        const printUrl = await generateCanvas(true);  // Transparent
+
+        return { proofUrl, printUrl };
     }
 }));
 

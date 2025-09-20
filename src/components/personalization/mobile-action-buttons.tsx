@@ -18,7 +18,7 @@ interface MobileActionButtonsProps {
 }
 
 export function MobileActionButtons({ product, isMobile = false }: MobileActionButtonsProps) {
-  const { elements, selectedVariantId, getCanvasDataURL } = useCustomization();
+  const { elements, selectedVariantId, getCanvasDataURLs } = useCustomization();
   const { addItem: addToCart } = useCart();
   const { toast } = useToast();
   const router = useRouter();
@@ -33,10 +33,9 @@ export function MobileActionButtons({ product, isMobile = false }: MobileActionB
         const selectedVariant = product.variants.find(v => v.id === selectedVariantId);
 
         for (const side of customizedSides) {
-            const dataUrl = await getCanvasDataURL(side);
-            if(dataUrl) {
-                const productImageUrl = selectedVariant?.customizationSides[side]?.image || '';
-                const { proofUrl, printUrl } = await saveCustomizationProof(product.id, side, dataUrl, productImageUrl);
+            const urls = await getCanvasDataURLs(side);
+            if(urls.proofUrl && urls.printUrl) {
+                const { proofUrl, printUrl } = await saveCustomizationProof(product.id, side, urls.proofUrl, urls.printUrl);
                 customizationProofs.push({
                     side,
                     proofUrl,
