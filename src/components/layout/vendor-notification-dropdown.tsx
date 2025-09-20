@@ -69,6 +69,7 @@ export function VendorNotificationDropdown({ vendorId }: { vendorId: string }) {
   };
 
   const unreadNotifications = notifications.filter(n => !n.isRead);
+  const displayedNotifications = unreadNotifications.slice(0, 10);
 
   return (
     <DropdownMenu>
@@ -95,8 +96,8 @@ export function VendorNotificationDropdown({ vendorId }: { vendorId: string }) {
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
              </div>
-          ) : unreadNotifications.length > 0 ? (
-            unreadNotifications.map(notification => {
+          ) : displayedNotifications.length > 0 ? (
+            displayedNotifications.map(notification => {
               const Icon = iconMap[notification.type] || Bell;
               return (
                 <DropdownMenuItem key={notification.id} asChild>

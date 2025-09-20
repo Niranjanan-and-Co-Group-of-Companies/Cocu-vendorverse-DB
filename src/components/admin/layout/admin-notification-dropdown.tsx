@@ -33,6 +33,7 @@ const iconMap: { [key in NotificationType]: React.ElementType } = {
   CONTENT_UPDATE: FileEdit,
   NEW_SUPPORT_TICKET: HelpCircle,
   NEW_SOURCING_REQUEST: PackageSearch,
+  SOURCING_REQUEST_UPDATE: Package,
   NEW_BID_REQUEST: Gavel,
 };
 
@@ -65,6 +66,7 @@ export function AdminNotificationDropdown() {
   };
 
   const unreadNotifications = notifications.filter(n => !n.isRead);
+  const displayedNotifications = unreadNotifications.slice(0, 10);
 
   return (
     <DropdownMenu>
@@ -91,8 +93,8 @@ export function AdminNotificationDropdown() {
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
              </div>
-          ) : unreadNotifications.length > 0 ? (
-            unreadNotifications.map(notification => {
+          ) : displayedNotifications.length > 0 ? (
+            displayedNotifications.map(notification => {
               const Icon = iconMap[notification.type] || Bell;
               return (
                 <DropdownMenuItem key={notification.id} asChild>

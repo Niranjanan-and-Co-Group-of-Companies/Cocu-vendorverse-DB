@@ -34,8 +34,7 @@ export function onAdminNotificationsUpdate(callback: (notifications: Notificatio
   const q = query(
     notificationsRef,
     where('forAdmin', '==', true),
-    orderBy('timestamp', 'desc'),
-    limit(10) // Limit to 10 most recent notifications for the dropdown
+    orderBy('timestamp', 'desc')
   );
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -57,8 +56,7 @@ export function onUserNotificationsUpdate(userId: string, callback: (notificatio
   const q = query(
     notificationsRef,
     where('userId', '==', userId),
-    orderBy('timestamp', 'desc'),
-    limit(10)
+    orderBy('timestamp', 'desc')
   );
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
