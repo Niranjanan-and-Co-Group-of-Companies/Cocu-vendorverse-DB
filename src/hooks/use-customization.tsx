@@ -95,7 +95,7 @@ const useCustomizationStore = create<CustomizationState>()((set, get) => ({
     },
 
     getCanvasDataURLs: async (side) => {
-        const { canvasRef, elements } = get();
+        const { canvasRef, elements, activeSide: currentActiveSide, setActiveSide } = get();
         if (!canvasRef?.current) return { proofUrl: null, printUrl: null };
 
         const sideElements = elements.filter(el => el.side === side);
@@ -103,15 +103,22 @@ const useCustomizationStore = create<CustomizationState>()((set, get) => ({
             return { proofUrl: null, printUrl: null };
         }
         
+        // Temporarily switch to the target side to render its elements
+        if (side !== currentActiveSide) {
+            setActiveSide(side);
+            // Wait for re-render
+            await new Promise(resolve => setTimeout(resolve, 50)); 
+        }
+        
         const canvasContainer = canvasRef.current;
+        const previouslySelectedId = get().selectedElementId;
+        set({ selectedElementId: null }); // Deselect all elements to hide handles
 
-        // Ensure outlines are hidden for capture
-        const selectedBorders = Array.from(canvasContainer.querySelectorAll('[style*="outline"]')) as HTMLElement[];
-        selectedBorders.forEach(el => el.style.outline = 'none');
+        await new Promise(resolve => setTimeout(resolve, 50)); // Wait for deselection to render
 
         // Generate the proof URL (with product background)
         const proofCanvas = await html2canvas(canvasContainer, {
-            backgroundColor: null, // Use existing background
+            backgroundColor: null,
             logging: false,
             useCORS: true,
         });
@@ -119,16 +126,18 @@ const useCustomizationStore = create<CustomizationState>()((set, get) => ({
 
         // Generate the print URL (transparent background)
         const printCanvas = await html2canvas(canvasContainer, {
-            backgroundColor: null, // Transparent background
+            backgroundColor: null, 
             logging: false,
             useCORS: true,
-            // Instruct html2canvas to ignore the background product image
             ignoreElements: (element) => element.id === 'canvas-image',
         });
         const printUrl = printCanvas.toDataURL('image/png');
 
-        // Restore outlines after capture
-        selectedBorders.forEach(el => el.style.outline = '2px dashed hsl(var(--primary))');
+        // Restore previous state
+        if (side !== currentActiveSide) {
+             setActiveSide(currentActiveSide);
+        }
+        set({ selectedElementId: previouslySelectedId });
 
         return { proofUrl, printUrl };
     }

@@ -38,7 +38,7 @@ const generateImageFlow = ai.defineFlow(
     if (sourceImageUrl) {
         // Image-to-Image generation
         const { media } = await ai.generate({
-            model: googleAI.model('gemini-2.0-flash-preview-image-generation'),
+            model: googleAI.model('gemini-2.5-flash-image-preview'),
             prompt: [
                 { media: { url: sourceImageUrl } },
                 { text: prompt },

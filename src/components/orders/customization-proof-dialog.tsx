@@ -45,7 +45,11 @@ export function CustomizationProofDialog({ isOpen, onOpenChange, item }: Customi
               {item.customizations.map((cust, index) => (
                 <CarouselItem key={index}>
                     <div className="relative aspect-square w-full bg-muted rounded-lg overflow-hidden">
-                        <Image src={cust.proofUrl} alt={`Proof for ${cust.side} side`} fill className="object-contain" />
+                        {cust.proofUrl ? (
+                           <Image src={cust.proofUrl} alt={`Proof for ${cust.side} side`} fill className="object-contain" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">Proof not available</div>
+                        )}
                         <Badge variant="secondary" className="absolute top-2 left-2 capitalize">{cust.side} Side</Badge>
                     </div>
                 </CarouselItem>

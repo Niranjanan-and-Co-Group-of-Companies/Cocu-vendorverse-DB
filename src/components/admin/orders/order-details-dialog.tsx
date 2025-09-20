@@ -107,7 +107,7 @@ export function OrderDetailsDialog({ open, onOpenChange, order }: OrderDetailsDi
                                                                     <FileText className="mr-2 h-3 w-3"/>View Proof
                                                                 </Button>
                                                                 <a href={item.customizations[0].printUrl} download={`${order.orderId}_${item.name}_print.png`}>
-                                                                    <Button size="sm" variant="secondary"><Download className="mr-2 h-3 w-3"/>Download Print File</Button>
+                                                                    <Button size="sm" variant="secondary"><Download className="mr-2 h-3 w-3"/>Download PNG</Button>
                                                                 </a>
                                                             </div>
                                                         )}
