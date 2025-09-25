@@ -47,21 +47,37 @@ export function Search({ platform = 'personalized' }: SearchProps) {
 
   useEffect(() => {
     if (query.length > 0) {
-      const fetchSuggestions = async () => {
+      // 1. Perform instant local search
+      const lowerCaseQuery = query.toLowerCase();
+      const localResults = searchIndex
+        .flatMap(item => [item.name, item.category, item.vendor])
+        .filter((value): value is string => !!value) // Filter out undefined/null values
+        .filter(value => value.toLowerCase().includes(lowerCaseQuery));
+      
+      const uniqueLocalSuggestions = Array.from(new Set(localResults)).slice(0, 5);
+      setSuggestions(uniqueLocalSuggestions);
+      setShowSuggestions(true);
+
+      // 2. Fetch AI suggestions in the background
+      const fetchAiSuggestions = async () => {
         setLoadingSuggestions(true);
         try {
           const result = await getSearchSuggestions({ query, products: searchIndex });
-          setSuggestions(result.suggestions);
+          // Combine and de-duplicate, giving preference to AI results
+          const combined = Array.from(new Set([...result.suggestions, ...uniqueLocalSuggestions]));
+          setSuggestions(combined.slice(0, 7));
         } catch (error) {
-          console.error('Error fetching suggestions:', error);
-          setSuggestions([]);
+          console.error('Error fetching AI suggestions:', error);
+          // Keep local suggestions if AI fails
         }
         setLoadingSuggestions(false);
       };
-      const debounce = setTimeout(fetchSuggestions, 300);
+
+      const debounce = setTimeout(fetchAiSuggestions, 300);
       return () => clearTimeout(debounce);
     } else {
       setSuggestions([]);
+      setShowSuggestions(false);
     }
   }, [query, searchIndex]);
 
@@ -96,27 +112,18 @@ export function Search({ platform = 'personalized' }: SearchProps) {
         />
         {loadingSuggestions && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />}
       </form>
-      {showSuggestions && (suggestions.length > 0 || (loadingSuggestions && query.length > 0)) && (
+      {showSuggestions && (suggestions.length > 0) && (
         <div className="absolute top-full mt-2 w-full rounded-md border bg-popover text-popover-foreground shadow-md z-50">
           <ul className="py-1">
-            {loadingSuggestions && query.length > 0 ? (
-                <li className="px-3 py-2 text-sm text-muted-foreground flex items-center">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span>Finding suggestions...</span>
-                </li>
-            ) : (
-                <>
-                    {suggestions.map((suggestion, index) => (
-                    <li
-                        key={index}
-                        className="px-3 py-2 text-sm cursor-pointer hover:bg-accent"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                    >
-                        {suggestion}
-                    </li>
-                    ))}
-                </>
-            )}
+            {suggestions.map((suggestion, index) => (
+            <li
+                key={index}
+                className="px-3 py-2 text-sm cursor-pointer hover:bg-accent"
+                onClick={() => handleSuggestionClick(suggestion)}
+            >
+                {suggestion}
+            </li>
+            ))}
           </ul>
         </div>
       )}
