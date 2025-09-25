@@ -58,9 +58,8 @@ const getSearchSuggestionsFlow = ai.defineFlow(
     outputSchema: SearchSuggestionsOutputSchema,
   },
   async (input) => {
-    // For simplicity in this example, we'll return a static list if the query is short.
-    if (input.query.length < 2) {
-      return { suggestions: ["Gifts for him", "Corporate Gifts", "Chocolate", "Wellness", "Personalized"] };
+    if (!input.query) {
+        return { suggestions: [] };
     }
 
     const { output } = await prompt(input);
