@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { collection, onSnapshot, getDoc, doc, addDoc, deleteDoc, writeBatch, getDocs, Timestamp, updateDoc, query, where, limit, orderBy } from 'firebase/firestore';
@@ -126,7 +127,7 @@ export async function deleteCampaign(campaignId: string) {
 // Get active campaign for a specific placement
 export async function getActiveCampaignByPlacement(placement: Placement): Promise<Campaign | null> {
     const campaignsRef = collection(db, 'marketingCampaigns');
-    const now = Timestamp.now();
+    const now = new Date();
 
     const q = query(
         campaignsRef,
@@ -148,7 +149,7 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
         const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
         
         const isPlatformMatch = personalizedPlatforms.includes(campaignData.platform);
-        const isNotEnded = !campaignData.endDate || (campaignData.endDate && campaignData.endDate.toDate() > now.toDate());
+        const isNotEnded = !campaignData.endDate || (campaignData.endDate.toDate() > now);
 
         if (isPlatformMatch && isNotEnded) {
             return campaignData; // Return the first valid, active campaign
@@ -162,7 +163,7 @@ export async function getActiveCampaignByPlacement(placement: Placement): Promis
 // Get active campaign for a specific placement
 export async function getActiveCorporateCampaignByPlacement(placement: Placement): Promise<Campaign | null> {
     const campaignsRef = collection(db, 'marketingCampaigns');
-    const now = Timestamp.now();
+    const now = new Date();
 
     const q = query(
         campaignsRef,
@@ -184,7 +185,7 @@ export async function getActiveCorporateCampaignByPlacement(placement: Placement
         const campaignData = { id: campaignDoc.id, ...campaignDoc.data() } as Campaign;
         
         const isPlatformMatch = corporatePlatforms.includes(campaignData.platform);
-        const isNotEnded = !campaignData.endDate || (campaignData.endDate && campaignData.endDate.toDate() > now.toDate());
+        const isNotEnded = !campaignData.endDate || (campaignData.endDate.toDate() > now);
 
         if (isPlatformMatch && isNotEnded) {
             return campaignData;
