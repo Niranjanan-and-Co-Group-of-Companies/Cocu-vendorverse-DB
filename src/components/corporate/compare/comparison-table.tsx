@@ -60,7 +60,8 @@ const featureRows = [
 export function ComparisonTable({ products }: ComparisonTableProps) {
   const [productsWithPrices, setProductsWithPrices] = React.useState<ProductWithPrice[]>([]);
 
-  React.useEffect(() => {
+    React.useEffect(() => {
+    let isMounted = true;
     const fetchPrices = async () => {
         const pricedProducts = await Promise.all(
             products.map(async p => {
@@ -81,9 +82,12 @@ export function ComparisonTable({ products }: ComparisonTableProps) {
                 })
             })
         );
-        setProductsWithPrices(pricedProducts);
+        if (isMounted) {
+            setProductsWithPrices(pricedProducts);
+        }
     }
     fetchPrices();
+    return () => { isMounted = false };
   }, [products]);
   
   return (
