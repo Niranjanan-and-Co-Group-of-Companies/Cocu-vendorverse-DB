@@ -63,8 +63,8 @@ export default function Footer() {
                  <Link href={homeHref} className="flex items-center gap-2 font-bold text-lg mb-4">
                     <Image src="/logo.svg" alt="CO&Cu logo" width={180} height={72} className="h-auto w-auto max-h-24" />
                 </Link>
-                <p className="text-sm text-muted-foreground flex items-center">
-                    Where Custom Meets Care <Gift className="ml-2 h-4 w-4 text-foreground" />
+                <p className="text-sm text-muted-foreground">
+                    Where Custom Meets Care
                 </p>
             </div>
           <div>
