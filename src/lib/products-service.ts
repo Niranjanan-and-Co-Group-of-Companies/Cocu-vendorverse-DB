@@ -12,6 +12,7 @@ import { getCategoryByName } from './categories-service';
 import { calculateDisplayPrice } from './pricing-service';
 import type { CommissionRule } from './commissions-service';
 import { makePlain } from './utils';
+import { generateSeoMetadata } from '@/ai/flows/generate-seo-flow';
 
 export type PlainProduct = Omit<Product, 'createdAt' | 'updatedAt' | 'variants'> & {
   createdAt: string | null;
@@ -198,6 +199,16 @@ export async function saveProduct(
     // Set top-level product image based on the main variant
     finalProductData.image = mainVariant?.image || 'https://placehold.co/600x400';
     
+     // Generate SEO metadata if the product is being published
+    if (finalProductData.status === 'Live' || finalProductData.status === 'Pending Review') {
+        const seoData = await generateSeoMetadata({
+            productName: finalProductData.name!,
+            description: finalProductData.description!,
+            category: finalProductData.category!,
+        });
+        Object.assign(finalProductData, seoData);
+    }
+    
     await setDoc(docRef, finalProductData, { merge: true });
     return productId;
 }
@@ -291,5 +302,6 @@ export async function approveProduct(productId: string) {
 export async function declineProduct(productId: string) {
     await updateProductStatus(String(productId), 'Declined');
 }
+
 
 
