@@ -11,12 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, Truck } from 'lucide-react';
+import { ArrowLeft, FileText, PackageReturn } from 'lucide-react';
 import Link from 'next/link';
+import { ReturnRequestDialog } from '@/components/orders/return-request-dialog';
 
 function OrderDetailsPageContent({ id }: { id: string }) {
     const [order, setOrder] = React.useState<Order | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const [isReturnDialogOpen, setIsReturnDialogOpen] = React.useState(false);
 
     React.useEffect(() => {
         if (!id) return;
@@ -87,78 +89,91 @@ function OrderDetailsPageContent({ id }: { id: string }) {
     }
 
     return (
-        <div className="space-y-6">
-            <Link href="/account?tab=orders" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to My Orders
-            </Link>
+        <>
+            <div className="space-y-6">
+                <Link href="/account?tab=orders" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to My Orders
+                </Link>
 
-             <div>
-                <h1 className="text-2xl font-bold font-headline">Order Details</h1>
-                <p className="text-muted-foreground">Order ID: <span className="font-mono">{order.orderId}</span></p>
-            </div>
+                 <div>
+                    <h1 className="text-2xl font-bold font-headline">Order Details</h1>
+                    <p className="text-muted-foreground">Order ID: <span className="font-mono">{order.orderId}</span></p>
+                </div>
 
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Order Status</CardTitle>
-                        <CardDescription>Placed on {formatDate(order.date)}</CardDescription>
-                    </div>
-                    <Badge variant={getStatusVariant(order.status)} className="text-base px-4 py-2">{order.status}</Badge>
-                </CardHeader>
-                <CardContent>
-                    {/* Placeholder for status timeline component */}
-                     <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-primary" style={{width: '66%'}}></div>
-                     </div>
-                </CardContent>
-            </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>Order Status</CardTitle>
+                            <CardDescription>Placed on {formatDate(order.date)}</CardDescription>
+                        </div>
+                        <Badge variant={getStatusVariant(order.status)} className="text-base px-4 py-2">{order.status}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                        {/* Placeholder for status timeline component */}
+                         <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div className="h-full bg-primary" style={{width: '66%'}}></div>
+                         </div>
+                    </CardContent>
+                </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                <div className="lg:col-span-2 space-y-4">
-                    <Card>
-                         <CardHeader><CardTitle>Items in this order</CardTitle></CardHeader>
-                         <CardContent>
-                            {order.items.map((item, index) => (
-                                <div key={item.id}>
-                                    <div className="flex items-center gap-4">
-                                        <Link href={`/products/${item.id}`}>
-                                            <Image src={item.image} alt={item.name} width={80} height={80} className="rounded-md aspect-square object-cover"/>
-                                        </Link>
-                                        <div className="flex-grow">
-                                            <Link href={`/products/${item.id}`} className="font-semibold hover:underline">{item.name}</Link>
-                                            <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                    <div className="lg:col-span-2 space-y-4">
+                        <Card>
+                             <CardHeader><CardTitle>Items in this order</CardTitle></CardHeader>
+                             <CardContent>
+                                {order.items.map((item, index) => (
+                                    <div key={item.id}>
+                                        <div className="flex items-center gap-4">
+                                            <Link href={`/products/${item.id}`}>
+                                                <Image src={item.image} alt={item.name} width={80} height={80} className="rounded-md aspect-square object-cover"/>
+                                            </Link>
+                                            <div className="flex-grow">
+                                                <Link href={`/products/${item.id}`} className="font-semibold hover:underline">{item.name}</Link>
+                                                <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                                            </div>
+                                            <p className="font-semibold">{formatCurrency(parseFloat(item.price) * item.quantity)}</p>
                                         </div>
-                                        <p className="font-semibold">{formatCurrency(parseFloat(item.price) * item.quantity)}</p>
+                                        {index < order.items.length - 1 && <Separator className="my-4"/>}
                                     </div>
-                                    {index < order.items.length - 1 && <Separator className="my-4"/>}
-                                </div>
-                            ))}
-                         </CardContent>
-                    </Card>
-                </div>
-                <div className="space-y-4">
-                     <Card>
-                        <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
-                        <CardContent className="space-y-2">
-                             <div className="flex justify-between text-sm"><span>Subtotal:</span><span>{formatCurrency(order.subtotal)}</span></div>
-                             <div className="flex justify-between text-sm"><span>Shipping:</span><span>{formatCurrency(order.shipping)}</span></div>
-                             <Separator />
-                             <div className="flex justify-between font-bold"><span>Total:</span><span>{formatCurrency(order.total)}</span></div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader><CardTitle>Shipping Information</CardTitle></CardHeader>
-                        <CardContent>
-                            <address className="not-italic text-sm">
-                                {order.customer.shippingAddress.split(',').map(line => <span key={line} className="block">{line.trim()}</span>)}
-                            </address>
-                        </CardContent>
-                    </Card>
-                     <Button variant="outline" className="w-full"><FileText className="mr-2"/>Download Invoice</Button>
+                                ))}
+                             </CardContent>
+                        </Card>
+                    </div>
+                    <div className="space-y-4">
+                         <Card>
+                            <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
+                            <CardContent className="space-y-2">
+                                 <div className="flex justify-between text-sm"><span>Subtotal:</span><span>{formatCurrency(order.subtotal)}</span></div>
+                                 <div className="flex justify-between text-sm"><span>Shipping:</span><span>{formatCurrency(order.shipping)}</span></div>
+                                 <Separator />
+                                 <div className="flex justify-between font-bold"><span>Total:</span><span>{formatCurrency(order.total)}</span></div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader><CardTitle>Shipping Information</CardTitle></CardHeader>
+                            <CardContent>
+                                <address className="not-italic text-sm">
+                                    {order.customer.shippingAddress.split(',').map(line => <span key={line} className="block">{line.trim()}</span>)}
+                                </address>
+                            </CardContent>
+                        </Card>
+                         <Button variant="outline" className="w-full"><FileText className="mr-2"/>Download Invoice</Button>
+                         {order.status === 'Delivered' && (
+                             <Button variant="secondary" className="w-full" onClick={() => setIsReturnDialogOpen(true)}>
+                                <PackageReturn className="mr-2" />
+                                Request a Return
+                             </Button>
+                         )}
+                    </div>
                 </div>
             </div>
-        </div>
+            <ReturnRequestDialog 
+                isOpen={isReturnDialogOpen}
+                onClose={() => setIsReturnDialogOpen(false)}
+                order={order}
+            />
+        </>
     )
 }
 

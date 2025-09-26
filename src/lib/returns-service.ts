@@ -4,20 +4,23 @@
 import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 
-type RmaStatus = 'Pending Approval' | 'Approved' | 'Rejected' | 'In Transit' | 'Received' | 'Refunded';
-type ReturnReason = 'Damaged Item' | 'Wrong Item' | 'Not as Described' | 'Changed Mind' | 'Other';
+export type RmaStatus = 'Pending Approval' | 'Approved' | 'Rejected' | 'In Transit' | 'Received' | 'Refunded';
+export type ReturnReason = 'Damaged Item' | 'Wrong Item' | 'Not as Described' | 'Customization Issue' | 'Other';
 
 
-interface RmaItem {
+export interface RmaItem {
     productId: string;
-    suborderId: string;
+    productName: string;
     quantity: number;
+    image: string;
 }
 
-interface RmaLog {
+export interface RmaLog {
     id?: string;
     rmaId: string; // Human-readable RMA ID
     orderId: string;
+    orderReadableId: string;
+    customerId: string;
     items: RmaItem[];
     reason: ReturnReason;
     customerComments?: string;
