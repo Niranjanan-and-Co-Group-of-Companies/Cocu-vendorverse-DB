@@ -19,6 +19,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import { Badge } from '../ui/badge';
 import { CorporateCartPreview } from './previews/corporate-cart-preview';
 import { CorporateComparePreview } from './previews/corporate-compare-preview';
+import Image from 'next/image';
 
 
 export default function CorporateHeader() {
@@ -29,10 +30,11 @@ export default function CorporateHeader() {
              <SidebarTrigger />
         </div>
         
-        <div className="hidden md:flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-sm font-medium ml-4">
-             <Briefcase className="h-4 w-4" />
-             <Link href="/corporate/dashboard">Corporate Portal</Link>
-        </div>
+        <Link href="/corporate/dashboard" className="hidden md:flex items-center gap-2 rounded-full bg-muted px-2 py-1 text-sm font-medium ml-4">
+             <Image src="/logo.svg" alt="CO&Cu logo" width={80} height={32} className="h-6 w-auto" />
+             <Separator orientation="vertical" className="h-4" />
+             <span className="font-semibold">Corporate</span>
+        </Link>
         
         <div className="flex-1 flex justify-center px-8">
           <div className="w-full max-w-lg relative">
@@ -58,7 +60,7 @@ export default function CorporateHeader() {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link href="/corporate/account"><User className="mr-2"/>Profile</Link>
+                    <Link href="/corporate/accounts"><User className="mr-2"/>Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link href="/corporate/settings"><Briefcase className="mr-2"/>Company Settings</Link>

@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Gift, Heart, User, LogOut } from 'lucide-react';
+import { Heart, User, LogOut } from 'lucide-react';
 import { Search } from '@/components/search/search';
 import { CartPreview } from './cart-preview';
 import { WishlistPreview } from './wishlist-preview';
@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 import { TermsUpdateDialog } from '../common/terms-update-dialog';
+import Image from 'next/image';
 
 
 export default function Header() {
@@ -42,8 +43,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg mr-6">
-          <Gift className="h-6 w-6 text-primary" />
-          <span className="font-headline">CO&Cu</span>
+          <Image src="/logo.svg" alt="CO&Cu logo" width={100} height={40} className="h-7 w-auto" />
         </Link>
         
         <div className="flex-1 flex justify-center">

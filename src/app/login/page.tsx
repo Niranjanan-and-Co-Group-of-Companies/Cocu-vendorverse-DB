@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Gift, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { loginUser } from '@/lib/auth-service';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -55,9 +56,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-            <Link href="/" className="inline-flex items-center gap-2 font-bold text-2xl">
-                <Gift className="h-8 w-8 text-primary" />
-                <span className="font-headline">CO&Cu</span>
+            <Link href="/" className="inline-block">
+                <Image src="/logo.svg" alt="CO&Cu logo" width={140} height={56} className="h-10 w-auto" />
             </Link>
         </div>
         <Card>

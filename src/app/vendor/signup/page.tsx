@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Gift, Loader2, Eye, EyeOff, Info } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -25,6 +25,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { createVendorApplication, type VendorType, checkVendorExists } from '@/lib/vendors-service';
 import { sendOtp, verifyOtp } from '@/lib/otp-service';
+import Image from 'next/image';
 
 export default function VendorSignupPage() {
   const [step, setStep] = React.useState(1);
@@ -144,9 +145,8 @@ export default function VendorSignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <Link href="/" className="inline-flex items-center gap-2 font-bold text-2xl">
-            <Gift className="h-8 w-8 text-primary" />
-            <span className="font-headline">CO&Cu</span>
+          <Link href="/" className="inline-block">
+            <Image src="/logo.svg" alt="CO&Cu logo" width={140} height={56} className="h-10 w-auto" />
           </Link>
         </div>
         <Card>
@@ -168,9 +168,9 @@ export default function VendorSignupPage() {
                                 <SelectValue placeholder="Select vendor type" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="personalized">Personalized &amp; Retail Products</SelectItem>
-                                <SelectItem value="corporate">Corporate &amp; Bulk Products</SelectItem>
-                                <SelectItem value="both">Both Personalized &amp; Corporate</SelectItem>
+                                <SelectItem value="personalized">Personalized & Retail Products</SelectItem>
+                                <SelectItem value="corporate">Corporate & Bulk Products</SelectItem>
+                                <SelectItem value="both">Both Personalized & Corporate</SelectItem>
                             </SelectContent>
                         </Select>
                      </div>

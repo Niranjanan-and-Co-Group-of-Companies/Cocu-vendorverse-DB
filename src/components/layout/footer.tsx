@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Gift, Linkedin, Twitter, Facebook } from 'lucide-react';
+import { Linkedin, Twitter, Facebook } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { LegalModal } from './legal-modal';
 import { ContactModal } from './contact-modal';
+import Image from 'next/image';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -60,8 +61,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
             <div className="col-span-2 md:col-span-4 lg:col-span-1">
                  <Link href={homeHref} className="flex items-center gap-2 font-bold text-lg mb-4">
-                    <Gift className="h-6 w-6 text-primary" />
-                    <span className="font-headline">CO&Cu</span>
+                    <Image src="/logo.svg" alt="CO&Cu logo" width={120} height={48} className="h-8 w-auto" />
                 </Link>
                 <p className="text-sm text-muted-foreground">A universe of unique gifts from diverse vendors.</p>
             </div>
