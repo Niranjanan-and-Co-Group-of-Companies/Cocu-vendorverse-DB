@@ -9,6 +9,43 @@ import { onProductUpdate } from '@/lib/products-client-service';
 import type { Product } from '@/lib/products';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
+import { getProductById } from '@/lib/products-service';
+import { type Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const product = await getProductById(params.id);
+
+  if (!product) {
+    return {
+      title: 'Product Not Found',
+      description: 'The product you are looking for does not exist.',
+    }
+  }
+
+  return {
+    title: `${product.name} (Corporate) | VendorVerse`,
+    description: product.description?.substring(0, 160) || 'Discover unique corporate gifts at VendorVerse.',
+    openGraph: {
+      title: `${product.name} (Corporate)`,
+      description: product.description?.substring(0, 160) || 'Discover unique corporate gifts at VendorVerse.',
+      images: [
+        {
+          url: product.image,
+          width: 800,
+          height: 600,
+          alt: product.name,
+        },
+      ],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${product.name} (Corporate)`,
+      description: product.description?.substring(0, 160) || 'Discover unique corporate gifts at VendorVerse.',
+      images: [product.image],
+    },
+  }
+}
 
 
 function CorporateProductPageContent({ id }: { id: string }) {
@@ -19,7 +56,7 @@ function CorporateProductPageContent({ id }: { id: string }) {
         if (!id) return;
         
         const unsubscribe = onProductUpdate(id, (productData) => {
-            setProduct(productData);
+            setProduct(productData as Product);
             setLoading(false);
         });
         return () => unsubscribe();
