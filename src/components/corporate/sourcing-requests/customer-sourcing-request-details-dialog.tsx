@@ -9,20 +9,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
+  DialogClose
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, Phone, User, Paperclip } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Download, Mail, Phone, User, Paperclip } from 'lucide-react';
 
-interface SourcingRequestDetailsDialogProps {
+interface CustomerSourcingRequestDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   request: SourcingRequest | null;
-  onStatusChange: (id: string, status: SourcingRequest['status']) => void;
 }
 
-export function SourcingRequestDetailsDialog({ open, onOpenChange, request, onStatusChange }: SourcingRequestDetailsDialogProps) {
+export function CustomerSourcingRequestDetailsDialog({ open, onOpenChange, request }: CustomerSourcingRequestDetailsDialogProps) {
   if (!request) return null;
 
   const getStatusVariant = (status: string) => {
@@ -42,11 +42,11 @@ export function SourcingRequestDetailsDialog({ open, onOpenChange, request, onSt
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
-            <span>Sourcing Request: #{request.id.slice(0,8)}...</span>
+            <span>Request Details: #{request.id.slice(0,8)}...</span>
             <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
           </DialogTitle>
           <DialogDescription>
-            From: {request.contactName}
+            Submitted on: {request.createdAt?.toDate().toLocaleDateString() || 'N/A'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid md:grid-cols-2 gap-6 py-4">
@@ -62,7 +62,7 @@ export function SourcingRequestDetailsDialog({ open, onOpenChange, request, onSt
                  </div>
                  {request.attachments && request.attachments.length > 0 && (
                      <div>
-                        <h4 className="font-semibold text-sm">Attachments</h4>
+                        <h4 className="font-semibold text-sm">Your Attachments</h4>
                         <div className="flex flex-col gap-2 mt-2">
                         {request.attachments.map((file, i) => (
                             <a href={file.url} key={i} target="_blank" rel="noopener noreferrer">
@@ -88,31 +88,13 @@ export function SourcingRequestDetailsDialog({ open, onOpenChange, request, onSt
                     </div>
                 </div>
                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <h4 className="font-semibold text-sm">Date Requested</h4>
-                        <p className="text-muted-foreground">{request.createdAt?.toDate().toLocaleDateString() || 'N/A'}</p>
-                    </div>
                      <div>
                         <h4 className="font-semibold text-sm">Required By</h4>
                         <p className="text-muted-foreground">{request.requiredBy?.toDate().toLocaleDateString() || 'N/A'}</p>
                     </div>
                 </div>
-                 <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Update Status</h4>
-                    <Select value={request.status} onValueChange={(value) => onStatusChange(request.id, value as SourcingRequest['status'])}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="New">New</SelectItem>
-                            <SelectItem value="In Progress">In Progress</SelectItem>
-                            <SelectItem value="Sourced">Sourced</SelectItem>
-                            <SelectItem value="Closed">Closed</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
                 <div className="space-y-2 pt-2 border-t">
-                    <h4 className="font-semibold text-sm">Contact Details</h4>
+                    <h4 className="font-semibold text-sm">Contact Person</h4>
                     <div className="text-sm text-muted-foreground space-y-1">
                         <div className="flex items-center gap-2">
                             <User className="h-4 w-4" />
@@ -126,6 +108,11 @@ export function SourcingRequestDetailsDialog({ open, onOpenChange, request, onSt
                 </div>
             </div>
         </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

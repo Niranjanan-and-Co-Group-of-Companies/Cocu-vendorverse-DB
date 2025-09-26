@@ -18,9 +18,7 @@ import { onCustomerSourcingRequestsUpdate } from '@/lib/sourcing-requests-client
 import type { SourcingRequest } from '@/lib/sourcing-requests-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { SourcingRequestDetailsDialog } from '@/components/admin/sourcing-requests/sourcing-request-details-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { updateSourcingRequestStatus } from '@/lib/sourcing-requests-service';
+import { CustomerSourcingRequestDetailsDialog } from '@/components/corporate/sourcing-requests/customer-sourcing-request-details-dialog';
 
 // In a real app, this would come from an auth context.
 const CUSTOMER_ID = 'corp-123';
@@ -29,7 +27,6 @@ export default function CorporateSourcingRequestsPage() {
     const [requests, setRequests] = React.useState<SourcingRequest[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [selectedRequest, setSelectedRequest] = React.useState<SourcingRequest | null>(null);
-    const { toast } = useToast();
     
     React.useEffect(() => {
         const unsubscribe = onCustomerSourcingRequestsUpdate(CUSTOMER_ID, (data) => {
@@ -46,15 +43,6 @@ export default function CorporateSourcingRequestsPage() {
             case 'Sourced': return 'secondary';
             case 'Closed': return 'outline';
             default: return 'outline';
-        }
-    };
-    
-    const handleStatusChange = async (id: string, status: SourcingRequest['status']) => {
-        try {
-            await updateSourcingRequestStatus(id, status);
-            toast({ title: 'Status Updated', description: `Request ${id} marked as "${status}".` });
-        } catch (error) {
-            toast({ title: 'Error', description: 'Failed to update status.', variant: 'destructive'});
         }
     };
 
@@ -114,11 +102,10 @@ export default function CorporateSourcingRequestsPage() {
                     </CardContent>
                 </Card>
             </div>
-            <SourcingRequestDetailsDialog
+            <CustomerSourcingRequestDetailsDialog
                 request={selectedRequest}
                 open={!!selectedRequest}
                 onOpenChange={(isOpen) => !isOpen && setSelectedRequest(null)}
-                onStatusChange={handleStatusChange}
             />
         </>
     );
