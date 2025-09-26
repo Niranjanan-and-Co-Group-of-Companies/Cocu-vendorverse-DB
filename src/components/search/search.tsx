@@ -50,8 +50,8 @@ export function Search({ platform = 'personalized' }: SearchProps) {
       // 1. Perform instant local search
       const lowerCaseQuery = query.toLowerCase();
       const localResults = searchIndex
-        .flatMap(item => [item.name, item.category, item.vendor])
-        .filter((value): value is string => !!value) // Filter out undefined/null values
+        .flatMap(item => [item.name, item.category]) // Exclude vendor from local suggestions
+        .filter((value): value is string => !!value)
         .filter(value => value.toLowerCase().includes(lowerCaseQuery));
       
       const uniqueLocalSuggestions = Array.from(new Set(localResults)).slice(0, 5);
