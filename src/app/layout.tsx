@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
   title: 'CO&Cu',
-  description: 'A universe of gifts from diverse vendors, perfect for personal and corporate gifting.',
+  description: 'Where Custom Meets Care. A universe of unique gifts from diverse vendors, perfect for personal and corporate gifting.',
 };
 
 export default function RootLayout({

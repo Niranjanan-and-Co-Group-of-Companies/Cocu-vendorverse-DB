@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Linkedin, Twitter, Facebook } from 'lucide-react';
+import { Linkedin, Twitter, Facebook, Gift } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
@@ -63,7 +63,9 @@ export default function Footer() {
                  <Link href={homeHref} className="flex items-center gap-2 font-bold text-lg mb-4">
                     <Image src="/logo.svg" alt="CO&Cu logo" width={180} height={72} className="h-20 w-auto" />
                 </Link>
-                <p className="text-sm text-muted-foreground">A universe of unique gifts from diverse vendors.</p>
+                <p className="text-sm text-muted-foreground flex items-center">
+                    "Where Custom Meets Care" <Gift className="ml-2 h-4 w-4 text-primary" />
+                </p>
             </div>
           <div>
             <h4 className="font-headline font-semibold">Gifting</h4>
