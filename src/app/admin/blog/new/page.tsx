@@ -20,7 +20,7 @@ function NewPostPageContent() {
     const { toast } = useToast();
 
     const [title, setTitle] = React.useState('');
-    const [author, setAuthor] = React.useState('VendorVerse Admin');
+    const [author, setAuthor] = React.useState('CO&Cu Admin');
     const [featuredImage, setFeaturedImage] = React.useState<File | null>(null);
     const [featuredImageUrl, setFeaturedImageUrl] = React.useState('');
     const [content, setContent] = React.useState<ContentBlock[]>([]);

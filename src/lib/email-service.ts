@@ -11,13 +11,13 @@ export type MailSenderType = 'SYSTEM' | 'ORDERS' | 'VENDORS' | 'CHAMPIONS' | 'CO
 
 // Map the sender types to their corresponding from addresses and tokens
 const SENDER_CONFIG: Record<MailSenderType, { address: string; name: string; token: string | undefined; }> = {
-    SYSTEM: { address: 'system@coandcu.com', name: 'VendorVerse System', token: process.env.ZEPTOMAIL_SYSTEM_TOKEN },
-    ORDERS: { address: 'orders@coandcu.com', name: 'VendorVerse Orders', token: process.env.ZEPTOMAIL_ORDERS_TOKEN },
-    VENDORS: { address: 'vendors@coandcu.com', name: 'VendorVerse for Vendors', token: process.env.ZEPTOMAIL_VENDORS_TOKEN },
-    CHAMPIONS: { address: 'champions@coandcu.com', name: 'VendorVerse Champions', token: process.env.ZEPTOMAIL_CHAMPIONS_TOKEN },
-    CORPORATE: { address: 'corporate@coandcu.com', name: 'VendorVerse Corporate', token: process.env.ZEPTOMAIL_CORPORATE_TOKEN },
-    SUPPORT: { address: 'support@coandcu.com', name: 'VendorVerse Support', token: process.env.ZEPTOMAIL_SUPPORT_TOKEN },
-    HELLO: { address: 'hello@coandcu.com', name: 'VendorVerse', token: process.env.ZEPTOMAIL_HELLO_TOKEN },
+    SYSTEM: { address: 'system@coandcu.com', name: 'CO&Cu System', token: process.env.ZEPTOMAIL_SYSTEM_TOKEN },
+    ORDERS: { address: 'orders@coandcu.com', name: 'CO&Cu Orders', token: process.env.ZEPTOMAIL_ORDERS_TOKEN },
+    VENDORS: { address: 'vendors@coandcu.com', name: 'CO&Cu for Vendors', token: process.env.ZEPTOMAIL_VENDORS_TOKEN },
+    CHAMPIONS: { address: 'champions@coandcu.com', name: 'CO&Cu Champions', token: process.env.ZEPTOMAIL_CHAMPIONS_TOKEN },
+    CORPORATE: { address: 'corporate@coandcu.com', name: 'CO&Cu Corporate', token: process.env.ZEPTOMAIL_CORPORATE_TOKEN },
+    SUPPORT: { address: 'support@coandcu.com', name: 'CO&Cu Support', token: process.env.ZEPTOMAIL_SUPPORT_TOKEN },
+    HELLO: { address: 'hello@coandcu.com', name: 'CO&Cu', token: process.env.ZEPTOMAIL_HELLO_TOKEN },
 };
 
 

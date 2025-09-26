@@ -56,7 +56,7 @@ export default function BlogAdminPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold">Blog Management</h1>
-                    <p className="text-muted-foreground">Create and manage content for The VendorVerse Blog.</p>
+                    <p className="text-muted-foreground">Create and manage content for The CO&Cu Blog.</p>
                 </div>
                 <Button asChild>
                     <Link href="/admin/blog/new">

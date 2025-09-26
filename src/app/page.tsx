@@ -63,7 +63,7 @@ const HeroSection = () => {
              <Gift className="h-10 w-10 text-primary" />
           </div>
           <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter">
-            Welcome to <span className="text-primary">VendorVerse</span>
+            Welcome to <span className="text-primary">CO&Cu</span>
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             A universe of unique gifts from diverse vendors, perfect for personal and corporate occasions.

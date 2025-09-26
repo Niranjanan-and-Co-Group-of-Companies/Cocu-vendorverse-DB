@@ -155,7 +155,7 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
             const role: UserRole = portalType === 'corporate' ? 'corporate-admin' : 'customer';
             await signupUser({ name, email, phone, password, role });
             
-            toast({ title: 'Account Created!', description: 'Welcome to VendorVerse. You can now log in.' });
+            toast({ title: 'Account Created!', description: 'Welcome to CO&Cu. You can now log in.' });
             onSignupSuccess(); 
         } catch (error: any) {
             toast({ title: 'Signup Failed', description: error.message || 'An unexpected error occurred.', variant: 'destructive' });
@@ -242,7 +242,7 @@ function SignupForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 animate-spin" />}
-            Verify & Continue
+            Verify &amp; Continue
         </Button>
         </form>
     );
@@ -254,7 +254,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Welcome to VendorVerse</DialogTitle>
+                    <DialogTitle>Welcome to CO&Cu</DialogTitle>
                     <DialogDescription>
                         Log in or create an account to continue.
                     </DialogDescription>

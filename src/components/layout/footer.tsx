@@ -61,7 +61,7 @@ export default function Footer() {
             <div className="col-span-2 md:col-span-4 lg:col-span-1">
                  <Link href={homeHref} className="flex items-center gap-2 font-bold text-lg mb-4">
                     <Gift className="h-6 w-6 text-primary" />
-                    <span className="font-headline">VendorVerse</span>
+                    <span className="font-headline">CO&Cu</span>
                 </Link>
                 <p className="text-sm text-muted-foreground">A universe of unique gifts from diverse vendors.</p>
             </div>
@@ -112,14 +112,14 @@ export default function Footer() {
         </div>
         <div className="mt-8 flex justify-center">
             <div className="flex gap-4">
-                <Link href="https://twitter.com/vendorverse" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Twitter size={20}/></Link>
-                <Link href="https://linkedin.com/company/vendorverse" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Linkedin size={20}/></Link>
-                <Link href="https://facebook.com/vendorverse" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Facebook size={20}/></Link>
+                <Link href="https://twitter.com/coandcu" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Twitter size={20}/></Link>
+                <Link href="https://linkedin.com/company/coandcu" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Linkedin size={20}/></Link>
+                <Link href="https://facebook.com/coandcu" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Facebook size={20}/></Link>
             </div>
         </div>
         <div className="mt-8 border-t pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <p className="text-sm text-muted-foreground text-center">
-             © {new Date().getFullYear()} VendorVerse. All rights reserved.
+             © {new Date().getFullYear()} CO&Cu. All rights reserved.
           </p>
         </div>
       </div>
@@ -134,7 +134,7 @@ export default function Footer() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Stay Here</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmSwitch}>Logout & Continue</AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmSwitch}>Logout &amp; Continue</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

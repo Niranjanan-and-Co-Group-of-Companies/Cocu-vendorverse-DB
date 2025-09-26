@@ -43,7 +43,7 @@ export default function Header() {
       <div className="container flex h-14 items-center">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg mr-6">
           <Gift className="h-6 w-6 text-primary" />
-          <span className="font-headline">VendorVerse</span>
+          <span className="font-headline">CO&Cu</span>
         </Link>
         
         <div className="flex-1 flex justify-center">
@@ -71,7 +71,7 @@ export default function Header() {
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Hi, {user.name.split(' ')[0]}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild><Link href="/account"><User className="mr-2"/>Profile & Orders</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/account"><User className="mr-2"/>Profile &amp; Orders</Link></DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => setUser(null)}><LogOut className="mr-2"/>Logout</DropdownMenuItem>
                     </DropdownMenuContent>

@@ -1,7 +1,5 @@
 
 import * as React from 'react';
-import Header from '@/components/layout/header';
-import Footer from '@/components/layout/footer';
 import { getProductById } from '@/lib/products-service';
 import { type Metadata } from 'next';
 import { ProductPageClient } from '@/components/product/product-page-client';
@@ -17,11 +15,11 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 
   return {
-    title: `${product.name} | VendorVerse`,
-    description: product.description?.substring(0, 160) || 'Discover unique gifts at VendorVerse.',
+    title: `${product.name} | CO&Cu`,
+    description: product.description?.substring(0, 160) || 'Discover unique gifts at CO&Cu.',
     openGraph: {
       title: product.name,
-      description: product.description?.substring(0, 160) || 'Discover unique gifts at VendorVerse.',
+      description: product.description?.substring(0, 160) || 'Discover unique gifts at CO&Cu.',
       images: [
         {
           url: product.image,
@@ -35,7 +33,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     twitter: {
       card: 'summary_large_image',
       title: product.name,
-      description: product.description?.substring(0, 160) || 'Discover unique gifts at VendorVerse.',
+      description: product.description?.substring(0, 160) || 'Discover unique gifts at CO&Cu.',
       images: [product.image],
     },
   }
@@ -45,12 +43,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     const { id } = params;
 
     return (
-        <div className="flex flex-col min-h-screen bg-background">
-            <Header />
-            <main className="flex-grow">
-                <ProductPageClient id={id} />
-            </main>
-            <Footer />
-        </div>
+        <ProductPageClient id={id} />
     );
 }

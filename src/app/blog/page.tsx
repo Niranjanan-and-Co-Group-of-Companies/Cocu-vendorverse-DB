@@ -51,7 +51,7 @@ export default async function BlogPage() {
             <main className="flex-grow bg-muted/40 py-12">
                 <div className="container max-w-5xl">
                     <div className="text-center mb-12">
-                        <h1 className="text-4xl font-bold font-headline">The VendorVerse Blog</h1>
+                        <h1 className="text-4xl font-bold font-headline">The CO&Cu Blog</h1>
                         <p className="mt-2 text-lg text-muted-foreground">Insights on gifting, vendor stories, and platform updates.</p>
                     </div>
 

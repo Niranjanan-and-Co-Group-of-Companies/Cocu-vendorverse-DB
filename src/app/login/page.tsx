@@ -57,7 +57,7 @@ export default function LoginPage() {
         <div className="text-center mb-6">
             <Link href="/" className="inline-flex items-center gap-2 font-bold text-2xl">
                 <Gift className="h-8 w-8 text-primary" />
-                <span className="font-headline">VendorVerse</span>
+                <span className="font-headline">CO&Cu</span>
             </Link>
         </div>
         <Card>

@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -7,7 +8,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 
 export const metadata: Metadata = {
-  title: 'VendorVerse',
+  title: 'CO&Cu',
   description: 'A universe of gifts from diverse vendors, perfect for personal and corporate gifting.',
 };
 

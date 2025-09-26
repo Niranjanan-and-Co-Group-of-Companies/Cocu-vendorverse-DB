@@ -44,7 +44,7 @@ const generatorPrompt = ai.definePrompt({
   name: 'seoGenerator',
   input: { schema: GenerateSeoMetadataInputSchema },
   output: { schema: GenerateSeoMetadataOutputSchema },
-  prompt: `You are an expert SEO copywriter for an e-commerce gift marketplace called VendorVerse. Your task is to generate compelling, SEO-optimized metadata for a product.
+  prompt: `You are an expert SEO copywriter for an e-commerce gift marketplace called CO&Cu. Your task is to generate compelling, SEO-optimized metadata for a product.
 
 Product Name: {{{productName}}}
 Category: {{{category}}}

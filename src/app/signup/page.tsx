@@ -120,7 +120,7 @@ export default function SignupPage() {
       if(result.success) {
         toast({
             title: "Account Created!",
-            description: "Welcome to VendorVerse. You can now log in.",
+            description: "Welcome to CO&Cu. You can now log in.",
             duration: 7000,
         });
         router.push('/login');
@@ -145,14 +145,14 @@ export default function SignupPage() {
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2 font-bold text-2xl">
             <Gift className="h-8 w-8 text-primary" />
-            <span className="font-headline">VendorVerse</span>
+            <span className="font-headline">CO&Cu</span>
           </Link>
         </div>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-headline">Create an account</CardTitle>
             <CardDescription>
-                {step === 1 ? "Enter your information to get started with VendorVerse." : `Enter the OTP sent to +91 ${phone} to verify your number.`}
+                {step === 1 ? "Enter your information to get started with CO&Cu." : `Enter the OTP sent to +91 ${phone} to verify your number.`}
             </CardDescription>
           </CardHeader>
           <CardContent>

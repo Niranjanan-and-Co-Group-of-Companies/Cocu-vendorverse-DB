@@ -15,11 +15,11 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 
   return {
-    title: `${product.name} (Corporate) | VendorVerse`,
-    description: product.description?.substring(0, 160) || 'Discover unique corporate gifts at VendorVerse.',
+    title: `${product.name} (Corporate) | CO&Cu`,
+    description: product.description?.substring(0, 160) || 'Discover unique corporate gifts at CO&Cu.',
     openGraph: {
       title: `${product.name} (Corporate)`,
-      description: product.description?.substring(0, 160) || 'Discover unique corporate gifts at VendorVerse.',
+      description: product.description?.substring(0, 160) || 'Discover unique corporate gifts at CO&Cu.',
       images: [
         {
           url: product.image,
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     twitter: {
       card: 'summary_large_image',
       title: `${product.name} (Corporate)`,
-      description: product.description?.substring(0, 160) || 'Discover unique corporate gifts at VendorVerse.',
+      description: product.description?.substring(0, 160) || 'Discover unique corporate gifts at CO&Cu.',
       images: [product.image],
     },
   }
@@ -42,8 +42,6 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 export default function CorporateProductPage({ params }: { params: { id: string } }) {
     const { id } = params;
     return (
-        <main className="flex-grow">
-            <ProductPageClient id={id} />
-        </main>
+        <ProductPageClient id={id} />
     );
 }

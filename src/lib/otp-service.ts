@@ -85,7 +85,7 @@ async function sendSmsOtpFlow(phone: string): Promise<{ success: boolean; messag
     const phoneNumberForApi = `91${phone}`;
 
     try {
-        const response = await fetch(`${API_URL}/${API_KEY}/SMS/${phoneNumberForApi}/AUTOGEN/VendorVerseOTP`);
+        const response = await fetch(`${API_URL}/${API_KEY}/SMS/${phoneNumberForApi}/AUTOGEN/COandCuOTP`);
         
         if (!response.ok) {
             const errorBody = await response.text();
@@ -210,4 +210,3 @@ async function verifySmsOtpFlow(phone: string, otpAttempt: string): Promise<{ su
         return { success: false, message: error.message || "An unexpected error occurred." };
     }
 }
-

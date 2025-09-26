@@ -45,40 +45,9 @@ export default function VendorSignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   
   // OTP state
-  const [phoneOtp, setPhoneOtp] = React.useState('');
-  const [emailOtp, setEmailOtp] = React.useState('');
-  
-  // Timer states
-  const [phoneCountdown, setPhoneCountdown] = React.useState(0);
-  const [emailCountdown, setEmailCountdown] = React.useState(0);
-  const phoneTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-  const emailTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [otp, setOtp] = React.useState('');
 
   const passwordCriteria = "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.";
-
-  const startCountdown = (type: 'phone' | 'email') => {
-    if (type === 'phone') {
-        if(phoneTimerRef.current) clearInterval(phoneTimerRef.current);
-        setPhoneCountdown(30);
-        phoneTimerRef.current = setInterval(() => {
-            setPhoneCountdown(prev => (prev <= 1 ? 0 : prev - 1));
-        }, 1000);
-    } else {
-        if(emailTimerRef.current) clearInterval(emailTimerRef.current);
-        setEmailCountdown(30);
-        emailTimerRef.current = setInterval(() => {
-            setEmailCountdown(prev => (prev <= 1 ? 0 : prev - 1));
-        }, 1000);
-    }
-  };
-  
-  React.useEffect(() => {
-    return () => {
-        if (phoneTimerRef.current) clearInterval(phoneTimerRef.current);
-        if (emailTimerRef.current) clearInterval(emailTimerRef.current);
-    }
-  }, []);
-
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,25 +76,21 @@ export default function VendorSignupPage() {
         const { exists, message } = await checkVendorExists(email, `+91${phone}`);
 
         if (exists) {
-            toast({ title: "Account Already Exists", description: message, variant: "destructive" });
+            toast({
+                title: "Account Already Exists",
+                description: message,
+                variant: "destructive",
+            });
             setIsLoading(false);
             return;
         }
 
-        // Send both OTPs simultaneously
-        const [phoneOtpResult, emailOtpResult] = await Promise.all([
-            sendOtp(phone, `${firstName} ${lastName}`),
-            sendOtp(email, `${firstName} ${lastName}`)
-        ]);
-
-        if (phoneOtpResult.success && emailOtpResult.success) {
+        const otpResult = await sendOtp(phone);
+        if (otpResult.success) {
             setStep(3);
-            startCountdown('phone');
-            startCountdown('email');
-            toast({ title: "Verification Required", description: "Verification codes have been sent to your phone and email." });
+            toast({ title: "Verification Required", description: "An OTP has been sent to your phone." });
         } else {
-            if(!phoneOtpResult.success) toast({ title: "Failed to Send Phone OTP", description: phoneOtpResult.message, variant: "destructive"});
-            if(!emailOtpResult.success) toast({ title: "Failed to Send Email OTP", description: emailOtpResult.message, variant: "destructive"});
+            toast({ title: "Failed to Send OTP", description: otpResult.message, variant: "destructive"});
         }
 
     } catch (error) {
@@ -135,19 +100,6 @@ export default function VendorSignupPage() {
         setIsLoading(false);
     }
   }
-  
-  const handleResendOtp = async (type: 'phone' | 'email') => {
-    setIsLoading(true);
-    const target = type === 'phone' ? phone : email;
-    const result = await sendOtp(target, `${firstName} ${lastName}`);
-    if(result.success) {
-        startCountdown(type);
-        toast({ title: `New OTP Sent`, description: `A new verification code has been sent to your ${type}.` });
-    } else {
-        toast({ title: `Failed to Send ${type} OTP`, description: result.message, variant: 'destructive' });
-    }
-    setIsLoading(false);
-  };
 
   const handleFinalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -158,18 +110,9 @@ export default function VendorSignupPage() {
 
     setIsLoading(true);
 
-    const [phoneVerificationResult, emailVerificationResult] = await Promise.all([
-        verifyOtp(phone, phoneOtp),
-        verifyOtp(email, emailOtp)
-    ]);
-
-    if (!phoneVerificationResult.success) {
-        toast({ title: "Invalid Phone OTP", description: phoneVerificationResult.message, variant: "destructive" });
-        setIsLoading(false);
-        return;
-    }
-    if (!emailVerificationResult.success) {
-        toast({ title: "Invalid Email OTP", description: emailVerificationResult.message, variant: "destructive" });
+    const verificationResult = await verifyOtp(phone, otp);
+    if (!verificationResult.success) {
+        toast({ title: "Invalid OTP", description: verificationResult.message, variant: "destructive" });
         setIsLoading(false);
         return;
     }
@@ -203,7 +146,7 @@ export default function VendorSignupPage() {
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2 font-bold text-2xl">
             <Gift className="h-8 w-8 text-primary" />
-            <span className="font-headline">VendorVerse</span>
+            <span className="font-headline">CO&Cu</span>
           </Link>
         </div>
         <Card>
@@ -212,7 +155,7 @@ export default function VendorSignupPage() {
             <CardDescription>
                 {step === 1 && 'Start your journey by telling us what you sell.'}
                 {step === 2 && 'Complete your registration details.'}
-                {step === 3 && 'Enter the codes sent to your phone and email.'}
+                {step === 3 && 'Verify your contact information to complete your application.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -225,9 +168,9 @@ export default function VendorSignupPage() {
                                 <SelectValue placeholder="Select vendor type" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="personalized">Personalized & Retail Products</SelectItem>
-                                <SelectItem value="corporate">Corporate & Bulk Products</SelectItem>
-                                <SelectItem value="both">Both Personalized & Corporate</SelectItem>
+                                <SelectItem value="personalized">Personalized &amp; Retail Products</SelectItem>
+                                <SelectItem value="corporate">Corporate &amp; Bulk Products</SelectItem>
+                                <SelectItem value="both">Both Personalized &amp; Corporate</SelectItem>
                             </SelectContent>
                         </Select>
                      </div>
@@ -301,35 +244,14 @@ export default function VendorSignupPage() {
             )}
             {step === 3 && (
                 <form className="grid gap-4" onSubmit={handleFinalSubmit}>
+                    <p className="text-sm text-center text-muted-foreground">We've sent a 6-digit code to +91 {phone}.</p>
                      <div className="grid gap-2">
                         <Label htmlFor="phone-otp">Phone OTP</Label>
-                        <Input id="phone-otp" value={phoneOtp} onChange={e => setPhoneOtp(e.target.value)} placeholder="Enter 6-digit code" required />
-                         <div className="text-right text-sm text-muted-foreground">
-                            {phoneCountdown > 0 ? (
-                                `Resend code in ${phoneCountdown}s`
-                            ) : (
-                                <Button type="button" variant="link" size="sm" onClick={() => handleResendOtp('phone')} disabled={isLoading}>
-                                    Resend OTP
-                                </Button>
-                            )}
-                        </div>
+                        <Input id="phone-otp" value={otp} onChange={e => setOtp(e.target.value)} placeholder="Enter 6-digit code" required />
                     </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="email-otp">Email OTP</Label>
-                        <Input id="email-otp" value={emailOtp} onChange={e => setEmailOtp(e.target.value)} placeholder="Enter 6-digit code" required />
-                         <div className="text-right text-sm text-muted-foreground">
-                            {emailCountdown > 0 ? (
-                                `Resend code in ${emailCountdown}s`
-                            ) : (
-                                <Button type="button" variant="link" size="sm" onClick={() => handleResendOtp('email')} disabled={isLoading}>
-                                    Resend OTP
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading || phoneOtp.length < 6 || emailOtp.length < 6}>
+                    <Button type="submit" className="w-full" disabled={isLoading || otp.length < 6}>
                          {isLoading && <Loader2 className="mr-2 animate-spin" />}
-                         Verify & Submit Application
+                         Submit Application
                     </Button>
                      <Button variant="link" size="sm" onClick={() => setStep(2)}>Go Back</Button>
                 </form>

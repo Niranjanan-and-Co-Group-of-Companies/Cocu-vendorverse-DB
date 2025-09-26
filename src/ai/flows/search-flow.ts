@@ -34,7 +34,7 @@ const prompt = ai.definePrompt({
   name: 'getSearchSuggestionsPrompt',
   input: { schema: SearchSuggestionsInputSchema },
   output: { schema: SearchSuggestionsOutputSchema },
-  prompt: `You are a helpful search assistant for an e-commerce gift marketplace called VendorVerse. Your goal is to provide relevant search suggestions to users based on their query.
+  prompt: `You are a helpful search assistant for an e-commerce gift marketplace called CO&Cu. Your goal is to provide relevant search suggestions to users based on their query.
 
 Analyze the user's query: {{{query}}}
 
