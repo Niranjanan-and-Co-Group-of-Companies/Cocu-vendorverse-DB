@@ -20,9 +20,6 @@ export default function AboutPage() {
                                 Our mission is to bridge the gap between talented vendors and customers seeking high-quality,
                                 personalized, and corporate gifting solutions.
                             </p>
-                            <div className="relative aspect-video my-8 rounded-lg overflow-hidden">
-                                <Image src="https://picsum.photos/seed/about/1200/600" alt="Our Team" layout="fill" className="object-cover" data-ai-hint="team office" />
-                            </div>
                             <h2>Our Story</h2>
                             <p>
                                 Founded in 2024, VendorVerse was born from a simple idea: gifting should be a joyful and seamless
