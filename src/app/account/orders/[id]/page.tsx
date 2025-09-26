@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, FileText, Undo2 } from 'lucide-react';
 import Link from 'next/link';
 import { ReturnRequestDialog } from '@/components/orders/return-request-dialog';
+import { Progress } from '@/components/ui/progress';
 
 function OrderDetailsPageContent({ id }: { id: string }) {
     const [order, setOrder] = React.useState<Order | null>(null);
@@ -59,6 +60,20 @@ function OrderDetailsPageContent({ id }: { id: string }) {
             case 'Cancelled': return 'destructive';
             default: return 'outline';
         }
+    };
+    
+    const getStatusProgress = (status: Order['status']): number => {
+        const statusMap: Record<Order['status'], number> = {
+            'Pending': 10,
+            'Processing': 25,
+            'Preparing': 40,
+            'Packaging': 55,
+            'Dispatched': 70,
+            'Shipped': 85,
+            'Delivered': 100,
+            'Cancelled': 0,
+        };
+        return statusMap[status] || 0;
     };
 
 
@@ -110,10 +125,7 @@ function OrderDetailsPageContent({ id }: { id: string }) {
                         <Badge variant={getStatusVariant(order.status)} className="text-base px-4 py-2">{order.status}</Badge>
                     </CardHeader>
                     <CardContent>
-                        {/* Placeholder for status timeline component */}
-                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div className="h-full bg-primary" style={{width: '66%'}}></div>
-                         </div>
+                         <Progress value={getStatusProgress(order.status)} className="h-2" />
                     </CardContent>
                 </Card>
 
