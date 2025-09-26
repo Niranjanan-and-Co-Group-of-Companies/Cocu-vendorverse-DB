@@ -29,13 +29,18 @@ function CorporateSearchPageContent() {
   }, []);
 
   React.useEffect(() => {
-    if (!query || allProducts.length === 0) {
+    setLoading(true); // Always start in a loading state when query changes
+    if (!query) {
+        setFilteredProductIds(allProducts.map(p => p.id));
         setLoading(false);
-        setFilteredProductIds([]);
+        return;
+    }
+    
+    if (allProducts.length === 0) {
+        // Still waiting for all products to load
         return;
     }
 
-    setLoading(true);
     const performSearch = async () => {
         try {
             const productMetadatas = allProducts.map(p => ({
@@ -63,13 +68,12 @@ function CorporateSearchPageContent() {
   }, [query, allProducts, toast]);
 
   const searchResults = React.useMemo(() => {
-    if (filteredProductIds.length === 0 && !loading) {
-      if (query) return [];
-      return allProducts;
+    if (filteredProductIds.length === 0) {
+      return [];
     }
     const idSet = new Set(filteredProductIds);
     return filteredProductIds.map(id => allProducts.find(p => p.id === id)).filter((p): p is ProductWithPrice => !!p);
-  }, [filteredProductIds, allProducts, loading, query]);
+  }, [filteredProductIds, allProducts]);
 
   const sortedProducts = React.useMemo(() => {
     let results = [...searchResults];
@@ -100,7 +104,7 @@ function CorporateSearchPageContent() {
       <div>
         <h1 className="text-3xl font-bold font-headline">Search Results for "{query}"</h1>
         <p className="text-muted-foreground mt-2">
-          {sortedProducts.length} corporate products found.
+            {!loading ? `${sortedProducts.length} corporate products found.` : 'Searching...'}
         </p>
       </div>
 

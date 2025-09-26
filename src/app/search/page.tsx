@@ -44,13 +44,18 @@ function SearchResultsContent() {
   }, []);
 
   useEffect(() => {
-    if (!query || allProducts.length === 0) {
+    setLoading(true); // Always start in a loading state when query changes
+    if (!query) {
+        setFilteredProductIds(allProducts.map(p => p.id));
         setLoading(false);
-        setFilteredProductIds([]);
+        return;
+    }
+    
+    if (allProducts.length === 0) {
+        // Still waiting for all products to load
         return;
     }
 
-    setLoading(true);
     const performSearch = async () => {
         try {
             const productMetadatas = allProducts.map(p => ({
@@ -78,15 +83,13 @@ function SearchResultsContent() {
   }, [query, allProducts, toast]);
 
   const searchResults = useMemo(() => {
-    if (filteredProductIds.length === 0 && !loading) {
-      if(query) return []; // Explicitly return empty if query exists but no results
-      // If no query, show all products.
-      return allProducts;
+    if (filteredProductIds.length === 0) {
+        return [];
     }
     const idSet = new Set(filteredProductIds);
     // Maintain the order from the AI result
     return filteredProductIds.map(id => allProducts.find(p => p.id === id)).filter((p): p is ProductWithPrice => !!p);
-  }, [filteredProductIds, allProducts, loading, query]);
+  }, [filteredProductIds, allProducts]);
 
   const filteredProducts = useMemo(() => {
     if (showOutOfStock) {
