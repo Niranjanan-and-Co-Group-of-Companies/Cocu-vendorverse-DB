@@ -246,7 +246,12 @@ export function onAllProductsUpdate(
     let unsubCategories: Unsubscribe | null = null;
     let unsubProducts: Unsubscribe | null = null;
     
-    const q = query(productsCollection, where('status', '==', 'Live'));
+    const platformFilter = platform === 'Corporate' ? ['Corporate', 'Both'] : ['Personalized', 'Both'];
+    const q = query(
+        productsCollection,
+        where('status', '==', 'Live'),
+        where('platform', 'in', platformFilter)
+    );
 
     unsubCategories = onCategoriesWithCommissionsUpdate(platform, (categories) => {
         if (unsubProducts) unsubProducts();
@@ -254,12 +259,7 @@ export function onAllProductsUpdate(
         unsubProducts = onSnapshot(q, async (snapshot) => {
             const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
             const plainProducts = await Promise.all(products.map(serializeProduct));
-
-            const platformFiltered = platform === 'Corporate' 
-                ? plainProducts.filter(p => p.moq && p.moq > 0)
-                : plainProducts;
-            
-            const priced = await priceProducts(platformFiltered, platform, categories);
+            const priced = await priceProducts(plainProducts, platform, categories);
             callback(priced);
         });
     });

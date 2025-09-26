@@ -35,10 +35,9 @@ function SearchResultsContent() {
 
 
   useEffect(() => {
-    // Listener for all products
+    // Listener for all personalized products
     const unsubscribe = onAllProductsUpdate('Personalized', (pricedProducts) => {
         setAllProducts(pricedProducts);
-        // Don't set loading to false here, wait for search results
     });
 
     return () => unsubscribe();
@@ -79,11 +78,15 @@ function SearchResultsContent() {
   }, [query, allProducts, toast]);
 
   const searchResults = useMemo(() => {
-    if (filteredProductIds.length === 0) return [];
+    if (filteredProductIds.length === 0 && !loading) {
+      if(query) return []; // Explicitly return empty if query exists but no results
+      // If no query, show all products.
+      return allProducts;
+    }
     const idSet = new Set(filteredProductIds);
     // Maintain the order from the AI result
     return filteredProductIds.map(id => allProducts.find(p => p.id === id)).filter((p): p is ProductWithPrice => !!p);
-  }, [filteredProductIds, allProducts]);
+  }, [filteredProductIds, allProducts, loading, query]);
 
   const filteredProducts = useMemo(() => {
     if (showOutOfStock) {
@@ -114,7 +117,7 @@ function SearchResultsContent() {
     return (
         <main className="flex-grow container py-8">
             <h1 className="text-2xl font-bold mb-4">
-              Searching...
+              Searching for &quot;{query}&quot;...
             </h1>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -141,7 +144,7 @@ function SearchResultsContent() {
   return (
     <main className="flex-grow container py-8">
         <h1 className="text-2xl font-bold mb-2">
-          Search results for &quot;{query}&quot;
+          {query ? `Search results for "${query}"` : 'All Products'}
         </h1>
          <p className="text-muted-foreground mb-4">{filteredProducts.length} products found</p>
          <div className="flex items-center space-x-2 mb-8">

@@ -4,59 +4,89 @@
 import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { onAllProductsUpdate, type ProductWithPrice } from '@/lib/products-client-service';
-import type { Product } from '@/lib/products';
 import { CorporateProductCard } from '@/components/corporate/corporate-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import type { DisplayPrice } from '@/lib/pricing-service';
-import type { Category } from '@/lib/categories-service';
+import { searchProducts } from '@/ai/flows/search-products-flow';
 
 function CorporateSearchPageContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   
   const [allProducts, setAllProducts] = React.useState<ProductWithPrice[]>([]);
-  const [filteredProducts, setFilteredProducts] = React.useState<ProductWithPrice[]>([]);
+  const [filteredProductIds, setFilteredProductIds] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [sortOption, setSortOption] = React.useState('rating-desc');
   const { toast } = useToast();
 
   React.useEffect(() => {
-    setLoading(true);
     const unsubscribe = onAllProductsUpdate('Corporate', (products) => {
-        const lowerCaseQuery = query.toLowerCase();
-        const results = products.filter(p => 
-             (p.name.toLowerCase().includes(lowerCaseQuery) ||
-             p.vendor.toLowerCase().includes(lowerCaseQuery) ||
-             (p.category && p.category.toLowerCase().includes(lowerCaseQuery)) ||
-             p.description?.toLowerCase().includes(lowerCaseQuery))
-             && p.stock >= (p.moq || 1) // Filter out-of-stock items
-        );
-        setAllProducts(results);
-        setLoading(false);
+        setAllProducts(products);
     });
 
     return () => unsubscribe();
-  }, [query]);
+  }, []);
 
   React.useEffect(() => {
-    let results = [...allProducts];
+    if (!query || allProducts.length === 0) {
+        setLoading(false);
+        setFilteredProductIds([]);
+        return;
+    }
+
+    setLoading(true);
+    const performSearch = async () => {
+        try {
+            const productMetadatas = allProducts.map(p => ({
+                id: p.id,
+                name: p.name,
+                description: p.description || '',
+                category: p.category || '',
+                tags: p.tags || []
+            }));
+
+            const result = await searchProducts({ query, products: productMetadatas });
+            setFilteredProductIds(result.productIds);
+
+        } catch (error) {
+            console.error("AI search failed:", error);
+            toast({ title: "Search Error", description: "Could not perform AI search.", variant: "destructive" });
+            setFilteredProductIds([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    performSearch();
+
+  }, [query, allProducts, toast]);
+
+  const searchResults = React.useMemo(() => {
+    if (filteredProductIds.length === 0 && !loading) {
+      if (query) return [];
+      return allProducts;
+    }
+    const idSet = new Set(filteredProductIds);
+    return filteredProductIds.map(id => allProducts.find(p => p.id === id)).filter((p): p is ProductWithPrice => !!p);
+  }, [filteredProductIds, allProducts, loading, query]);
+
+  const sortedProducts = React.useMemo(() => {
+    let results = [...searchResults];
 
     switch (sortOption) {
       case 'rating-desc':
-        results.sort((a, b) => b.rating - a.rating);
+        results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       case 'price-asc':
-        results.sort((a, b) => a.displayPrice.finalPrice - b.displayPrice.finalPrice);
+        results.sort((a, b) => (a.displayPrice?.finalPrice || 0) - (b.displayPrice?.finalPrice || 0));
         break;
       case 'price-desc':
-        results.sort((a, b) => b.displayPrice.finalPrice - a.displayPrice.finalPrice);
+        results.sort((a, b) => (b.displayPrice?.finalPrice || 0) - (a.displayPrice?.finalPrice || 0));
         break;
     }
-
-    setFilteredProducts(results);
-  }, [sortOption, allProducts]);
+    return results;
+  }, [sortOption, searchResults]);
 
   const handleActionClick = (actionName: string, productName: string) => {
     toast({
@@ -70,7 +100,7 @@ function CorporateSearchPageContent() {
       <div>
         <h1 className="text-3xl font-bold font-headline">Search Results for "{query}"</h1>
         <p className="text-muted-foreground mt-2">
-          {filteredProducts.length} corporate products found.
+          {sortedProducts.length} corporate products found.
         </p>
       </div>
 
@@ -95,9 +125,9 @@ function CorporateSearchPageContent() {
             <Skeleton key={i} className="h-[520px] w-full" />
           ))}
         </div>
-      ) : filteredProducts.length > 0 ? (
+      ) : sortedProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {filteredProducts.map(product => (
+          {sortedProducts.map(product => (
             <CorporateProductCard 
               key={product.id} 
               product={product} 
