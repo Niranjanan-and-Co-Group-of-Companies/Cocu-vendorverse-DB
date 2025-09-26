@@ -57,7 +57,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
             <Link href="/" className="inline-block">
-                <Image src="/logo.svg" alt="CO&Cu logo" width={160} height={64} className="h-12 w-auto" />
+                <Image src="/logo.svg" alt="CO&Cu logo" width={160} height={64} className="h-16 w-auto" />
             </Link>
         </div>
         <Card>

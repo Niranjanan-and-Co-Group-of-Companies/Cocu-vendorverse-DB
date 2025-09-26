@@ -32,7 +32,7 @@ export default function CorporateHeader() {
         </div>
         
         <Link href="/corporate/dashboard" className="hidden md:flex items-center gap-2 rounded-full bg-muted px-2 py-1 text-sm font-medium ml-4">
-             <Image src="/logo.svg" alt="CO&Cu logo" width={120} height={48} className="h-7 w-auto" />
+             <Image src="/logo.svg" alt="CO&Cu logo" width={120} height={48} className="h-10 w-auto" />
              <Separator orientation="vertical" className="h-4" />
              <span className="font-semibold">Corporate</span>
         </Link>
