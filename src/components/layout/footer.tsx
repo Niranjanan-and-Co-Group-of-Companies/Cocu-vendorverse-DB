@@ -61,10 +61,10 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
             <div className="col-span-2 md:col-span-4 lg:col-span-1">
                  <Link href={homeHref} className="flex items-center gap-2 font-bold text-lg mb-4">
-                    <Image src="/logo.svg" alt="CO&Cu logo" width={180} height={72} className="h-20 w-auto" />
+                    <Image src="/logo.svg" alt="CO&Cu logo" width={180} height={72} className="h-auto w-auto max-h-24" />
                 </Link>
                 <p className="text-sm text-muted-foreground flex items-center">
-                    "Where Custom Meets Care" <Gift className="ml-2 h-4 w-4 text-primary" />
+                    Where Custom Meets Care <Gift className="ml-2 h-4 w-4 text-foreground" />
                 </p>
             </div>
           <div>
