@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, PackageReturn } from 'lucide-react';
+import { ArrowLeft, FileText, Undo2 } from 'lucide-react';
 import Link from 'next/link';
 import { ReturnRequestDialog } from '@/components/orders/return-request-dialog';
 
@@ -161,7 +161,7 @@ function OrderDetailsPageContent({ id }: { id: string }) {
                          <Button variant="outline" className="w-full"><FileText className="mr-2"/>Download Invoice</Button>
                          {order.status === 'Delivered' && (
                              <Button variant="secondary" className="w-full" onClick={() => setIsReturnDialogOpen(true)}>
-                                <PackageReturn className="mr-2" />
+                                <Undo2 className="mr-2" />
                                 Request a Return
                              </Button>
                          )}
