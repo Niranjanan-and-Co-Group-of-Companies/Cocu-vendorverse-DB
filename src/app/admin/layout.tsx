@@ -1,4 +1,3 @@
-
 'use client';
 import { usePathname } from 'next/navigation';
 import {
@@ -44,7 +43,8 @@ import {
   BookCopy,
   Webhook,
   Inbox,
-  Newspaper
+  Newspaper,
+  PackageReturn
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -168,6 +168,14 @@ function AdminSidebar() {
                         <span>Orders</span>
                         </Link>
                     </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive('/admin/returns')} tooltip={{ children: 'Returns' }}>
+                        <Link href="/admin/returns">
+                          <PackageReturn />
+                          <span>Returns</span>
+                        </Link>
+                      </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin/users')} tooltip={{ children: 'Users' }}>
