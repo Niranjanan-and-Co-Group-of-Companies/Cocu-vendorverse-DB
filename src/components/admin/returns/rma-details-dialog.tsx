@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { updateRmaStatus } from '@/lib/admin/returns-service';
-import { Check, Loader2, X } from 'lucide-react';
+import { Check, Loader2, X, Paperclip } from 'lucide-react';
 import Link from 'next/link';
 
 interface RmaDetailsDialogProps {
@@ -69,6 +69,21 @@ export function RmaDetailsDialog({ rma, isOpen, onOpenChange }: RmaDetailsDialog
                   </div>
                 </div>
               ))}
+            </div>
+             <div>
+                <h4 className="font-semibold">Attachments</h4>
+                <div className="mt-2 space-y-2">
+                    {rma.attachments && rma.attachments.length > 0 ? rma.attachments.map((file, i) => (
+                         <a key={i} href={file.url} target="_blank" rel="noopener noreferrer" className="block">
+                            <Button variant="outline" className="w-full justify-start">
+                               <Paperclip className="mr-2 h-4 w-4" />
+                               <span>{file.name}</span>
+                            </Button>
+                        </a>
+                    )) : (
+                        <p className="text-sm text-muted-foreground">No attachments provided.</p>
+                    )}
+                </div>
             </div>
           </div>
           <div className="space-y-4">

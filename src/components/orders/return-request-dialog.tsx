@@ -15,12 +15,13 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, UploadCloud, X, Paperclip } from 'lucide-react';
 import Image from 'next/image';
 import type { Order, OrderItem } from '@/lib/orders-service';
 import type { ReturnReason, RmaItem } from '@/lib/returns-service';
 import { createReturnRequest } from '@/lib/returns-service';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '../ui/input';
 
 interface ReturnRequestDialogProps {
   isOpen: boolean;
@@ -34,13 +35,35 @@ export function ReturnRequestDialog({ isOpen, onClose, order }: ReturnRequestDia
   const [selectedItems, setSelectedItems] = React.useState<string[]>([]);
   const [reason, setReason] = React.useState<ReturnReason | ''>('');
   const [comments, setComments] = React.useState('');
+  const [files, setFiles] = React.useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const handleItemSelect = (itemId: string, isChecked: boolean) => {
     setSelectedItems(prev => 
         isChecked ? [...prev, itemId] : prev.filter(id => id !== itemId)
     );
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFiles = Array.from(e.target.files || []);
+    if (files.length + newFiles.length > 3) {
+      toast({
+        title: 'Upload limit reached',
+        description: 'You can upload a maximum of 3 files.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const handleRemoveFile = (fileToRemove: File) => {
+    setFiles(prev => prev.filter(file => file !== fileToRemove));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
   
   const handleSubmit = async () => {
@@ -50,6 +73,10 @@ export function ReturnRequestDialog({ isOpen, onClose, order }: ReturnRequestDia
       }
       if (!reason) {
           toast({ title: "Reason required", description: "Please select a reason for your return.", variant: "destructive" });
+          return;
+      }
+       if (files.length === 0) {
+          toast({ title: "Image proof required", description: "Please upload at least one image showing the issue.", variant: "destructive" });
           return;
       }
 
@@ -72,6 +99,7 @@ export function ReturnRequestDialog({ isOpen, onClose, order }: ReturnRequestDia
               items: itemsToReturn,
               reason: reason,
               customerComments: comments,
+              files: files,
           });
           toast({ title: "Return Request Submitted", description: "Our team will review your request and get back to you shortly."});
           onClose();
@@ -80,6 +108,7 @@ export function ReturnRequestDialog({ isOpen, onClose, order }: ReturnRequestDia
               setSelectedItems([]);
               setReason('');
               setComments('');
+              setFiles([]);
           }, 300);
 
       } catch (error) {
@@ -95,12 +124,12 @@ export function ReturnRequestDialog({ isOpen, onClose, order }: ReturnRequestDia
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Request a Return for Order #{order.orderId}</DialogTitle>
-          <DialogDescription>Select the items you wish to return and provide a reason.</DialogDescription>
+          <DialogDescription>Select the items you wish to return and provide a reason and photo proof.</DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-6">
+        <div className="py-4 space-y-6 max-h-[70vh] overflow-y-auto pr-2">
             <div className="space-y-4">
-                <Label>Select Items</Label>
-                <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                <Label>1. Select Items</Label>
+                <div className="space-y-3">
                     {order.items.map(item => (
                         <div key={item.id} className="flex items-start gap-3 p-2 border rounded-md">
                            <Checkbox 
@@ -121,7 +150,7 @@ export function ReturnRequestDialog({ isOpen, onClose, order }: ReturnRequestDia
                 </div>
             </div>
             <div className="space-y-2">
-                <Label htmlFor="return-reason">Reason for Return</Label>
+                <Label htmlFor="return-reason">2. Reason for Return</Label>
                 <Select value={reason} onValueChange={(value) => setReason(value as ReturnReason)}>
                     <SelectTrigger id="return-reason">
                         <SelectValue placeholder="Select a reason" />
@@ -133,8 +162,44 @@ export function ReturnRequestDialog({ isOpen, onClose, order }: ReturnRequestDia
                     </SelectContent>
                 </Select>
             </div>
+            <div className="space-y-2">
+                <Label>3. Upload Photo Proof (Required)</Label>
+                <Label
+                    htmlFor="reference-files"
+                    className="relative block border-2 border-dashed border-muted rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
+                >
+                    <UploadCloud className="mx-auto h-10 w-10 text-muted-foreground" />
+                    <p className="mt-2 text-sm text-muted-foreground">Drag & drop or click to upload</p>
+                    <Input
+                        id="reference-files"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={files.length >= 3}
+                    />
+                </Label>
+                {files.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                        <p className="text-sm font-medium">Selected files:</p>
+                        {files.map((file, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 text-sm rounded-md bg-muted">
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <Paperclip className="h-4 w-4 flex-shrink-0" />
+                                    <span className="truncate">{file.name}</span>
+                                </div>
+                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => handleRemoveFile(file)}>
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
              <div className="space-y-2">
-                <Label htmlFor="return-comments">Comments (Optional)</Label>
+                <Label htmlFor="return-comments">4. Comments (Optional)</Label>
                 <Textarea 
                     id="return-comments" 
                     value={comments}

@@ -2,7 +2,8 @@
 'use server';
 
 import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, storage } from './firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export type RmaStatus = 'Pending Approval' | 'Approved' | 'Rejected' | 'In Transit' | 'Received' | 'Refunded';
 export type ReturnReason = 'Damaged Item' | 'Wrong Item' | 'Not as Described' | 'Customization Issue' | 'Other';
@@ -24,6 +25,7 @@ export interface RmaLog {
     items: RmaItem[];
     reason: ReturnReason;
     customerComments?: string;
+    attachments: { name: string; url: string; }[];
     status: RmaStatus;
     createdAt: any; // Firestore Timestamp
     updatedAt: any; // Firestore Timestamp
@@ -38,12 +40,24 @@ export interface RmaLog {
  * Creates a return request (RMA).
  * @param data - The data for the return request.
  */
-export async function createReturnRequest(data: Omit<RmaLog, 'id' | 'rmaId' | 'status' | 'createdAt' | 'updatedAt'>) {
+export async function createReturnRequest(data: Omit<RmaLog, 'id' | 'rmaId' | 'status' | 'createdAt' | 'updatedAt' | 'attachments'> & { files: File[] }) {
+    const { files, ...requestData } = data;
     const rmaId = `RMA-${Date.now()}`; // Simple unique ID generation
+
+     // 1. Upload files to Firebase Storage
+    const attachmentUrls = await Promise.all(
+        files.map(async (file) => {
+            const storageRef = ref(storage, `returns/${requestData.orderId}/${Date.now()}_${file.name}`);
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+            return { name: file.name, url };
+        })
+    );
     
     await addDoc(collection(db, 'returns_rma'), {
-        ...data,
+        ...requestData,
         rmaId,
+        attachments: attachmentUrls,
         status: 'Pending Approval',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
