@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Briefcase, LogOut, User } from 'lucide-react';
+import { Briefcase, LogOut, User, SeparatorVertical } from 'lucide-react';
 import { Search } from '@/components/search/search';
 import {
     DropdownMenu,
@@ -20,6 +20,7 @@ import { Badge } from '../ui/badge';
 import { CorporateCartPreview } from './previews/corporate-cart-preview';
 import { CorporateComparePreview } from './previews/corporate-compare-preview';
 import Image from 'next/image';
+import { Separator } from '../ui/separator';
 
 
 export default function CorporateHeader() {
@@ -31,7 +32,7 @@ export default function CorporateHeader() {
         </div>
         
         <Link href="/corporate/dashboard" className="hidden md:flex items-center gap-2 rounded-full bg-muted px-2 py-1 text-sm font-medium ml-4">
-             <Image src="/logo.svg" alt="CO&Cu logo" width={80} height={32} className="h-6 w-auto" />
+             <Image src="/logo.svg" alt="CO&Cu logo" width={120} height={48} className="h-7 w-auto" />
              <Separator orientation="vertical" className="h-4" />
              <span className="font-semibold">Corporate</span>
         </Link>
