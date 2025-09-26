@@ -102,8 +102,10 @@ export function OrderSummary() {
   }, [items]);
   
    const discountAmount = 0; // Simplified for this change
-   const convenienceFee = (subtotal - discountAmount) * 0.03;
-   const total = subtotal - discountAmount + convenienceFee + shippingFee;
+   const platformFee = (subtotal - discountAmount) * 0.03;
+   const taxableAmount = subtotal - discountAmount + platformFee + shippingFee;
+   const gstAmount = taxableAmount * 0.18; // 18% GST
+   const total = taxableAmount + gstAmount;
   
   const handlePlaceOrder = async () => {
     setIsPlacingOrder(true);
@@ -231,8 +233,12 @@ export function OrderSummary() {
                   <span>{shippingFee === 0 ? 'Free' : formatCurrency(shippingFee)}</span>
               </div>
               <div className="flex justify-between">
-                  <span className="text-muted-foreground">Convenience Fee (3%)</span>
-                  <span className="text-muted-foreground">{formatCurrency(convenienceFee)}</span>
+                  <span className="text-muted-foreground">Platform & Payment Fee</span>
+                  <span className="text-muted-foreground">{formatCurrency(platformFee)}</span>
+              </div>
+              <div className="flex justify-between">
+                  <span className="text-muted-foreground">GST (18%)</span>
+                  <span className="text-muted-foreground">{formatCurrency(gstAmount)}</span>
               </div>
           </div>
           <Separator />
