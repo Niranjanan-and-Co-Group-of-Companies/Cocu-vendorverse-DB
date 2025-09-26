@@ -19,12 +19,14 @@ import { useToast } from '@/hooks/use-toast';
 import { onAllProductsUpdate, type ProductWithPrice } from '@/lib/products-client-service';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { searchProducts } from '@/ai/flows/search-products-flow';
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get('q') || '';
-  const [searchResults, setSearchResults] = useState<ProductWithPrice[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductWithPrice[]>([]);
+  const [filteredProductIds, setFilteredProductIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOutOfStock, setShowOutOfStock] = useState(false);
   const { addItem: addToCart } = useCart();
@@ -33,25 +35,55 @@ function SearchResultsContent() {
 
 
   useEffect(() => {
-    setLoading(true);
+    // Listener for all products
     const unsubscribe = onAllProductsUpdate('Personalized', (pricedProducts) => {
-        if (query) {
-            const lowerCaseQuery = query.toLowerCase();
-            const filtered = pricedProducts.filter(product =>
-                product.name.toLowerCase().includes(lowerCaseQuery) ||
-                product.vendor.toLowerCase().includes(lowerCaseQuery) ||
-                (product.category && product.category.toLowerCase().includes(lowerCaseQuery)) ||
-                product.description?.toLowerCase().includes(lowerCaseQuery)
-            );
-            setSearchResults(filtered);
-        } else {
-            setSearchResults([]);
-        }
-        setLoading(false);
+        setAllProducts(pricedProducts);
+        // Don't set loading to false here, wait for search results
     });
 
     return () => unsubscribe();
-  }, [query]);
+  }, []);
+
+  useEffect(() => {
+    if (!query || allProducts.length === 0) {
+        setLoading(false);
+        setFilteredProductIds([]);
+        return;
+    }
+
+    setLoading(true);
+    const performSearch = async () => {
+        try {
+            const productMetadatas = allProducts.map(p => ({
+                id: p.id,
+                name: p.name,
+                description: p.description || '',
+                category: p.category || '',
+                tags: p.tags || []
+            }));
+
+            const result = await searchProducts({ query, products: productMetadatas });
+            setFilteredProductIds(result.productIds);
+
+        } catch (error) {
+            console.error("AI search failed:", error);
+            toast({ title: "Search Error", description: "Could not perform AI search.", variant: "destructive" });
+            setFilteredProductIds([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    performSearch();
+
+  }, [query, allProducts, toast]);
+
+  const searchResults = useMemo(() => {
+    if (filteredProductIds.length === 0) return [];
+    const idSet = new Set(filteredProductIds);
+    // Maintain the order from the AI result
+    return filteredProductIds.map(id => allProducts.find(p => p.id === id)).filter((p): p is ProductWithPrice => !!p);
+  }, [filteredProductIds, allProducts]);
 
   const filteredProducts = useMemo(() => {
     if (showOutOfStock) {
