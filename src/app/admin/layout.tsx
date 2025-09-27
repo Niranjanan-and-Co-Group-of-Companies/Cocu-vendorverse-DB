@@ -1,6 +1,6 @@
 
 'use client';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -53,6 +53,25 @@ import React from 'react';
 import { getPendingProductCount } from '@/lib/products-client-service';
 import { getOpenTicketCount } from '@/lib/admin/support-client-service';
 import { AdminNotificationDropdown } from '@/components/admin/layout/admin-notification-dropdown';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function useAuth() {
+    const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
+    const router = useRouter();
+
+    React.useEffect(() => {
+        // Simulate checking for an auth token or session
+        const session = sessionStorage.getItem('admin-auth'); // In a real app, this would be a secure cookie/token
+        if (session) {
+            setIsAuthenticated(true);
+        } else {
+            setIsAuthenticated(false);
+            router.push('/login'); // Redirect to login if not authenticated
+        }
+    }, [router]);
+
+    return isAuthenticated;
+}
 
 function CustomSidebarTrigger() {
     const { open, toggleSidebar } = useSidebar();
@@ -341,6 +360,20 @@ function AdminLayoutContent({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const isAuthenticated = useAuth();
+
+  if (isAuthenticated === null) {
+      return (
+          <div className="flex h-screen w-full items-center justify-center">
+              <Skeleton className="h-full w-full" />
+          </div>
+      );
+  }
+
+  if (!isAuthenticated) {
+      return null; // Redirect is handled by the useAuth hook
+  }
+
 
   return (
     <SidebarProvider>

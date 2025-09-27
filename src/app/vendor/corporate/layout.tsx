@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -43,9 +43,28 @@ import { TermsUpdateDialog } from '@/components/common/terms-update-dialog';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Vendor } from '@/lib/vendors-service';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // In a real app, this would come from an auth context.
 const VENDOR_ID = "vendor003";
+
+function useAuth() {
+    const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
+    const router = useRouter();
+
+    React.useEffect(() => {
+        // Simulate checking for an auth token or session
+        const session = sessionStorage.getItem('vendor-auth'); // In a real app, this would be a secure cookie/token
+        if (session) {
+            setIsAuthenticated(true);
+        } else {
+            setIsAuthenticated(false);
+            router.push('/vendor/login'); // Redirect to vendor login if not authenticated
+        }
+    }, [router]);
+
+    return isAuthenticated;
+}
 
 function CustomSidebarTrigger() {
     
@@ -223,5 +242,15 @@ function CorporateVendorLayoutContent({ children }: { children: React.ReactNode;
 
 
 export default function CorporateVendorLayout({ children }: { children: React.ReactNode; }) {
+    const isAuthenticated = useAuth();
+
+    if (isAuthenticated === null) {
+        return <Skeleton className="h-screen w-full" />;
+    }
+
+    if (!isAuthenticated) {
+        return null; // The hook handles redirection
+    }
+    
     return <CorporateVendorLayoutContent>{children}</CorporateVendorLayoutContent>;
 }
