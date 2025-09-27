@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -171,9 +170,9 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
                      <div className="mt-4 flex flex-col gap-2">
                         <div className="flex gap-2">
                             <Button size="sm" className="w-full" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                            <Button size="sm" variant="secondary" className="w-full" onClick={() => handleAddToCart(product)}>
-                            <ShoppingCart className="mr-2 h-4 w-4" />
-                            Add to Cart
+                            <Button size="sm" variant="secondary" className="md:w-full md:px-3" onClick={() => handleAddToCart(product)}>
+                                <ShoppingCart className="mr-0 md:mr-2 h-4 w-4" />
+                                <span className="hidden md:inline">Add to Cart</span>
                             </Button>
                         </div>
                         {product.customizable && (
