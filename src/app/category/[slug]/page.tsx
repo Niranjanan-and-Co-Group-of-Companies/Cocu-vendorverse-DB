@@ -31,6 +31,15 @@ function CategoryPageContent({ slug }: { slug: string }) {
   const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
   const { toast } = useToast();
   const router = useRouter();
+  const [user, setUser] = React.useState(null);
+  const [isLoginOpen, setIsLoginOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const session = sessionStorage.getItem('user-auth');
+    if (session) {
+      setUser(JSON.parse(session));
+    }
+  }, [])
 
 
   useEffect(() => {
@@ -48,16 +57,28 @@ function CategoryPageContent({ slug }: { slug: string }) {
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
   const handleAddToCart = async (product: Product) => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     const result = await addToCart(product);
     toast({ title: result.message });
   };
   
   const handleBuyNow = async (product: Product) => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     await handleAddToCart(product);
     router.push('/checkout');
   };
   
   const handleWishlistToggle = async (product: Product) => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     const result = await toggleWishlist(product);
     toast({ title: result.message });
   };

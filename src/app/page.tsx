@@ -133,6 +133,9 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<ProductWithPrice[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = React.useState(null);
+  const [isLoginOpen, setIsLoginOpen] = React.useState(false);
+
   const { addItem: addToCart } = useCart();
   const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
   const { toast } = useToast();
@@ -154,18 +157,37 @@ export default function Home() {
         unsubCategories();
     };
   }, []);
+  
+  React.useEffect(() => {
+    const session = sessionStorage.getItem('user-auth');
+    if (session) {
+      setUser(JSON.parse(session));
+    }
+  }, [])
 
   const handleAddToCart = async (product: Product) => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     const result = await addToCart(product);
     toast({ title: result.message });
   };
   
   const handleBuyNow = async (product: Product) => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     await handleAddToCart(product);
     router.push('/checkout');
   };
   
   const handleWishlistToggle = async (product: Product) => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     const result = await toggleWishlist(product);
     toast({ title: result.message });
   };

@@ -33,10 +33,19 @@ function SearchResultsContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [showOutOfStock, setShowOutOfStock] = useState(false);
   const [sortOption, setSortOption] = React.useState('relevance');
+  const [user, setUser] = React.useState(null);
+  const [isLoginOpen, setIsLoginOpen] = React.useState(false);
   
   const { addItem: addToCart } = useCart();
   const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    const session = sessionStorage.getItem('user-auth');
+    if (session) {
+      setUser(JSON.parse(session));
+    }
+  }, [])
 
 
   useEffect(() => {
@@ -129,16 +138,28 @@ function SearchResultsContent() {
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
   const handleAddToCart = async (product: Product) => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     const result = await addToCart(product);
     toast({ title: result.message });
   };
   
   const handleBuyNow = async (product: Product) => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     await handleAddToCart(product);
     router.push('/checkout');
   };
   
   const handleWishlistToggle = async (product: Product) => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     const result = await toggleWishlist(product);
     toast({ title: result.message });
   };
