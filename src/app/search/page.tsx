@@ -1,6 +1,7 @@
 
 'use client'
 
+import * as React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import type { Product } from '@/lib/products';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -51,30 +52,31 @@ function SearchResultsContent() {
         return;
     }
     
-    setIsLoading(true);
+    // Set loading state only when there is a query to be processed.
+    setIsLoading(!!query);
     
     // --- Stage 1: Instant Local Search ---
+    let localResults: string[];
     if (query) {
         const lowerCaseQuery = query.toLowerCase();
-        const localResults = allProducts
+        localResults = allProducts
             .filter(p => 
                 p.name.toLowerCase().includes(lowerCaseQuery) ||
                 p.category?.toLowerCase().includes(lowerCaseQuery) ||
                 p.tags?.some(t => t.toLowerCase().includes(lowerCaseQuery))
             )
             .map(p => p.id);
-        
-        setDisplayedProductIds(localResults);
     } else {
-        setDisplayedProductIds(allProducts.map(p => p.id));
+        // If no query, show all products initially without AI search.
+        localResults = allProducts.map(p => p.id);
     }
-    
-    setIsLoading(!!query);
+    setDisplayedProductIds(localResults);
+
 
     // --- Stage 2: AI Search ---
     const performAiSearch = async () => {
         if (!query) {
-            setIsLoading(false);
+            setIsLoading(false); // No query, so we are done.
             return;
         }
 
@@ -93,8 +95,9 @@ function SearchResultsContent() {
         } catch (error) {
             console.error("AI search failed:", error);
             toast({ title: "AI Search Error", description: "Could not perform AI-powered search. Displaying standard results.", variant: "destructive" });
+            // The local results will remain displayed.
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // AI search is complete, hide loading skeletons.
         }
     };
     
