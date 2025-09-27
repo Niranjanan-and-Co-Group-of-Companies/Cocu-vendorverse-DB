@@ -66,7 +66,7 @@ function useAuth() {
             setIsAuthenticated(true);
         } else {
             setIsAuthenticated(false);
-            router.push('/login'); // Redirect to login if not authenticated
+            router.push('/admin/login'); // Redirect to admin login if not authenticated
         }
     }, [router]);
 
@@ -361,6 +361,12 @@ function AdminLayoutContent({
 }) {
   const pathname = usePathname();
   const isAuthenticated = useAuth();
+  
+  // Do not render layout for login page
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
 
   if (isAuthenticated === null) {
       return (
@@ -400,5 +406,9 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
   return <AdminLayoutContent>{children}</AdminLayoutContent>;
 }
