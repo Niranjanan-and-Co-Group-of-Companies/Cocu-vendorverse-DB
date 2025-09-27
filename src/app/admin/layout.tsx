@@ -66,7 +66,9 @@ function useAuth() {
             setIsAuthenticated(true);
         } else {
             setIsAuthenticated(false);
-            router.push('/admin/login'); // Redirect to admin login if not authenticated
+            if(window.location.pathname !== '/admin/login') {
+                router.push('/admin/login'); // Redirect to admin login if not authenticated
+            }
         }
     }, [router]);
 
@@ -90,6 +92,7 @@ function CustomSidebarTrigger() {
 
 function AdminSidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const [openSupportTickets, setOpenSupportTickets] = React.useState(0);
     const [pendingProducts, setPendingProducts] = React.useState(0);
 
@@ -102,6 +105,12 @@ function AdminSidebar() {
             unsubTickets();
         }
     }, []);
+    
+    const handleLogout = () => {
+        sessionStorage.removeItem('admin-auth');
+        router.push('/admin/login');
+    };
+
 
     const isActive = (path: string) => {
         if (path === '/admin' && pathname === path) {
@@ -340,11 +349,9 @@ function AdminSidebar() {
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                    <SidebarMenuButton asChild tooltip={{ children: 'Log Out' }}>
-                        <Link href="/login">
+                    <SidebarMenuButton onClick={handleLogout} tooltip={{ children: 'Log Out' }}>
                         <LogOut />
                         <span>Log Out</span>
-                        </Link>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -407,8 +414,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  // This outer check is necessary because useAuth relies on hooks that can't be used at the top level of a server component.
+  // The AdminLayoutContent component will handle the actual auth logic.
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
   return <AdminLayoutContent>{children}</AdminLayoutContent>;
 }
+
+    
