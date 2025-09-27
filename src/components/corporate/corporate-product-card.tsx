@@ -149,11 +149,11 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
         {primaryAction}
 
         <div className="grid grid-cols-2 gap-2">
-           <Button variant="secondary" onClick={handleAddToCart}>
-            {isInCart ? <PlusCircle className="mr-2" /> : <ShoppingCart className="mr-2" />}
-            {isInCart ? 'Add More' : 'Add to Cart'}
-          </Button>
-          <Button variant="secondary" onClick={handleBuyNow}>Buy Now</Button>
+           <Button variant="secondary" onClick={handleAddToCart} className="flex-grow">
+             {isInCart ? <PlusCircle className="md:mr-2" /> : <ShoppingCart className="md:mr-2" />}
+             <span className="hidden md:inline">{isInCart ? 'Add More' : 'Add to Cart'}</span>
+           </Button>
+          <Button variant="default" onClick={handleBuyNow} className="flex-grow">Buy Now</Button>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
@@ -161,8 +161,8 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant={isInCompare ? "default" : "outline"} onClick={handleToggleCompare}>
-                  <Scale className="mr-2" />
-                  {isInCompare ? 'In Compare' : 'Compare'}
+                  <Scale className="md:mr-2" />
+                  <span className="hidden md:inline">{isInCompare ? 'In Compare' : 'Compare'}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Add to a list to compare products side-by-side.</TooltipContent>
@@ -173,8 +173,8 @@ export function CorporateProductCard({ product, onAction }: CorporateProductCard
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" onClick={handleAddToBid} disabled={isAddedToBid}>
-                  <Gavel className="mr-2" />
-                  {isAddedToBid ? 'Added to Bid' : 'Add to Bid'}
+                  <Gavel className="md:mr-2" />
+                  <span className="hidden md:inline">{isAddedToBid ? 'Added to Bid' : 'Add to Bid'}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Add to a new bid request to get quotes from vendors.</TooltipContent>
