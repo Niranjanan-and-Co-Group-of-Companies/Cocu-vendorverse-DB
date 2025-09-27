@@ -1,6 +1,10 @@
 # Settings to manage and configure a Firebase App Hosting backend.
 # https://firebase.google.com/docs/app-hosting/configure
 
+# The ID of the App Hosting site to deploy to.
+# This is the site that will serve your app's content.
+site: coandcu-com
+
 runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
