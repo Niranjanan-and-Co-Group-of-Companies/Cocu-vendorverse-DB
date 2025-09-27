@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Search as SearchIcon, Loader2 } from 'lucide-react';
@@ -27,11 +28,11 @@ export function Search({ platform = 'personalized' }: SearchProps) {
   useEffect(() => {
     // Fetch the search index when the component mounts
     const fetchSearchIndex = async () => {
-        const index = await getSearchIndex();
+        const index = await getSearchIndex(platform);
         setSearchIndex(index);
     };
     fetchSearchIndex();
-  }, []);
+  }, [platform]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

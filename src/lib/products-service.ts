@@ -4,7 +4,7 @@
 
 import { collection, getDocs, writeBatch, doc, getDoc, query, where, limit, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, storage } from './firebase';
-import type { Product, ProductStatus, CustomizationSide, AllowedCustomizationType, ProductVariant } from './products';
+import type { Product, ProductStatus, CustomizationSide, AllowedCustomizationType, ProductVariant, Platform } from './products';
 import type { Vendor } from './vendors-service';
 import { getVendorById } from './vendors-service';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -273,8 +273,10 @@ export interface SearchIndex {
     vendor: string;
 }
 
-export async function getSearchIndex(): Promise<SearchIndex[]> {
-    const snapshot = await getDocs(productsCollection);
+export async function getSearchIndex(platform: Platform): Promise<SearchIndex[]> {
+    const platformFilter = platform === 'Corporate' ? ['Corporate', 'Both'] : ['Personalized', 'Both'];
+    const q = query(productsCollection, where('platform', 'in', platformFilter));
+    const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -302,6 +304,7 @@ export async function approveProduct(productId: string) {
 export async function declineProduct(productId: string) {
     await updateProductStatus(String(productId), 'Declined');
 }
+
 
 
 
