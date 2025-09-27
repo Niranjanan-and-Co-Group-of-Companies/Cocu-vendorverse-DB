@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import 'dotenv/config';
@@ -37,18 +36,18 @@ async function sendEmail(
     to: { email: string, name: string }, 
     templateKey: string,
     mergeInfo: Record<string, any>
-) {
+): Promise<{ success: boolean; message: string }> {
     const sender = SENDER_CONFIG[senderType];
     const apiToken = sender.token;
 
-    if (!apiToken || apiToken.startsWith('your_') || !templateKey || templateKey.startsWith('your_')) {
+    if (!apiToken || !templateKey) {
         console.log('--- EMAIL SIMULATION (Template) ---');
         console.log(`To: ${to.name} <${to.email}>`);
         console.log(`From: ${sender.name} <${sender.address}>`);
         console.log(`Template Key: ${templateKey}`);
         console.log('Merge Info:', JSON.stringify(mergeInfo, null, 2));
         console.log('--- END EMAIL SIMULATION ---');
-        const reason = !apiToken || apiToken.startsWith('your_') ? `token for ${senderType}` : 'template key';
+        const reason = !apiToken ? `token for ${senderType}` : 'template key';
         console.warn(`ZeptoMail ${reason} is not configured. Email was simulated in the console.`);
         return { success: true, message: "Email simulated successfully." };
     }
