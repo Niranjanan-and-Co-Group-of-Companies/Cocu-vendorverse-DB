@@ -15,29 +15,41 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 import { TermsUpdateDialog } from '../common/terms-update-dialog';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 
 export default function Header() {
   const [isLoginOpen, setIsLoginOpen] = React.useState(false);
   const [user, setUser] = React.useState<UserType | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const router = useRouter();
 
   React.useEffect(() => {
-    // In a real app, this would come from an auth context.
-    // We are now simulating both logged in and logged out states.
-    // To test logged out state, change `getMockUser()` to `Promise.resolve(null)`
-    const fetchUser = async () => {
-        setLoading(true);
-        try {
-            const userData = await getMockUser();
-            setUser(userData);
-        } catch (error) {
-            setUser(null);
-        }
+    // Check for a simulated session
+    const session = sessionStorage.getItem('user-auth');
+    if (session) {
+      const fetchUser = async () => {
+          setLoading(true);
+          try {
+              const userData = await getMockUser();
+              setUser(userData);
+          } catch (error) {
+              setUser(null);
+          }
+          setLoading(false);
+      }
+      fetchUser();
+    } else {
         setLoading(false);
+        setUser(null);
     }
-    fetchUser();
   }, []);
+  
+  const handleLogout = () => {
+    sessionStorage.removeItem('user-auth');
+    setUser(null);
+    router.push('/');
+  }
   
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -73,7 +85,7 @@ export default function Header() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild><Link href="/account"><User className="mr-2"/>Profile &amp; Orders</Link></DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setUser(null)}><LogOut className="mr-2"/>Logout</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2"/>Logout</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
                 <TermsUpdateDialog userType="customer" />

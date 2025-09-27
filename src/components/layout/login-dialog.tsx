@@ -46,12 +46,15 @@ function LoginForm({ onLoginSuccess }: { onLoginSuccess: () => void }) {
         try {
             const result = await loginUser(email, password);
             if (result.success) {
+                // Simulate setting a session
+                sessionStorage.setItem('user-auth', 'true');
                 toast({
                     title: 'Login Successful',
                     description: 'Welcome back!',
                 });
                 onLoginSuccess();
-                router.push(result.redirectPath || '/');
+                // Instead of router.push, we'll reload to let the layout re-evaluate auth
+                window.location.href = result.redirectPath || '/';
             } else {
                 toast({
                     title: 'Login Failed',

@@ -115,7 +115,10 @@ export async function loginUser(emailOrPhone: string, password: string): Promise
     if (!passwordMatches) {
         return { success: false, message: "Invalid credentials." };
     }
-
+    
+    // In a real app, you would set a session cookie or JWT here.
+    // For this simulation, we'll use sessionStorage on the client.
+    
     let redirectPath = '/account';
     if (user.role === 'corporate-admin' || user.role === 'corporate-user') {
         redirectPath = '/corporate/dashboard';
@@ -123,7 +126,5 @@ export async function loginUser(emailOrPhone: string, password: string): Promise
         redirectPath = '/admin';
     }
 
-    // In a real app, you would set a session cookie or JWT here.
-    
     return { success: true, message: "Login successful!", redirectPath };
 }
