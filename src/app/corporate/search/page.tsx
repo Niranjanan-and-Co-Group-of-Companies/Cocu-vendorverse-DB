@@ -15,33 +15,54 @@ function CorporateSearchPageContent() {
   const query = searchParams.get('q') || '';
   
   const [allProducts, setAllProducts] = React.useState<ProductWithPrice[]>([]);
-  const [filteredProductIds, setFilteredProductIds] = React.useState<string[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [sortOption, setSortOption] = React.useState('rating-desc');
+  const [displayedProductIds, setDisplayedProductIds] = React.useState<string[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [sortOption, setSortOption] = React.useState('relevance');
   const { toast } = useToast();
 
   React.useEffect(() => {
     const unsubscribe = onAllProductsUpdate('Corporate', (products) => {
         setAllProducts(products);
     });
-
     return () => unsubscribe();
   }, []);
 
   React.useEffect(() => {
-    setLoading(true); // Always start in a loading state when query changes
-    if (!query) {
-        setFilteredProductIds(allProducts.map(p => p.id));
-        setLoading(false);
+    if (allProducts.length === 0 && query) {
+        setIsLoading(true);
         return;
     }
     
-    if (allProducts.length === 0) {
-        // Still waiting for all products to load
-        return;
+    setIsLoading(true);
+    
+    // --- Stage 1: Instant Local Search ---
+    if (query) {
+        const lowerCaseQuery = query.toLowerCase();
+        const localResults = allProducts
+            .filter(p => 
+                p.name.toLowerCase().includes(lowerCaseQuery) ||
+                p.category?.toLowerCase().includes(lowerCaseQuery) ||
+                p.tags?.some(t => t.toLowerCase().includes(lowerCaseQuery))
+            )
+            .map(p => p.id);
+        
+        setDisplayedProductIds(localResults);
+    } else {
+        // No query, show all products initially
+        setDisplayedProductIds(allProducts.map(p => p.id));
     }
+    
+    // Even if local search gives results, we want to show loading state while AI is working
+    // but only if there is a query. If no query, we show all products without loading state.
+    setIsLoading(!!query);
 
-    const performSearch = async () => {
+    // --- Stage 2: AI Search ---
+    const performAiSearch = async () => {
+        if (!query) {
+            setIsLoading(false); // No query, so we are done.
+            return;
+        }
+
         try {
             const productMetadatas = allProducts.map(p => ({
                 id: p.id,
@@ -52,43 +73,42 @@ function CorporateSearchPageContent() {
             }));
 
             const result = await searchProducts({ query, products: productMetadatas });
-            setFilteredProductIds(result.productIds);
+            
+            // This will trigger the re-render with AI-ordered results
+            setDisplayedProductIds(result.productIds);
 
         } catch (error) {
             console.error("AI search failed:", error);
-            toast({ title: "Search Error", description: "Could not perform AI search.", variant: "destructive" });
-            setFilteredProductIds([]);
+            toast({ title: "AI Search Error", description: "Could not perform AI-powered search. Displaying standard results.", variant: "destructive" });
+            // The local results will remain displayed.
         } finally {
-            setLoading(false);
+            setIsLoading(false); // AI search is complete, hide loading skeletons.
         }
     };
     
-    performSearch();
+    performAiSearch();
 
   }, [query, allProducts, toast]);
 
   const searchResults = React.useMemo(() => {
-    if (filteredProductIds.length === 0) {
+    if (displayedProductIds.length === 0) {
       return [];
     }
-    const idSet = new Set(filteredProductIds);
-    return filteredProductIds.map(id => allProducts.find(p => p.id === id)).filter((p): p is ProductWithPrice => !!p);
-  }, [filteredProductIds, allProducts]);
+    const productMap = new Map(allProducts.map(p => [p.id, p]));
+    return displayedProductIds.map(id => productMap.get(id)).filter((p): p is ProductWithPrice => !!p);
+  }, [displayedProductIds, allProducts]);
 
   const sortedProducts = React.useMemo(() => {
     let results = [...searchResults];
 
-    switch (sortOption) {
-      case 'rating-desc':
-        results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-      case 'price-asc':
-        results.sort((a, b) => (a.displayPrice?.finalPrice || 0) - (b.displayPrice?.finalPrice || 0));
-        break;
-      case 'price-desc':
-        results.sort((a, b) => (b.displayPrice?.finalPrice || 0) - (a.displayPrice?.finalPrice || 0));
-        break;
+    // Sorting is only applied AFTER the AI has provided the relevance-sorted list
+    if (sortOption === 'price-asc') {
+      results.sort((a, b) => (a.displayPrice?.finalPrice || 0) - (b.displayPrice?.finalPrice || 0));
+    } else if (sortOption === 'price-desc') {
+      results.sort((a, b) => (b.displayPrice?.finalPrice || 0) - (a.displayPrice?.finalPrice || 0));
     }
+    // 'relevance' is the default order from the AI, so no sorting needed.
+    
     return results;
   }, [sortOption, searchResults]);
 
@@ -102,9 +122,11 @@ function CorporateSearchPageContent() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-3xl font-bold font-headline">Search Results for "{query}"</h1>
+        <h1 className="text-3xl font-bold font-headline">
+          {query ? `Search Results for "${query}"` : "Corporate Product Catalog"}
+        </h1>
         <p className="text-muted-foreground mt-2">
-            {!loading ? `${sortedProducts.length} corporate products found.` : 'Searching...'}
+            {!isLoading ? `${sortedProducts.length} corporate products found.` : 'Searching...'}
         </p>
       </div>
 
@@ -115,7 +137,7 @@ function CorporateSearchPageContent() {
               <SelectValue placeholder="Sort by..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="rating-desc">Sort by: Popularity</SelectItem>
+              <SelectItem value="relevance">Sort by: Relevance</SelectItem>
               <SelectItem value="price-asc">Sort by: Price (Low to High)</SelectItem>
               <SelectItem value="price-desc">Sort by: Price (High to Low)</SelectItem>
             </SelectContent>
@@ -123,7 +145,7 @@ function CorporateSearchPageContent() {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-[520px] w-full" />

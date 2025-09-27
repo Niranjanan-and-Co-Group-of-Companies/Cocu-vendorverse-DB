@@ -20,43 +20,64 @@ import { onAllProductsUpdate, type ProductWithPrice } from '@/lib/products-clien
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { searchProducts } from '@/ai/flows/search-products-flow';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get('q') || '';
+  
   const [allProducts, setAllProducts] = useState<ProductWithPrice[]>([]);
-  const [filteredProductIds, setFilteredProductIds] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [displayedProductIds, setDisplayedProductIds] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showOutOfStock, setShowOutOfStock] = useState(false);
+  const [sortOption, setSortOption] = React.useState('relevance');
+  
   const { addItem: addToCart } = useCart();
   const { addItem: toggleWishlist, isItemInWishlist } = useWishlist();
   const { toast } = useToast();
 
 
   useEffect(() => {
-    // Listener for all personalized products
     const unsubscribe = onAllProductsUpdate('Personalized', (pricedProducts) => {
         setAllProducts(pricedProducts);
     });
-
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    setLoading(true); // Always start in a loading state when query changes
-    if (!query) {
-        setFilteredProductIds(allProducts.map(p => p.id));
-        setLoading(false);
+    if (allProducts.length === 0 && query) {
+        setIsLoading(true);
         return;
     }
     
-    if (allProducts.length === 0) {
-        // Still waiting for all products to load
-        return;
+    setIsLoading(true);
+    
+    // --- Stage 1: Instant Local Search ---
+    if (query) {
+        const lowerCaseQuery = query.toLowerCase();
+        const localResults = allProducts
+            .filter(p => 
+                p.name.toLowerCase().includes(lowerCaseQuery) ||
+                p.category?.toLowerCase().includes(lowerCaseQuery) ||
+                p.tags?.some(t => t.toLowerCase().includes(lowerCaseQuery))
+            )
+            .map(p => p.id);
+        
+        setDisplayedProductIds(localResults);
+    } else {
+        setDisplayedProductIds(allProducts.map(p => p.id));
     }
+    
+    setIsLoading(!!query);
 
-    const performSearch = async () => {
+    // --- Stage 2: AI Search ---
+    const performAiSearch = async () => {
+        if (!query) {
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const productMetadatas = allProducts.map(p => ({
                 id: p.id,
@@ -67,36 +88,40 @@ function SearchResultsContent() {
             }));
 
             const result = await searchProducts({ query, products: productMetadatas });
-            setFilteredProductIds(result.productIds);
+            setDisplayedProductIds(result.productIds);
 
         } catch (error) {
             console.error("AI search failed:", error);
-            toast({ title: "Search Error", description: "Could not perform AI search.", variant: "destructive" });
-            setFilteredProductIds([]);
+            toast({ title: "AI Search Error", description: "Could not perform AI-powered search. Displaying standard results.", variant: "destructive" });
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
     
-    performSearch();
+    performAiSearch();
 
   }, [query, allProducts, toast]);
 
   const searchResults = useMemo(() => {
-    if (filteredProductIds.length === 0) {
-        return [];
+    if (displayedProductIds.length === 0) {
+      return [];
     }
-    const idSet = new Set(filteredProductIds);
-    // Maintain the order from the AI result
-    return filteredProductIds.map(id => allProducts.find(p => p.id === id)).filter((p): p is ProductWithPrice => !!p);
-  }, [filteredProductIds, allProducts]);
+    const productMap = new Map(allProducts.map(p => [p.id, p]));
+    return displayedProductIds.map(id => productMap.get(id)).filter((p): p is ProductWithPrice => !!p);
+  }, [displayedProductIds, allProducts]);
 
-  const filteredProducts = useMemo(() => {
-    if (showOutOfStock) {
-      return searchResults;
+  const sortedAndFilteredProducts = useMemo(() => {
+    let productsToShow = showOutOfStock ? searchResults : searchResults.filter(p => p.stock > 0);
+
+    let sorted = [...productsToShow];
+    if (sortOption === 'price-asc') {
+      sorted.sort((a, b) => (a.displayPrice?.finalPrice || 0) - (b.displayPrice?.finalPrice || 0));
+    } else if (sortOption === 'price-desc') {
+      sorted.sort((a, b) => (b.displayPrice?.finalPrice || 0) - (a.displayPrice?.finalPrice || 0));
     }
-    return searchResults.filter(p => p.stock > 0);
-  }, [searchResults, showOutOfStock]);
+    // 'relevance' is default AI order
+    return sorted;
+  }, [searchResults, showOutOfStock, sortOption]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
 
@@ -116,48 +141,55 @@ function SearchResultsContent() {
   };
 
 
-  if (loading) {
-    return (
-        <main className="flex-grow container py-8">
-            <h1 className="text-2xl font-bold mb-4">
-              Searching for &quot;{query}&quot;...
-            </h1>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {Array.from({ length: 8 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden group h-full flex flex-col">
-                    <CardHeader className="p-0 relative">
-                    <Skeleton className="aspect-[4/3] w-full" />
-                    </CardHeader>
-                    <CardContent className="p-4 flex flex-col flex-grow gap-2">
-                    <Skeleton className="h-5 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <div className="flex-grow"></div>
-                    <div className="flex gap-2">
-                        <Skeleton className="h-9 w-full" />
-                        <Skeleton className="h-9 w-full" />
-                    </div>
-                    </CardContent>
-                </Card>
-                ))}
-            </div>
-      </main>
-    )
-  }
-
   return (
     <main className="flex-grow container py-8">
         <h1 className="text-2xl font-bold mb-2">
           {query ? `Search results for "${query}"` : 'All Products'}
         </h1>
-         <p className="text-muted-foreground mb-4">{filteredProducts.length} products found</p>
-         <div className="flex items-center space-x-2 mb-8">
-            <Switch id="out-of-stock-toggle" checked={showOutOfStock} onCheckedChange={setShowOutOfStock} />
-            <Label htmlFor="out-of-stock-toggle">Include out of stock</Label>
+         <p className="text-muted-foreground mb-4">
+            {!isLoading ? `${sortedAndFilteredProducts.length} products found.` : 'Searching...'}
+         </p>
+         <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-2">
+                <Switch id="out-of-stock-toggle" checked={showOutOfStock} onCheckedChange={setShowOutOfStock} />
+                <Label htmlFor="out-of-stock-toggle">Include out of stock</Label>
+            </div>
+             <div className="w-full md:w-auto md:ml-auto max-w-xs">
+                <Select value={sortOption} onValueChange={setSortOption}>
+                    <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Sort by..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="relevance">Sort by: Relevance</SelectItem>
+                        <SelectItem value="price-asc">Sort by: Price (Low to High)</SelectItem>
+                        <SelectItem value="price-desc">Sort by: Price (High to Low)</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
         
-        {filteredProducts.length > 0 ? (
+        {isLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                    <Card key={i} className="overflow-hidden group h-full flex flex-col">
+                        <CardHeader className="p-0 relative">
+                        <Skeleton className="aspect-[4/3] w-full" />
+                        </CardHeader>
+                        <CardContent className="p-4 flex flex-col flex-grow gap-2">
+                        <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                        <div className="flex-grow"></div>
+                        <div className="flex gap-2">
+                            <Skeleton className="h-9 w-full" />
+                            <Skeleton className="h-9 w-full" />
+                        </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        ) : sortedAndFilteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {filteredProducts.map((product) => {
+            {sortedAndFilteredProducts.map((product) => {
                const inWishlist = isItemInWishlist(product.id);
                return (
               <Card key={product.id} className="overflow-hidden group h-full flex flex-col">
