@@ -34,12 +34,12 @@ const prompt = ai.definePrompt({
   name: 'getSearchSuggestionsPrompt',
   input: { schema: SearchSuggestionsInputSchema },
   output: { schema: SearchSuggestionsOutputSchema },
-  prompt: `You are a helpful search assistant for an e-commerce gift marketplace called CO&Cu. Your goal is to provide relevant search suggestions to users based on their query. Only suggest product names or categories. Do not suggest vendor names.
+  prompt: `You are a helpful search assistant for an e-commerce gift marketplace called CO&Cu. Your primary goal is to provide highly relevant and diverse search suggestions to users based on their query. Only suggest product names or categories that exist in the provided product list. Do not suggest vendor names.
 
 Analyze the user's query: {{{query}}}
 
 {{#if products}}
-You have been provided with a list of available products. Use this list as the primary source of truth. Generate a list of 5 to 7 diverse and relevant search suggestions based on the user's query that match product names or categories from the list.
+You have been provided with a list of available products. Use this list as the absolute source of truth. Generate a list of 5 to 7 diverse and relevant search suggestions based on the user's query that match product names or categories from the list. The suggestions should be varied and aim to guide the user towards relevant items.
 
 Available products:
 {{#each products}}
@@ -48,6 +48,8 @@ Available products:
 {{else}}
 Based on the user's query, generate a list of 5 to 7 diverse and relevant search suggestions. The suggestions can be product names or categories that are likely to match the user's intent. Do not suggest anything that would not be found on a gift website.
 {{/if}}
+
+Return only the most relevant suggestions.
 `,
 });
 
