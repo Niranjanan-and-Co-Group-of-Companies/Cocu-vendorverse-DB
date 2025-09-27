@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Link from 'next/link';
@@ -24,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import { YouTubeEmbed } from '@/components/common/youtube-embed';
 import { onFeaturedProductsUpdate, type ProductWithPrice } from '@/lib/products-client-service';
 import Autoplay from "embla-carousel-autoplay"
+import { LoginDialog } from '@/components/layout/login-dialog';
 
 
 const HeroSection = () => {
@@ -328,6 +328,7 @@ export default function Home() {
         </section>
       </main>
       <Footer />
+       <LoginDialog open={isLoginOpen} onOpenChange={setIsLoginOpen} />
     </div>
   );
 }

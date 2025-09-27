@@ -19,6 +19,7 @@ import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
 import type { FeaturedProduct } from '@/lib/featured-service';
+import { LoginDialog } from '../layout/login-dialog';
 
 interface RelatedProductsCarouselProps {
   type: 'category' | 'vendor';
@@ -142,74 +143,77 @@ export function RelatedProductsCarousel({ type, value, currentProductId, title }
   if (relatedProducts.length === 0) return null;
 
   return (
-    <div>
-        <h2 className="text-2xl font-bold font-headline mb-6">{title}</h2>
-        <Carousel opts={{ align: "start" }} className="w-full">
-        <CarouselContent>
-            {relatedProducts.map((product) => {
-              const inWishlist = isItemInWishlist(product.id);
-              return (
-            <CarouselItem key={product.id} className="basis-2/3 md:basis-1/3 lg:basis-1/4">
-                <Card className="overflow-hidden group h-full flex flex-col">
-                <CardHeader className="p-0 relative">
-                  <Link href={`${basePath}/products/${product.id}`} className="block aspect-[4/3] bg-muted overflow-hidden">
-                    <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        data-ai-hint="gift product"
-                    />
-                  </Link>
-                  <div className="absolute top-2 left-2 z-10 flex flex-col gap-y-2">
-                        {product.featuredOnPersonal && <Badge>Featured</Badge>}
-                        {product.displayPrice.hasDiscount && (
-                            <Badge variant="destructive" >{product.displayPrice.discountText}</Badge>
-                        )}
-                    </div>
-                   <Button size="icon" variant="ghost" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full" onClick={() => handleWishlistToggle(product)}>
-                        <Heart className={inWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-white drop-shadow-md"} />
-                        <span className="sr-only">Add to Wishlist</span>
-                    </Button>
-                </CardHeader>
-                <CardContent className="p-4 flex flex-col flex-grow">
-                    <Link href={`${basePath}/products/${product.id}`} className="block">
-                      <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+    <>
+        <div>
+            <h2 className="text-2xl font-bold font-headline mb-6">{title}</h2>
+            <Carousel opts={{ align: "start" }} className="w-full">
+            <CarouselContent>
+                {relatedProducts.map((product) => {
+                const inWishlist = isItemInWishlist(product.id);
+                return (
+                <CarouselItem key={product.id} className="basis-2/3 md:basis-1/3 lg:basis-1/4">
+                    <Card className="overflow-hidden group h-full flex flex-col">
+                    <CardHeader className="p-0 relative">
+                    <Link href={`${basePath}/products/${product.id}`} className="block aspect-[4/3] bg-muted overflow-hidden">
+                        <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            data-ai-hint="gift product"
+                        />
                     </Link>
-                    {product.category && (
-                        <Link href={`/category/${product.categorySlug}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                            {product.category}
-                        </Link>
-                    )}
-                    <div className="flex-grow"></div>
-                    <div className="flex items-baseline gap-2 mt-4">
-                        <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
-                        {product.displayPrice.hasDiscount && (
-                            <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
-                        )}
-                    </div>
-                     <div className="mt-4 flex flex-col gap-2">
-                        <div className="flex gap-2">
-                            <Button size="sm" className="w-full" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                            <Button size="sm" variant="secondary" className="md:w-full md:px-3" onClick={() => handleAddToCart(product)}>
-                                <ShoppingCart className="mr-0 md:mr-2 h-4 w-4" />
-                                <span className="hidden md:inline">Add to Cart</span>
-                            </Button>
+                    <div className="absolute top-2 left-2 z-10 flex flex-col gap-y-2">
+                            {product.featuredOnPersonal && <Badge>Featured</Badge>}
+                            {product.displayPrice.hasDiscount && (
+                                <Badge variant="destructive" >{product.displayPrice.discountText}</Badge>
+                            )}
                         </div>
-                        {product.customizable && (
-                            <Button asChild size="sm" variant="outline" className="w-full">
-                               <Link href={`${basePath}/customize/${product.id}`}>Customise Now</Link>
-                            </Button>
+                    <Button size="icon" variant="ghost" className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full" onClick={() => handleWishlistToggle(product)}>
+                            <Heart className={inWishlist ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-white drop-shadow-md"} />
+                            <span className="sr-only">Add to Wishlist</span>
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="p-4 flex flex-col flex-grow">
+                        <Link href={`${basePath}/products/${product.id}`} className="block">
+                        <h3 className="text-lg font-bold font-headline">{product.name}</h3>
+                        </Link>
+                        {product.category && (
+                            <Link href={`/category/${product.categorySlug}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                                {product.category}
+                            </Link>
                         )}
-                    </div>
-                </CardContent>
-                </Card>
-            </CarouselItem>
-            )})}
-        </CarouselContent>
-        <CarouselPrevious className="-left-4" />
-        <CarouselNext className="-right-4" />
-        </Carousel>
-    </div>
+                        <div className="flex-grow"></div>
+                        <div className="flex items-baseline gap-2 mt-4">
+                            <span className="text-xl font-bold">{formatCurrency(product.displayPrice.finalPrice)}</span>
+                            {product.displayPrice.hasDiscount && (
+                                <span className="text-sm text-muted-foreground line-through">{formatCurrency(product.displayPrice.originalPrice)}</span>
+                            )}
+                        </div>
+                        <div className="mt-4 flex flex-col gap-2">
+                            <div className="flex gap-2">
+                                <Button size="sm" className="w-full" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                <Button size="sm" variant="secondary" className="md:w-full md:px-3" onClick={() => handleAddToCart(product)}>
+                                    <ShoppingCart className="mr-0 md:mr-2 h-4 w-4" />
+                                    <span className="hidden md:inline">Add to Cart</span>
+                                </Button>
+                            </div>
+                            {product.customizable && (
+                                <Button asChild size="sm" variant="outline" className="w-full">
+                                <Link href={`${basePath}/customize/${product.id}`}>Customise Now</Link>
+                                </Button>
+                            )}
+                        </div>
+                    </CardContent>
+                    </Card>
+                </CarouselItem>
+                )})}
+            </CarouselContent>
+            <CarouselPrevious className="-left-4" />
+            <CarouselNext className="-right-4" />
+            </Carousel>
+        </div>
+         <LoginDialog open={isLoginOpen} onOpenChange={setIsLoginOpen} />
+    </>
   );
 }

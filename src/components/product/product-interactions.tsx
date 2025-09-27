@@ -13,6 +13,7 @@ import { Label } from '../ui/label';
 import { useWishlist } from '@/hooks/use-wishlist';
 import Link from 'next/link';
 import { getShippingEstimate } from '@/lib/shipping-service';
+import { LoginDialog } from '../layout/login-dialog';
 
 interface ProductInteractionsProps {
   product: Product;
@@ -30,9 +31,18 @@ export function ProductInteractions({ product, categoryName, selectedVariant }: 
   const { addItem: toggleWishlistItem, isItemInWishlist } = useWishlist();
   const { toast } = useToast();
   const router = useRouter();
+  const [user, setUser] = React.useState(null);
+  const [isLoginOpen, setIsLoginOpen] = React.useState(false);
   
   const maxQuantity = product.maxQuantityPerOrder || product.stock;
   const inWishlist = isItemInWishlist(product.id);
+
+  React.useEffect(() => {
+    const session = sessionStorage.getItem('user-auth');
+    if (session) {
+      setUser(JSON.parse(session));
+    }
+  }, []);
 
   const handleQuantityChange = (amount: number) => {
     const newQuantity = quantity + amount;
@@ -52,6 +62,10 @@ export function ProductInteractions({ product, categoryName, selectedVariant }: 
   };
 
   const handleAddToCart = async () => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     const result = await addItem(product, quantity, selectedVariant);
     toast({
       title: 'Added to Cart',
@@ -60,11 +74,19 @@ export function ProductInteractions({ product, categoryName, selectedVariant }: 
   };
 
   const handleBuyNow = async () => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     await addItem(product, quantity, selectedVariant);
     router.push('/checkout');
   };
 
   const handleWishlistToggle = async () => {
+    if (!user) {
+        setIsLoginOpen(true);
+        return;
+    }
     const result = await toggleWishlistItem(product);
     toast({
       title: result.message,
@@ -133,53 +155,56 @@ export function ProductInteractions({ product, categoryName, selectedVariant }: 
 
 
   return (
-    <div className="space-y-6">
-        {product.stock > 0 && !product.customizable && (
-            <div className="space-y-2">
-                <Label>Quantity</Label>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
-                        <Minus className="h-4 w-4" />
-                    </Button>
-                    <Input 
-                        type="text" 
-                        readOnly 
-                        value={quantity} 
-                        className="w-16 text-center" 
-                    />
-                     <Button variant="outline" size="icon" onClick={() => handleQuantityChange(1)} disabled={quantity >= maxQuantity}>
-                        <Plus className="h-4 w-4" />
-                    </Button>
+    <>
+        <div className="space-y-6">
+            {product.stock > 0 && !product.customizable && (
+                <div className="space-y-2">
+                    <Label>Quantity</Label>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
+                            <Minus className="h-4 w-4" />
+                        </Button>
+                        <Input 
+                            type="text" 
+                            readOnly 
+                            value={quantity} 
+                            className="w-16 text-center" 
+                        />
+                        <Button variant="outline" size="icon" onClick={() => handleQuantityChange(1)} disabled={quantity >= maxQuantity}>
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    {showMaxQuantityWarning && (
+                        <p className="text-sm text-destructive">Max. order quantity per order is {maxQuantity}.</p>
+                    )}
                 </div>
-                {showMaxQuantityWarning && (
-                    <p className="text-sm text-destructive">Max. order quantity per order is {maxQuantity}.</p>
-                )}
-            </div>
-        )}
+            )}
 
-        {renderMainActions()}
-        
-         <div className="grid grid-cols-1 gap-3">
-            <Button size="lg" variant="outline" className="w-full" onClick={handleWishlistToggle}>
-                <Heart className={inWishlist ? "mr-2 fill-red-500 text-red-500" : "mr-2"} />
-                {inWishlist ? 'In Wishlist' : 'Add to Wishlist'}
-            </Button>
-        </div>
-        <div className="rounded-lg border p-4 space-y-3">
-            <h4 className="font-semibold">Check Delivery</h4>
-            <div className="flex gap-2">
-                <Input 
-                    placeholder="Enter Pincode" 
-                    value={pincode}
-                    onChange={(e) => setPincode(e.target.value)}
-                    maxLength={6}
-                />
-                <Button onClick={handleCheckDelivery} disabled={checking}>
-                    {checking ? <Loader2 className="animate-spin" /> : 'Check'}
+            {renderMainActions()}
+            
+            <div className="grid grid-cols-1 gap-3">
+                <Button size="lg" variant="outline" className="w-full" onClick={handleWishlistToggle}>
+                    <Heart className={inWishlist ? "mr-2 fill-red-500 text-red-500" : "mr-2"} />
+                    {inWishlist ? 'In Wishlist' : 'Add to Wishlist'}
                 </Button>
             </div>
-            {deliveryInfo && <p className="text-sm text-muted-foreground">{deliveryInfo}</p>}
+            <div className="rounded-lg border p-4 space-y-3">
+                <h4 className="font-semibold">Check Delivery</h4>
+                <div className="flex gap-2">
+                    <Input 
+                        placeholder="Enter Pincode" 
+                        value={pincode}
+                        onChange={(e) => setPincode(e.target.value)}
+                        maxLength={6}
+                    />
+                    <Button onClick={handleCheckDelivery} disabled={checking}>
+                        {checking ? <Loader2 className="animate-spin" /> : 'Check'}
+                    </Button>
+                </div>
+                {deliveryInfo && <p className="text-sm text-muted-foreground">{deliveryInfo}</p>}
+            </div>
         </div>
-    </div>
+        <LoginDialog open={isLoginOpen} onOpenChange={setIsLoginOpen} />
+    </>
   );
 }
